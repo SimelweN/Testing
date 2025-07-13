@@ -1,0 +1,228 @@
+/* Campus Transition Animations */
+
+.campus-page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.campus-page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 300ms ease-out,
+    transform 300ms ease-out;
+}
+
+.campus-page-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.campus-page-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition:
+    opacity 300ms ease-out,
+    transform 300ms ease-out;
+}
+
+/* Section animations */
+.campus-section {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.campus-section:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.campus-section:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.campus-section:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.campus-section:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.campus-section:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card hover animations */
+.campus-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.campus-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Button hover effects */
+.campus-btn {
+  transition: all 0.2s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.campus-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.campus-btn:hover::before {
+  left: 100%;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Loading animations */
+.campus-loading {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Form animations */
+.campus-form-field {
+  transition: all 0.2s ease-out;
+}
+
+.campus-form-field:focus {
+  transform: scale(1.02);
+}
+
+/* Stagger animations for lists */
+.campus-stagger-item {
+  opacity: 0;
+  transform: translateX(-20px);
+  animation: slideInLeft 0.4s ease-out forwards;
+}
+
+.campus-stagger-item:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.campus-stagger-item:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.campus-stagger-item:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.campus-stagger-item:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.campus-stagger-item:nth-child(5) {
+  animation-delay: 0.5s;
+}
+.campus-stagger-item:nth-child(6) {
+  animation-delay: 0.6s;
+}
+
+@keyframes slideInLeft {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Backdrop blur effects */
+.campus-backdrop {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Gradient text animations */
+.campus-gradient-text {
+  background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+  background-size: 200% 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Pulse animation for CTA elements */
+.campus-pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Scrollbar styling */
+.campus-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.campus-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.campus-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  border-radius: 3px;
+}
+
+.campus-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, #5a6fd8, #6b42a0);
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

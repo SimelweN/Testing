@@ -1,0 +1,75 @@
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Dependencies
+node_modules/
+bun.lockb
+package-lock.json
+yarn.lock
+
+# Environment and config
+.env*
+*.env
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Cache
+.cache/
+.parcel-cache/
+
+# Static assets (can be large)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.webp
+
+# Documentation
+README.md
+CHANGELOG.md
+LICENSE
+
+# Config files that don't need editing
+postcss.config.js
+tailwind.config.ts
+vite.config.ts*
+tsconfig*.json
+eslint.config.js
+components.json
+
+# Supabase
+supabase/
+
+# Misc
+robots.txt
