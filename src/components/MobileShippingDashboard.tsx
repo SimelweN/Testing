@@ -16,22 +16,19 @@ import {
 } from "lucide-react";
 
 // Import tracking-only components
-import CourierGuyTrackingOnly from "@/components/courier-guy/CourierGuyTrackingOnly";
-import FastwayTrackingOnly from "@/components/fastway/FastwayTrackingOnly";
 import ShipLogicTrackingOnly from "@/components/shiplogic/ShipLogicTrackingOnly";
 import ShipLogicRateQuote from "@/components/shiplogic/ShipLogicRateQuote";
 
 interface MobileShippingDashboardProps {
-  defaultProvider?: "courierGuy" | "shipLogic" | "fastway";
+  defaultProvider?: "shipLogic";
 }
 
 const MobileShippingDashboard = ({
-  defaultProvider = "courierGuy",
+  defaultProvider = "shipLogic",
 }: MobileShippingDashboardProps) => {
   const navigate = useNavigate();
-  const [selectedProvider, setSelectedProvider] = useState<
-    "courierGuy" | "shipLogic" | "fastway"
-  >(defaultProvider);
+  const [selectedProvider, setSelectedProvider] =
+    useState<"shipLogic">(defaultProvider);
 
   const providers = [
     {
