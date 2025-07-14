@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import Layout from "@/components/Layout";
 import BankingSetupForm from "@/components/banking/BankingSetupForm";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { BankingService } from "@/services/bankingService";
 import { toast } from "sonner";
 import type { BankingSubaccount } from "@/types/banking";
