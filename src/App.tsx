@@ -10,6 +10,7 @@ import "./utils/suppressNetworkErrors";
 
 import { ThemeProvider } from "next-themes";
 import ErrorBoundary from "./components/ErrorBoundary";
+import NetworkErrorBoundary from "./components/NetworkErrorBoundary";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 import AuthErrorHandler from "./components/AuthErrorHandler";
