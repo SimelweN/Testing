@@ -185,7 +185,14 @@ export const getAllCommitments = async (
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Error fetching commitments:", error);
+      console.error("Error fetching commitments:", error.message || error);
+      // If table doesn't exist, return empty array
+      if (
+        error.message?.includes("relation") ||
+        error.message?.includes("does not exist")
+      ) {
+        return [];
+      }
       throw new Error(error.message || "Failed to fetch commitments");
     }
 
