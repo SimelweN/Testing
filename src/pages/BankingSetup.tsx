@@ -22,8 +22,7 @@ import { toast } from "sonner";
 const BankingSetup: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [existingBanking, setExistingBanking] =
-    useState<BankingSubaccount | null>(null);
+  const [existingBanking, setExistingBanking] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
 
@@ -35,10 +34,19 @@ const BankingSetup: React.FC = () => {
       }
 
       try {
-        const banking = await BankingService.getUserBankingDetails(user.id);
-        setExistingBanking(banking);
+        const status = await PaystackSubaccountService.getUserSubaccountStatus(
+          user.id,
+        );
 
-        if (!banking) {
+        if (status.hasSubaccount) {
+          setExistingBanking({
+            business_name: status.businessName,
+            bank_name: status.bankName,
+            account_number: status.accountNumber,
+            email: status.email,
+            status: "active",
+          });
+        } else {
           setShowForm(true);
         }
       } catch (error) {
