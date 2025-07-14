@@ -133,7 +133,7 @@ const BookDetails = () => {
       toast.error("Seller profile not available");
       return;
     }
-    navigate(`/user/${book.seller.id}`);
+    navigate(`/seller/${book.seller.id}`);
   };
 
   const handleReportBook = () => {
