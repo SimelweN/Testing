@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,196 +6,177 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-interface FastwayQuoteRequest {
-  collection_postcode: string;
-  delivery_postcode: string;
+interface CourierAddress {
+  street: string;
+  city: string;
+  province: string;
+  postal_code: string;
+  country?: string;
+}
+
+interface ParcelDetails {
   weight: number;
-  length?: number;
-  width?: number;
-  height?: number;
-  service_type?: string;
+  length: number;
+  width: number;
+  height: number;
+  value: number;
 }
 
-interface FastwayQuoteResponse {
-  service_code: string;
-  service_name: string;
-  cost: number;
-  cost_ex_gst: number;
-  gst: number;
-  transit_days: number;
-  collection_cutoff?: string;
-  delivery_guarantee?: string;
-}
-
-serve(async (req) => {
-  // Handle CORS preflight requests
+serve(async (req: Request) => {
+  // Handle CORS
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    console.log("Fastway Quote API called");
+    const { pickup_address, delivery_address, parcel_details } =
+      await req.json();
 
-    const requestData: FastwayQuoteRequest = await req.json();
-    console.log("Quote request:", requestData);
+    // Get environment variables
+    const FASTWAY_API_KEY = Deno.env.get("FASTWAY_API_KEY");
+    const FASTWAY_BASE_URL = "https://api.fastway.co.za/v1";
 
-    // Validate required fields
-    if (
-      !requestData.collection_postcode ||
-      !requestData.delivery_postcode ||
-      !requestData.weight
-    ) {
-      return new Response(
-        JSON.stringify({
-          error:
-            "Missing required fields: collection_postcode, delivery_postcode, weight",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+    if (!FASTWAY_API_KEY) {
+      console.warn("Fastway API key not configured, using fallback rates");
+      return getFallbackRates(pickup_address, delivery_address, parcel_details);
     }
 
-    // Get Fastway API credentials from environment
-    const fastwayApiKey = Deno.env.get("FASTWAY_API_KEY");
-    const fastwayApiUrl =
-      Deno.env.get("FASTWAY_API_URL") || "https://api.fastway.org/v2";
-
-    if (!fastwayApiKey) {
-      console.error("Fastway API key not configured");
-      // Return fallback quotes for development
-      return new Response(
-        JSON.stringify({
-          quotes: generateFallbackQuotes(requestData.weight),
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    // Prepare Fastway API request
-    const fastwayRequest = {
-      pickup_postcode: requestData.collection_postcode,
-      destination_postcode: requestData.delivery_postcode,
-      weight_kg: requestData.weight,
-      length_cm: requestData.length || 20,
-      width_cm: requestData.width || 20,
-      height_cm: requestData.height || 20,
+    // 🔑 Real Fastway API integration
+    const quoteData = {
+      pickup_address: {
+        street_address: pickup_address.street,
+        city: pickup_address.city,
+        province: pickup_address.province,
+        postal_code: pickup_address.postal_code,
+        country: pickup_address.country || "South Africa",
+      },
+      delivery_address: {
+        street_address: delivery_address.street,
+        city: delivery_address.city,
+        province: delivery_address.province,
+        postal_code: delivery_address.postal_code,
+        country: delivery_address.country || "South Africa",
+      },
+      parcel: {
+        weight_kg: parcel_details.weight || 0.5,
+        length_cm: parcel_details.length || 20,
+        width_cm: parcel_details.width || 15,
+        height_cm: parcel_details.height || 5,
+        value_zar: parcel_details.value || 100,
+      },
     };
 
-    console.log("Calling Fastway API:", fastwayRequest);
-
-    // Call Fastway API
-    const fastwayResponse = await fetch(`${fastwayApiUrl}/quotes`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${fastwayApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(fastwayRequest),
-    });
-
-    if (!fastwayResponse.ok) {
-      console.error(
-        "Fastway API error:",
-        fastwayResponse.status,
-        await fastwayResponse.text(),
-      );
-
-      // Return fallback quotes on API error
-      return new Response(
-        JSON.stringify({
-          quotes: generateFallbackQuotes(requestData.weight),
-          fallback: true,
-          error: `Fastway API error: ${fastwayResponse.status}`,
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    const fastwayData = await fastwayResponse.json();
-    console.log("Fastway API response:", fastwayData);
-
-    // Transform Fastway response to our format
-    const quotes: FastwayQuoteResponse[] = (fastwayData.quotes || []).map(
-      (quote: any) => ({
-        service_code: quote.service_code || "STANDARD",
-        service_name: quote.service_name || "Fastway Standard",
-        cost: parseFloat(quote.total_cost_incl_gst || quote.cost || "50"),
-        cost_ex_gst: parseFloat(
-          quote.total_cost_excl_gst || quote.cost_ex_gst || "43.48",
-        ),
-        gst: parseFloat(quote.gst || "6.52"),
-        transit_days: parseInt(quote.transit_days || "3"),
-        collection_cutoff: quote.collection_cutoff || "16:00",
-        delivery_guarantee: quote.guarantee,
-      }),
+    console.log(
+      "Calling Fastway API with:",
+      JSON.stringify(quoteData, null, 2),
     );
 
-    // If no quotes returned, provide fallback
-    if (quotes.length === 0) {
-      console.log("No quotes from Fastway API, using fallback");
-      return new Response(
-        JSON.stringify({
-          quotes: generateFallbackQuotes(requestData.weight),
-          fallback: true,
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+    // 📡 Call Real Fastway API
+    const response = await fetch(`${FASTWAY_BASE_URL}/quote`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${FASTWAY_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(quoteData),
+    });
+
+    if (!response.ok) {
+      console.warn(
+        `Fastway API error: ${response.status} ${response.statusText}`,
       );
+      return getFallbackRates(pickup_address, delivery_address, parcel_details);
     }
 
-    return new Response(JSON.stringify({ quotes }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    console.error("Error in fastway-quote function:", error);
+    const data = await response.json();
+    console.log("Fastway API response:", JSON.stringify(data, null, 2));
+
+    // 🔄 Transform API response to standard format
+    const quotes =
+      data.quotes?.map((quote: any) => ({
+        service_name: quote.service_name,
+        service_code: quote.service_code,
+        price: parseFloat(quote.total_price) || parseFloat(quote.price) || 0,
+        currency: "ZAR",
+        estimated_days: quote.delivery_days || quote.estimated_days || "2-3",
+        description: `${quote.service_name} delivery via Fastway`,
+      })) || [];
 
     return new Response(
       JSON.stringify({
-        error: "Internal server error",
-        quotes: generateFallbackQuotes(1), // Default weight
+        success: true,
+        quotes,
+        provider: "fastway",
       }),
       {
-        status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       },
     );
+  } catch (error) {
+    console.error("Fastway API error:", error);
+
+    // 🔄 Fallback quote on error
+    return getFallbackRates(pickup_address, delivery_address, parcel_details);
   }
 });
 
-function generateFallbackQuotes(weight: number): FastwayQuoteResponse[] {
-  const basePrice = Math.max(45, weight * 12);
-  const gst = Math.round(basePrice * 0.15 * 100) / 100;
+// Fallback rate calculation for Fastway
+function getFallbackRates(
+  fromAddress: CourierAddress,
+  toAddress: CourierAddress,
+  parcel: ParcelDetails,
+) {
+  const majorProvinces = ["Gauteng", "Western Cape", "KwaZulu-Natal"];
+  const fromMajor = majorProvinces.includes(fromAddress.province);
+  const toMajor = majorProvinces.includes(toAddress.province);
 
-  return [
+  let baseStandard = 65;
+  let baseExpress = 90;
+
+  if (fromAddress.province === toAddress.province) {
+    baseStandard = fromMajor ? 50 : 60;
+    baseExpress = fromMajor ? 70 : 80;
+  } else if (fromMajor && toMajor) {
+    baseStandard = 80;
+    baseExpress = 100;
+  } else if (fromMajor || toMajor) {
+    baseStandard = 90;
+    baseExpress = 115;
+  } else {
+    baseStandard = 100;
+    baseExpress = 130;
+  }
+
+  const weightMultiplier = Math.max(1, parcel.weight / 2);
+
+  const quotes = [
     {
-      service_code: "STANDARD",
-      service_name: "Fastway Standard",
-      cost: Math.round((basePrice + gst) * 100) / 100,
-      cost_ex_gst: basePrice,
-      gst: gst,
-      transit_days: 3,
-      collection_cutoff: "16:00",
+      service_name: "Standard Delivery",
+      service_code: "STD",
+      price: Math.round(baseStandard * weightMultiplier),
+      currency: "ZAR",
+      estimated_days: "2-4",
+      description: "Standard delivery service (calculated rate)",
     },
     {
-      service_code: "EXPRESS",
-      service_name: "Fastway Express",
-      cost: Math.round((basePrice * 1.4 + gst * 1.4) * 100) / 100,
-      cost_ex_gst: Math.round(basePrice * 1.4 * 100) / 100,
-      gst: Math.round(gst * 1.4 * 100) / 100,
-      transit_days: 1,
-      collection_cutoff: "14:00",
-      delivery_guarantee: "Next business day",
+      service_name: "Express Delivery",
+      service_code: "EXP",
+      price: Math.round(baseExpress * weightMultiplier),
+      currency: "ZAR",
+      estimated_days: "1-2",
+      description: "Express delivery service (calculated rate)",
     },
   ];
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      quotes,
+      provider: "fastway",
+      fallback: true,
+    }),
+    {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    },
+  );
 }

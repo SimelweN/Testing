@@ -15,13 +15,8 @@ import {
 import StudyTipCard from "./StudyTipCard";
 import StudyResourceCard from "./StudyResourceCard";
 import StudyFilters from "./StudyFilters";
-import SponsorshipBanner from "./SponsorshipBanner";
 import { useStudyResources } from "@/hooks/useStudyResources";
 import { STUDY_TIPS, STUDY_RESOURCES } from "@/constants/studyResources";
-import {
-  SPONSORED_STUDY_TIPS,
-  SPONSORED_STUDY_RESOURCES,
-} from "@/constants/sponsoredStudyContent";
 import { getAllStudyContent } from "@/services/admin/studyResourcesService";
 import { StudyTip, StudyResource } from "@/types/university";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -49,17 +44,9 @@ const StudyResourcesPage = () => {
           resourcesCount: adminResources.length,
         });
 
-        // Combine static content with admin-added content and sponsored content
-        const combinedTips = [
-          ...STUDY_TIPS,
-          ...SPONSORED_STUDY_TIPS,
-          ...adminTips,
-        ];
-        const combinedResources = [
-          ...STUDY_RESOURCES,
-          ...SPONSORED_STUDY_RESOURCES,
-          ...adminResources,
-        ];
+        // Combine static content with admin-added content
+        const combinedTips = [...STUDY_TIPS, ...adminTips];
+        const combinedResources = [...STUDY_RESOURCES, ...adminResources];
 
         setAllTips(combinedTips);
         setAllResources(combinedResources);
@@ -93,9 +80,9 @@ const StudyResourcesPage = () => {
 
         setError(errorMessage);
 
-        // Keep static and sponsored content if database fetch fails
-        setAllTips([...STUDY_TIPS, ...SPONSORED_STUDY_TIPS]);
-        setAllResources([...STUDY_RESOURCES, ...SPONSORED_STUDY_RESOURCES]);
+        // Keep static content if database fetch fails
+        setAllTips([...STUDY_TIPS]);
+        setAllResources([...STUDY_RESOURCES]);
       } finally {
         setIsLoading(false);
       }
@@ -164,9 +151,6 @@ const StudyResourcesPage = () => {
             excel in your academic journey.
           </p>
         </div>
-
-        {/* Sponsorship Banner */}
-        <SponsorshipBanner />
 
         {/* Stats Overview */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-8">

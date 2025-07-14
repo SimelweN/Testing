@@ -63,6 +63,7 @@ import {
   useAPSAwareCourseAssignment,
   useAPSFilterOptions,
 } from "@/hooks/useAPSAwareCourseAssignment";
+import { useEnhancedAPSStorage } from "@/hooks/useEnhancedAPSStorage";
 import { toast } from "sonner";
 import { APSSubject } from "@/types/university";
 import {
@@ -91,7 +92,20 @@ interface APSSubjectInput {
 const EnhancedAPSCalculator: React.FC = () => {
   const navigate = useNavigate();
 
-  // APS-aware state management
+  // Enhanced APS storage with localStorage primary storage
+  const {
+    userProfile: enhancedProfile,
+    isLoading: storageLoading,
+    error: storageError,
+    updateUserSubjects: updateSubjectsWithStorage,
+    clearUserProfile: clearAPSProfileEnhanced,
+    hasProfile,
+    totalAPS,
+    subjects: storedSubjects,
+    clearError: clearStorageError,
+  } = useEnhancedAPSStorage();
+
+  // Legacy APS-aware state management (for compatibility)
   const {
     userProfile,
     isLoading,
@@ -287,20 +301,39 @@ const EnhancedAPSCalculator: React.FC = () => {
     toast.success("All data cleared");
   }, [clearError]);
 
-  // Clear APS profile from all universities
-  const handleClearAPSProfile = useCallback(() => {
-    clearAPSProfile();
-    setSubjects([]);
-    setSelectedSubject("");
-    setSelectedMarks("");
-    setSearchResults([]);
-    setSelectedProgram(null);
-    setIsDetailsModalOpen(false);
-    setShowProgramsSection(false);
-    setUniversitySpecificScores(null);
-    clearError();
-    toast.success("APS profile cleared from all universities");
-  }, [clearAPSProfile, clearError]);
+  // 🔴 CLEAR APS PROFILE - Enhanced localStorage implementation
+  const handleClearAPSProfile = useCallback(async () => {
+    try {
+      // Use enhanced storage clear function
+      const success = await clearAPSProfileEnhanced();
+
+      if (success) {
+        // Clear legacy storage as well for compatibility
+        clearAPSProfile();
+
+        // Reset local component state
+        setSubjects([]);
+        setSelectedSubject("");
+        setSelectedMarks("");
+        setSearchResults([]);
+        setSelectedProgram(null);
+        setIsDetailsModalOpen(false);
+        setShowProgramsSection(false);
+        setUniversitySpecificScores(null);
+
+        // Clear errors
+        clearError();
+        clearStorageError();
+
+        toast.success("🗑️ APS profile cleared successfully");
+      } else {
+        toast.error("Failed to clear APS profile");
+      }
+    } catch (error) {
+      console.error("Error clearing APS profile:", error);
+      toast.error("Error clearing APS profile");
+    }
+  }, [clearAPSProfileEnhanced, clearAPSProfile, clearError, clearStorageError]);
 
   // Search programs function
   const searchPrograms = useCallback(async () => {
@@ -317,6 +350,9 @@ const EnhancedAPSCalculator: React.FC = () => {
         level: subject.level,
         points: subject.points,
       }));
+      // 🔄 AUTO-SAVE TO ENHANCED LOCALSTORAGE
+      await updateSubjectsWithStorage(apsSubjects);
+      // Also update legacy system for compatibility
       await updateUserSubjects(apsSubjects);
 
       // Search across all universities
@@ -341,6 +377,7 @@ const EnhancedAPSCalculator: React.FC = () => {
   }, [
     apsCalculation.isCalculationValid,
     subjects,
+    updateSubjectsWithStorage,
     updateUserSubjects,
     searchCoursesForUniversity,
   ]);
@@ -581,6 +618,22 @@ const EnhancedAPSCalculator: React.FC = () => {
                 </Button>
               </div>
 
+              {/* 💾 Storage Status Indicator */}
+              {(hasProfile || enhancedProfile) && (
+                <Alert className="border-green-200 bg-green-50">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-800">
+                    💾 APS Profile saved to localStorage (persistent storage)
+                    {enhancedProfile?.lastUpdated && (
+                      <span className="ml-2 text-sm opacity-75">
+                        Last updated:{" "}
+                        {new Date(enhancedProfile.lastUpdated).toLocaleString()}
+                      </span>
+                    )}
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {/* Added Subjects List */}
               {subjects.length > 0 && (
                 <div className="space-y-4">
@@ -598,14 +651,15 @@ const EnhancedAPSCalculator: React.FC = () => {
                       >
                         Clear All
                       </Button>
-                      {hasValidProfile && (
+                      {(hasValidProfile || hasProfile) && (
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={handleClearAPSProfile}
                           className="text-red-600 border-red-200 hover:bg-red-50"
+                          title="Clear APS profile from localStorage (permanent storage)"
                         >
-                          Clear Profile
+                          🗑️ Clear APS Profile
                         </Button>
                       )}
                     </div>

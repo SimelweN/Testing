@@ -121,7 +121,7 @@ const CheckoutSummary = ({
                 Subtotal ({items.length} {items.length === 1 ? "item" : "items"}
                 )
               </span>
-              <span className="font-medium">R{subtotal.toFixed(2)}</span>
+              <span className="font-medium">R{(subtotal || 0).toFixed(2)}</span>
             </div>
 
             {selectedDelivery ? (
@@ -129,7 +129,9 @@ const CheckoutSummary = ({
                 <span className="text-gray-600">
                   Delivery ({selectedDelivery.serviceName})
                 </span>
-                <span className="font-medium">R{deliveryFee.toFixed(2)}</span>
+                <span className="font-medium">
+                  R{(deliveryFee || 0).toFixed(2)}
+                </span>
               </div>
             ) : currentStep === "delivery" || currentStep === "payment" ? (
               <div className="flex justify-between text-sm">
@@ -142,7 +144,9 @@ const CheckoutSummary = ({
 
             <div className="flex justify-between text-base font-bold">
               <span>Total</span>
-              <span className="text-book-600">R{totalAmount.toFixed(2)}</span>
+              <span className="text-book-600">
+                R{(totalAmount || 0).toFixed(2)}
+              </span>
             </div>
           </div>
         </div>

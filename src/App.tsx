@@ -2,7 +2,10 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/react";
+
+// Suppress harmless ResizeObserver warnings
+import "./utils/suppressResizeObserverError";
+
 import { ThemeProvider } from "next-themes";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -33,7 +36,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 import Cart from "./pages/Cart";
-import Checkout from "./pages/Checkout";
+import CheckoutSimplified from "./pages/CheckoutSimplified";
 import NotificationsOld from "./pages/Notifications";
 import Notifications from "./pages/NotificationsNew";
 import Shipping from "./pages/Shipping";
@@ -126,8 +129,14 @@ function App() {
 
                     {/* Shopping and Cart Routes */}
                     <Route path="/cart" element={<Cart />} />
-                    <Route path="/checkout/:id" element={<Checkout />} />
-                    <Route path="/checkout/cart" element={<Checkout />} />
+                    <Route
+                      path="/checkout/:id"
+                      element={<CheckoutSimplified />}
+                    />
+                    <Route
+                      path="/checkout/cart"
+                      element={<CheckoutSimplified />}
+                    />
                     <Route path="/shipping" element={<Shipping />} />
 
                     {/* Support and Info Pages */}
@@ -234,11 +243,9 @@ function App() {
               </CartProvider>
             </AuthProvider>
           </GoogleMapsProvider>
-          {/* Vercel Analytics and Speed Insights */}
-          <Analytics />
-          <SpeedInsights />
         </ThemeProvider>
       </QueryClientProvider>
+      <Analytics />
     </ErrorBoundary>
   );
 }

@@ -14,17 +14,15 @@ import {
   Clock,
 } from "lucide-react";
 import Layout from "@/components/Layout";
-import BankingSetupForm from "@/components/banking/BankingSetupForm";
+import BankingDetailsForm from "@/components/banking/BankingDetailsForm";
 import { useAuth } from "@/contexts/AuthContext";
-import { BankingService } from "@/services/bankingService";
+import { PaystackSubaccountService } from "@/services/paystackSubaccountService";
 import { toast } from "sonner";
-import type { BankingSubaccount } from "@/types/banking";
 
 const BankingSetup: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [existingBanking, setExistingBanking] =
-    useState<BankingSubaccount | null>(null);
+  const [existingBanking, setExistingBanking] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
 
@@ -36,10 +34,19 @@ const BankingSetup: React.FC = () => {
       }
 
       try {
-        const banking = await BankingService.getUserBankingDetails(user.id);
-        setExistingBanking(banking);
+        const status = await PaystackSubaccountService.getUserSubaccountStatus(
+          user.id,
+        );
 
-        if (!banking) {
+        if (status.hasSubaccount) {
+          setExistingBanking({
+            business_name: status.businessName,
+            bank_name: status.bankName,
+            account_number: status.accountNumber,
+            email: status.email,
+            status: "active",
+          });
+        } else {
           setShowForm(true);
         }
       } catch (error) {
@@ -54,7 +61,7 @@ const BankingSetup: React.FC = () => {
 
   const handleSetupSuccess = () => {
     toast.success("Banking details saved successfully!");
-    navigate("/dashboard?tab=earnings");
+    navigate("/profile");
   };
 
   const handleBack = () => {
@@ -231,10 +238,10 @@ const BankingSetup: React.FC = () => {
 
                   <div className="mt-6 pt-6 border-t">
                     <Button
-                      onClick={() => navigate("/dashboard")}
+                      onClick={() => navigate("/profile")}
                       className="bg-green-600 hover:bg-green-700"
                     >
-                      Go to Dashboard
+                      Go to Profile
                     </Button>
                   </div>
                 </CardContent>
@@ -283,21 +290,12 @@ const BankingSetup: React.FC = () => {
               )}
 
               {/* Form */}
-              <BankingSetupForm
+              <BankingDetailsForm
                 onSuccess={handleSetupSuccess}
                 onCancel={
                   existingBanking ? () => setShowForm(false) : undefined
                 }
-                initialData={
-                  existingBanking
-                    ? {
-                        businessName: existingBanking.business_name,
-                        email: existingBanking.email,
-                        bankName: existingBanking.bank_name,
-                        accountNumber: existingBanking.account_number,
-                      }
-                    : undefined
-                }
+                editMode={!!existingBanking}
               />
             </div>
           )}
