@@ -19,6 +19,11 @@ const suppressedErrorPatterns = [
   "ping.*waitForSuccessfulPing", // Vite HMR ping errors
   "WebSocket.*failed", // WebSocket connection errors
   "net::ERR_", // Chrome network errors
+  "at e \\(https://edge\\.fullstory\\.com", // Specific FullStory error pattern
+  "at m\\.<computed>", // FullStory method pattern
+  "at window\\.fetch.*eval.*messageHandler", // Eval-related fetch errors
+  "https://.*\\.fly\\.dev.*reload=", // Fly.io dev server reloads
+  "waitForSuccessfulPing", // Exact Vite ping function
 ];
 
 // Check if error should be suppressed
