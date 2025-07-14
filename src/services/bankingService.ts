@@ -346,10 +346,9 @@ export class BankingService {
       const bankingDetails = await this.getUserBankingDetails(userId);
 
       if (!bankingDetails?.subaccount_code) {
-        console.warn(
-          "🛠️ No subaccount found for user - this might be expected in development",
+        throw new Error(
+          "No banking account found. Please set up banking first.",
         );
-        return; // Don't throw error, just return silently
       }
 
       // Update all user's books to include subaccount code
