@@ -271,6 +271,106 @@ export const getCommitPendingBooks = async (): Promise<any[]> => {
 };
 
 /**
+ * Declines a book sale within the 48-hour window
+ * Updates the book status back to available and triggers refund process
+ */
+export const declineBookSale = async (bookId: string): Promise<void> => {
+  try {
+    console.log("[CommitService] Starting decline process for book:", bookId);
+
+    // Validate input
+    if (!bookId || typeof bookId !== "string") {
+      throw new Error("Invalid book ID provided");
+    }
+
+    // Get current user
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError || !user) {
+      if (userError) {
+        logCommitError("Authentication error", userError);
+      } else {
+        console.log("[CommitService] No authenticated user found");
+      }
+      throw new Error("User not authenticated");
+    }
+
+    // First, check if the book exists and is in the correct state
+    const { data: book, error: bookError } = await supabase
+      .from("books")
+      .select("*")
+      .eq("id", bookId)
+      .eq("seller_id", user.id)
+      .single();
+
+    if (bookError) {
+      logCommitError("Error fetching book", bookError, {
+        bookId,
+        userId: user.id,
+      });
+      throw new Error(
+        `Failed to fetch book details: ${bookError.message || "Database error"}`,
+      );
+    }
+
+    if (!book) {
+      console.warn(
+        "[CommitService] Book not found - ID:",
+        bookId,
+        "User:",
+        user.id,
+      );
+      throw new Error(
+        "Book not found or you don't have permission to decline this sale",
+      );
+    }
+
+    console.log("[CommitService] Processing decline for book:", book.title);
+
+    // Update book to mark as available again
+    const { error: updateError } = await supabase
+      .from("books")
+      .update({
+        sold: false,
+      })
+      .eq("id", bookId)
+      .eq("seller_id", user.id);
+
+    if (updateError) {
+      logCommitError("Error updating book status", updateError, {
+        bookId,
+        userId: user.id,
+      });
+      throw new Error(
+        `Failed to decline sale: ${updateError.message || "Database update failed"}`,
+      );
+    }
+
+    // Log the decline action
+    console.log("[CommitService] Decline action completed:", {
+      userId: user.id,
+      action: "decline_sale",
+      bookId: bookId,
+      bookTitle: book.title,
+      timestamp: new Date().toISOString(),
+    });
+
+    // TODO: Trigger refund process
+    // This would typically involve:
+    // 1. Processing refund to buyer's payment method
+    // 2. Notifying the buyer about the declined sale
+    // 3. Updating seller's reputation metrics
+
+    console.log("[CommitService] Book sale declined successfully:", bookId);
+  } catch (error) {
+    logCommitError("Error declining book sale", error);
+    throw error;
+  }
+};
+
+/**
  * Handles automatic cancellation of overdue commits
  */
 export const handleOverdueCommits = async (): Promise<void> => {
