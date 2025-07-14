@@ -36,8 +36,8 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name.trim() || !email.trim()) {
-      toast.error("Please fill in all fields");
+    if (!name.trim()) {
+      toast.error("Please enter your name");
       return;
     }
 
@@ -49,11 +49,11 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
     setIsLoading(true);
 
     try {
+      // Only update the name, not the email
       const { error } = await supabase
         .from("profiles")
         .update({
           name: name.trim(),
-          email: email.trim(),
           updated_at: new Date().toISOString(),
         })
         .eq("id", user.id);
