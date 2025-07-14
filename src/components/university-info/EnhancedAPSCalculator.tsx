@@ -50,7 +50,6 @@ import {
   Clock,
   X,
   Star,
-  X,
   Plus,
   Loader2,
   Info,
