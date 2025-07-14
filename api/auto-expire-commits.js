@@ -53,42 +53,56 @@ export default async function handler(req, res) {
     // Process each expired order
     for (const order of expiredOrders) {
       try {
-        // Call decline-commit function to handle the expiration
-        const declineResponse = await fetch(
-          `${req.headers.host}/api/decline-commit`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              order_id: order.id,
-              seller_id: order.seller_id,
-              reason: "Order expired - seller did not commit within 48 hours",
-            }),
-          },
-        );
+        // Handle order expiration internally since decline-commit function was removed
+        const { error: updateError } = await supabase
+          .from("orders")
+          .update({
+            status: "declined",
+            declined_at: new Date().toISOString(),
+            decline_reason:
+              "Order expired - seller did not commit within 48 hours",
+          })
+          .eq("id", order.id);
 
-        const declineResult = await declineResponse.json();
+        if (updateError) {
+          throw new Error(
+            `Failed to update order status: ${updateError.message}`,
+          );
+        }
 
-        if (declineResult.success) {
-          processedOrders.push({
-            order_id: order.id,
-            buyer_email: order.buyer.email,
-            seller_email: order.seller.email,
+        // Process refund directly
+        const { error: refundError } = await supabase
+          .from("transactions")
+          .insert({
+            user_id: order.buyer_id,
             amount: order.total_amount,
-            expired_at: new Date().toISOString(),
+            type: "refund",
+            status: "pending",
+            description: `Refund for expired order #${order.id}`,
+            order_id: order.id,
+            created_at: new Date().toISOString(),
           });
 
-          logEvent("order_auto_expired", {
+        if (refundError) {
+          logEvent("refund_creation_failed", {
             order_id: order.id,
-            seller_id: order.seller_id,
-            amount: order.total_amount,
-          });
-        } else {
-          errors.push({
-            order_id: order.id,
-            error: declineResult.error,
+            error: refundError.message,
           });
         }
+
+        processedOrders.push({
+          order_id: order.id,
+          buyer_email: order.buyer.email,
+          seller_email: order.seller.email,
+          amount: order.total_amount,
+          expired_at: new Date().toISOString(),
+        });
+
+        logEvent("order_auto_expired", {
+          order_id: order.id,
+          seller_id: order.seller_id,
+          amount: order.total_amount,
+        });
       } catch (orderError) {
         logEvent("order_expiry_error", {
           order_id: order.id,
