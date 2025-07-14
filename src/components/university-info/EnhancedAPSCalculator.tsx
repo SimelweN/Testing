@@ -48,6 +48,7 @@ import {
   Eye,
   Users,
   Clock,
+  X,
   Star,
   X,
   Plus,
