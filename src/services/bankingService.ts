@@ -90,8 +90,10 @@ export class BankingService {
       }
 
       // Check if we should use development fallback
-      if (!PAYSTACK_CONFIG.isConfigured()) {
-        console.warn("🛠️ Paystack not configured - using development fallback");
+      if (!PAYSTACK_CONFIG.isConfigured() || PAYSTACK_CONFIG.isDevelopment()) {
+        console.warn(
+          "🛠️ Using development fallback (Paystack not configured or in dev mode)",
+        );
         return this.createDevelopmentSubaccount(userId, bankingDetails);
       }
 
