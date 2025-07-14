@@ -187,19 +187,46 @@ const Checkout = () => {
 
         // Load saved addresses
         try {
+          console.log("Loading addresses for user:", user.id);
           const addressData = await getUserAddresses(user.id);
+
           if (addressData?.shipping_address) {
+            const shippingAddr = addressData.shipping_address;
             setShippingAddress({
-              street: addressData.shipping_address.street || "",
-              city: addressData.shipping_address.city || "",
-              province: addressData.shipping_address.province || "",
-              postalCode: addressData.shipping_address.postalCode || "",
+              street: shippingAddr.street || "",
+              city: shippingAddr.city || "",
+              province: shippingAddr.province || "",
+              postalCode: shippingAddr.postalCode || "",
               country: "South Africa",
             });
           }
           setSavedAddresses(addressData ? [addressData] : []);
+          console.log("Successfully loaded address data");
         } catch (addressError) {
-          console.error("Error loading addresses:", addressError);
+          console.error("Error loading addresses:", {
+            error: addressError,
+            message:
+              addressError instanceof Error
+                ? addressError.message
+                : String(addressError),
+            userId: user.id,
+          });
+
+          // Show user-friendly error message
+          if (
+            addressError instanceof Error &&
+            addressError.message.includes("Network connection")
+          ) {
+            toast.error(
+              "Network error loading saved addresses. You can still enter your address manually.",
+            );
+          } else {
+            toast.error(
+              "Could not load saved addresses. You can still enter your address manually.",
+            );
+          }
+
+          // Don't fail the entire checkout for address loading issues
         }
       } catch (err) {
         console.error("Checkout initialization error:", err);
