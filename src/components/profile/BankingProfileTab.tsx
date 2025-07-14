@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { setupSellerBanking } from "@/services/paystackService";
 import { toast } from "sonner";
 
 interface BankingInfo {
