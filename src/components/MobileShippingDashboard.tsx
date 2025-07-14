@@ -83,13 +83,7 @@ const MobileShippingDashboard = ({
                       {selectedProvider === provider.id && (
                         <Badge
                           variant="default"
-                          className={`text-xs ${
-                            provider.color === "blue"
-                              ? "bg-blue-600"
-                              : provider.color === "orange"
-                                ? "bg-orange-600"
-                                : "bg-green-600"
-                          }`}
+                          className="text-xs bg-green-600"
                         >
                           Selected
                         </Badge>
