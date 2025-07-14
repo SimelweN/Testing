@@ -13,7 +13,7 @@ import {
 import { PAYSTACK_CONFIG, calculatePaymentSplit } from "@/config/paystack";
 import { PaymentService } from "@/services/paymentService";
 import { useAuth } from "@/contexts/AuthContext";
-import type { ShippingAddress } from "@/types/banking";
+import type { ShippingAddress, Order } from "@/types/banking";
 
 // Declare Paystack types for window object
 declare global {
