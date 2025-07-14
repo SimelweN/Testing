@@ -313,8 +313,26 @@ const Checkout = () => {
           setSelectedDelivery(quotes[0]);
         }
       } catch (error) {
-        console.error("Error fetching delivery quotes:", error);
-        toast.error("Failed to get delivery quotes");
+        console.error("Error fetching delivery quotes:", {
+          error,
+          message: error instanceof Error ? error.message : String(error),
+          shippingAddress,
+          itemCount: items.length,
+        });
+
+        // Show user-friendly error message
+        if (
+          error instanceof Error &&
+          error.message.includes("Network connection")
+        ) {
+          toast.error(
+            "Network error getting delivery quotes. Please check your connection and try again.",
+          );
+        } else {
+          toast.error(
+            "Could not get delivery quotes. Please try again or contact support.",
+          );
+        }
       } finally {
         setLoadingQuotes(false);
       }
