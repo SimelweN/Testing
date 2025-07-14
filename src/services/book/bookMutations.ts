@@ -64,8 +64,8 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
       // Continue without province - it's not critical for book creation
     }
 
-    // Create book data without province first (safer approach)
-    const bookDataWithoutProvince = {
+    // Create book data with all required fields
+    const fullBookData = {
       seller_id: user.id,
       title: bookData.title,
       author: bookData.author,
@@ -79,14 +79,17 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
       inside_pages: bookData.insidePages,
       grade: bookData.grade,
       university_year: bookData.universityYear,
+      province: province,
+      pickup_address: pickupAddress,
+      paystack_subaccount_code: paystackSubaccountCode,
+      requires_banking_setup: false, // Set to false since user passed banking requirements
     };
 
-    // Store province for future use when database schema is updated
-    if (province) {
-      console.log("📍 Province extracted from user address:", province);
-      console.log("💡 Province will be stored once database schema is updated");
-      // TODO: Add province to book data when 'province' column is available in production
-    }
+    console.log("📍 Creating book with address and banking info:", {
+      province,
+      hasPickupAddress: !!pickupAddress,
+      hasSubaccountCode: !!paystackSubaccountCode,
+    });
 
     const { data: book, error } = await supabase
       .from("books")
