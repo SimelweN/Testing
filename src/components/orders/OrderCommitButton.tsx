@@ -52,25 +52,20 @@ const OrderCommitButton: React.FC<OrderCommitButtonProps> = ({
     try {
       console.log(`🚀 Committing to sale for order: ${orderId}`);
 
-      // 🚀 CALL COMMIT-TO-SALE EDGE FUNCTION
-      const { data, error } = await supabase.functions.invoke(
-        "commit-to-sale",
-        {
-          body: {
-            order_id: orderId,
-            seller_id: sellerId,
-          },
-        },
-      );
+      // 🚀 HANDLE COMMIT DIRECTLY IN DATABASE
+      const { error: updateError } = await supabase
+        .from("orders")
+        .update({
+          status: "committed",
+          committed_at: new Date().toISOString(),
+        })
+        .eq("id", orderId)
+        .eq("seller_id", sellerId)
+        .eq("status", "pending_commit");
 
-      if (error) {
-        console.error("Supabase function error:", error);
-        throw new Error(error.message || "Failed to call commit function");
-      }
-
-      if (!data?.success) {
-        console.error("Commit function returned error:", data);
-        throw new Error(data?.error || "Failed to commit to sale");
+      if (updateError) {
+        console.error("Database update error:", updateError);
+        throw new Error(updateError.message || "Failed to update order status");
       }
 
       console.log("✅ Commit successful:", data);
