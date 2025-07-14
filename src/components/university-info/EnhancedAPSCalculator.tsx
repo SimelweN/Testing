@@ -350,6 +350,9 @@ const EnhancedAPSCalculator: React.FC = () => {
         level: subject.level,
         points: subject.points,
       }));
+      // 🔄 AUTO-SAVE TO ENHANCED LOCALSTORAGE
+      await updateSubjectsWithStorage(apsSubjects);
+      // Also update legacy system for compatibility
       await updateUserSubjects(apsSubjects);
 
       // Search across all universities
@@ -374,6 +377,7 @@ const EnhancedAPSCalculator: React.FC = () => {
   }, [
     apsCalculation.isCalculationValid,
     subjects,
+    updateSubjectsWithStorage,
     updateUserSubjects,
     searchCoursesForUniversity,
   ]);
