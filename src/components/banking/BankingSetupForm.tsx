@@ -159,8 +159,13 @@ const BankingSetupForm: React.FC<BankingSetupFormProps> = ({
       });
 
       if (result.success) {
-        // Link user's books to the new subaccount
-        await BankingService.linkBooksToSubaccount(user.id);
+        // Try to link user's books to the new subaccount (non-critical)
+        try {
+          await BankingService.linkBooksToSubaccount(user.id);
+        } catch (linkError) {
+          console.warn("Book linking failed (non-critical):", linkError);
+          // Continue with success even if book linking fails
+        }
         onSuccess?.();
       } else {
         setErrors({
