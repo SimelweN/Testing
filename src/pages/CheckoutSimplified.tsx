@@ -292,7 +292,7 @@ const CheckoutSimplified = () => {
     if (state.step === "delivery" && state.shippingAddress) {
       loadDeliveryQuotes();
     }
-  }, [state.step, loadDeliveryQuotes]);
+  }, [state.step, state.shippingAddress, loadDeliveryQuotes]);
 
   // Navigation functions
   const goToNextStep = () => {
