@@ -61,7 +61,7 @@ const BankingSetup: React.FC = () => {
 
   const handleSetupSuccess = () => {
     toast.success("Banking details saved successfully!");
-    navigate("/dashboard?tab=earnings");
+    navigate("/profile");
   };
 
   const handleBack = () => {
