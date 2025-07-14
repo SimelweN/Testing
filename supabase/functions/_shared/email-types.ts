@@ -47,6 +47,9 @@ export const EMAIL_TEMPLATES = {
   SHIPPING_NOTIFICATION: "shipping-notification",
   CONTACT_FORM: "contact-form",
   BOOKING_CONFIRMATION: "booking-confirmation",
+  SELLER_PICKUP_NOTIFICATION: "seller-pickup-notification",
+  BUYER_ORDER_CONFIRMED: "buyer-order-confirmed",
+  COMMIT_CONFIRMATION_BASIC: "commit-confirmation-basic",
 } as const;
 
 export type EmailTemplateName =
