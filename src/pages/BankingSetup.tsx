@@ -14,11 +14,10 @@ import {
   Clock,
 } from "lucide-react";
 import Layout from "@/components/Layout";
-import BankingSetupForm from "@/components/banking/BankingSetupForm";
+import BankingDetailsForm from "@/components/banking/BankingDetailsForm";
 import { useAuth } from "@/contexts/AuthContext";
-import { BankingService } from "@/services/bankingService";
+import { PaystackSubaccountService } from "@/services/paystackSubaccountService";
 import { toast } from "sonner";
-import type { BankingSubaccount } from "@/types/banking";
 
 const BankingSetup: React.FC = () => {
   const navigate = useNavigate();
