@@ -337,8 +337,8 @@ const CreateListing = () => {
           className={`mb-4 md:mb-6 text-book-600 hover:text-book-700 ${isMobile ? "h-10" : ""}`}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {isMobile ? "" : "Back"}
-                </Button>
+                    {isMobile ? "" : "Back"}
+        </Button>
 
         <BankingRequirementCheck onCanProceed={setCanProceedWithBanking}>
           <div
