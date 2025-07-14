@@ -53,41 +53,22 @@ export default async function handler(req, res) {
     // Process each expired order
     for (const order of expiredOrders) {
       try {
-        // Handle order expiration internally since decline-commit function was removed
-        const { error: updateError } = await supabase
-          .from("orders")
-          .update({
-            status: "declined",
-            declined_at: new Date().toISOString(),
-            decline_reason:
-              "Order expired - seller did not commit within 48 hours",
-          })
-          .eq("id", order.id);
+        // Call decline-commit Supabase Edge Function to handle the expiration
+        const { data: declineData, error: declineError } =
+          await supabase.functions.invoke("decline-commit", {
+            body: {
+              order_id: order.id,
+              seller_id: order.seller_id,
+              reason: "Order expired - seller did not commit within 48 hours",
+            },
+          });
 
-        if (updateError) {
-          throw new Error(
-            `Failed to update order status: ${updateError.message}`,
-          );
+        if (declineError) {
+          throw new Error(`Decline function error: ${declineError.message}`);
         }
 
-        // Process refund directly
-        const { error: refundError } = await supabase
-          .from("transactions")
-          .insert({
-            user_id: order.buyer_id,
-            amount: order.total_amount,
-            type: "refund",
-            status: "pending",
-            description: `Refund for expired order #${order.id}`,
-            order_id: order.id,
-            created_at: new Date().toISOString(),
-          });
-
-        if (refundError) {
-          logEvent("refund_creation_failed", {
-            order_id: order.id,
-            error: refundError.message,
-          });
+        if (!declineData?.success) {
+          throw new Error(declineData?.error || "Failed to decline order");
         }
 
         processedOrders.push({
