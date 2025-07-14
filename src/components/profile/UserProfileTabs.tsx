@@ -131,6 +131,12 @@ const UserProfileTabs = ({
               >
                 <span className={isMobile ? "text-center" : ""}>Banking</span>
               </TabsTrigger>
+              <TabsTrigger
+                value="commit"
+                className={`${isMobile ? "h-12 text-xs px-1 flex-col" : "flex-1"} flex items-center justify-center`}
+              >
+                <span className={isMobile ? "text-center" : ""}>Commit</span>
+              </TabsTrigger>
             </>
           )}
         </TabsList>
