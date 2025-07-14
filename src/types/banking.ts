@@ -196,6 +196,13 @@ export interface SellerRequirements {
   setupCompletionPercentage: number;
 }
 
+export interface BankingStatus {
+  hasBankingInfo: boolean;
+  isVerified: boolean;
+  canListBooks: boolean;
+  missingRequirements: string[];
+}
+
 export interface PaymentSummary {
   subtotal: number;
   deliveryFee: number;
