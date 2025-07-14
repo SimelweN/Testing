@@ -14,6 +14,34 @@ import { PaymentService } from "@/services/paymentService";
 import { useAuth } from "@/contexts/AuthContext";
 import type { ShippingAddress } from "@/types/banking";
 
+// Declare Paystack types for window object
+declare global {
+  interface Window {
+    PaystackPop?: {
+      setup: (config: {
+        key: string;
+        email: string;
+        amount: number;
+        currency: string;
+        ref: string;
+        subaccount?: string;
+        transaction_charge?: number;
+        bearer?: string;
+        metadata?: Record<string, any>;
+        onSuccess: (transaction: {
+          reference: string;
+          trans: string;
+          message: string;
+          status: string;
+        }) => void;
+        onCancel: () => void;
+      }) => {
+        openIframe: () => void;
+      };
+    };
+  }
+}
+
 interface PaystackPaymentButtonProps {
   amount: number; // in cents (ZAR)
   bookIds: string[];
