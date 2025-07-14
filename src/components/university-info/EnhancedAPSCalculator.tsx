@@ -63,6 +63,7 @@ import {
   useAPSAwareCourseAssignment,
   useAPSFilterOptions,
 } from "@/hooks/useAPSAwareCourseAssignment";
+import { useEnhancedAPSStorage } from "@/hooks/useEnhancedAPSStorage";
 import { toast } from "sonner";
 import { APSSubject } from "@/types/university";
 import {
@@ -91,7 +92,20 @@ interface APSSubjectInput {
 const EnhancedAPSCalculator: React.FC = () => {
   const navigate = useNavigate();
 
-  // APS-aware state management
+  // Enhanced APS storage with localStorage primary storage
+  const {
+    userProfile: enhancedProfile,
+    isLoading: storageLoading,
+    error: storageError,
+    updateUserSubjects: updateSubjectsWithStorage,
+    clearUserProfile: clearAPSProfileEnhanced,
+    hasProfile,
+    totalAPS,
+    subjects: storedSubjects,
+    clearError: clearStorageError,
+  } = useEnhancedAPSStorage();
+
+  // Legacy APS-aware state management (for compatibility)
   const {
     userProfile,
     isLoading,
