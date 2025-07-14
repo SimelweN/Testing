@@ -216,17 +216,19 @@ export const useOrderCommit = () => {
     setIsCommitting(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke(
-        "commit-to-sale",
-        {
-          body: { order_id: orderId, seller_id: sellerId },
-        },
-      );
+      const { error } = await supabase
+        .from("orders")
+        .update({
+          status: "committed",
+          committed_at: new Date().toISOString(),
+        })
+        .eq("id", orderId)
+        .eq("seller_id", sellerId)
+        .eq("status", "pending_commit");
 
       if (error) throw new Error(error.message);
-      if (!data?.success) throw new Error(data?.error || "Failed to commit");
 
-      return { success: true, data };
+      return { success: true };
     } catch (error: any) {
       return { success: false, error: error.message };
     } finally {
