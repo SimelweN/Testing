@@ -89,6 +89,12 @@ export class BankingService {
         return this.updateSubaccount(userId, bankingDetails);
       }
 
+      // Check if we should use development fallback
+      if (!PAYSTACK_CONFIG.isConfigured()) {
+        console.warn("🛠️ Paystack not configured - using development fallback");
+        return this.createDevelopmentSubaccount(userId, bankingDetails);
+      }
+
       // Create new subaccount via Edge Function
       const { data, error } = await supabase.functions.invoke(
         "create-paystack-subaccount",
