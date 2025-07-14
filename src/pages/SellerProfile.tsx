@@ -279,9 +279,10 @@ const SellerProfile = () => {
               ))}
             </div>
           </>
-        )}
+                )}
       </div>
-    </div>
+      </div>
+    </Layout>
   );
 };
 
