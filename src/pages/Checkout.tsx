@@ -147,6 +147,18 @@ const Checkout = () => {
             return;
           }
           setBook(bookData);
+
+          // Fetch seller's pickup address
+          if (bookData.seller?.id) {
+            try {
+              const sellerAddress = await getSellerPickupAddress(
+                bookData.seller.id,
+              );
+              setSellerPickupAddress(sellerAddress);
+            } catch (error) {
+              console.error("Error fetching seller address:", error);
+            }
+          }
         } else if (isCartCheckout && cartData.length === 0) {
           setError("Your cart is empty");
           return;
