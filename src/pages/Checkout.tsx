@@ -188,6 +188,26 @@ const Checkout = () => {
           return;
         }
 
+        // Validate that all items have seller information
+        const invalidItems = checkoutItems.filter((item) => !item.seller?.id);
+        if (invalidItems.length > 0) {
+          setError(
+            "Some items are missing seller information. Please try again.",
+          );
+          return;
+        }
+
+        // Check if we have multiple sellers (for now, we only support single seller checkouts)
+        const uniqueSellers = new Set(
+          checkoutItems.map((item) => item.seller.id),
+        );
+        if (uniqueSellers.size > 1) {
+          setError(
+            "Multiple seller checkout is not yet supported. Please checkout items from one seller at a time.",
+          );
+          return;
+        }
+
         setItems(checkoutItems);
 
         // Load saved addresses
