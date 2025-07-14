@@ -882,7 +882,7 @@ const Checkout = () => {
                     onCancel={() => {
                       toast.error("Payment was cancelled");
                     }}
-                    disabled={!selectedDelivery || !validateAddress()}
+                    disabled={!selectedDelivery}
                     className="w-full bg-book-600 hover:bg-book-700 text-sm md:text-base py-2 md:py-3 min-h-[48px]"
                   >
                     <CreditCard className="mr-2 h-4 w-4" />
