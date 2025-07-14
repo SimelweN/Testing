@@ -330,4 +330,43 @@ export class BankingService {
       return { valid: false, error: "Validation service unavailable" };
     }
   }
+
+  /**
+   * Check banking requirements for listing books
+   */
+  static async checkBankingRequirements(
+    userId: string,
+  ): Promise<BankingStatus> {
+    try {
+      const requirements = await this.getSellerRequirements(userId);
+      const bankingDetails = await this.getUserBankingDetails(userId);
+
+      const missingRequirements: string[] = [];
+
+      if (!requirements.hasBankingSetup) {
+        missingRequirements.push("Banking details required for payments");
+      }
+
+      if (!requirements.hasPickupAddress) {
+        missingRequirements.push("Pickup address required for book collection");
+      }
+
+      const status: BankingStatus = {
+        hasBankingInfo: requirements.hasBankingSetup,
+        isVerified: bankingDetails?.status === "active",
+        canListBooks: requirements.canReceivePayments,
+        missingRequirements,
+      };
+
+      return status;
+    } catch (error) {
+      console.error("Error checking banking requirements:", error);
+      return {
+        hasBankingInfo: false,
+        isVerified: false,
+        canListBooks: false,
+        missingRequirements: ["Unable to verify requirements"],
+      };
+    }
+  }
 }
