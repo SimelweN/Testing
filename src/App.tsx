@@ -84,6 +84,10 @@ function App() {
                     <Route path="/books" element={<BookListing />} />
                     <Route path="/books/:id" element={<BookDetails />} />
                     <Route path="/book/:id" element={<BookDetails />} />
+                    <Route
+                      path="/seller/:sellerId"
+                      element={<SellerProfile />}
+                    />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route
