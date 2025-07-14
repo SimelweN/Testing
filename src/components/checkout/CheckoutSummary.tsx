@@ -129,7 +129,9 @@ const CheckoutSummary = ({
                 <span className="text-gray-600">
                   Delivery ({selectedDelivery.serviceName})
                 </span>
-                <span className="font-medium">R{deliveryFee.toFixed(2)}</span>
+                <span className="font-medium">
+                  R{(deliveryFee || 0).toFixed(2)}
+                </span>
               </div>
             ) : currentStep === "delivery" || currentStep === "payment" ? (
               <div className="flex justify-between text-sm">
