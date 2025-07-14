@@ -1,3 +1,7 @@
+export interface TemplateData {
+  [key: string]: any;
+}
+
 function renderSellerPickupNotificationTemplate(data: TemplateData): {
   html: string;
   text: string;
