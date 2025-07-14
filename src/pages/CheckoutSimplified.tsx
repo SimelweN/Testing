@@ -218,15 +218,7 @@ const CheckoutSimplified = () => {
     };
 
     initializeCheckout();
-  }, [
-    id,
-    user?.id,
-    navigate,
-    isCartCheckout,
-    cartData,
-    updateState,
-    handleError,
-  ]);
+  }, [id, user?.id, navigate, isCartCheckout, cartData]);
 
   // Load delivery quotes when address is set and on delivery step
   const loadDeliveryQuotes = useCallback(async () => {
