@@ -1,91 +1,49 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
-import ProfileHeader from "@/components/ProfileHeader";
-import BookNotSellingDialog from "@/components/BookNotSellingDialog";
-import DeleteProfileDialog from "@/components/DeleteProfileDialog";
-import ReportIssueDialog from "@/components/ReportIssueDialog";
-import HowItWorksDialog from "@/components/HowItWorksDialog";
-import CommitSystemExplainer from "@/components/CommitSystemExplainer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Plus,
-  AlertTriangle,
-  BookOpen,
-  ShoppingCart,
-  Settings,
   User,
-  HelpCircle,
-  MoreHorizontal,
-  Heart,
-  Clock,
-  Shield,
-  UserX,
-  EyeOff,
-  Eye,
+  BookOpen,
+  Settings,
+  MapPin,
+  CreditCard,
+  Plus,
+  Edit,
+  Trash2,
+  AlertTriangle,
+  Mail,
+  Calendar,
+  Package,
+  TrendingUp,
 } from "lucide-react";
-import ModernUserProfileTabs from "@/components/profile/ModernUserProfileTabs";
-import { saveUserAddresses, getUserAddresses } from "@/services/addressService";
 import { getUserBooks } from "@/services/book/bookQueries";
 import { deleteBook } from "@/services/book/bookMutations";
+import { saveUserAddresses, getUserAddresses } from "@/services/addressService";
 import { Book } from "@/types/book";
-import { BookDeletionService } from "@/services/bookDeletionService";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
+import ModernAddressTab from "@/components/profile/ModernAddressTab";
+import BankingProfileTab from "@/components/profile/BankingProfileTab";
+import { UserProfile, AddressData, Address } from "@/types/address";
 
 const Profile = () => {
   const { profile, user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [isDeleteProfileDialogOpen, setIsDeleteProfileDialogOpen] =
-    useState(false);
-  const [isCommitSystemDialogOpen, setIsCommitSystemDialogOpen] =
-    useState(false);
-  const [isBookNotSellingDialogOpen, setIsBookNotSellingDialogOpen] =
-    useState(false);
-  const [isReportIssueDialogOpen, setIsReportIssueDialogOpen] = useState(false);
-  const [isSellerHowItWorksOpen, setIsSellerHowItWorksOpen] = useState(false);
-  const [isBuyerHowItWorksOpen, setIsBuyerHowItWorksOpen] = useState(false);
-  const [addressData, setAddressData] = useState<{
-    id: string;
-    complex: string;
-    unit_number: string;
-    street_address: string;
-    suburb: string;
-    city: string;
-    province: string;
-    postal_code: string;
-  } | null>(null);
+  const [activeTab, setActiveTab] = useState("overview");
   const [activeListings, setActiveListings] = useState<Book[]>([]);
-  const [isLoadingAddress, setIsLoadingAddress] = useState(false);
   const [isLoadingListings, setIsLoadingListings] = useState(true);
+  const [addressData, setAddressData] = useState<AddressData | null>(null);
+  const [isLoadingAddress, setIsLoadingAddress] = useState(false);
   const [deletingBooks, setDeletingBooks] = useState<Set<string>>(new Set());
-  const [isTemporarilyAway, setIsTemporarilyAway] = useState(false);
-  const [showDangerZone, setShowDangerZone] = useState(false);
-
-  const loadUserAddresses = useCallback(async () => {
-    if (!user?.id) return;
-
-    try {
-      const data = await getUserAddresses(user.id);
-      setAddressData(data);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      console.error("Error loading addresses:", errorMessage);
-      toast.error("Failed to load addresses");
-    }
-  }, [user?.id]);
 
   const loadActiveListings = useCallback(async () => {
     if (!user?.id) return;
@@ -100,107 +58,30 @@ const Profile = () => {
     } catch (error) {
       console.error("Error loading active listings:", error);
       toast.error("Failed to load active listings");
-      setActiveListings([]); // Set empty array on error
+      setActiveListings([]);
     } finally {
       setIsLoadingListings(false);
     }
   }, [user?.id]);
 
-  useEffect(() => {
-    if (user?.id) {
-      loadUserAddresses();
-      loadActiveListings();
-    } else {
-      // Reset state when no user
-      setAddressData(null);
-      setActiveListings([]);
-      setIsLoadingListings(false);
-    }
-  }, [user?.id, loadUserAddresses, loadActiveListings]);
-
-  const handleSaveAddresses = async (
-    pickup: {
-      complex: string;
-      unitNumber: string;
-      streetAddress: string;
-      suburb: string;
-      city: string;
-      province: string;
-      postalCode: string;
-    },
-    shipping: {
-      complex: string;
-      unitNumber: string;
-      streetAddress: string;
-      suburb: string;
-      city: string;
-      province: string;
-      postalCode: string;
-    },
-    same: boolean,
-  ) => {
+  const loadUserAddresses = useCallback(async () => {
     if (!user?.id) return;
 
-    setIsLoadingAddress(true);
     try {
-      // Check if user had pickup address before
-      const hadPickupAddressBefore =
-        addressData?.pickup_address &&
-        addressData.pickup_address.streetAddress &&
-        addressData.pickup_address.city &&
-        addressData.pickup_address.province &&
-        addressData.pickup_address.postalCode;
-
-      // Save the addresses
-      await saveUserAddresses(user.id, pickup, shipping, same);
-      await loadUserAddresses();
-
-      // Check if user has pickup address after
-      const hasPickupAddressNow =
-        pickup.streetAddress &&
-        pickup.city &&
-        pickup.province &&
-        pickup.postalCode;
-
-      // Handle listing status changes based on address changes
-      if (!hadPickupAddressBefore && hasPickupAddressNow) {
-        // User added pickup address - reactivate listings
-        try {
-          await BookDeletionService.reactivateUserListings(user.id);
-          await loadActiveListings(); // Refresh listings
-        } catch (error) {
-          console.error("Error reactivating listings:", error);
-          // Don't fail the entire operation for this
-        }
-      } else if (hadPickupAddressBefore && !hasPickupAddressNow) {
-        // User removed pickup address - deactivate listings
-        try {
-          await BookDeletionService.deactivateUserListings(user.id);
-          await loadActiveListings(); // Refresh listings
-        } catch (error) {
-          console.error("Error deactivating listings:", error);
-          // Don't fail the entire operation for this
-        }
-      }
-
-      toast.success("Addresses saved successfully");
+      const data = await getUserAddresses(user.id);
+      setAddressData(data);
     } catch (error) {
-      console.error("Error saving addresses:", error);
-      toast.error("Failed to save addresses");
-      throw error;
-    } finally {
-      setIsLoadingAddress(false);
+      console.error("Error loading addresses:", error);
+      toast.error("Failed to load addresses");
     }
-  };
+  }, [user?.id]);
 
-  const handleEditBook = (bookId: string) => {
-    if (!bookId) {
-      toast.error("Book ID is missing");
-      return;
+  useEffect(() => {
+    if (user?.id) {
+      loadActiveListings();
+      loadUserAddresses();
     }
-
-    navigate(`/edit-book/${bookId}`);
-  };
+  }, [user?.id, loadActiveListings, loadUserAddresses]);
 
   const handleDeleteBook = async (bookId: string, bookTitle: string) => {
     if (!bookId) {
@@ -216,7 +97,6 @@ const Profile = () => {
       return;
     }
 
-    // Add book to deleting set
     setDeletingBooks((prev) => new Set(prev).add(bookId));
 
     try {
@@ -229,7 +109,6 @@ const Profile = () => {
         error instanceof Error ? error.message : "Failed to delete book";
       toast.error(errorMsg);
     } finally {
-      // Remove book from deleting set
       setDeletingBooks((prev) => {
         const newSet = new Set(prev);
         newSet.delete(bookId);
@@ -238,57 +117,33 @@ const Profile = () => {
     }
   };
 
-  const handleDeleteProfile = async () => {
-    if (!user) return;
-
-    try {
-      // Here you would implement the actual profile deletion logic
-      // For now, we'll show a confirmation toast
-      toast.success(
-        "Profile deletion request submitted. You will receive an email confirmation.",
-      );
-      setIsDeleteProfileDialogOpen(false);
-
-      // Optional: Sign out user or redirect
-      navigate("/");
-    } catch (error) {
-      toast.error("Failed to delete profile. Please try again.");
+  const handleEditBook = (bookId: string) => {
+    if (!bookId) {
+      toast.error("Book ID is missing");
+      return;
     }
+    navigate(`/edit-book/${bookId}`);
   };
 
-  const handleTempAwayToggle = async () => {
+  const handleSaveAddresses = async (
+    pickup: Address,
+    shipping: Address,
+    same: boolean,
+  ) => {
+    if (!user?.id) return;
+
+    setIsLoadingAddress(true);
     try {
-      const newStatus = !isTemporarilyAway;
-      setIsTemporarilyAway(newStatus);
-
-      // Here you would implement the actual API call to update user status
-      // await updateUserAwayStatus(user.id, newStatus);
-
-      toast.success(
-        newStatus
-          ? "🏖️ Temporarily away - Your listings are now hidden"
-          : "🔄 Welcome back - Your listings are now visible again",
-      );
+      await saveUserAddresses(user.id, pickup, shipping, same);
+      await loadUserAddresses();
+      toast.success("Addresses saved successfully");
     } catch (error) {
-      toast.error("Failed to update status. Please try again.");
-      setIsTemporarilyAway(!isTemporarilyAway); // Revert on error
+      console.error("Error saving addresses:", error);
+      toast.error("Failed to save addresses");
+      throw error;
+    } finally {
+      setIsLoadingAddress(false);
     }
-  };
-
-  const handleReportIssue = () => {
-    setIsReportIssueDialogOpen(true);
-  };
-
-  const handleSellerHowItWorks = () => {
-    setIsSellerHowItWorksOpen(true);
-  };
-
-  const handleBuyerHowItWorks = () => {
-    setIsBuyerHowItWorksOpen(true);
-  };
-
-  const handleBookNotSelling = () => {
-    setIsBookNotSellingDialogOpen(true);
   };
 
   if (!profile || !user) {
@@ -304,364 +159,392 @@ const Profile = () => {
     );
   }
 
-  const userData = {
-    id: user.id,
-    name: profile.name || "Anonymous User",
-    joinDate: new Date().toISOString(),
-    isVerified: false,
+  const stats = {
+    totalBooks: activeListings.length,
+    totalValue: activeListings.reduce(
+      (sum, book) => sum + (book.price || 0),
+      0,
+    ),
+    avgPrice:
+      activeListings.length > 0
+        ? activeListings.reduce((sum, book) => sum + (book.price || 0), 0) /
+          activeListings.length
+        : 0,
   };
 
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Fixed Report Issue Button - Moved to bottom-left for less clutter */}
-        <div className="fixed bottom-4 left-4 z-50">
-          <Button
-            onClick={handleReportIssue}
-            variant="outline"
-            className="rounded-full w-12 h-12 p-0 shadow-lg bg-white border-gray-300 hover:bg-gray-50"
-            title="Report an Issue"
-          >
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-          </Button>
+        {/* Profile Header */}
+        <div className="mb-8">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+                <Avatar className="w-20 h-20">
+                  <AvatarFallback className="bg-book-100 text-book-600 text-xl font-semibold">
+                    {profile.name?.charAt(0)?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900">
+                      {profile.name || "Anonymous User"}
+                    </h1>
+                    <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                      <div className="flex items-center gap-1">
+                        <Mail className="w-4 h-4" />
+                        {user.email}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        Joined{" "}
+                        {new Date().toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Stats */}
+                  <div className="flex flex-wrap gap-6">
+                    <div className="flex items-center gap-2">
+                      <Package className="w-4 h-4 text-book-600" />
+                      <span className="font-semibold">{stats.totalBooks}</span>
+                      <span className="text-gray-600">Books Listed</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-green-600" />
+                      <span className="font-semibold">
+                        R{stats.totalValue.toFixed(0)}
+                      </span>
+                      <span className="text-gray-600">Total Value</span>
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => navigate("/create-listing")}
+                  className="bg-book-600 hover:bg-book-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  List a Book
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Desktop Layout - Grid */}
-        {!isMobile ? (
-          <div className="grid grid-cols-12 gap-6">
-            {/* Left Sidebar - Profile Info */}
-            <div className="col-span-4 space-y-6">
-              {/* Simplified Profile Header */}
+        {/* Main Content */}
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <User className="w-4 h-4" />
+              {!isMobile && "Overview"}
+            </TabsTrigger>
+            <TabsTrigger value="books" className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              {!isMobile && "My Books"}
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              {!isMobile && "Settings"}
+            </TabsTrigger>
+            <TabsTrigger value="addresses" className="flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              {!isMobile && "Addresses"}
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card>
                 <CardContent className="pt-6">
-                  <div className="text-center space-y-4">
-                    <div className="w-20 h-20 bg-book-100 rounded-full flex items-center justify-center mx-auto">
-                      <User className="h-10 w-10 text-book-600" />
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-blue-100 rounded-lg">
+                      <BookOpen className="w-6 h-6 text-blue-600" />
                     </div>
                     <div>
-                      <h1 className="text-2xl font-bold text-gray-900">
-                        {userData.name}
-                      </h1>
-                      <p className="text-gray-500 text-sm">
-                        Joined{" "}
-                        {new Date(userData.joinDate).toLocaleDateString(
-                          "en-US",
-                          {
-                            year: "numeric",
-                            month: "long",
-                          },
-                        )}
-                      </p>
+                      <p className="text-2xl font-bold">{stats.totalBooks}</p>
+                      <p className="text-gray-600">Active Listings</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Temporarily Away Status */}
-              {isTemporarilyAway && (
-                <Alert className="border-orange-200 bg-orange-50">
-                  <Clock className="h-4 w-4 text-orange-600" />
-                  <AlertDescription className="text-orange-800">
-                    <div className="space-y-2">
-                      <div className="font-medium">
-                        You are temporarily away
-                      </div>
-                      <div className="text-sm">
-                        Your listings are hidden from buyers and you won't
-                        receive new orders. You can change this in your Account
-                        Settings.
-                      </div>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-green-100 rounded-lg">
+                      <TrendingUp className="w-6 h-6 text-green-600" />
                     </div>
-                  </AlertDescription>
-                </Alert>
-              )}
+                    <div>
+                      <p className="text-2xl font-bold">
+                        R{stats.totalValue.toFixed(0)}
+                      </p>
+                      <p className="text-gray-600">Total Value</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-              {/* Pickup Address Warning - Only show if user has active listings but no pickup address */}
-              {activeListings &&
-                activeListings.some(
-                  (book) =>
-                    !book.availability || book.availability === "unavailable",
-                ) &&
-                addressData &&
-                (!addressData.pickup_address ||
-                  !addressData.pickup_address.streetAddress ||
-                  !addressData.pickup_address.city) && (
-                  <Alert className="border-orange-200 bg-orange-50">
-                    <AlertTriangle className="h-4 w-4 text-orange-600" />
-                    <AlertDescription className="text-orange-800">
-                      <div className="space-y-2">
-                        <div className="font-medium">⚠️ Action Required</div>
-                        <p className="text-sm">
-                          You need a valid pickup address for your listings to
-                          remain active. Your books are currently unavailable to
-                          buyers.
-                        </p>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-yellow-100 rounded-lg">
+                      <TrendingUp className="w-6 h-6 text-yellow-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">
+                        R{stats.avgPrice.toFixed(0)}
+                      </p>
+                      <p className="text-gray-600">Avg Price</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Recent Activity */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {activeListings.length === 0 ? (
+                    <div className="text-center py-8">
+                      <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600">No books listed yet</p>
+                      <Button
+                        onClick={() => navigate("/create-listing")}
+                        className="mt-4 bg-book-600 hover:bg-book-700"
+                      >
+                        List Your First Book
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {activeListings.slice(0, 3).map((book) => (
+                        <div
+                          key={book.id}
+                          className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg"
+                        >
+                          <img
+                            src={
+                              book.frontCover ||
+                              book.imageUrl ||
+                              "/placeholder.svg"
+                            }
+                            alt={book.title}
+                            className="w-12 h-16 object-cover rounded"
+                          />
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900">
+                              {book.title}
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              by {book.author}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-book-600">
+                              R{book.price}
+                            </p>
+                            <Badge variant="secondary" className="text-xs">
+                              {book.condition}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                      {activeListings.length > 3 && (
                         <Button
                           variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            // Scroll to address tab - this will depend on the tabs implementation
-                            const addressTab = document.querySelector(
-                              '[data-tab="addresses"]',
-                            );
-                            if (addressTab) {
-                              addressTab.scrollIntoView({ behavior: "smooth" });
-                            }
-                          }}
-                          className="border-orange-300 text-orange-700 hover:bg-orange-100 mt-2"
+                          onClick={() => setActiveTab("books")}
+                          className="w-full"
                         >
-                          Add Pickup Address
+                          View All {activeListings.length} Books
                         </Button>
-                      </div>
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-              {/* Primary Actions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Quick Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button
-                    onClick={() => navigate("/create-listing")}
-                    className="w-full bg-book-600 hover:bg-book-700 text-white"
-                    size="lg"
-                  >
-                    <Plus className="h-5 w-5 mr-2" />
-                    List a Book
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Account Settings Dropdown */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Account Settings</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full">
-                        <Settings className="h-4 w-4 mr-2" />
-                        Manage Account
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="end">
-                      <DropdownMenuItem
-                        onClick={() => navigate("/notifications")}
-                      >
-                        <AlertTriangle className="h-4 w-4 mr-2" />
-                        Notifications
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate("/activity")}>
-                        <Heart className="h-4 w-4 mr-2" />
-                        Activity Log
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setIsTemporarilyAway(!isTemporarilyAway)}
-                      >
-                        <Clock className="h-4 w-4 mr-2" />
-                        {isTemporarilyAway
-                          ? "End Temporary Away"
-                          : "Mark as Temporarily Away"}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </CardContent>
-              </Card>
-
-              {/* Help & Support */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Help & Support</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button
-                    onClick={handleBookNotSelling}
-                    variant="outline"
-                    className="w-full text-left justify-start"
-                  >
-                    <HelpCircle className="h-4 w-4 mr-2" />
-                    Book not selling?
-                  </Button>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full text-sm py-2">
-                        <BookOpen className="h-4 w-4 mr-2" />
-                        <span className="truncate">How It Works</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="end">
-                      <DropdownMenuItem onClick={handleSellerHowItWorks}>
-                        <BookOpen className="h-4 w-4 mr-2" />
-                        How Being A Seller Works
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleBuyerHowItWorks}>
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        How Being A Buyer Works
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setIsCommitSystemDialogOpen(true)}
-                      >
-                        <AlertTriangle className="h-4 w-4 mr-2" />
-                        48-Hour Commit System
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </CardContent>
-              </Card>
-
-              {/* Account Settings - Moved to UserProfileTabs */}
-            </div>
-
-            {/* Right Content - Tabs (Keep as-is) */}
-            <div className="col-span-8">
-              <ModernUserProfileTabs
-                activeListings={activeListings}
-                isLoading={isLoadingListings}
-                onEditBook={handleEditBook}
-                onDeleteBook={handleDeleteBook}
-                profile={profile}
-                addressData={addressData}
-                isOwnProfile={true}
-                userId={user.id}
-                userName={profile.name || "Anonymous User"}
-                onSaveAddresses={handleSaveAddresses}
-                isLoadingAddress={isLoadingAddress}
-                deletingBooks={deletingBooks}
-              />
-            </div>
-          </div>
-        ) : (
-          /* Mobile Layout - Preserve existing layout */
-          <>
-            {/* Profile Header with integrated action buttons */}
-            <div className="mb-6">
-              <ProfileHeader
-                userData={userData}
-                isOwnProfile={true}
-                onBookNotSelling={handleBookNotSelling}
-              />
-            </div>
-
-            {/* Primary Action */}
-            <div className="mb-6">
-              <Button
-                onClick={() => navigate("/create-listing")}
-                className="bg-book-600 hover:bg-book-700 text-white w-full"
-                size="lg"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Create New Listing
-              </Button>
-            </div>
-
-            {/* Consolidated Actions */}
-            <Card className="mb-6">
-              <CardContent className="pt-6">
-                <div className="grid grid-cols-2 gap-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full">
-                        <BookOpen className="h-4 w-4 mr-2" />
-                        How It Works
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56">
-                      <DropdownMenuItem onClick={handleSellerHowItWorks}>
-                        <BookOpen className="h-4 w-4 mr-2" />
-                        Seller Guide
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleBuyerHowItWorks}>
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        Buyer Guide
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full">
-                        <Settings className="h-4 w-4 mr-2" />
-                        Account
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56">
-                      <DropdownMenuItem
-                        onClick={() => navigate("/notifications")}
-                      >
-                        <AlertTriangle className="h-4 w-4 mr-2" />
-                        Notifications
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate("/activity")}>
-                        <Heart className="h-4 w-4 mr-2" />
-                        Activity Log
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleBookNotSelling}>
-                        <HelpCircle className="h-4 w-4 mr-2" />
-                        Book not selling?
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                      )}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
 
-            {/* Main Content - Tabs (Keep as-is) */}
-            <div className="w-full">
-              <ModernUserProfileTabs
-                activeListings={activeListings}
-                isLoading={isLoadingListings}
-                onEditBook={handleEditBook}
-                onDeleteBook={handleDeleteBook}
-                profile={profile}
-                addressData={addressData}
-                isOwnProfile={true}
-                userId={user.id}
-                userName={profile.name || "Anonymous User"}
-                onSaveAddresses={handleSaveAddresses}
-                isLoadingAddress={isLoadingAddress}
-                deletingBooks={deletingBooks}
-              />
-            </div>
-          </>
-        )}
+          {/* Books Tab */}
+          <TabsContent value="books" className="space-y-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>My Books ({activeListings.length})</CardTitle>
+                <Button
+                  onClick={() => navigate("/create-listing")}
+                  className="bg-book-600 hover:bg-book-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Book
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {isLoadingListings ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-book-600 mx-auto"></div>
+                    <p className="text-gray-600 mt-2">Loading books...</p>
+                  </div>
+                ) : activeListings.length === 0 ? (
+                  <div className="text-center py-12">
+                    <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      No books listed
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      Start selling by listing your first book
+                    </p>
+                    <Button
+                      onClick={() => navigate("/create-listing")}
+                      className="bg-book-600 hover:bg-book-700"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      List Your First Book
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {activeListings.map((book) => (
+                      <Card
+                        key={book.id}
+                        className="hover:shadow-md transition-shadow"
+                      >
+                        <CardContent className="p-4">
+                          <div className="space-y-3">
+                            <img
+                              src={
+                                book.frontCover ||
+                                book.imageUrl ||
+                                "/placeholder.svg"
+                              }
+                              alt={book.title}
+                              className="w-full h-48 object-cover rounded-lg"
+                            />
+                            <div>
+                              <h4 className="font-semibold text-gray-900 line-clamp-2">
+                                {book.title}
+                              </h4>
+                              <p className="text-sm text-gray-600">
+                                by {book.author}
+                              </p>
+                              <div className="flex items-center justify-between mt-2">
+                                <p className="text-lg font-bold text-book-600">
+                                  R{book.price}
+                                </p>
+                                <Badge variant="secondary">
+                                  {book.condition}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditBook(book.id)}
+                                className="flex-1"
+                              >
+                                <Edit className="w-4 h-4 mr-1" />
+                                Edit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handleDeleteBook(book.id, book.title)
+                                }
+                                disabled={deletingBooks.has(book.id)}
+                                className="flex-1 text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="w-4 h-4 mr-1" />
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        {/* Dialogs */}
-        <BookNotSellingDialog
-          isOpen={isBookNotSellingDialogOpen}
-          onClose={() => setIsBookNotSellingDialogOpen(false)}
-        />
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Account Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Name
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      value={profile.name || ""}
+                      readOnly
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
+                    />
+                    <Button variant="outline" size="sm">
+                      <Edit className="w-4 h-4 mr-1" />
+                      Edit
+                    </Button>
+                  </div>
+                </div>
 
-        <DeleteProfileDialog
-          isOpen={isDeleteProfileDialogOpen}
-          onClose={() => setIsDeleteProfileDialogOpen(false)}
-        />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={user.email || ""}
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
+                  />
+                </div>
 
-        <CommitSystemExplainer
-          isOpen={isCommitSystemDialogOpen}
-          onClose={() => setIsCommitSystemDialogOpen(false)}
-        />
+                <Separator />
 
-        <ReportIssueDialog
-          isOpen={isReportIssueDialogOpen}
-          onClose={() => setIsReportIssueDialogOpen(false)}
-        />
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Banking Information</h3>
+                  <BankingProfileTab userId={user.id} />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        <HowItWorksDialog
-          isOpen={isSellerHowItWorksOpen}
-          onClose={() => setIsSellerHowItWorksOpen(false)}
-          type="seller"
-        />
-
-        <HowItWorksDialog
-          isOpen={isBuyerHowItWorksOpen}
-          onClose={() => setIsBuyerHowItWorksOpen(false)}
-          type="buyer"
-        />
+          {/* Addresses Tab */}
+          <TabsContent value="addresses" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Delivery Addresses</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ModernAddressTab
+                  addressData={addressData}
+                  onSaveAddresses={handleSaveAddresses}
+                  isLoading={isLoadingAddress}
+                  userId={user.id}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );
