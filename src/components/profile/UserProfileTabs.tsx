@@ -4,30 +4,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Edit,
   Trash2,
   Eye,
   User,
-  Clock,
-  CheckCircle,
-  AlertTriangle,
-  Star,
   BookOpen,
-  MessageSquare,
-  Calendar,
-  Shield,
-  UserX,
-  Pause,
   CreditCard,
   Activity,
   Settings,
   TrendingUp,
   Award,
+  Star,
 } from "lucide-react";
 import { Book } from "@/types/book";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
@@ -76,22 +65,11 @@ const UserProfileTabs = ({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isTemporarilyAway, setIsTemporarilyAway] = useState(false);
 
-  // Commit data will be fetched from API when the feature is ready
-  const commitData = {
-    totalCommits: null,
-    activeCommits: null,
-    completedCommits: null,
-    averageResponseTime: null,
-    reliabilityScore: null,
-    recentCommits: [],
-  };
-
   const tabsConfig = [
     {
       id: "listings",
       label: "My Books",
       icon: BookOpen,
-      color: "emerald",
       count: activeListings.length,
       description: "Your active listings",
     },
@@ -99,7 +77,6 @@ const UserProfileTabs = ({
       id: "activity",
       label: "Activity",
       icon: Activity,
-      color: "blue",
       description: "View activity center",
     },
     ...(isOwnProfile
@@ -108,28 +85,24 @@ const UserProfileTabs = ({
             id: "account",
             label: "Account",
             icon: User,
-            color: "purple",
             description: "Personal information",
           },
           {
             id: "addresses",
             label: "Addresses",
             icon: Settings,
-            color: "orange",
             description: "Pickup & shipping addresses",
           },
           {
             id: "banking",
             label: "Banking",
             icon: CreditCard,
-            color: "green",
             description: "Payment & banking details",
           },
           {
             id: "commit",
             label: "Commit System",
             icon: Award,
-            color: "indigo",
             description: "Sales commitments",
           },
         ]
@@ -139,63 +112,50 @@ const UserProfileTabs = ({
   return (
     <div className="w-full">
       <Tabs defaultValue="listings" className="w-full">
-        {/* Modern Tab Navigation */}
-        <div className="mb-8">
-          <TabsList className="w-full bg-white/50 backdrop-blur-sm border-2 border-gray-100 rounded-2xl p-2 shadow-lg">
+        {/* Clean Tab Navigation */}
+        <div className="mb-6">
+          <TabsList className="w-full bg-white border border-gray-200 rounded-lg p-1">
             <div
               className={`w-full ${
                 isMobile
-                  ? "grid grid-cols-2 gap-2"
-                  : "flex justify-center items-center gap-2"
+                  ? "grid grid-cols-2 gap-1"
+                  : "flex justify-center items-center gap-1"
               }`}
             >
               {tabsConfig.map((tab) => {
                 const Icon = tab.icon;
-                const colorClasses = {
-                  emerald:
-                    "data-[state=active]:bg-emerald-600 hover:bg-emerald-50 border-emerald-200",
-                  blue: "data-[state=active]:bg-blue-600 hover:bg-blue-50 border-blue-200",
-                  purple:
-                    "data-[state=active]:bg-purple-600 hover:bg-purple-50 border-purple-200",
-                  orange:
-                    "data-[state=active]:bg-orange-600 hover:bg-orange-50 border-orange-200",
-                  green:
-                    "data-[state=active]:bg-green-600 hover:bg-green-50 border-green-200",
-                  indigo:
-                    "data-[state=active]:bg-indigo-600 hover:bg-indigo-50 border-indigo-200",
-                };
 
                 return (
                   <TabsTrigger
                     key={tab.id}
                     value={tab.id}
                     className={`
-                      ${isMobile ? "flex-col py-4 px-3" : "flex-row py-3 px-6"}
-                      relative overflow-hidden rounded-xl border-2 border-transparent
-                      data-[state=active]:text-white data-[state=active]:shadow-lg
-                      transition-all duration-300 ease-out transform
-                      hover:scale-105 hover:shadow-md
-                      ${colorClasses[tab.color as keyof typeof colorClasses]}
+                      ${isMobile ? "flex-col py-3 px-2" : "flex-row py-2 px-4"}
+                      relative rounded-md
+                      data-[state=active]:bg-gray-900 data-[state=active]:text-white
+                      hover:bg-gray-50 data-[state=active]:hover:bg-gray-800
+                      transition-all duration-200
+                      text-gray-600
                     `}
                   >
                     <div
-                      className={`flex items-center gap-3 ${isMobile ? "flex-col text-center" : ""}`}
+                      className={`flex items-center gap-2 ${isMobile ? "flex-col text-center" : ""}`}
                     >
                       <div className="relative">
-                        <Icon className="h-5 w-5" />
-                        {tab.count !== undefined && (
+                        <Icon className="h-4 w-4" />
+                        {tab.count !== undefined && tab.count > 0 && (
                           <Badge
-                            className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs bg-red-500 text-white border-2 border-white"
+                            className="absolute -top-1 -right-1 h-3 w-3 p-0 text-xs bg-gray-900 text-white border border-white"
                             variant="secondary"
                           >
-                            {tab.count}
+                            {tab.count > 9 ? "9+" : tab.count}
                           </Badge>
                         )}
                       </div>
                       <div className={isMobile ? "text-center" : ""}>
-                        <div className="font-semibold text-sm">{tab.label}</div>
+                        <div className="font-medium text-sm">{tab.label}</div>
                         {!isMobile && (
-                          <div className="text-xs opacity-70">
+                          <div className="text-xs opacity-60">
                             {tab.description}
                           </div>
                         )}
@@ -211,12 +171,12 @@ const UserProfileTabs = ({
         {/* Tab Content */}
         <div className="space-y-6">
           <TabsContent value="listings" className="space-y-6">
-            <Card className="border-2 border-emerald-100 shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-t-lg">
-                <CardTitle className="text-xl md:text-2xl flex items-center gap-3">
-                  <BookOpen className="h-6 w-6 text-emerald-600" />
+            <Card className="border border-gray-200">
+              <CardHeader className="bg-gray-50 border-b border-gray-200">
+                <CardTitle className="text-xl md:text-2xl flex items-center gap-3 text-gray-900">
+                  <BookOpen className="h-6 w-6 text-gray-700" />
                   My Book Collection
-                  <Badge className="bg-emerald-600 text-white">
+                  <Badge className="bg-gray-900 text-white">
                     {activeListings.length} books
                   </Badge>
                 </CardTitle>
@@ -224,7 +184,7 @@ const UserProfileTabs = ({
               <CardContent className="p-6">
                 {isLoading ? (
                   <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
                     <p className="text-gray-600 mt-4">Loading your books...</p>
                   </div>
                 ) : activeListings.length === 0 ? (
@@ -243,7 +203,7 @@ const UserProfileTabs = ({
                     {isOwnProfile && (
                       <Button
                         onClick={() => navigate("/sell")}
-                        className="bg-emerald-600 hover:bg-emerald-700"
+                        className="bg-gray-900 hover:bg-gray-800 text-white"
                       >
                         List Your First Book
                       </Button>
@@ -271,7 +231,7 @@ const UserProfileTabs = ({
                       return (
                         <Card
                           key={book.id}
-                          className="group hover:shadow-xl transition-all duration-300 border-2 border-gray-100 hover:border-emerald-200 overflow-hidden"
+                          className="group hover:shadow-md transition-all duration-300 border border-gray-200 hover:border-gray-300 overflow-hidden"
                         >
                           <div className="relative">
                             <img
@@ -280,7 +240,7 @@ const UserProfileTabs = ({
                               className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                             />
                             <div className="absolute top-2 right-2">
-                              <Badge className="bg-emerald-600 text-white">
+                              <Badge className="bg-gray-900 text-white">
                                 R{book.price}
                               </Badge>
                             </div>
@@ -298,7 +258,7 @@ const UserProfileTabs = ({
                                 onClick={() => navigate(`/books/${book.id}`)}
                                 variant="outline"
                                 size="sm"
-                                className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                                className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
                               >
                                 <Eye className="h-4 w-4 mr-2" />
                                 View Details
@@ -310,7 +270,7 @@ const UserProfileTabs = ({
                                     onClick={() => onEditBook(book.id)}
                                     variant="outline"
                                     size="sm"
-                                    className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
                                   >
                                     <Edit className="h-3 w-3 mr-1" />
                                     Edit
@@ -321,7 +281,7 @@ const UserProfileTabs = ({
                                     }
                                     variant="outline"
                                     size="sm"
-                                    className="border-red-200 text-red-700 hover:bg-red-50"
+                                    className="border-red-300 text-red-600 hover:bg-red-50"
                                     disabled={deletingBooks.has(book.id)}
                                   >
                                     <Trash2 className="h-3 w-3 mr-1" />
@@ -343,77 +303,70 @@ const UserProfileTabs = ({
           </TabsContent>
 
           <TabsContent value="activity" className="space-y-6">
-            <Card className="border-2 border-blue-100 shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-t-lg">
-                <CardTitle className="text-xl md:text-2xl flex items-center gap-3">
-                  <Activity className="h-6 w-6 text-blue-600" />
-                  Activity Dashboard
+            <Card className="border border-gray-200">
+              <CardHeader className="bg-gray-50 border-b border-gray-200">
+                <CardTitle className="text-xl md:text-2xl flex items-center gap-3 text-gray-900">
+                  <Activity className="h-6 w-6 text-gray-700" />
+                  Activity & Commit Center
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Commit Stats */}
-                  <Card className="border border-blue-100">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5 text-blue-600" />
-                        Performance Stats
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center p-4 bg-gray-50 rounded-xl">
-                          <div className="text-3xl font-bold text-gray-600">
-                            {commitData.totalCommits ?? "-"}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Total Sales
-                          </div>
-                        </div>
-                        <div className="text-center p-4 bg-green-50 rounded-xl">
-                          <div className="text-3xl font-bold text-green-600">
-                            {commitData.completedCommits ?? "-"}
-                          </div>
-                          <div className="text-xs text-gray-500">Completed</div>
-                        </div>
-                        <div className="text-center p-4 bg-blue-50 rounded-xl">
-                          <div className="text-3xl font-bold text-blue-600">
-                            {commitData.reliabilityScore ?? "-"}%
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Reliability
-                          </div>
-                        </div>
-                        <div className="text-center p-4 bg-orange-50 rounded-xl">
-                          <div className="text-3xl font-bold text-orange-600">
-                            {commitData.activeCommits ?? "-"}
-                          </div>
-                          <div className="text-xs text-gray-500">Active</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                <div className="text-center py-12">
+                  <div className="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                    <Activity className="h-12 w-12 text-gray-600" />
+                  </div>
 
-                  {/* Recent Activity */}
-                  <Card className="border border-blue-100">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-blue-600" />
-                        Recent Activity
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-center py-8">
-                        <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                        <h3 className="font-medium text-gray-600 mb-1">
-                          No Recent Activity
-                        </h3>
-                        <p className="text-gray-500 text-sm">
-                          Your recent activity will appear here
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                    Full Activity Center Available
+                  </h3>
+
+                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                    View your complete activity history, manage sale
+                    commitments, track purchases, and monitor your marketplace
+                    performance in our dedicated activity center.
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto mb-8">
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <Award className="h-8 w-8 text-gray-600 mx-auto mb-2" />
+                      <h4 className="font-semibold text-gray-900">
+                        Sale Commitments
+                      </h4>
+                      <p className="text-gray-600 text-sm">
+                        48-hour commitment system
+                      </p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <TrendingUp className="h-8 w-8 text-gray-600 mx-auto mb-2" />
+                      <h4 className="font-semibold text-gray-900">
+                        Purchase History
+                      </h4>
+                      <p className="text-gray-600 text-sm">
+                        Track all your orders
+                      </p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <Star className="h-8 w-8 text-gray-600 mx-auto mb-2" />
+                      <h4 className="font-semibold text-gray-900">
+                        Performance Stats
+                      </h4>
+                      <p className="text-gray-600 text-sm">
+                        Seller metrics & ratings
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => navigate("/activity")}
+                    className="bg-gray-900 hover:bg-gray-800 text-white font-semibold px-8 py-3 text-lg transition-all"
+                  >
+                    <Activity className="h-5 w-5 mr-2" />
+                    Open Activity Center
+                  </Button>
+
+                  <p className="text-gray-500 text-sm mt-4">
+                    Get a comprehensive view of all your ReBooked activity
+                  </p>
                 </div>
               </CardContent>
             </Card>
