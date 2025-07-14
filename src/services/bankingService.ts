@@ -6,6 +6,7 @@ import type {
   SubaccountCreationRequest,
   SubaccountCreationResponse,
   SellerRequirements,
+  BankingStatus,
 } from "@/types/banking";
 
 export class BankingService {
