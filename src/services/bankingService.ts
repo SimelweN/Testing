@@ -6,7 +6,7 @@ import type {
   SubaccountCreationRequest,
   SubaccountCreationResponse,
   SellerRequirements,
-  BankingStatus,
+  BankingRequirementsStatus,
 } from "@/types/banking";
 
 export class BankingService {
@@ -390,7 +390,7 @@ export class BankingService {
    */
   static async checkBankingRequirements(
     userId: string,
-  ): Promise<BankingStatus> {
+  ): Promise<BankingRequirementsStatus> {
     try {
       const requirements = await this.getSellerRequirements(userId);
       const bankingDetails = await this.getUserBankingDetails(userId);
@@ -405,7 +405,7 @@ export class BankingService {
         missingRequirements.push("Pickup address required for book collection");
       }
 
-      const status: BankingStatus = {
+      const status: BankingRequirementsStatus = {
         hasBankingInfo: requirements.hasBankingSetup,
         isVerified: bankingDetails?.status === "active",
         canListBooks: requirements.canReceivePayments,
