@@ -746,9 +746,9 @@ const Checkout = () => {
                       setSelectedDelivery(quote || null);
                     }}
                   >
-                    {deliveryQuotes.map((quote) => (
+                    {deliveryQuotes.map((quote, index) => (
                       <div
-                        key={quote.courier}
+                        key={`${quote.courier}-${quote.serviceName}-${index}`}
                         className="flex items-center space-x-2 p-3 border rounded-lg"
                       >
                         <RadioGroupItem
