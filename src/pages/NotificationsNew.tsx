@@ -57,8 +57,6 @@ const NotificationsNew = () => {
     commits: true,
     purchases: true,
     deliveries: true,
-    social: true,
-    marketing: false,
   });
 
   const [categories, setCategories] = useState<NotificationCategory[]>([
@@ -129,15 +127,6 @@ const NotificationsNew = () => {
       enabled: notificationSettings.deliveries,
       notifications: [],
     },
-    {
-      id: "social",
-      title: "Community & Reviews",
-      description: "Ratings, reviews, and social interactions",
-      icon: <Users className="h-5 w-5" />,
-      color: "pink",
-      enabled: notificationSettings.social,
-      notifications: [],
-    },
   ]);
 
   // Check if this is a first-time user
@@ -198,13 +187,6 @@ const NotificationsNew = () => {
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     return date.toLocaleDateString();
-  };
-
-  const toggleNotificationSetting = (key: string) => {
-    setNotificationSettings((prev) => ({
-      ...prev,
-      [key]: !prev[key as keyof typeof prev],
-    }));
   };
 
   const markAsRead = (categoryId: string, notificationId: string) => {
@@ -305,35 +287,6 @@ const NotificationsNew = () => {
             </AlertDescription>
           </Alert>
         )}
-
-        {/* Notification Settings */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Notification Preferences
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Object.entries(notificationSettings).map(([key, enabled]) => (
-                <div
-                  key={key}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                >
-                  <Label htmlFor={key} className="capitalize">
-                    {key.replace(/([A-Z])/g, " $1").toLowerCase()}
-                  </Label>
-                  <Switch
-                    id={key}
-                    checked={enabled}
-                    onCheckedChange={() => toggleNotificationSetting(key)}
-                  />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Notification Categories */}
         <div className="space-y-6">
