@@ -189,11 +189,13 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
    */
   const clearAPSProfile = useCallback(() => {
     try {
-      sessionStorage.removeItem("userAPSProfile");
-      sessionStorage.removeItem("apsSearchResults");
+      localStorage.removeItem("reBooked-aps-profile");
+      localStorage.removeItem("reBooked-aps-search-results");
       setUserProfile(null);
       setLastSearchResults(null);
       setError(null);
+
+      console.log("✅ APS Profile cleared from localStorage");
 
       // Trigger global state reset event
       window.dispatchEvent(new CustomEvent("apsProfileCleared"));
