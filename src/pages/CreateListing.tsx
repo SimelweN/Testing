@@ -340,19 +340,20 @@ const CreateListing = () => {
           {isMobile ? "" : "Back"}
         </Button>
 
-        <div
-          className={`bg-white rounded-lg shadow-md ${isMobile ? "p-4" : "p-8"}`}
-        >
-          <h1
-            className={`${isMobile ? "text-xl" : "text-3xl"} font-bold text-book-800 mb-6 text-center`}
+                <BankingRequirementCheck onCanProceed={setCanProceedWithBanking}>
+          <div
+            className={`bg-white rounded-lg shadow-md ${isMobile ? "p-4" : "p-8"}`}
           >
-            Create New Listing
-          </h1>
+            <h1
+              className={`${isMobile ? "text-xl" : "text-3xl"} font-bold text-book-800 mb-6 text-center`}
+            >
+              Create New Listing
+            </h1>
 
-          <form
-            onSubmit={handleSubmit}
-            className={`space-y-${isMobile ? "4" : "6"}`}
-          >
+            <form
+              onSubmit={handleSubmit}
+              className={`space-y-${isMobile ? "4" : "6"}`}
+            >
             <div
               className={`grid grid-cols-1 ${isMobile ? "gap-4" : "md:grid-cols-2 gap-6"}`}
             >
