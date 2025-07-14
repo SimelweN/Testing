@@ -13,7 +13,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { BankingService } from "@/services/bankingService";
-import type { BankingStatus } from "@/types/banking";
+import type { BankingRequirementsStatus } from "@/types/banking";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface BankingRequirementCheckProps {
