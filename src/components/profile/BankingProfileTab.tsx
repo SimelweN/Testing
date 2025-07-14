@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -19,145 +10,39 @@ import {
   CheckCircle,
   Lock,
   Info,
+  ArrowRight,
+  Building2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { setupSellerBanking } from "@/services/paystackService";
+import { BankingService } from "@/services/bankingService";
+import { useBanking } from "@/hooks/useBanking";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-
-interface BankingInfo {
-  accountHolderName: string;
-  bankName: string;
-  accountNumber: string;
-  accountType: string;
-  branchCode?: string;
-}
+import type { BankingSubaccount } from "@/types/banking";
 
 const BankingProfileTab = () => {
   const { user } = useAuth();
-  const [bankingInfo, setBankingInfo] = useState<BankingInfo | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
-  const [formData, setFormData] = useState<BankingInfo>({
-    accountHolderName: "",
-    bankName: "",
-    accountNumber: "",
-    accountType: "current",
-    branchCode: "",
-  });
+  const navigate = useNavigate();
+  const {
+    bankingDetails,
+    isLoading,
+    hasBankingSetup,
+    isActive,
+    businessName,
+    bankName,
+    maskedAccountNumber,
+    refreshBankingDetails,
+  } = useBanking();
 
-  const southAfricanBanks = [
-    "ABSA",
-    "Standard Bank",
-    "First National Bank (FNB)",
-    "Nedbank",
-    "Capitec Bank",
-    "African Bank",
-    "Bidvest Bank",
-    "Discovery Bank",
-    "Investec",
-    "TymeBank",
-    "Bank Zero",
-    "Other",
-  ];
-
-  useEffect(() => {
-    if (user) {
-      fetchBankingInfo();
-    }
-  }, [user]);
-
-  const fetchBankingInfo = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("banking_info, banking_verified, banking_setup_at")
-        .eq("id", user?.id)
-        .single();
-
-      if (error) {
-        console.error("Error fetching banking info:", error.message || error);
-        return;
-      }
-
-      if (data?.banking_info) {
-        setBankingInfo(data.banking_info as BankingInfo);
-        setFormData(data.banking_info as BankingInfo);
-        setIsVerified(data.banking_verified || false);
-      } else {
-        setIsEditing(true); // Start in edit mode if no banking info exists
-      }
-    } catch (error) {
-      console.error("Error fetching banking info:", error);
-      toast.error("Failed to load banking information");
-    } finally {
-      setLoading(false);
-    }
+  const handleSetupBanking = () => {
+    navigate("/banking-setup");
   };
 
-  const handleSave = async () => {
-    if (!validateForm() || !user) return;
-
-    try {
-      setSaving(true);
-
-      // Set up banking with Paystack integration
-      const result = await setupSellerBanking(user.id, formData);
-
-      if (result.success) {
-        setBankingInfo(formData);
-        setIsVerified(true); // Auto-verified through Paystack integration
-        setIsEditing(false);
-        toast.success(
-          "Banking information saved and Paystack subaccount created successfully!",
-        );
-
-        // Refresh banking info to get the latest data
-        await fetchBankingInfo();
-      } else {
-        toast.error(result.error || "Failed to set up banking information");
-      }
-    } catch (error) {
-      console.error("Error saving banking info:", error);
-      toast.error("Failed to save banking information");
-    } finally {
-      setSaving(false);
-    }
+  const handleEditBanking = () => {
+    navigate("/banking-setup");
   };
 
-  const validateForm = () => {
-    if (!formData.accountHolderName.trim()) {
-      toast.error("Account holder name is required");
-      return false;
-    }
-    if (!formData.bankName) {
-      toast.error("Bank name is required");
-      return false;
-    }
-    if (!formData.accountNumber.trim()) {
-      toast.error("Account number is required");
-      return false;
-    }
-    if (formData.accountNumber.length < 8) {
-      toast.error("Account number must be at least 8 digits");
-      return false;
-    }
-    return true;
-  };
-
-  const handleInputChange = (field: keyof BankingInfo, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const maskAccountNumber = (accountNumber: string) => {
-    if (accountNumber.length <= 4) return accountNumber;
-    return `****${accountNumber.slice(-4)}`;
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <Card>
         <CardContent className="p-6">
@@ -176,19 +61,21 @@ const BankingProfileTab = () => {
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
             Banking Profile
-            {isVerified && (
+            {isActive && (
               <Badge variant="default" className="bg-green-100 text-green-800">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Verified
               </Badge>
             )}
-            {bankingInfo && !isVerified && (
+            {bankingDetails && !isActive && (
               <Badge
                 variant="outline"
                 className="border-orange-500 text-orange-700"
               >
                 <AlertTriangle className="h-3 w-3 mr-1" />
-                Pending Verification
+                {bankingDetails.status === "pending"
+                  ? "Pending Verification"
+                  : "Inactive"}
               </Badge>
             )}
           </CardTitle>
@@ -198,206 +85,121 @@ const BankingProfileTab = () => {
             <Shield className="h-4 w-4" />
             <AlertDescription>
               Banking information is required to list books for sale. Your
-              information is stored securely and encrypted. Once submitted,
-              you'll need to contact support to make changes.
+              information is stored securely and encrypted. This integrates with
+              Paystack for secure payment processing.
             </AlertDescription>
           </Alert>
 
-          {!bankingInfo && !isEditing && (
+          {!hasBankingSetup && (
             <div className="text-center py-8">
-              <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Set Up Banking Information
               </h3>
               <p className="text-gray-600 mb-4">
                 Add your banking details to start selling books and receive
-                payments.
+                payments securely through our integrated payment system.
               </p>
               <Button
-                onClick={() => setIsEditing(true)}
+                onClick={handleSetupBanking}
                 className="bg-book-600 hover:bg-book-700"
               >
-                Add Banking Details
+                <CreditCard className="h-4 w-4 mr-2" />
+                Set Up Banking
+                <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
           )}
 
-          {bankingInfo && !isEditing && (
+          {hasBankingSetup && bankingDetails && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">
-                    Account Holder
-                  </Label>
-                  <p className="text-sm text-gray-900 mt-1">
-                    {bankingInfo.accountHolderName}
-                  </p>
+                  <label className="text-sm font-medium text-gray-700">
+                    Business Name
+                  </label>
+                  <p className="text-sm text-gray-900 mt-1">{businessName}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">
+                  <label className="text-sm font-medium text-gray-700">
                     Bank
-                  </Label>
-                  <p className="text-sm text-gray-900 mt-1">
-                    {bankingInfo.bankName}
-                  </p>
+                  </label>
+                  <p className="text-sm text-gray-900 mt-1">{bankName}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">
+                  <label className="text-sm font-medium text-gray-700">
                     Account Number
-                  </Label>
+                  </label>
                   <p className="text-sm text-gray-900 mt-1 font-mono">
-                    {maskAccountNumber(bankingInfo.accountNumber)}
+                    {maskedAccountNumber}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">
-                    Account Type
-                  </Label>
-                  <p className="text-sm text-gray-900 mt-1 capitalize">
-                    {bankingInfo.accountType}
+                  <label className="text-sm font-medium text-gray-700">
+                    Status
+                  </label>
+                  <div className="mt-1">
+                    <Badge
+                      variant={isActive ? "default" : "outline"}
+                      className={
+                        isActive
+                          ? "bg-green-100 text-green-800"
+                          : "border-orange-500 text-orange-700"
+                      }
+                    >
+                      {bankingDetails.status}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Email
+                  </label>
+                  <p className="text-sm text-gray-900 mt-1">
+                    {bankingDetails.email}
                   </p>
                 </div>
-                {bankingInfo.branchCode && (
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700">
-                      Branch Code
-                    </Label>
-                    <p className="text-sm text-gray-900 mt-1">
-                      {bankingInfo.branchCode}
-                    </p>
-                  </div>
-                )}
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Setup Date
+                  </label>
+                  <p className="text-sm text-gray-900 mt-1">
+                    {new Date(bankingDetails.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={handleEditBanking}
+                  variant="outline"
+                  className="border-book-200 text-book-600 hover:bg-book-50"
+                >
+                  Update Banking Details
+                </Button>
+                <Button
+                  onClick={refreshBankingDetails}
+                  variant="outline"
+                  size="sm"
+                >
+                  Refresh Status
+                </Button>
               </div>
 
               <Alert>
                 <Lock className="h-4 w-4" />
                 <AlertDescription>
-                  To change your banking information, please contact our support
-                  team. This security measure protects your account from
-                  unauthorized changes.
+                  Banking details are securely managed through Paystack. Updates
+                  require verification to protect your account from unauthorized
+                  changes.
                 </AlertDescription>
               </Alert>
-            </div>
-          )}
-
-          {isEditing && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="accountHolder">Account Holder Name *</Label>
-                  <Input
-                    id="accountHolder"
-                    value={formData.accountHolderName}
-                    onChange={(e) =>
-                      handleInputChange("accountHolderName", e.target.value)
-                    }
-                    placeholder="Full name as on bank account"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="bankName">Bank Name *</Label>
-                  <Select
-                    value={formData.bankName}
-                    onValueChange={(value) =>
-                      handleInputChange("bankName", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your bank" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {southAfricanBanks.map((bank) => (
-                        <SelectItem key={bank} value={bank}>
-                          {bank}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="accountNumber">Account Number *</Label>
-                  <Input
-                    id="accountNumber"
-                    value={formData.accountNumber}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "accountNumber",
-                        e.target.value.replace(/\D/g, ""),
-                      )
-                    }
-                    placeholder="Account number"
-                    maxLength={12}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="accountType">Account Type</Label>
-                  <Select
-                    value={formData.accountType}
-                    onValueChange={(value) =>
-                      handleInputChange("accountType", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="current">Current Account</SelectItem>
-                      <SelectItem value="savings">Savings Account</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="md:col-span-2">
-                  <Label htmlFor="branchCode">Branch Code (Optional)</Label>
-                  <Input
-                    id="branchCode"
-                    value={formData.branchCode}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "branchCode",
-                        e.target.value.replace(/\D/g, ""),
-                      )
-                    }
-                    placeholder="6-digit branch code"
-                    maxLength={6}
-                  />
-                </div>
-              </div>
-
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertDescription>
-                  Double-check your banking details carefully. Once submitted,
-                  changes require contacting support. This information will be
-                  used for payment processing through Paystack.
-                </AlertDescription>
-              </Alert>
-
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="bg-book-600 hover:bg-book-700"
-                >
-                  {saving ? "Saving..." : "Save Banking Details"}
-                </Button>
-                {bankingInfo && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setIsEditing(false);
-                      setFormData(bankingInfo);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                )}
-              </div>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {bankingInfo && (
+      {hasBankingSetup && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Payment Information</CardTitle>
@@ -414,10 +216,71 @@ const BankingProfileTab = () => {
                   • Payments are held in escrow until delivery confirmation
                 </li>
                 <li>
-                  • Funds are released to your account within 3-5 business days
+                  • Funds are released to your account within 1-2 business days
                   after delivery
                 </li>
+                <li>
+                  • All transactions are processed securely through Paystack
+                </li>
               </ul>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Additional information for new banking system */}
+      {hasBankingSetup && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Shield className="h-5 w-5 text-green-600" />
+              Security & Verification
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <span className="text-sm font-medium text-blue-900">
+                  Paystack Integration
+                </span>
+                <Badge className="bg-blue-100 text-blue-800">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Active
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <span className="text-sm font-medium text-green-900">
+                  Bank Account Verification
+                </span>
+                <Badge
+                  className={
+                    isActive
+                      ? "bg-green-100 text-green-800"
+                      : "bg-orange-100 text-orange-800"
+                  }
+                >
+                  {isActive ? (
+                    <>
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Verified
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="h-3 w-3 mr-1" />
+                      Pending
+                    </>
+                  )}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                <span className="text-sm font-medium text-purple-900">
+                  Split Payment Setup
+                </span>
+                <Badge className="bg-purple-100 text-purple-800">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Configured
+                </Badge>
+              </div>
             </div>
           </CardContent>
         </Card>
