@@ -91,7 +91,8 @@ const OrderCommitButtonFallback: React.FC<OrderCommitButtonFallbackProps> = ({
 
       // Call success callback with full response
       onCommitSuccess?.(response);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorObj = error as Error;
       console.error("💥 Commit error:", error);
 
       let errorMessage = "Failed to commit to sale";
