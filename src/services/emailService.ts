@@ -231,6 +231,64 @@ class EmailService {
     );
   }
 
+  async sendSellerPickupNotification(
+    to: string,
+    pickupData: {
+      sellerName: string;
+      bookTitle: string;
+      orderId: string;
+      pickupDate: string;
+      pickupTimeWindow: string;
+      courierProvider: string;
+      trackingNumber: string;
+      shippingLabelUrl?: string;
+      pickupAddress?: {
+        streetAddress?: string;
+        city?: string;
+        province?: string;
+      };
+    },
+  ): Promise<EmailResponse> {
+    return this.sendTemplateEmail(
+      to,
+      EMAIL_TEMPLATES.SELLER_PICKUP_NOTIFICATION,
+      pickupData,
+    );
+  }
+
+  async sendBuyerOrderConfirmed(
+    to: string,
+    orderData: {
+      buyerName: string;
+      bookTitle: string;
+      orderId: string;
+      sellerName: string;
+      expectedDelivery: string;
+    },
+  ): Promise<EmailResponse> {
+    return this.sendTemplateEmail(
+      to,
+      EMAIL_TEMPLATES.BUYER_ORDER_CONFIRMED,
+      orderData,
+    );
+  }
+
+  async sendCommitConfirmationBasic(
+    to: string,
+    commitData: {
+      sellerName: string;
+      bookTitle: string;
+      orderId: string;
+      buyerEmail: string;
+    },
+  ): Promise<EmailResponse> {
+    return this.sendTemplateEmail(
+      to,
+      EMAIL_TEMPLATES.COMMIT_CONFIRMATION_BASIC,
+      commitData,
+    );
+  }
+
   // Utility method to validate email addresses
   static validateEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
