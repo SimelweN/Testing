@@ -261,8 +261,16 @@ export class BankingService {
         return; // Silently succeed in development
       }
 
-      console.error("Error saving banking details:", error);
-      throw new Error("Failed to save banking details to database");
+      console.error("Error saving banking details:", {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        fullError: error,
+      });
+      throw new Error(
+        `Failed to save banking details to database: ${error.message || "Unknown error"}`,
+      );
     }
   }
 
