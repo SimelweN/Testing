@@ -28,7 +28,7 @@ declare global {
         subaccount?: string;
         transaction_charge?: number;
         bearer?: string;
-        metadata?: Record<string, any>;
+        metadata?: Record<string, unknown>;
         onSuccess: (transaction: {
           reference: string;
           trans: string;
@@ -79,7 +79,7 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
   >("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [sellerSubaccount, setSellerSubaccount] = useState<string | null>(null);
-  const createdOrderRef = useRef<any>(null);
+  const createdOrderRef = useRef<Order | null>(null);
 
   // Load Paystack script
   useEffect(() => {
@@ -108,7 +108,7 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
     success: boolean;
     authorization_url?: string;
     reference?: string;
-    createdOrder?: any;
+    createdOrder?: Order;
     error?: string;
   }> => {
     if (!user?.email) {
@@ -225,7 +225,7 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
 
   const verifyPayment = async (
     reference: string,
-    createdOrder?: any,
+    createdOrder?: Order,
   ): Promise<boolean> => {
     setPaymentStatus("verifying");
 
@@ -508,7 +508,7 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
 declare global {
   interface Window {
     PaystackPop: {
-      setup: (options: any) => {
+      setup: (options: Record<string, unknown>) => {
         openIframe: () => void;
       };
     };
