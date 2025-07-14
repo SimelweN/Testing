@@ -875,6 +875,20 @@ const Checkout = () => {
                             : `Pay R${totalAmount.toFixed(2)}`}
                         </PaystackPaymentButton>
                       )}
+
+                    {/* Fallback for missing seller information */}
+                    {items.length > 0 &&
+                      shippingAddress &&
+                      selectedDelivery &&
+                      !items[0]?.seller?.id && (
+                        <Alert>
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription>
+                            There's an issue with the seller information. Please
+                            go back and try again, or contact support.
+                          </AlertDescription>
+                        </Alert>
+                      )}
                   </div>
                 )}
 
