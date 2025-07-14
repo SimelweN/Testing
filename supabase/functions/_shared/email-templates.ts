@@ -1,4 +1,9 @@
 import { EmailTemplateName, EMAIL_TEMPLATES } from "./email-types.ts";
+import {
+  renderSellerPickupNotificationTemplate,
+  renderBuyerOrderConfirmedTemplate,
+  renderCommitConfirmationBasicTemplate,
+} from "./email-templates-commit.ts";
 
 export interface TemplateData {
   [key: string]: any;
