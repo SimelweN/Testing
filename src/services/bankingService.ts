@@ -66,10 +66,9 @@ export class BankingService {
           (error.message?.includes("relation") &&
             error.message?.includes("banking_subaccounts"))
         ) {
-          console.warn(
-            "🛠️ Banking table doesn't exist - using development fallback",
+          throw new Error(
+            "Banking system not properly configured. Please contact support.",
           );
-          return null; // Return null indicating no banking setup yet
         }
         console.error("Error fetching banking details:", error.message);
         throw error;
