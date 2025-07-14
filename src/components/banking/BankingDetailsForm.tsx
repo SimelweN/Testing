@@ -253,21 +253,9 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
       if (result.success) {
         setIsSuccess(true);
 
-        // Check if this was a mock/development account
-        const isMockAccount =
-          result.subaccount_code?.includes("mock") ||
-          result.subaccount_code?.includes("dev_fallback");
-
-        if (isMockAccount) {
-          toast.success(`✅ Banking details saved! (Development mode)`);
-          console.log(
-            "🧪 Development mode: Mock subaccount created for testing",
-          );
-        } else {
-          toast.success(
-            `Banking details ${editMode ? "updated" : "added"} successfully!`,
-          );
-        }
+        toast.success(
+          `Banking details ${editMode ? "updated" : "added"} successfully!`,
+        );
 
         // 🔗 AUTOMATICALLY LINK ALL USER'S BOOKS TO NEW SUBACCOUNT
         if (result.subaccount_code) {
