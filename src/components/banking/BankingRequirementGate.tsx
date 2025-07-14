@@ -15,7 +15,7 @@ import {
   DollarSign,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { BankingService } from "@/services/bankingService";
 import type { SellerRequirements } from "@/types/banking";
 
