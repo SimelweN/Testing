@@ -83,10 +83,18 @@ const MobileShippingDashboard = ({
                 key={provider.id}
                 className={`flex-1 p-3 border-2 rounded-lg cursor-pointer transition-all ${
                   selectedProvider === provider.id
-                    ? "border-green-500 bg-green-50"
+                    ? provider.color === "blue"
+                      ? "border-blue-500 bg-blue-50"
+                      : provider.color === "orange"
+                        ? "border-orange-500 bg-orange-50"
+                        : "border-green-500 bg-green-50"
                     : "border-gray-200 hover:border-gray-300"
                 }`}
-                onClick={() => setSelectedProvider(provider.id as "shipLogic")}
+                onClick={() =>
+                  setSelectedProvider(
+                    provider.id as "courierGuy" | "shipLogic" | "fastway",
+                  )
+                }
               >
                 <div className="flex items-start space-x-3">
                   <div className="text-xl sm:text-2xl">{provider.logo}</div>
@@ -98,7 +106,13 @@ const MobileShippingDashboard = ({
                       {selectedProvider === provider.id && (
                         <Badge
                           variant="default"
-                          className="text-xs bg-green-600"
+                          className={`text-xs ${
+                            provider.color === "blue"
+                              ? "bg-blue-600"
+                              : provider.color === "orange"
+                                ? "bg-orange-600"
+                                : "bg-green-600"
+                          }`}
                         >
                           Selected
                         </Badge>
