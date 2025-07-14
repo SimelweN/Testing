@@ -48,6 +48,9 @@ const UniversityProfile: React.FC = () => {
   const [selectedProgram, setSelectedProgram] = useState<Degree | null>(null);
   const [isProgramModalOpen, setIsProgramModalOpen] = useState(false);
   const [showEligibleOnly, setShowEligibleOnly] = useState(false);
+  const [expandedFaculties, setExpandedFaculties] = useState<Set<number>>(
+    new Set(),
+  );
 
   // Get APS from URL parameters
   const fromAPS = searchParams.get("fromAPS") === "true";
@@ -71,6 +74,18 @@ const UniversityProfile: React.FC = () => {
   const closeProgramModal = () => {
     setIsProgramModalOpen(false);
     setSelectedProgram(null);
+  };
+
+  const toggleFacultyExpansion = (facultyIndex: number) => {
+    setExpandedFaculties((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(facultyIndex)) {
+        newSet.delete(facultyIndex);
+      } else {
+        newSet.add(facultyIndex);
+      }
+      return newSet;
+    });
   };
 
   const handleAPSCalculator = () => {
@@ -518,7 +533,8 @@ const UniversityProfile: React.FC = () => {
                                 {filteredPrograms
                                   .slice(
                                     0,
-                                    showEligibleOnly
+                                    showEligibleOnly ||
+                                      expandedFaculties.has(index)
                                       ? filteredPrograms.length
                                       : 3,
                                   )
@@ -626,15 +642,35 @@ const UniversityProfile: React.FC = () => {
                                     );
                                   })}
                                 {!showEligibleOnly &&
-                                  facultyPrograms.length > 3 && (
+                                  filteredPrograms.length > 3 &&
+                                  !expandedFaculties.has(index) && (
                                     <div className="text-center py-4">
                                       <Button
                                         variant="outline"
                                         className="border-book-200 text-book-600 hover:bg-book-50"
+                                        onClick={() =>
+                                          toggleFacultyExpansion(index)
+                                        }
                                       >
                                         <TrendingUp className="h-4 w-4 mr-2" />
-                                        View {facultyPrograms.length - 3} more
+                                        View {filteredPrograms.length - 3} more
                                         programs
+                                      </Button>
+                                    </div>
+                                  )}
+                                {!showEligibleOnly &&
+                                  filteredPrograms.length > 3 &&
+                                  expandedFaculties.has(index) && (
+                                    <div className="text-center py-4">
+                                      <Button
+                                        variant="outline"
+                                        className="border-book-200 text-book-600 hover:bg-book-50"
+                                        onClick={() =>
+                                          toggleFacultyExpansion(index)
+                                        }
+                                      >
+                                        <TrendingUp className="h-4 w-4 mr-2 rotate-180" />
+                                        Show Less
                                       </Button>
                                     </div>
                                   )}
