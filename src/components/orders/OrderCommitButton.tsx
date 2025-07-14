@@ -231,8 +231,9 @@ export const useOrderCommit = () => {
       if (error) throw new Error(error.message);
 
       return { success: true };
-    } catch (error: any) {
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      const errorObj = error as Error;
+      return { success: false, error: errorObj.message };
     } finally {
       setIsCommitting(false);
     }
