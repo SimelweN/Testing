@@ -212,6 +212,66 @@ const Checkout = () => {
           return;
         }
 
+        // STEP 2: CHECKOUT INITIALIZATION - Validate seller banking setup
+        if (checkoutItems.length > 0) {
+          const sellerId = checkoutItems[0].seller.id;
+
+          try {
+            // 🔍 DATABASE QUERY: Get seller profile with banking info
+            const { data: sellerProfile, error: sellerError } = await supabase
+              .from("profiles")
+              .select("id, name, email, pickup_address, subaccount_code")
+              .eq("id", sellerId)
+              .single();
+
+            if (sellerError || !sellerProfile) {
+              setError(
+                "Unable to verify seller information. Please try again.",
+              );
+              return;
+            }
+
+            // ✅ VALIDATION CHECKS:
+            // - sellerProfile.subaccount_code exists (seller banking setup)
+            if (!sellerProfile.subaccount_code) {
+              setError(
+                "This seller hasn't completed their banking setup. Payment cannot be processed.",
+              );
+              return;
+            }
+
+            // - sellerProfile.pickup_address complete
+            if (!sellerProfile.pickup_address) {
+              console.warn(
+                "Seller pickup address not configured, will use default",
+              );
+            } else {
+              const pickupAddr = sellerProfile.pickup_address;
+              // - seller address has street, city, province, postal_code
+              if (
+                !pickupAddr.street ||
+                !pickupAddr.city ||
+                !pickupAddr.province ||
+                !pickupAddr.postalCode
+              ) {
+                console.warn(
+                  "Seller pickup address incomplete, will use default for delivery calculations",
+                );
+              }
+            }
+
+            console.log("Seller validation passed:", {
+              sellerId: sellerProfile.id,
+              hasSubaccount: !!sellerProfile.subaccount_code,
+              hasPickupAddress: !!sellerProfile.pickup_address,
+            });
+          } catch (validationError) {
+            console.error("Seller validation error:", validationError);
+            setError("Unable to validate seller setup. Please try again.");
+            return;
+          }
+        }
+
         setItems(checkoutItems);
 
         // Load saved addresses
