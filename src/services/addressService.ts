@@ -50,6 +50,26 @@ export const saveUserAddresses = async (
   }
 };
 
+export const getSellerPickupAddress = async (sellerId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("pickup_address")
+      .eq("id", sellerId)
+      .single();
+
+    if (error) {
+      safeLogError("Error fetching seller pickup address", error);
+      throw error;
+    }
+
+    return data?.pickup_address || null;
+  } catch (error) {
+    safeLogError("Error in getSellerPickupAddress", error);
+    throw error;
+  }
+};
+
 export const getUserAddresses = async (userId: string) => {
   try {
     const { data, error } = await supabase
