@@ -183,7 +183,14 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
           amount: paymentSplit.totalAmountKobo,
           currency: "ZAR",
           ref: paymentInit.reference,
+          subaccount: sellerId ? `ACCT_${sellerId}` : undefined,
+          transaction_charge: paymentSplit.platformAmountKobo,
+          bearer: "subaccount",
           metadata: {
+            seller_id: sellerId,
+            delivery_fee: deliveryFee,
+            seller_amount: paymentSplit.sellerAmount,
+            platform_commission: paymentSplit.platformAmount,
             custom_fields: [
               {
                 display_name: "Books",
@@ -194,6 +201,11 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
                 display_name: "Delivery Method",
                 variable_name: "delivery_method",
                 value: deliveryMethod,
+              },
+              {
+                display_name: "Seller ID",
+                variable_name: "seller_id",
+                value: sellerId,
               },
             ],
           },
