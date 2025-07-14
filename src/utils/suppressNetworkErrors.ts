@@ -145,4 +145,34 @@ window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
   }
 };
 
+// Add specific handler for Vite HMR ping errors
+if (process.env.NODE_ENV === "development") {
+  // Wrap WebSocket constructor to handle HMR connection errors
+  const OriginalWebSocket = window.WebSocket;
+  window.WebSocket = class extends OriginalWebSocket {
+    constructor(url: string | URL, protocols?: string | string[]) {
+      super(url, protocols);
+
+      this.addEventListener("error", (event) => {
+        const urlString = url.toString();
+        if (urlString.includes("vite") || urlString.includes("8080")) {
+          console.debug("[Vite HMR WebSocket error suppressed]:", event);
+          event.stopPropagation();
+        }
+      });
+
+      this.addEventListener("close", (event) => {
+        const urlString = url.toString();
+        if (urlString.includes("vite") || urlString.includes("8080")) {
+          console.debug(
+            "[Vite HMR WebSocket closed]:",
+            event.code,
+            event.reason,
+          );
+        }
+      });
+    }
+  };
+}
+
 export default {};
