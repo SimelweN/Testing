@@ -373,16 +373,6 @@ export class BankingService {
         fullError: error,
       });
 
-      // Don't throw error in development mode if it's a table issue
-      if (
-        error.code === "42P01" ||
-        error.message?.includes("does not exist") ||
-        error.message?.includes("relation")
-      ) {
-        console.warn("🛠️ Skipping book linking in development mode");
-        return;
-      }
-
       throw new Error("Failed to link books to payment account");
     }
   }
