@@ -53,6 +53,33 @@ export const useCommit = (): UseCommitReturn => {
     [isCommitting],
   );
 
+  const declineBook = useCallback(
+    async (bookId: string) => {
+      if (isDeclining) return;
+
+      setIsDeclining(true);
+      try {
+        await declineBookSale(bookId);
+
+        // Refresh pending commits after successful decline
+        await refreshPendingCommits();
+
+        toast.success(
+          "Sale declined successfully. The book is now available again and the buyer will receive a full refund.",
+        );
+      } catch (error) {
+        console.error("Failed to decline book sale:", error);
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to decline sale";
+        toast.error(errorMessage);
+        throw error;
+      } finally {
+        setIsDeclining(false);
+      }
+    },
+    [isDeclining],
+  );
+
   const refreshPendingCommits = useCallback(async () => {
     setIsLoading(true);
     try {
