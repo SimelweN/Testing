@@ -30,10 +30,19 @@ const SellerInfo = ({ seller, onViewProfile }: SellerInfoProps) => {
             </span>
           </div>
         </div>
-        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-          <p className="text-sm text-blue-800">
-            💡 Check their profile for more books and seller information
-          </p>
+        <div className="mt-4 space-y-3">
+          <Button
+            onClick={onViewProfile}
+            className="w-full bg-book-600 hover:bg-book-700"
+          >
+            <Store className="h-4 w-4 mr-2" />
+            View {seller?.name}'s ReBooked Mini
+          </Button>
+          <div className="p-3 bg-book-50 rounded-lg">
+            <p className="text-sm text-book-800">
+              🛍️ See all books from this seller in their mini storefront
+            </p>
+          </div>
         </div>
       </CardContent>
     </Card>
