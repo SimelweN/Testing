@@ -152,9 +152,6 @@ const StudyResourcesPage = () => {
           </p>
         </div>
 
-        {/* Sponsorship Banner */}
-        <SponsorshipBanner />
-
         {/* Stats Overview */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-8">
           <div className="bg-white p-4 sm:p-6 rounded-lg border shadow-sm text-center">
