@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { PAYSTACK_CONFIG, calculatePaymentSplit } from "@/config/paystack";
 import { PaymentService } from "@/services/paymentService";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import type { ShippingAddress } from "@/types/banking";
 
 interface PaystackPaymentButtonProps {
