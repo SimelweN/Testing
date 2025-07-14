@@ -27,9 +27,8 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
 }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [bankingStatus, setBankingStatus] = useState<BankingStatus | null>(
-    null,
-  );
+  const [bankingStatus, setBankingStatus] =
+    useState<BankingRequirementsStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
