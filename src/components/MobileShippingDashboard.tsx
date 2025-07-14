@@ -64,11 +64,7 @@ const MobileShippingDashboard = ({
                 key={provider.id}
                 className={`flex-1 p-3 border-2 rounded-lg cursor-pointer transition-all ${
                   selectedProvider === provider.id
-                    ? provider.color === "blue"
-                      ? "border-blue-500 bg-blue-50"
-                      : provider.color === "orange"
-                        ? "border-orange-500 bg-orange-50"
-                        : "border-green-500 bg-green-50"
+                    ? "border-green-500 bg-green-50"
                     : "border-gray-200 hover:border-gray-300"
                 }`}
                 onClick={() => setSelectedProvider(provider.id as "shipLogic")}
