@@ -12,7 +12,6 @@ import {
   Edit,
   Trash2,
   Eye,
-  MapPin,
   User,
   Clock,
   CheckCircle,
@@ -25,14 +24,18 @@ import {
   UserX,
   Pause,
   CreditCard,
+  Activity,
+  Settings,
+  TrendingUp,
+  Award,
 } from "lucide-react";
 import { Book } from "@/types/book";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
-import AddressEditDialog from "@/components/AddressEditDialog";
-import SimpleAddressDialog from "@/components/SimpleAddressDialog";
 import UnavailableBookCard from "@/components/UnavailableBookCard";
 import BankingProfileTab from "@/components/profile/BankingProfileTab";
 import CommitTab from "@/components/profile/CommitTab";
+import AccountInformation from "@/components/profile/AccountInformation";
+import ModernAddressTab from "@/components/profile/ModernAddressTab";
 import { UserProfile, AddressData, Address } from "@/types/address";
 
 interface UserProfileTabsProps {
@@ -71,13 +74,7 @@ const UserProfileTabs = ({
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isAddressEditDialogOpen, setIsAddressEditDialogOpen] = useState(false);
   const [isTemporarilyAway, setIsTemporarilyAway] = useState(false);
-
-  const formatAddress = (address: Address | null | undefined) => {
-    if (!address) return "Not provided";
-    return `${address.street}, ${address.city}, ${address.province} ${address.postalCode}`;
-  };
 
   // Commit data will be fetched from API when the feature is ready
   const commitData = {
@@ -89,532 +86,368 @@ const UserProfileTabs = ({
     recentCommits: [],
   };
 
+  const tabsConfig = [
+    {
+      id: "listings",
+      label: "My Books",
+      icon: BookOpen,
+      color: "emerald",
+      count: activeListings.length,
+      description: "Your active listings",
+    },
+    {
+      id: "activity",
+      label: "Activity",
+      icon: Activity,
+      color: "blue",
+      description: "Recent activity & commits",
+    },
+    ...(isOwnProfile
+      ? [
+          {
+            id: "account",
+            label: "Account",
+            icon: User,
+            color: "purple",
+            description: "Personal information",
+          },
+          {
+            id: "addresses",
+            label: "Addresses",
+            icon: Settings,
+            color: "orange",
+            description: "Pickup & shipping addresses",
+          },
+          {
+            id: "banking",
+            label: "Banking",
+            icon: CreditCard,
+            color: "green",
+            description: "Payment & banking details",
+          },
+          {
+            id: "commit",
+            label: "Commit System",
+            icon: Award,
+            color: "indigo",
+            description: "Sales commitments",
+          },
+        ]
+      : []),
+  ];
+
   return (
     <div className="w-full">
       <Tabs defaultValue="listings" className="w-full">
-        <TabsList className="w-full bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
-          <div
-            className={`w-full ${isMobile ? "grid grid-cols-2 gap-1" : "flex"}`}
-          >
-            <TabsTrigger
-              value="listings"
-              className={`${isMobile ? "col-span-2 py-3" : "flex-1"} relative overflow-hidden bg-gradient-to-r from-book-50 to-book-100 border border-transparent hover:border-book-300 transition-all duration-200 data-[state=active]:bg-book-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md`}
+        {/* Modern Tab Navigation */}
+        <div className="mb-8">
+          <TabsList className="w-full bg-white/50 backdrop-blur-sm border-2 border-gray-100 rounded-2xl p-2 shadow-lg">
+            <div
+              className={`w-full ${
+                isMobile
+                  ? "grid grid-cols-2 gap-2"
+                  : "flex justify-center items-center gap-2"
+              }`}
             >
-              <div className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                <span className="font-medium">
-                  {isMobile ? "Listings" : "Active Listings"}
-                  <Badge className="ml-2 bg-white/20 text-current border-0 text-xs">
-                    {activeListings.length}
-                  </Badge>
-                </span>
-              </div>
-            </TabsTrigger>
+              {tabsConfig.map((tab) => {
+                const Icon = tab.icon;
+                const colorClasses = {
+                  emerald:
+                    "data-[state=active]:bg-emerald-600 hover:bg-emerald-50 border-emerald-200",
+                  blue: "data-[state=active]:bg-blue-600 hover:bg-blue-50 border-blue-200",
+                  purple:
+                    "data-[state=active]:bg-purple-600 hover:bg-purple-50 border-purple-200",
+                  orange:
+                    "data-[state=active]:bg-orange-600 hover:bg-orange-50 border-orange-200",
+                  green:
+                    "data-[state=active]:bg-green-600 hover:bg-green-50 border-green-200",
+                  indigo:
+                    "data-[state=active]:bg-indigo-600 hover:bg-indigo-50 border-indigo-200",
+                };
 
-            <TabsTrigger
-              value="activity"
-              className={`${isMobile ? "col-span-2 py-3" : "flex-1"} relative overflow-hidden bg-gradient-to-r from-orange-50 to-orange-100 border border-transparent hover:border-orange-300 transition-all duration-200 data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md`}
-            >
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                <span className="font-medium">Activity</span>
-              </div>
-            </TabsTrigger>
-
-            {isOwnProfile && (
-              <>
-                <TabsTrigger
-                  value="account"
-                  className={`${isMobile ? "py-3" : "flex-1"} relative overflow-hidden bg-gradient-to-r from-blue-50 to-blue-100 border border-transparent hover:border-blue-300 transition-all duration-200 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md`}
-                >
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    <span className="font-medium">Account</span>
-                  </div>
-                </TabsTrigger>
-
-                <TabsTrigger
-                  value="addresses"
-                  className={`${isMobile ? "py-3" : "flex-1"} relative overflow-hidden bg-gradient-to-r from-purple-50 to-purple-100 border border-transparent hover:border-purple-300 transition-all duration-200 data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md`}
-                >
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    <span className="font-medium">Addresses</span>
-                  </div>
-                </TabsTrigger>
-
-                <TabsTrigger
-                  value="banking"
-                  className={`${isMobile ? "py-3" : "flex-1"} relative overflow-hidden bg-gradient-to-r from-green-50 to-green-100 border border-transparent hover:border-green-300 transition-all duration-200 data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md`}
-                >
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4" />
-                    <span className="font-medium">Banking</span>
-                  </div>
-                </TabsTrigger>
-
-                <TabsTrigger
-                  value="commit"
-                  className={`${isMobile ? "py-3" : "flex-1"} relative overflow-hidden bg-gradient-to-r from-indigo-50 to-indigo-100 border border-transparent hover:border-indigo-300 transition-all duration-200 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md`}
-                >
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4" />
-                    <span className="font-medium">Commit</span>
-                  </div>
-                </TabsTrigger>
-              </>
-            )}
-          </div>
-        </TabsList>
-
-        <TabsContent value="listings" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl md:text-2xl">
-                Active Listings ({activeListings.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-book-600 mx-auto"></div>
-                  <p className="text-gray-600 mt-4">Loading listings...</p>
-                </div>
-              ) : activeListings.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-gray-600">
-                    {isOwnProfile
-                      ? "You have no active listings."
-                      : "This user has no active listings."}
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {activeListings.map((book) => {
-                    const isUnavailable =
-                      (book as Book & { status?: string }).status ===
-                      "unavailable";
-
-                    if (isUnavailable) {
-                      return (
-                        <UnavailableBookCard
-                          key={book.id}
-                          book={book}
-                          onEdit={isOwnProfile ? onEditBook : undefined}
-                          onDelete={isOwnProfile ? onDeleteBook : undefined}
-                          isOwnProfile={isOwnProfile}
-                        />
-                      );
-                    }
-
-                    return (
-                      <div
-                        key={book.id}
-                        className="border rounded-lg p-4 hover:shadow-md transition-shadow"
-                      >
-                        <img
-                          src={book.frontCover || book.imageUrl}
-                          alt={book.title}
-                          className="w-full h-32 object-cover rounded mb-3"
-                        />
-                        <h4 className="font-semibold text-sm truncate">
-                          {book.title}
-                        </h4>
-                        <p className="text-xs text-gray-600 truncate">
-                          by {book.author}
-                        </p>
-                        <p className="text-sm font-bold text-book-600 mt-2">
-                          R{book.price}
-                        </p>
-
-                        <div className="mt-3 space-y-2">
-                          <Button
-                            onClick={() => navigate(`/books/${book.id}`)}
-                            variant="outline"
-                            size="sm"
-                            className="w-full text-xs"
+                return (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className={`
+                      ${isMobile ? "flex-col py-4 px-3" : "flex-row py-3 px-6"}
+                      relative overflow-hidden rounded-xl border-2 border-transparent
+                      data-[state=active]:text-white data-[state=active]:shadow-lg
+                      transition-all duration-300 ease-out transform
+                      hover:scale-105 hover:shadow-md
+                      ${colorClasses[tab.color as keyof typeof colorClasses]}
+                    `}
+                  >
+                    <div
+                      className={`flex items-center gap-3 ${isMobile ? "flex-col text-center" : ""}`}
+                    >
+                      <div className="relative">
+                        <Icon className="h-5 w-5" />
+                        {tab.count !== undefined && (
+                          <Badge
+                            className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs bg-red-500 text-white border-2 border-white"
+                            variant="secondary"
                           >
-                            <Eye className="h-3 w-3 mr-1" />
-                            View Book
-                          </Button>
-
-                          {isOwnProfile && (
-                            <div className="grid grid-cols-2 gap-2">
-                              <Button
-                                onClick={() => onEditBook(book.id)}
-                                variant="outline"
-                                size="sm"
-                                className="text-xs"
-                              >
-                                <Edit className="h-3 w-3 mr-1" />
-                                Edit
-                              </Button>
-                              <Button
-                                onClick={() =>
-                                  onDeleteBook(book.id, book.title)
-                                }
-                                variant="destructive"
-                                size="sm"
-                                className="text-xs"
-                                disabled={deletingBooks.has(book.id)}
-                              >
-                                <Trash2 className="h-3 w-3 mr-1" />
-                                {deletingBooks.has(book.id)
-                                  ? "Deleting..."
-                                  : "Delete"}
-                              </Button>
-                            </div>
-                          )}
-                        </div>
+                            {tab.count}
+                          </Badge>
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+                      <div className={isMobile ? "text-center" : ""}>
+                        <div className="font-semibold text-sm">{tab.label}</div>
+                        {!isMobile && (
+                          <div className="text-xs opacity-70">
+                            {tab.description}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </TabsTrigger>
+                );
+              })}
+            </div>
+          </TabsList>
+        </div>
 
-        <TabsContent value="activity" className="space-y-4">
-          {/* Commit System Overview */}
-          <div
-            className={`grid grid-cols-1 ${isMobile ? "gap-4" : "md:grid-cols-2 gap-6"}`}
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <CheckCircle className="h-5 w-5 mr-2 text-green-600" />
-                  Commit Stats
+        {/* Tab Content */}
+        <div className="space-y-6">
+          <TabsContent value="listings" className="space-y-6">
+            <Card className="border-2 border-emerald-100 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-t-lg">
+                <CardTitle className="text-xl md:text-2xl flex items-center gap-3">
+                  <BookOpen className="h-6 w-6 text-emerald-600" />
+                  My Book Collection
+                  <Badge className="bg-emerald-600 text-white">
+                    {activeListings.length} books
+                  </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <div className="text-2xl font-bold text-gray-600">
-                      {commitData.totalCommits ?? "-"}
-                    </div>
-                    <div className="text-xs text-gray-500">Total Commits</div>
+              <CardContent className="p-6">
+                {isLoading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
+                    <p className="text-gray-600 mt-4">Loading your books...</p>
                   </div>
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
-                      {commitData.completedCommits ?? "-"}
-                    </div>
-                    <div className="text-xs text-gray-500">Completed</div>
-                  </div>
-                  <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                    <div className="text-2xl font-bold text-yellow-600">
-                      {commitData.activeCommits ?? "-"}
-                    </div>
-                    <div className="text-xs text-gray-500">Active</div>
-                  </div>
-                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {commitData.reliabilityScore ?? "-"}%
-                    </div>
-                    <div className="text-xs text-gray-500">Reliability</div>
-                  </div>
-                </div>
-                {commitData.averageResponseTime && (
-                  <div className="mt-4 text-center">
-                    <Badge variant="secondary" className="text-xs">
-                      Avg Response: {commitData.averageResponseTime}
-                    </Badge>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Recent Commits */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Clock className="h-5 w-5 mr-2 text-orange-600" />
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {commitData.recentCommits.length === 0 ? (
-                  <div className="text-center py-8">
-                    <MessageSquare className="h-8 w-8 text-gray-400 mx-auto mb-3" />
-                    <h3 className="font-medium text-gray-600 mb-1">
-                      No Activity Yet
+                ) : activeListings.length === 0 ? (
+                  <div className="text-center py-12">
+                    <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                      {isOwnProfile
+                        ? "No Books Listed Yet"
+                        : "No Books Available"}
                     </h3>
-                    <p className="text-gray-500 text-sm">
-                      Commit activity will appear here when buyers express
-                      interest in your books.
+                    <p className="text-gray-500 mb-6">
+                      {isOwnProfile
+                        ? "Start by adding your first book to the marketplace!"
+                        : "This user hasn't listed any books yet."}
                     </p>
+                    {isOwnProfile && (
+                      <Button
+                        onClick={() => navigate("/sell")}
+                        className="bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        List Your First Book
+                      </Button>
+                    )}
                   </div>
                 ) : (
-                  <div className="space-y-3 max-h-64 overflow-y-auto">
-                    {commitData.recentCommits.map((commit) => (
-                      <div
-                        key={commit.id}
-                        className={`p-3 rounded-lg border ${
-                          commit.status === "completed"
-                            ? "bg-green-50 border-green-200"
-                            : commit.status === "active"
-                              ? "bg-yellow-50 border-yellow-200"
-                              : "bg-gray-50 border-gray-200"
-                        }`}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-sm truncate">
-                              {commit.bookTitle}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {activeListings.map((book) => {
+                      const isUnavailable =
+                        (book as Book & { status?: string }).status ===
+                        "unavailable";
+
+                      if (isUnavailable) {
+                        return (
+                          <UnavailableBookCard
+                            key={book.id}
+                            book={book}
+                            onEdit={isOwnProfile ? onEditBook : undefined}
+                            onDelete={isOwnProfile ? onDeleteBook : undefined}
+                            isOwnProfile={isOwnProfile}
+                          />
+                        );
+                      }
+
+                      return (
+                        <Card
+                          key={book.id}
+                          className="group hover:shadow-xl transition-all duration-300 border-2 border-gray-100 hover:border-emerald-200 overflow-hidden"
+                        >
+                          <div className="relative">
+                            <img
+                              src={book.frontCover || book.imageUrl}
+                              alt={book.title}
+                              className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute top-2 right-2">
+                              <Badge className="bg-emerald-600 text-white">
+                                R{book.price}
+                              </Badge>
+                            </div>
+                          </div>
+                          <CardContent className="p-4">
+                            <h4 className="font-bold text-lg mb-2 line-clamp-2">
+                              {book.title}
                             </h4>
-                            <p className="text-xs text-gray-600">
-                              Buyer: {commit.buyerName}
+                            <p className="text-gray-600 text-sm mb-3">
+                              by {book.author}
                             </p>
-                            <p className="text-xs text-gray-500">
-                              {new Date(commit.commitDate).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div className="flex flex-col items-end">
-                            <Badge
-                              variant={
-                                commit.status === "completed"
-                                  ? "default"
-                                  : "secondary"
-                              }
-                              className={`text-xs ${
-                                commit.status === "completed"
-                                  ? "bg-green-600"
-                                  : commit.status === "active"
-                                    ? "bg-yellow-600"
-                                    : "bg-gray-600"
-                              }`}
-                            >
-                              {commit.status}
-                            </Badge>
-                            {commit.responseTime &&
-                              commit.responseTime !== "pending" && (
-                                <span className="text-xs text-gray-500 mt-1">
-                                  {commit.responseTime}
-                                </span>
+
+                            <div className="space-y-3">
+                              <Button
+                                onClick={() => navigate(`/books/${book.id}`)}
+                                variant="outline"
+                                size="sm"
+                                className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Details
+                              </Button>
+
+                              {isOwnProfile && (
+                                <div className="grid grid-cols-2 gap-2">
+                                  <Button
+                                    onClick={() => onEditBook(book.id)}
+                                    variant="outline"
+                                    size="sm"
+                                    className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                                  >
+                                    <Edit className="h-3 w-3 mr-1" />
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    onClick={() =>
+                                      onDeleteBook(book.id, book.title)
+                                    }
+                                    variant="outline"
+                                    size="sm"
+                                    className="border-red-200 text-red-700 hover:bg-red-50"
+                                    disabled={deletingBooks.has(book.id)}
+                                  >
+                                    <Trash2 className="h-3 w-3 mr-1" />
+                                    {deletingBooks.has(book.id)
+                                      ? "..."
+                                      : "Delete"}
+                                  </Button>
+                                </div>
                               )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
             </Card>
-          </div>
+          </TabsContent>
 
-          {/* Commit System Explanation */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <MessageSquare className="h-5 w-5 mr-2 text-indigo-600" />
-                How the 48-Hour Commit System Works
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div
-                className={`grid grid-cols-1 ${isMobile ? "gap-3" : "md:grid-cols-3 gap-4"}`}
-              >
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2">
-                    1
-                  </div>
-                  <h4 className="font-medium mb-1">Buyer Commits</h4>
-                  <p className="text-sm text-gray-600">
-                    Buyer expresses serious interest in your book
-                  </p>
-                </div>
-                <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                  <div className="w-8 h-8 bg-yellow-600 text-white rounded-full flex items-center justify-center mx-auto mb-2">
-                    2
-                  </div>
-                  <h4 className="font-medium mb-1">48-Hour Window</h4>
-                  <p className="text-sm text-gray-600">
-                    You have 48 hours to respond and arrange pickup
-                  </p>
-                </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center mx-auto mb-2">
-                    3
-                  </div>
-                  <h4 className="font-medium mb-1">Complete Sale</h4>
-                  <p className="text-sm text-gray-600">
-                    Meet buyer and complete the transaction successfully
-                  </p>
-                </div>
-              </div>
-
-              {/* Commit System Status */}
-              <div className="mt-6 bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-                <div className="flex items-center">
-                  <MessageSquare className="h-5 w-5 text-indigo-600 mr-3" />
-                  <div>
-                    <h4 className="font-medium text-indigo-800">
-                      Commit System Status
-                    </h4>
-                    <p className="text-sm text-indigo-600 mt-1">
-                      The commit system is in development. This interface shows
-                      the structure that will be populated with real data once
-                      the feature is complete.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {isOwnProfile && (
-          <>
-            <TabsContent value="account" className="space-y-4">
-              {/* Account Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl md:text-2xl flex items-center">
-                    <User className="h-6 w-6 mr-2" />
-                    Account Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <p>
-                      <strong>Name:</strong> {profile?.name || "Not provided"}
-                    </p>
-                    <p>
-                      <strong>Email:</strong> {profile?.email || "Not provided"}
-                    </p>
-                  </div>
-                  <Button
-                    onClick={() => setIsEditDialogOpen(true)}
-                    className="w-full md:w-auto"
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Profile
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Listing Management */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl md:text-2xl flex items-center">
-                    <Pause className="h-6 w-6 mr-2" />
-                    Listing Management
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label htmlFor="temporarily-away">Temporarily Away</Label>
-                      <p className="text-sm text-gray-600">
-                        Pause your listings when you're unavailable. Your books
-                        will be hidden from search results.
-                      </p>
-                    </div>
-                    <Switch
-                      id="temporarily-away"
-                      checked={isTemporarilyAway}
-                      onCheckedChange={setIsTemporarilyAway}
-                    />
-                  </div>
-                  {isTemporarilyAway && (
-                    <Alert className="bg-yellow-50 border-yellow-200">
-                      <Pause className="h-4 w-4 text-yellow-600" />
-                      <AlertDescription className="text-yellow-800">
-                        Your listings are currently paused and hidden from other
-                        users.
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Danger Zone */}
-              <Card className="border-red-200">
-                <CardHeader>
-                  <CardTitle className="text-xl md:text-2xl flex items-center text-red-700">
-                    <Shield className="h-6 w-6 mr-2" />
-                    Danger Zone
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <div className="flex items-start space-x-3">
-                      <UserX className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
-                      <div className="flex-1">
-                        <h3 className="font-medium text-red-800">
-                          Delete Account
-                        </h3>
-                        <p className="text-sm text-red-600 mt-1">
-                          Permanently delete your account and all associated
-                          data. This action cannot be undone.
-                        </p>
-                        <Button
-                          variant="destructive"
-                          className="mt-3 bg-red-600 hover:bg-red-700"
-                          onClick={() => {
-                            // TODO: Implement account deletion
-                            alert(
-                              "Account deletion feature will be implemented soon.",
-                            );
-                          }}
-                        >
-                          <UserX className="h-4 w-4 mr-2" />
-                          Delete My Account
-                        </Button>
+          <TabsContent value="activity" className="space-y-6">
+            <Card className="border-2 border-blue-100 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-t-lg">
+                <CardTitle className="text-xl md:text-2xl flex items-center gap-3">
+                  <Activity className="h-6 w-6 text-blue-600" />
+                  Activity Dashboard
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Commit Stats */}
+                  <Card className="border border-blue-100">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5 text-blue-600" />
+                        Performance Stats
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="text-center p-4 bg-gray-50 rounded-xl">
+                          <div className="text-3xl font-bold text-gray-600">
+                            {commitData.totalCommits ?? "-"}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Total Sales
+                          </div>
+                        </div>
+                        <div className="text-center p-4 bg-green-50 rounded-xl">
+                          <div className="text-3xl font-bold text-green-600">
+                            {commitData.completedCommits ?? "-"}
+                          </div>
+                          <div className="text-xs text-gray-500">Completed</div>
+                        </div>
+                        <div className="text-center p-4 bg-blue-50 rounded-xl">
+                          <div className="text-3xl font-bold text-blue-600">
+                            {commitData.reliabilityScore ?? "-"}%
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Reliability
+                          </div>
+                        </div>
+                        <div className="text-center p-4 bg-orange-50 rounded-xl">
+                          <div className="text-3xl font-bold text-orange-600">
+                            {commitData.activeCommits ?? "-"}
+                          </div>
+                          <div className="text-xs text-gray-500">Active</div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                    </CardContent>
+                  </Card>
 
-            <TabsContent value="addresses" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl md:text-2xl flex items-center">
-                    <MapPin className="h-6 w-6 mr-2" />
-                    Addresses
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <h3 className="font-semibold text-lg">Pickup Address</h3>
-                      <p className="text-sm text-gray-600">
-                        {formatAddress(addressData?.pickup_address)}
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="font-semibold text-lg">
-                        Shipping Address
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {formatAddress(addressData?.shipping_address)}
-                      </p>
-                    </div>
-                  </div>
+                  {/* Recent Activity */}
+                  <Card className="border border-blue-100">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Clock className="h-5 w-5 text-blue-600" />
+                        Recent Activity
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-8">
+                        <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                        <h3 className="font-medium text-gray-600 mb-1">
+                          No Recent Activity
+                        </h3>
+                        <p className="text-gray-500 text-sm">
+                          Your recent activity will appear here
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                  <Button
-                    onClick={() => setIsAddressEditDialogOpen(true)}
-                    className="w-full md:w-auto bg-book-600 hover:bg-book-700"
-                    disabled={isLoadingAddress}
-                  >
-                    <MapPin className="h-4 w-4 mr-2" />
-                    {isLoadingAddress ? "Loading..." : "Edit Addresses"}
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
+          {isOwnProfile && (
+            <>
+              <TabsContent value="account" className="space-y-6">
+                <AccountInformation
+                  profile={profile}
+                  isTemporarilyAway={isTemporarilyAway}
+                  setIsTemporarilyAway={setIsTemporarilyAway}
+                  setIsEditDialogOpen={setIsEditDialogOpen}
+                />
+              </TabsContent>
 
-            <TabsContent value="banking" className="space-y-4">
-              <BankingProfileTab />
-            </TabsContent>
+              <TabsContent value="addresses" className="space-y-6">
+                <ModernAddressTab
+                  addressData={addressData}
+                  onSaveAddresses={onSaveAddresses}
+                  isLoading={isLoadingAddress}
+                />
+              </TabsContent>
 
-            <TabsContent value="commit" className="space-y-4">
-              <CommitTab />
-            </TabsContent>
-          </>
-        )}
+              <TabsContent value="banking" className="space-y-6">
+                <BankingProfileTab />
+              </TabsContent>
+
+              <TabsContent value="commit" className="space-y-6">
+                <CommitTab />
+              </TabsContent>
+            </>
+          )}
+        </div>
       </Tabs>
 
       {/* Dialogs */}
@@ -623,16 +456,6 @@ const UserProfileTabs = ({
           isOpen={isEditDialogOpen}
           onClose={() => setIsEditDialogOpen(false)}
           currentProfile={profile}
-        />
-      )}
-
-      {addressData && onSaveAddresses && (
-        <SimpleAddressDialog
-          isOpen={isAddressEditDialogOpen}
-          onClose={() => setIsAddressEditDialogOpen(false)}
-          addressData={addressData}
-          onSave={onSaveAddresses}
-          isLoading={isLoadingAddress}
         />
       )}
     </div>
