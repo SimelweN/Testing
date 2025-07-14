@@ -131,8 +131,11 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium">
-              Email
+            <Label
+              htmlFor="email"
+              className="text-sm font-medium text-gray-600"
+            >
+              Email Address
             </Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -140,13 +143,16 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="pl-10"
-                placeholder="Enter your email address"
-                required
-                disabled={isLoading}
+                className="pl-10 bg-gray-100 text-gray-600 cursor-not-allowed"
+                placeholder="Email cannot be changed"
+                disabled={true}
+                readOnly={true}
               />
             </div>
+            <p className="text-xs text-gray-500 mt-1">
+              For security reasons, email addresses cannot be changed. Contact
+              support if you need to update your email.
+            </p>
           </div>
         </form>
 
