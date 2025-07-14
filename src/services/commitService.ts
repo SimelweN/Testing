@@ -400,8 +400,8 @@ export const handleOverdueCommits = async (): Promise<void> => {
         } else {
           console.log(`Cancelled overdue commit for book ${book.bookId}`);
 
-          // TODO: Trigger refund process
-          // TODO: Notify both buyer and seller
+          // Trigger refund process for overdue commitment
+          await processRefund(book.bookId, "overdue_commit");
         }
       }
     }
