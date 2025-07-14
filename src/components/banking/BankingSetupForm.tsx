@@ -200,6 +200,10 @@ const BankingSetupForm: React.FC<BankingSetupFormProps> = ({
     const currentIndex = stepOrder.indexOf(currentStep);
     if (currentIndex < stepOrder.length - 1) {
       setCurrentStep(stepOrder[currentIndex + 1]);
+      // Scroll to top when moving to next step
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }, 100);
     }
   };
 
