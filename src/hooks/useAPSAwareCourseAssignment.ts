@@ -68,7 +68,7 @@ function useLocalStorage<T>(key: string, initialValue: T) {
 export function useAPSAwareCourseAssignment(universityId?: string) {
   // Temporary user APS profile (session only)
   const [userProfile, setUserProfile] = useLocalStorage<UserAPSProfile | null>(
-    "reBooked-aps-profile",
+    "userAPSProfile",
     null,
   );
 
@@ -189,6 +189,9 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
    */
   const clearAPSProfile = useCallback(() => {
     try {
+      localStorage.removeItem("userAPSProfile");
+      localStorage.removeItem("apsSearchResults");
+      // Also remove legacy keys for migration
       localStorage.removeItem("reBooked-aps-profile");
       localStorage.removeItem("reBooked-aps-search-results");
       setUserProfile(null);
