@@ -49,6 +49,7 @@ import Report from "./pages/Report";
 import UserProfile from "./pages/UserProfile";
 import FAQ from "./pages/FAQ";
 import APSDemo from "./pages/APSDemo";
+import SellerProfile from "./pages/SellerProfile";
 import "./App.css";
 
 // Create query client
