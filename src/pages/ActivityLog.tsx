@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ActivityService, Activity } from "@/services/activityService";
 import { useCommit } from "@/hooks/useCommit";
 import {
@@ -25,6 +26,7 @@ import {
   AlertCircle,
   RefreshCw,
   Package,
+  TrendingUp,
 } from "lucide-react";
 
 const ActivityLog = () => {
@@ -32,7 +34,7 @@ const ActivityLog = () => {
   const navigate = useNavigate();
   const { commitBook, pendingCommits, refreshPendingCommits, isCommitting } =
     useCommit();
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState("commits");
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -265,11 +267,16 @@ const ActivityLog = () => {
           <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
 
-        <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
+        <div className="bg-white rounded-xl shadow-xl p-6 md:p-8 border border-gray-100">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">
-              Activity History
-            </h1>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Activity Center
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Track your commitments, sales, and marketplace activity
+              </p>
+            </div>
             <Button
               variant="outline"
               size="sm"
@@ -299,7 +306,7 @@ const ActivityLog = () => {
             value={activeTab}
             onValueChange={setActiveTab}
           >
-            <TabsList className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 mb-8 h-auto overflow-x-auto">
+            <TabsList className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 mb-8 h-auto overflow-x-auto bg-gradient-to-r from-blue-50 to-purple-50">
               <TabsTrigger
                 value="all"
                 className="min-w-0 px-2 py-2 text-xs sm:text-sm"
@@ -339,80 +346,248 @@ const ActivityLog = () => {
               </TabsTrigger>
             </TabsList>
 
-            {/* Commits Tab */}
+            {/* Commits Tab - Enhanced */}
             <TabsContent value="commits">
-              {pendingCommits.length > 0 ? (
-                <div className="space-y-4">
-                  <Alert className="border-orange-200 bg-orange-50">
-                    <Clock className="h-4 w-4 text-orange-600" />
-                    <AlertDescription className="text-orange-800">
-                      <strong>Pending Commits:</strong> You have{" "}
-                      {pendingCommits.length} sale(s) that require your
-                      commitment within 48 hours.
-                    </AlertDescription>
-                  </Alert>
+              <div className="space-y-6">
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+                    <CardContent className="p-4 text-center">
+                      <Package className="h-8 w-8 text-orange-600 mx-auto mb-2" />
+                      <div className="text-2xl font-bold text-orange-900">
+                        {pendingCommits.length}
+                      </div>
+                      <div className="text-sm text-orange-700">Pending</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                    <CardContent className="p-4 text-center">
+                      <Check className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                      <div className="text-2xl font-bold text-green-900">-</div>
+                      <div className="text-sm text-green-700">Completed</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                    <CardContent className="p-4 text-center">
+                      <Clock className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                      <div className="text-2xl font-bold text-blue-900">
+                        48h
+                      </div>
+                      <div className="text-sm text-blue-700">Time Limit</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                    <CardContent className="p-4 text-center">
+                      <Star className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+                      <div className="text-2xl font-bold text-purple-900">
+                        100%
+                      </div>
+                      <div className="text-sm text-purple-700">
+                        Success Rate
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
 
-                  {pendingCommits.map((commit) => (
-                    <div
-                      key={commit.id}
-                      className="bg-white rounded-lg p-4 border border-orange-200 shadow-sm"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-grow">
-                          <h3 className="font-medium text-gray-800 mb-2">
-                            {commit.bookTitle}
-                          </h3>
-                          <p className="text-sm text-gray-600 mb-2">
-                            Buyer: {commit.buyerName} • Price: R{commit.price}
-                          </p>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Clock className="h-4 w-4 text-orange-500" />
-                            <span className="text-orange-600 font-medium">
-                              {Math.max(
-                                0,
-                                Math.floor(
-                                  (new Date(commit.expiresAt).getTime() -
-                                    new Date().getTime()) /
-                                    (1000 * 60 * 60),
-                                ),
-                              )}{" "}
-                              hours remaining
-                            </span>
-                          </div>
-                        </div>
+                {/* Pending Commits */}
+                {pendingCommits.length > 0 ? (
+                  <div className="space-y-4">
+                    <Alert className="border-orange-200 bg-gradient-to-r from-orange-50 to-red-50">
+                      <Clock className="h-4 w-4 text-orange-600" />
+                      <AlertDescription className="text-orange-800">
+                        <strong>⚡ Urgent Action Required:</strong> You have{" "}
+                        {pendingCommits.length} sale(s) that require your
+                        commitment within 48 hours. Failing to commit may affect
+                        your seller rating.
+                      </AlertDescription>
+                    </Alert>
 
-                        <Button
-                          onClick={() => commitBook(commit.bookId)}
-                          disabled={isCommitting}
-                          className="bg-book-600 hover:bg-book-700"
+                    {pendingCommits.map((commit) => {
+                      const timeRemaining = Math.max(
+                        0,
+                        Math.floor(
+                          (new Date(commit.expiresAt).getTime() -
+                            new Date().getTime()) /
+                            (1000 * 60 * 60),
+                        ),
+                      );
+                      const isUrgent = timeRemaining < 12;
+
+                      return (
+                        <Card
+                          key={commit.id}
+                          className={`border-2 shadow-lg transition-all hover:shadow-xl ${
+                            isUrgent
+                              ? "border-red-300 bg-gradient-to-r from-red-50 to-orange-50"
+                              : "border-orange-300 bg-gradient-to-r from-orange-50 to-yellow-50"
+                          }`}
                         >
-                          {isCommitting ? (
-                            <>
-                              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                              Committing...
-                            </>
-                          ) : (
-                            <>
-                              <Check className="h-4 w-4 mr-2" />
-                              Commit Sale
-                            </>
-                          )}
-                        </Button>
+                          <CardContent className="p-6">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-grow">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <h3 className="font-bold text-xl text-gray-800">
+                                    {commit.bookTitle}
+                                  </h3>
+                                  {isUrgent && (
+                                    <Badge className="bg-red-500 text-white animate-pulse">
+                                      URGENT
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                  <div className="flex items-center gap-2">
+                                    <User className="h-4 w-4 text-blue-600" />
+                                    <span className="text-sm font-medium">
+                                      Buyer:
+                                    </span>
+                                    <span className="text-sm text-gray-700">
+                                      {commit.buyerName}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <ShoppingCart className="h-4 w-4 text-green-600" />
+                                    <span className="text-sm font-medium">
+                                      Price:
+                                    </span>
+                                    <span className="text-sm font-bold text-green-700">
+                                      R{commit.price}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2 p-3 rounded-lg bg-white/60">
+                                  <Clock
+                                    className={`h-5 w-5 ${isUrgent ? "text-red-500" : "text-orange-500"}`}
+                                  />
+                                  <span
+                                    className={`font-bold ${isUrgent ? "text-red-600" : "text-orange-600"}`}
+                                  >
+                                    {timeRemaining} hours remaining
+                                  </span>
+                                  <Badge variant="outline" className="ml-2">
+                                    {timeRemaining < 6
+                                      ? "⚠️ Critical"
+                                      : timeRemaining < 12
+                                        ? "🔥 Urgent"
+                                        : "⏰ Pending"}
+                                  </Badge>
+                                </div>
+                              </div>
+
+                              <div className="ml-6">
+                                <Button
+                                  onClick={() => commitBook(commit.bookId)}
+                                  disabled={isCommitting}
+                                  size="lg"
+                                  className={`${
+                                    isUrgent
+                                      ? "bg-red-600 hover:bg-red-700"
+                                      : "bg-orange-600 hover:bg-orange-700"
+                                  } text-white font-bold px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all`}
+                                >
+                                  {isCommitting ? (
+                                    <>
+                                      <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
+                                      Processing...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Check className="h-5 w-5 mr-2" />
+                                      Commit to Sale
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+                    <CardContent className="text-center py-12">
+                      <div className="relative">
+                        <Check className="h-16 w-16 text-green-400 mx-auto mb-4" />
+                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                          <Check className="h-3 w-3 text-white" />
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-semibold text-green-800 mb-2">
+                        ✅ All Clear!
+                      </h3>
+                      <p className="text-green-600 mb-4">
+                        You don't have any pending commitments right now.
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto mt-6">
+                        <div className="p-4 bg-white/60 rounded-lg">
+                          <BookIcon className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                          <h4 className="font-medium text-gray-800">
+                            List More Books
+                          </h4>
+                          <p className="text-gray-600 text-sm">
+                            Add more textbooks to sell
+                          </p>
+                        </div>
+                        <div className="p-4 bg-white/60 rounded-lg">
+                          <TrendingUp className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                          <h4 className="font-medium text-gray-800">
+                            Boost Visibility
+                          </h4>
+                          <p className="text-gray-600 text-sm">
+                            Optimize your listings
+                          </p>
+                        </div>
+                        <div className="p-4 bg-white/60 rounded-lg">
+                          <Star className="h-8 w-8 text-yellow-600 mx-auto mb-2" />
+                          <h4 className="font-medium text-gray-800">
+                            Build Reputation
+                          </h4>
+                          <p className="text-gray-600 text-sm">
+                            Earn positive reviews
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Commit System Info */}
+                <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-blue-800">
+                      <AlertCircle className="h-5 w-5" />
+                      How the 48-Hour Commit System Works
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-semibold text-blue-800 mb-2">
+                          🎯 For Buyers:
+                        </h4>
+                        <ul className="space-y-1 text-blue-700 text-sm">
+                          <li>• Payment securely held in escrow</li>
+                          <li>• Seller has 48 hours to commit</li>
+                          <li>• Full refund if seller doesn't commit</li>
+                          <li>• Order confirmed once seller commits</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-blue-800 mb-2">
+                          📚 For Sellers:
+                        </h4>
+                        <ul className="space-y-1 text-blue-700 text-sm">
+                          <li>• Verify book availability within 48 hours</li>
+                          <li>• Commitment guarantees sale completion</li>
+                          <li>• Builds trust and seller reputation</li>
+                          <li>• Payment released after delivery</li>
+                        </ul>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-20">
-                  <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-600 mb-2">
-                    No Pending Commits
-                  </h3>
-                  <p className="text-gray-500">
-                    You don't have any sales waiting for commitment.
-                  </p>
-                </div>
-              )}
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             {/* Other Tabs */}

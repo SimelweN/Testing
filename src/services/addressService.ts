@@ -50,8 +50,66 @@ export const saveUserAddresses = async (
   }
 };
 
+export const getSellerPickupAddress = async (sellerId: string) => {
+  try {
+    console.log("Fetching pickup address for seller:", sellerId);
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("pickup_address")
+      .eq("id", sellerId)
+      .single();
+
+    if (error) {
+      const errorMsg =
+        error.message || error.details || "Unknown database error";
+      console.error("Database error fetching seller pickup address:", {
+        message: errorMsg,
+        code: error.code,
+        sellerId,
+      });
+
+      // Handle no data found case
+      if (error.code === "PGRST116") {
+        console.log("No pickup address found for seller");
+        return null;
+      }
+
+      throw new Error(`Failed to fetch seller pickup address: ${errorMsg}`);
+    }
+
+    console.log(
+      "Successfully fetched seller pickup address:",
+      data?.pickup_address,
+    );
+    return data?.pickup_address || null;
+  } catch (error) {
+    console.error("Error in getSellerPickupAddress:", {
+      error,
+      sellerId,
+      message: error instanceof Error ? error.message : String(error),
+    });
+
+    // Handle network errors
+    if (
+      error instanceof TypeError &&
+      error.message.includes("Failed to fetch")
+    ) {
+      throw new Error(
+        "Network connection error while fetching seller address.",
+      );
+    }
+
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    throw new Error(`Failed to get seller pickup address: ${errorMessage}`);
+  }
+};
+
 export const getUserAddresses = async (userId: string) => {
   try {
+    console.log("Fetching addresses for user:", userId);
+
     const { data, error } = await supabase
       .from("profiles")
       .select("pickup_address, shipping_address, addresses_same")
@@ -59,16 +117,47 @@ export const getUserAddresses = async (userId: string) => {
       .single();
 
     if (error) {
-      safeLogError("Error fetching addresses", error);
+      const errorMsg =
+        error.message || error.details || "Unknown database error";
+      console.error("Database error fetching addresses:", {
+        message: errorMsg,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+
+      // Handle specific error cases
+      if (error.code === "PGRST116") {
+        // No row found - this is acceptable, return null
+        console.log("No address data found for user, returning null");
+        return null;
+      }
+
+      throw new Error(`Database error: ${errorMsg}`);
+    }
+
+    console.log("Successfully fetched address data:", data);
+    return data;
+  } catch (error) {
+    console.error("Error in getUserAddresses:", {
+      error,
+      userId,
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+
+    // Handle network errors specifically
+    if (
+      error instanceof TypeError &&
+      error.message.includes("Failed to fetch")
+    ) {
       throw new Error(
-        `Failed to fetch addresses: ${error.message || "Unknown error"}`,
+        "Network connection error. Please check your internet connection and try again.",
       );
     }
 
-    return data;
-  } catch (error) {
-    safeLogError("Error loading addresses", error, { userId });
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to load user addresses: ${errorMessage}`);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    throw new Error(`Failed to load addresses: ${errorMessage}`);
   }
 };

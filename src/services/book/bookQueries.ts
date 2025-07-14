@@ -230,16 +230,26 @@ export const getBookById = async (id: string): Promise<Book | null> => {
           .maybeSingle();
 
         if (profileError) {
-          logDetailedError("Error fetching seller profile", profileError);
+          const errorMsg =
+            profileError.message || profileError.details || "Unknown error";
+          console.error("Error fetching seller profile:", {
+            message: errorMsg,
+            code: profileError.code,
+            sellerId: bookData.seller_id,
+          });
           // Continue without profile data rather than failing
         } else {
           profileData = profile;
         }
       } catch (profileFetchError) {
-        logDetailedError(
-          "Exception fetching seller profile",
-          profileFetchError,
-        );
+        console.error("Exception fetching seller profile:", {
+          error: profileFetchError,
+          message:
+            profileFetchError instanceof Error
+              ? profileFetchError.message
+              : String(profileFetchError),
+          sellerId: bookData.seller_id,
+        });
         // Continue with null profile
       }
 

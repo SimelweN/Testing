@@ -17,6 +17,8 @@ export class BankingService {
     userId: string,
   ): Promise<BankingSubaccount | null> {
     try {
+      console.log("Fetching banking details for user:", userId);
+
       const { data, error } = await supabase
         .from("banking_subaccounts")
         .select("*")
@@ -24,7 +26,15 @@ export class BankingService {
         .eq("status", "active")
         .single();
 
-      if (error && error.code !== "PGRST116") {
+      if (error) {
+        // No record found is expected for users without banking setup
+        if (error.code === "PGRST116") {
+          console.log(
+            "No banking details found for user - this is normal for new users",
+          );
+          return null;
+        }
+
         // Check if table doesn't exist (development scenario)
         if (
           error.code === "42P01" ||
@@ -36,12 +46,12 @@ export class BankingService {
           return null; // Return null indicating no banking setup yet
         }
 
-        // Not found is ok
         console.error("Database error fetching banking details:", {
           code: error.code,
           message: error.message,
           details: error.details,
           hint: error.hint,
+          userId,
         });
         throw new Error(
           `Database error: ${error.message || "Failed to fetch banking details"}`,

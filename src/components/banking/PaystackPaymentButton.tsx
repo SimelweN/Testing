@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -12,7 +13,35 @@ import {
 import { PAYSTACK_CONFIG, calculatePaymentSplit } from "@/config/paystack";
 import { PaymentService } from "@/services/paymentService";
 import { useAuth } from "@/contexts/AuthContext";
-import type { ShippingAddress } from "@/types/banking";
+import type { ShippingAddress, Order } from "@/types/banking";
+
+// Declare Paystack types for window object
+declare global {
+  interface Window {
+    PaystackPop?: {
+      setup: (config: {
+        key: string;
+        email: string;
+        amount: number;
+        currency: string;
+        ref: string;
+        subaccount?: string;
+        transaction_charge?: number;
+        bearer?: string;
+        metadata?: Record<string, unknown>;
+        onSuccess: (transaction: {
+          reference: string;
+          trans: string;
+          message: string;
+          status: string;
+        }) => void;
+        onCancel: () => void;
+      }) => {
+        openIframe: () => void;
+      };
+    };
+  }
+}
 
 interface PaystackPaymentButtonProps {
   amount: number; // in cents (ZAR)
@@ -49,6 +78,8 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
     "idle" | "initializing" | "pending" | "verifying" | "completed" | "failed"
   >("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [sellerSubaccount, setSellerSubaccount] = useState<string | null>(null);
+  const createdOrderRef = useRef<Order | null>(null);
 
   // Load Paystack script
   useEffect(() => {
@@ -60,13 +91,24 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
     }
   }, []);
 
-  // Calculate payment breakdown
-  const paymentSplit = calculatePaymentSplit(amount, deliveryFee);
+  // Initialize seller subaccount (placeholder for future implementation)
+  useEffect(() => {
+    if (sellerId && sellerId.trim() !== "") {
+      // For now, we'll use a simple subaccount format
+      // In production, this should fetch from SubaccountService
+      setSellerSubaccount(`ACCT_${sellerId.slice(0, 8)}`);
+    }
+  }, [sellerId]);
+
+  // Calculate payment breakdown (convert from cents to rands first)
+  const amountInRands = amount / 100;
+  const paymentSplit = calculatePaymentSplit(amountInRands, deliveryFee);
 
   const initializePayment = async (): Promise<{
     success: boolean;
     authorization_url?: string;
     reference?: string;
+    createdOrder?: Order;
     error?: string;
   }> => {
     if (!user?.email) {
@@ -76,6 +118,80 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
     setPaymentStatus("initializing");
 
     try {
+      // STEP 4A: ORDER CREATION (First Database Write)
+      // Generate payment reference first
+      const paymentReference = `RS_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      // Get book data from IDs
+      const { data: bookData, error: bookError } = await supabase
+        .from("books")
+        .select("*, profiles!books_seller_id_fkey(subaccount_code, full_name)")
+        .in("id", bookIds);
+
+      if (bookError || !bookData?.length) {
+        return { success: false, error: "Failed to fetch book data" };
+      }
+
+      // Validate seller subaccount exists
+      const firstBook = bookData[0];
+      const sellerSubaccountCode = firstBook.profiles?.subaccount_code;
+
+      if (!sellerSubaccountCode) {
+        return { success: false, error: "Seller banking setup incomplete" };
+      }
+
+      // Calculate amounts (convert from cents to rands for calculations)
+      const bookPrice = bookData.reduce((sum, book) => sum + book.price, 0);
+      const totalPrice = bookPrice + deliveryFee / 100; // deliveryFee comes in cents
+
+      // 🔍 DATABASE INSERT 1: Create order record
+      const { data: createdOrder, error: orderError } = await supabase
+        .from("orders")
+        .insert({
+          buyer_email: user.email,
+          seller_id: sellerId,
+          amount: Math.round(totalPrice * 100), // In kobo
+          status: "pending",
+          paystack_ref: paymentReference,
+
+          // Order items as JSONB array
+          items: bookData.map((book) => ({
+            type: "book",
+            book_id: book.id,
+            book_title: book.title,
+            price: Math.round(book.price * 100),
+            quantity: 1,
+            seller_id: book.seller_id,
+            seller_subaccount_code: sellerSubaccountCode,
+          })),
+
+          // Shipping address as JSONB
+          shipping_address: shippingAddress,
+
+          // Delivery data as JSONB
+          delivery_data: {
+            delivery_method: deliveryMethod,
+            delivery_price: Math.round((deliveryFee / 100) * 100), // Convert to kobo
+            estimated_days: 3, // Default estimate
+            pickup_address: null, // Will be filled by seller
+          },
+
+          // Additional metadata
+          metadata: {
+            buyer_id: user.id,
+            platform_fee: Math.round(bookPrice * 0.1 * 100),
+            seller_amount: Math.round(bookPrice * 0.9 * 100),
+          },
+        })
+        .select()
+        .single();
+
+      if (orderError) {
+        console.error("Order creation error:", orderError);
+        return { success: false, error: "Failed to create order" };
+      }
+
+      // STEP 4B: PAYSTACK PAYMENT - Initialize payment
       const result = await PaymentService.initializePayment({
         email: user.email,
         amount: paymentSplit.totalAmount,
@@ -87,6 +203,8 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
       });
 
       if (!result.success) {
+        // Cleanup order if payment initialization fails
+        await supabase.from("orders").delete().eq("id", createdOrder.id);
         return {
           success: false,
           error: result.error || "Failed to initialize payment",
@@ -96,7 +214,8 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
       return {
         success: true,
         authorization_url: result.authorization_url,
-        reference: result.reference,
+        reference: paymentReference,
+        createdOrder,
       };
     } catch (error) {
       console.error("Payment initialization error:", error);
@@ -104,13 +223,54 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
     }
   };
 
-  const verifyPayment = async (reference: string): Promise<boolean> => {
+  const verifyPayment = async (
+    reference: string,
+    createdOrder?: Order,
+  ): Promise<boolean> => {
     setPaymentStatus("verifying");
 
     try {
       const result = await PaymentService.verifyPayment(reference);
 
       if (result.success && result.verification?.status === "success") {
+        // STEP 5: PAYMENT SUCCESS PROCESSING
+
+        // STEP 5A: UPDATE ORDER STATUS
+        const { error: updateError } = await supabase
+          .from("orders")
+          .update({
+            status: "paid",
+            paid_at: new Date().toISOString(),
+            metadata: {
+              ...createdOrder?.metadata,
+              paystack_data: result.verification,
+            },
+          })
+          .eq("paystack_ref", reference);
+
+        if (updateError) {
+          console.error("Error updating order status:", updateError);
+          setPaymentStatus("failed");
+          setErrorMessage("Payment successful but order update failed");
+          onError?.("Payment successful but order update failed");
+          return false;
+        }
+
+        // STEP 5B: MARK BOOK AS SOLD
+        const { error: bookError } = await supabase
+          .from("books")
+          .update({
+            sold: true,
+            availability: "sold",
+            sold_at: new Date().toISOString(),
+          })
+          .in("id", bookIds);
+
+        if (bookError) {
+          console.error("Error marking books as sold:", bookError);
+          // Don't fail the payment for this - it's a secondary action
+        }
+
         setPaymentStatus("completed");
         onSuccess?.(reference);
         return true;
@@ -129,9 +289,15 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
     }
   };
 
-  const handlePaystackSuccess = async (transaction: any) => {
+  const handlePaystackSuccess = async (transaction: {
+    reference: string;
+    trans: string;
+    message: string;
+    status: string;
+  }) => {
     console.log("Paystack success:", transaction);
-    await verifyPayment(transaction.reference);
+    // Pass the created order data to verification
+    await verifyPayment(transaction.reference, createdOrderRef.current);
   };
 
   const handlePaystackCancel = () => {
@@ -161,13 +327,19 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
         return;
       }
 
+      // Store created order for verification step
+      createdOrderRef.current = paymentInit.createdOrder;
+
       // Check if Paystack is configured for production
       if (!PAYSTACK_CONFIG.isConfigured()) {
         // Development fallback - simulate successful payment
         console.warn("🛠️ Using development payment fallback");
         setTimeout(async () => {
           if (paymentInit.reference) {
-            await verifyPayment(paymentInit.reference);
+            await verifyPayment(
+              paymentInit.reference,
+              paymentInit.createdOrder,
+            );
           }
         }, 2000);
         return;
@@ -183,7 +355,14 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
           amount: paymentSplit.totalAmountKobo,
           currency: "ZAR",
           ref: paymentInit.reference,
+          subaccount: sellerSubaccount || undefined,
+          transaction_charge: paymentSplit.platformAmountKobo,
+          bearer: "subaccount",
           metadata: {
+            seller_id: sellerId,
+            delivery_fee: deliveryFee,
+            seller_amount: paymentSplit.sellerAmount,
+            platform_commission: paymentSplit.platformAmount,
             custom_fields: [
               {
                 display_name: "Books",
@@ -194,6 +373,11 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
                 display_name: "Delivery Method",
                 variable_name: "delivery_method",
                 value: deliveryMethod,
+              },
+              {
+                display_name: "Seller ID",
+                variable_name: "seller_id",
+                value: sellerId,
               },
             ],
           },
@@ -324,7 +508,7 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
 declare global {
   interface Window {
     PaystackPop: {
-      setup: (options: any) => {
+      setup: (options: Record<string, unknown>) => {
         openIframe: () => void;
       };
     };

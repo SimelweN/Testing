@@ -1,216 +1,184 @@
 /**
- * Network utility functions for handling connection issues and retries
+ * Network connectivity and error handling utilities
  */
 
-export interface NetworkStatus {
-  isOnline: boolean;
-  effectiveType?: string;
-  downlink?: number;
-  rtt?: number;
-}
-
-export const getNetworkStatus = (): NetworkStatus => {
-  const nav = navigator as any;
-
-  return {
-    isOnline: navigator.onLine,
-    effectiveType: nav.connection?.effectiveType,
-    downlink: nav.connection?.downlink,
-    rtt: nav.connection?.rtt,
-  };
-};
-
+/**
+ * Check if the error is likely a network connectivity issue
+ */
 export const isNetworkError = (error: unknown): boolean => {
-  if (error instanceof Error) {
-    const message = error.message.toLowerCase();
-    return (
-      message.includes("failed to fetch") ||
-      message.includes("network error") ||
-      message.includes("networkerror") ||
-      message.includes("fetch error") ||
-      message.includes("connection") ||
-      message.includes("timeout") ||
-      error.name === "NetworkError" ||
-      (error.name === "TypeError" && message.includes("fetch"))
-    );
+  if (!error) return false;
+
+  const errorMessage =
+    error instanceof Error
+      ? error.message.toLowerCase()
+      : String(error).toLowerCase();
+
+  return (
+    errorMessage.includes("failed to fetch") ||
+    errorMessage.includes("network error") ||
+    errorMessage.includes("connection error") ||
+    errorMessage.includes("timeout") ||
+    errorMessage.includes("net::") ||
+    (error instanceof TypeError && errorMessage.includes("fetch"))
+  );
+};
+
+/**
+ * Get a user-friendly error message from any error
+ */
+export const getUserFriendlyErrorMessage = (
+  error: unknown,
+  context = "",
+): string => {
+  if (!error) return "An unknown error occurred";
+
+  // Check for network errors first
+  if (isNetworkError(error)) {
+    return "Network connection error. Please check your internet connection and try again.";
   }
-  return false;
+
+  // Handle specific error types
+  if (error instanceof Error) {
+    const message = error.message;
+
+    // Database errors
+    if (message.includes("PGRST")) {
+      return "Database connection issue. Please try again in a moment.";
+    }
+
+    // Auth errors
+    if (message.includes("auth") || message.includes("unauthorized")) {
+      return "Authentication error. Please log in again.";
+    }
+
+    // Permission errors
+    if (message.includes("permission") || message.includes("forbidden")) {
+      return "You don't have permission to perform this action.";
+    }
+
+    // Validation errors
+    if (message.includes("validation") || message.includes("invalid")) {
+      return "Invalid data provided. Please check your input and try again.";
+    }
+
+    return message;
+  }
+
+  // Handle objects with message properties
+  if (typeof error === "object" && error !== null) {
+    const errorObj = error as any;
+
+    if (errorObj.message) {
+      return String(errorObj.message);
+    }
+
+    if (errorObj.error) {
+      return String(errorObj.error);
+    }
+
+    if (errorObj.details) {
+      return String(errorObj.details);
+    }
+  }
+
+  return `An error occurred${context ? ` while ${context}` : ""}. Please try again.`;
 };
 
-export const wait = (ms: number): Promise<void> => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+/**
+ * Enhanced console.error that logs detailed error information
+ */
+export const logDetailedError = (
+  context: string,
+  error: unknown,
+  additionalData?: any,
+) => {
+  const timestamp = new Date().toISOString();
+  const userAgent =
+    typeof navigator !== "undefined" ? navigator.userAgent : "Unknown";
+  const url = typeof window !== "undefined" ? window.location.href : "Unknown";
+
+  const errorInfo = {
+    timestamp,
+    context,
+    url,
+    userAgent,
+    error: {
+      name: error instanceof Error ? error.name : "Unknown",
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    },
+    additionalData,
+    isNetworkError: isNetworkError(error),
+  };
+
+  console.error(`[${context}] Error occurred:`, errorInfo);
+
+  return errorInfo;
 };
 
-export interface RetryOptions {
-  maxRetries: number;
-  baseDelay: number;
-  maxDelay: number;
-  exponentialBackoff: boolean;
-  onRetry?: (attempt: number, error: unknown) => void;
-}
-
-export const defaultRetryOptions: RetryOptions = {
-  maxRetries: 3,
-  baseDelay: 1000,
-  maxDelay: 10000,
-  exponentialBackoff: true,
-};
-
+/**
+ * Retry a function with exponential backoff
+ */
 export const retryWithBackoff = async <T>(
-  operation: () => Promise<T>,
-  options: Partial<RetryOptions> = {},
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  baseDelay = 1000,
+  context = "",
 ): Promise<T> => {
-  const opts = { ...defaultRetryOptions, ...options };
   let lastError: unknown;
 
-  for (let attempt = 1; attempt <= opts.maxRetries + 1; attempt++) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      return await operation();
+      return await fn();
     } catch (error) {
       lastError = error;
 
-      // Don't retry on last attempt
-      if (attempt > opts.maxRetries) {
-        break;
-      }
-
-      // Only retry network errors
+      // Don't retry on certain errors
       if (!isNetworkError(error)) {
         throw error;
       }
 
-      // Check if we're still online
-      if (!navigator.onLine) {
-        console.log("Device is offline, waiting for connection...");
-        await waitForOnline();
+      // Don't retry on the last attempt
+      if (attempt === maxRetries) {
+        break;
       }
 
-      // Calculate delay with exponential backoff
-      let delay = opts.baseDelay;
-      if (opts.exponentialBackoff) {
-        delay = Math.min(
-          opts.baseDelay * Math.pow(2, attempt - 1),
-          opts.maxDelay,
-        );
-      }
-
-      console.log(
-        `Network error on attempt ${attempt}/${opts.maxRetries + 1}, retrying in ${delay}ms...`,
+      const delay = baseDelay * Math.pow(2, attempt);
+      console.warn(
+        `[${context}] Attempt ${attempt + 1} failed, retrying in ${delay}ms...`,
       );
 
-      if (opts.onRetry) {
-        opts.onRetry(attempt, error);
-      }
-
-      await wait(delay);
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 
   throw lastError;
 };
 
-export const waitForOnline = (): Promise<void> => {
-  return new Promise((resolve) => {
-    if (navigator.onLine) {
-      resolve();
-      return;
-    }
-
-    const handleOnline = () => {
-      window.removeEventListener("online", handleOnline);
-      resolve();
-    };
-
-    window.addEventListener("online", handleOnline);
-  });
-};
-
-export const logNetworkError = (
-  context: string,
-  error: unknown,
-  networkStatus?: NetworkStatus,
-) => {
-  const status = networkStatus || getNetworkStatus();
-
-  console.error(`[Network Error - ${context}]:`, {
-    message: error instanceof Error ? error.message : String(error),
-    type: error instanceof Error ? error.constructor.name : typeof error,
-    networkStatus: status,
-    timestamp: new Date().toISOString(),
-    userAgent: navigator.userAgent,
-  });
+/**
+ * Check if the browser is online
+ */
+export const isOnline = (): boolean => {
+  return typeof navigator !== "undefined" ? navigator.onLine : true;
 };
 
 /**
- * Enhanced fetch with automatic retries for network errors
+ * Simple connectivity test
  */
-export const fetchWithRetry = async (
-  input: RequestInfo,
-  init?: RequestInit,
-  retryOptions?: Partial<RetryOptions>,
-): Promise<Response> => {
-  return retryWithBackoff(async () => {
-    const response = await fetch(input, init);
-
-    // Check if response is ok
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    return response;
-  }, retryOptions);
-};
-
-/**
- * Monitor network status changes
- */
-export const createNetworkMonitor = (
-  onOnline?: () => void,
-  onOffline?: () => void,
-  onConnectionChange?: (status: NetworkStatus) => void,
-) => {
-  let currentStatus = getNetworkStatus();
-
-  const handleOnline = () => {
-    currentStatus = getNetworkStatus();
-    console.log("[Network Monitor] Connection restored:", currentStatus);
-    onOnline?.();
-    onConnectionChange?.(currentStatus);
-  };
-
-  const handleOffline = () => {
-    currentStatus = getNetworkStatus();
-    console.log("[Network Monitor] Connection lost:", currentStatus);
-    onOffline?.();
-    onConnectionChange?.(currentStatus);
-  };
-
-  const handleConnectionChange = () => {
-    const newStatus = getNetworkStatus();
-    if (JSON.stringify(newStatus) !== JSON.stringify(currentStatus)) {
-      currentStatus = newStatus;
-      console.log("[Network Monitor] Connection changed:", currentStatus);
-      onConnectionChange?.(currentStatus);
-    }
-  };
-
-  window.addEventListener("online", handleOnline);
-  window.addEventListener("offline", handleOffline);
-
-  // Monitor connection changes if available
-  const nav = navigator as any;
-  if (nav.connection) {
-    nav.connection.addEventListener("change", handleConnectionChange);
+export const testConnectivity = async (): Promise<boolean> => {
+  if (!isOnline()) {
+    return false;
   }
 
-  return {
-    getCurrentStatus: () => currentStatus,
-    cleanup: () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-      if (nav.connection) {
-        nav.connection.removeEventListener("change", handleConnectionChange);
-      }
-    },
-  };
+  try {
+    // Try to fetch a small resource from the same domain
+    const response = await fetch("/placeholder.svg", {
+      method: "HEAD",
+      cache: "no-cache",
+      signal: AbortSignal.timeout(5000), // 5 second timeout
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
 };
