@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { CartItem, CartContextType } from "@/types/cart";
+import { Book } from "@/types/book";
 import { toast } from "sonner";
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -35,24 +36,45 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [items]);
 
   const addToCart = (book: Book) => {
-    // Check if book and seller exist
-    if (!book) {
-      toast.error("Book information is missing");
+    // ✅ VALIDATION CHECKS:
+    // - book.id exists
+    if (!book || !book.id) {
+      toast.error("Book ID is missing");
       return;
     }
 
+    // - book.title not empty
+    if (!book.title || book.title.trim() === "") {
+      toast.error("Book title is missing");
+      return;
+    }
+
+    // - book.price > 0
+    if (!book.price || book.price <= 0) {
+      toast.error("Book price must be greater than 0");
+      return;
+    }
+
+    // - book.seller.id exists
     if (!book.seller || !book.seller.id) {
       toast.error("Seller information is missing");
       return;
     }
 
-    // Check if item already exists
+    // - book.sold === false (not already sold)
+    if (book.sold === true) {
+      toast.error("This book has already been sold");
+      return;
+    }
+
+    // - Item not already in cart
     const existingItem = items.find((item) => item.bookId === book.id);
     if (existingItem) {
       toast.error("This book is already in your cart");
       return;
     }
 
+    // ✅ CREATES CART ITEM:
     const newItem: CartItem = {
       id: `${book.id}-${Date.now()}`,
       bookId: book.id,
@@ -65,7 +87,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
       quantity: 1,
     };
 
-    setItems((prev) => [...prev, newItem]);
+    setItems((prev) => {
+      const updatedItems = [...prev, newItem];
+      // ✅ STORES IN LOCALSTORAGE:
+      localStorage.setItem("cart", JSON.stringify(updatedItems));
+      return updatedItems;
+    });
     toast.success("Added to cart");
   };
 
