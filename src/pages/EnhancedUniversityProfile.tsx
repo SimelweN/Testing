@@ -675,77 +675,40 @@ const EnhancedUniversityProfile: React.FC = () => {
             className="university-tabs space-y-6 lg:space-y-8"
           >
             <div className="bg-white border border-gray-200 rounded-xl shadow-lg mb-8">
-              {/* Mobile Tab List - Stack vertically */}
-              <div className="block sm:hidden">
-                <div className="flex flex-col p-2 bg-gray-50 rounded-xl">
-                  <TabsTrigger
-                    value="programs"
-                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 flex items-center justify-center w-full"
-                  >
-                    <GraduationCap className="w-5 h-5 mr-3" />
-                    Academic Programs
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="admissions"
-                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 mt-2 flex items-center justify-center w-full"
-                  >
-                    <Calendar className="w-5 h-5 mr-3" />
-                    Admissions
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="student-life"
-                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 mt-2 flex items-center justify-center w-full"
-                  >
-                    <Heart className="w-5 h-5 mr-3" />
-                    Campus Life
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="resources"
-                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 mt-2 flex items-center justify-center w-full"
-                  >
-                    <Info className="w-5 h-5 mr-3" />
-                    Resources
-                  </TabsTrigger>
-                </div>
-              </div>
-
-              {/* Desktop Tab List - Grid layout */}
-              <div className="hidden sm:block">
-                <TabsList className="grid w-full grid-cols-4 bg-gray-50 rounded-xl p-1">
-                  <TabsTrigger
-                    value="programs"
-                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 flex items-center justify-center"
-                  >
-                    <GraduationCap className="w-5 h-5 mr-2" />
-                    <span className="hidden lg:inline">Academic Programs</span>
-                    <span className="lg:hidden">Programs</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="admissions"
-                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 flex items-center justify-center"
-                  >
-                    <Calendar className="w-5 h-5 mr-2" />
-                    <span className="hidden lg:inline">Admissions</span>
-                    <span className="lg:hidden">Apply</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="student-life"
-                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 flex items-center justify-center"
-                  >
-                    <Heart className="w-5 h-5 mr-2" />
-                    <span className="hidden lg:inline">Campus Life</span>
-                    <span className="lg:hidden">Life</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="resources"
-                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 flex items-center justify-center"
-                  >
-                    <Info className="w-5 h-5 mr-2" />
-                    <span className="hidden lg:inline">Resources</span>
-                    <span className="lg:hidden">Info</span>
-                  </TabsTrigger>
-                </TabsList>
-              </div>
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 bg-gray-50 rounded-xl p-1">
+                <TabsTrigger
+                  value="programs"
+                  className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 flex items-center justify-center"
+                >
+                  <GraduationCap className="w-5 h-5 mr-2" />
+                  <span className="hidden lg:inline">Academic Programs</span>
+                  <span className="lg:hidden">Programs</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="admissions"
+                  className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 flex items-center justify-center"
+                >
+                  <Calendar className="w-5 h-5 mr-2" />
+                  <span className="hidden lg:inline">Admissions</span>
+                  <span className="lg:hidden">Apply</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="student-life"
+                  className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 flex items-center justify-center"
+                >
+                  <Heart className="w-5 h-5 mr-2" />
+                  <span className="hidden lg:inline">Campus Life</span>
+                  <span className="lg:hidden">Life</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="resources"
+                  className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 flex items-center justify-center"
+                >
+                  <Info className="w-5 h-5 mr-2" />
+                  <span className="hidden lg:inline">Resources</span>
+                  <span className="lg:hidden">Info</span>
+                </TabsTrigger>
+              </TabsList>
             </div>
 
             {/* Enhanced Programs Tab */}
