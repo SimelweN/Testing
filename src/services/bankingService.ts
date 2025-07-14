@@ -96,6 +96,14 @@ export class BankingService {
       }
 
       // Create new subaccount via Edge Function
+      console.log("🔍 Calling Edge Function with data:", {
+        userId: userId,
+        businessName: bankingDetails.businessName,
+        bankCode: bankingDetails.bankCode,
+        accountNumber: bankingDetails.accountNumber,
+        primaryContactEmail: bankingDetails.email,
+      });
+
       const { data, error } = await supabase.functions.invoke(
         "create-paystack-subaccount",
         {
@@ -111,6 +119,8 @@ export class BankingService {
           },
         },
       );
+
+      console.log("🔍 Edge Function response:", { data, error });
 
       if (error) {
         console.error("Error creating subaccount:", error);
