@@ -22,6 +22,7 @@ interface UseCommitReturn {
  */
 export const useCommit = (): UseCommitReturn => {
   const [isCommitting, setIsCommitting] = useState(false);
+  const [isDeclining, setIsDeclining] = useState(false);
   const [pendingCommits, setPendingCommits] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
