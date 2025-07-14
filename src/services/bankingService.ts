@@ -51,6 +51,17 @@ export class BankingService {
       return data;
     } catch (error) {
       if (error instanceof Error) {
+        // Check for table doesn't exist error
+        if (
+          error.message?.includes("does not exist") ||
+          (error.message?.includes("relation") &&
+            error.message?.includes("banking_subaccounts"))
+        ) {
+          console.warn(
+            "🛠️ Banking table doesn't exist - using development fallback",
+          );
+          return null; // Return null indicating no banking setup yet
+        }
         console.error("Error fetching banking details:", error.message);
         throw error;
       } else {
