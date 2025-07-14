@@ -121,7 +121,7 @@ const CheckoutSummary = ({
                 Subtotal ({items.length} {items.length === 1 ? "item" : "items"}
                 )
               </span>
-              <span className="font-medium">R{subtotal.toFixed(2)}</span>
+              <span className="font-medium">R{(subtotal || 0).toFixed(2)}</span>
             </div>
 
             {selectedDelivery ? (
