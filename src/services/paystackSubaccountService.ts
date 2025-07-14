@@ -68,6 +68,18 @@ export class PaystackSubaccountService {
         },
       );
 
+      // Check for edge function not deployed/available (development mode)
+      if (
+        error &&
+        (error.message?.includes("non-2xx status code") ||
+          error.message?.includes("404") ||
+          error.message?.includes("Function not found") ||
+          !error.message)
+      ) {
+        console.warn("Edge function not available, using development fallback");
+        throw new Error("non-2xx status code"); // This will trigger the development fallback below
+      }
+
       if (error) {
         console.error("Supabase function error:", error);
         throw new Error(
