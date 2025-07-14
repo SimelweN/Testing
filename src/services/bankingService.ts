@@ -125,7 +125,12 @@ export class BankingService {
       console.log("🔍 Edge Function response:", { data, error });
 
       if (error) {
-        console.error("Error creating subaccount:", error);
+        console.error("Error creating subaccount:", {
+          message: error.message,
+          context: error.context,
+          details: error.details,
+          fullError: error,
+        });
 
         // Check if it's a missing Edge Function error
         if (
@@ -157,7 +162,10 @@ export class BankingService {
         subaccountCode: data.subaccount_code,
       };
     } catch (error) {
-      console.error("Banking service error:", error);
+      console.error("Banking service error:", {
+        message: error instanceof Error ? error.message : "Unknown error",
+        fullError: error,
+      });
       return {
         success: false,
         error: "An unexpected error occurred. Please try again.",
@@ -214,7 +222,10 @@ export class BankingService {
         subaccountCode: data.subaccount_code,
       };
     } catch (error) {
-      console.error("Error updating subaccount:", error);
+      console.error("Error updating subaccount:", {
+        message: error instanceof Error ? error.message : "Unknown error",
+        fullError: error,
+      });
       return {
         success: false,
         error: "Failed to update banking details.",
@@ -352,7 +363,12 @@ export class BankingService {
         throw error;
       }
     } catch (error) {
-      console.error("Error linking books to subaccount:", error);
+      console.error("Error linking books to subaccount:", {
+        message: error instanceof Error ? error.message : "Unknown error",
+        code: error.code,
+        details: error.details,
+        fullError: error,
+      });
       throw new Error("Failed to link books to payment account");
     }
   }
