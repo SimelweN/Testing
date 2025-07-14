@@ -90,8 +90,11 @@ export type Database = {
           id?: string;
           image_url?: string;
           inside_pages?: string | null;
+          paystack_subaccount_code?: string | null;
+          pickup_address?: Json | null;
           price?: number;
           province?: string | null;
+          requires_banking_setup?: boolean | null;
           seller_id?: string;
           sold?: boolean;
           title?: string;
