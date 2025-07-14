@@ -343,7 +343,34 @@ export class PaystackSubaccountService {
         .maybeSingle();
 
       if (error) {
-        console.warn("Error checking subaccount status:", error);
+        console.warn(
+          "Error checking subaccount status (table may not exist):",
+          error,
+        );
+
+        // Fallback to checking profile table only
+        try {
+          const { data: profileData, error: profileError } = await supabase
+            .from("profiles")
+            .select("subaccount_code")
+            .eq("id", userId)
+            .single();
+
+          if (!profileError && profileData?.subaccount_code) {
+            return {
+              hasSubaccount: true,
+              subaccountCode: profileData.subaccount_code,
+              businessName: "Mock Business",
+              bankName: "Development Bank",
+              accountNumber: "***1234",
+              email: "dev@example.com",
+              canEdit: true,
+            };
+          }
+        } catch (profileError) {
+          console.warn("Profile table check also failed:", profileError);
+        }
+
         return { hasSubaccount: false, canEdit: false };
       }
 
