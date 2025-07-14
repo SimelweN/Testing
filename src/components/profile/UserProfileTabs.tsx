@@ -29,7 +29,7 @@ import {
 import { Book } from "@/types/book";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
 import AddressEditDialog from "@/components/AddressEditDialog";
-import GoogleMapsAddressDialog from "@/components/GoogleMapsAddressDialog";
+import SimpleAddressDialog from "@/components/SimpleAddressDialog";
 import UnavailableBookCard from "@/components/UnavailableBookCard";
 import BankingProfileTab from "@/components/profile/BankingProfileTab";
 import CommitTab from "@/components/profile/CommitTab";
@@ -92,53 +92,79 @@ const UserProfileTabs = ({
   return (
     <div className="w-full">
       <Tabs defaultValue="listings" className="w-full">
-        <TabsList
-          className={`w-full ${isMobile ? "grid grid-cols-2 gap-1 h-auto p-1" : "flex"}`}
-        >
-          <TabsTrigger
-            value="listings"
-            className={`${isMobile ? "h-12 text-xs px-1 col-span-2 flex-col" : "flex-1"} flex items-center justify-center`}
+        <TabsList className="w-full bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
+          <div
+            className={`w-full ${isMobile ? "grid grid-cols-2 gap-1" : "flex"}`}
           >
-            <span className={isMobile ? "text-center" : ""}>
-              {isMobile
-                ? `Listings (${activeListings.length})`
-                : `Active Listings (${activeListings.length})`}
-            </span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="activity"
-            className={`${isMobile ? "h-12 text-xs px-1 col-span-2 flex-col" : "flex-1"} flex items-center justify-center`}
-          >
-            <span className={isMobile ? "text-center" : ""}>Activity</span>
-          </TabsTrigger>
-          {isOwnProfile && (
-            <>
-              <TabsTrigger
-                value="account"
-                className={`${isMobile ? "h-12 text-xs px-1 flex-col" : "flex-1"} flex items-center justify-center`}
-              >
-                <span className={isMobile ? "text-center" : ""}>Account</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="addresses"
-                className={`${isMobile ? "h-12 text-xs px-1 flex-col" : "flex-1"} flex items-center justify-center`}
-              >
-                <span className={isMobile ? "text-center" : ""}>Addresses</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="banking"
-                className={`${isMobile ? "h-12 text-xs px-1 flex-col" : "flex-1"} flex items-center justify-center`}
-              >
-                <span className={isMobile ? "text-center" : ""}>Banking</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="commit"
-                className={`${isMobile ? "h-12 text-xs px-1 flex-col" : "flex-1"} flex items-center justify-center`}
-              >
-                <span className={isMobile ? "text-center" : ""}>Commit</span>
-              </TabsTrigger>
-            </>
-          )}
+            <TabsTrigger
+              value="listings"
+              className={`${isMobile ? "col-span-2 py-3" : "flex-1"} relative overflow-hidden bg-gradient-to-r from-book-50 to-book-100 border border-transparent hover:border-book-300 transition-all duration-200 data-[state=active]:bg-book-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md`}
+            >
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                <span className="font-medium">
+                  {isMobile ? "Listings" : "Active Listings"}
+                  <Badge className="ml-2 bg-white/20 text-current border-0 text-xs">
+                    {activeListings.length}
+                  </Badge>
+                </span>
+              </div>
+            </TabsTrigger>
+
+            <TabsTrigger
+              value="activity"
+              className={`${isMobile ? "col-span-2 py-3" : "flex-1"} relative overflow-hidden bg-gradient-to-r from-orange-50 to-orange-100 border border-transparent hover:border-orange-300 transition-all duration-200 data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md`}
+            >
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <span className="font-medium">Activity</span>
+              </div>
+            </TabsTrigger>
+
+            {isOwnProfile && (
+              <>
+                <TabsTrigger
+                  value="account"
+                  className={`${isMobile ? "py-3" : "flex-1"} relative overflow-hidden bg-gradient-to-r from-blue-50 to-blue-100 border border-transparent hover:border-blue-300 transition-all duration-200 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md`}
+                >
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span className="font-medium">Account</span>
+                  </div>
+                </TabsTrigger>
+
+                <TabsTrigger
+                  value="addresses"
+                  className={`${isMobile ? "py-3" : "flex-1"} relative overflow-hidden bg-gradient-to-r from-purple-50 to-purple-100 border border-transparent hover:border-purple-300 transition-all duration-200 data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md`}
+                >
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    <span className="font-medium">Addresses</span>
+                  </div>
+                </TabsTrigger>
+
+                <TabsTrigger
+                  value="banking"
+                  className={`${isMobile ? "py-3" : "flex-1"} relative overflow-hidden bg-gradient-to-r from-green-50 to-green-100 border border-transparent hover:border-green-300 transition-all duration-200 data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md`}
+                >
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    <span className="font-medium">Banking</span>
+                  </div>
+                </TabsTrigger>
+
+                <TabsTrigger
+                  value="commit"
+                  className={`${isMobile ? "py-3" : "flex-1"} relative overflow-hidden bg-gradient-to-r from-indigo-50 to-indigo-100 border border-transparent hover:border-indigo-300 transition-all duration-200 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md`}
+                >
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    <span className="font-medium">Commit</span>
+                  </div>
+                </TabsTrigger>
+              </>
+            )}
+          </div>
         </TabsList>
 
         <TabsContent value="listings" className="space-y-4">
@@ -574,9 +600,7 @@ const UserProfileTabs = ({
                     disabled={isLoadingAddress}
                   >
                     <MapPin className="h-4 w-4 mr-2" />
-                    {isLoadingAddress
-                      ? "Loading..."
-                      : "🗺️ Set Addresses with Maps"}
+                    {isLoadingAddress ? "Loading..." : "Edit Addresses"}
                   </Button>
                 </CardContent>
               </Card>
@@ -603,7 +627,7 @@ const UserProfileTabs = ({
       )}
 
       {addressData && onSaveAddresses && (
-        <GoogleMapsAddressDialog
+        <SimpleAddressDialog
           isOpen={isAddressEditDialogOpen}
           onClose={() => setIsAddressEditDialogOpen(false)}
           addressData={addressData}
