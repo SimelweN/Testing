@@ -79,7 +79,7 @@ const BankingProfileTab = () => {
         .single();
 
       if (error) {
-        console.error("Error fetching banking info:", error);
+        console.error("Error fetching banking info:", error.message || error);
         return;
       }
 
