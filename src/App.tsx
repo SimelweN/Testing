@@ -5,6 +5,8 @@ import { Analytics } from "@vercel/analytics/react";
 
 // Suppress harmless ResizeObserver warnings
 import "./utils/suppressResizeObserverError";
+// Suppress harmless network and third-party script errors
+import "./utils/suppressNetworkErrors";
 
 import { ThemeProvider } from "next-themes";
 import ErrorBoundary from "./components/ErrorBoundary";
