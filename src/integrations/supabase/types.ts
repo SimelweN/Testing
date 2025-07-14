@@ -352,6 +352,68 @@ export type Database = {
           },
         ];
       };
+      sale_commitments: {
+        Row: {
+          id: string;
+          book_id: string;
+          seller_id: string;
+          buyer_id: string;
+          purchase_amount: number;
+          delivery_fee: number;
+          total_amount: number;
+          status: string;
+          committed_at: string | null;
+          expires_at: string;
+          payment_reference: string | null;
+          payment_status: string;
+          delivery_confirmed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          book_id: string;
+          seller_id: string;
+          buyer_id: string;
+          purchase_amount: number;
+          delivery_fee?: number;
+          total_amount: number;
+          status?: string;
+          committed_at?: string | null;
+          expires_at: string;
+          payment_reference?: string | null;
+          payment_status?: string;
+          delivery_confirmed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          book_id?: string;
+          seller_id?: string;
+          buyer_id?: string;
+          purchase_amount?: number;
+          delivery_fee?: number;
+          total_amount?: number;
+          status?: string;
+          committed_at?: string | null;
+          expires_at?: string;
+          payment_reference?: string | null;
+          payment_status?: string;
+          delivery_confirmed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sale_commitments_book_id_fkey";
+            columns: ["book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       transactions: {
         Row: {
           book_id: string;
