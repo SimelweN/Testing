@@ -98,18 +98,18 @@ const OrderCommitButtonFallback: React.FC<OrderCommitButtonFallbackProps> = ({
       let errorMessage = "Failed to commit to sale";
 
       // Handle specific error messages
-      if (error.message?.includes("already committed")) {
+      if (errorObj.message?.includes("already committed")) {
         errorMessage = "This order has already been committed";
         toast.error(errorMessage, {
           description: "Please refresh the page to see the latest status.",
         });
-      } else if (error.message?.includes("not found")) {
+      } else if (errorObj.message?.includes("not found")) {
         errorMessage = "Order not found or access denied";
         toast.error(errorMessage, {
           description:
             "Please check if you have permission to commit this order.",
         });
-      } else if (error.message?.includes("All service endpoints failed")) {
+      } else if (errorObj.message?.includes("All service endpoints failed")) {
         errorMessage = "All services are currently unavailable";
         toast.error(errorMessage, {
           description:
@@ -118,7 +118,8 @@ const OrderCommitButtonFallback: React.FC<OrderCommitButtonFallbackProps> = ({
         });
       } else {
         toast.error(errorMessage, {
-          description: error.message || "Please try again or contact support.",
+          description:
+            errorObj.message || "Please try again or contact support.",
           duration: 8000,
         });
       }
