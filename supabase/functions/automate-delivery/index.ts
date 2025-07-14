@@ -1,43 +1,30 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.3";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 
-serve(async (req: Request) => {
-  // Handle CORS preflight requests
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 200,
-      headers: corsHeaders,
-    });
+    return new Response("ok", { headers: corsHeaders });
   }
-
-  // Only allow POST requests
-  if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "Method not allowed. Use POST.",
-      }),
-      {
-        status: 405,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
-  }
-
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-  );
 
   try {
-    const { order_id, trigger } = await req.json();
+    const {
+      order_id,
+      seller_address,
+      buyer_address,
+      weight,
+      preferred_courier = "courier-guy",
+    } = await req.json();
 
-    if (!order_id) {
+    if (!order_id || !seller_address || !buyer_address) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "Missing order_id",
+          error:
+            "Missing required fields: order_id, seller_address, buyer_address",
         }),
         {
           status: 400,
@@ -46,154 +33,110 @@ serve(async (req: Request) => {
       );
     }
 
-    console.log(
-      `🚚 Starting delivery automation for order: ${order_id}, trigger: ${trigger}`,
-    );
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-    // 📦 STEP 1: Get order with full details
-    const { data: order, error } = await supabase
+    // Get order details
+    const { data: order, error: orderError } = await supabase
       .from("orders")
-      .select(
-        `
-        *,
-        seller:profiles!orders_seller_id_fkey(name, email, pickup_address, phone),
-        buyer:profiles!orders_buyer_id_fkey(name, email, phone),
-        books(title, price, weight)
-      `,
-      )
+      .select("*")
       .eq("id", order_id)
       .single();
 
-    if (error || !order) {
-      console.error("Order not found:", error);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Order not found",
+    if (orderError || !order) {
+      throw new Error("Order not found");
+    }
+
+    // Step 1: Get quotes from both couriers
+    let quotes = [];
+    try {
+      const [courierGuyQuote, fastwayQuote] = await Promise.allSettled([
+        supabase.functions.invoke("courier-guy-quote", {
+          body: {
+            fromAddress: seller_address,
+            toAddress: buyer_address,
+            weight: weight || 1,
+            serviceType: "standard",
+          },
         }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        supabase.functions.invoke("fastway-quote", {
+          body: {
+            fromAddress: seller_address,
+            toAddress: buyer_address,
+            weight: weight || 1,
+            serviceType: "standard",
+          },
+        }),
+      ]);
+
+      if (
+        courierGuyQuote.status === "fulfilled" &&
+        courierGuyQuote.value.data?.quotes
+      ) {
+        quotes.push(...courierGuyQuote.value.data.quotes);
+      }
+      if (
+        fastwayQuote.status === "fulfilled" &&
+        fastwayQuote.value.data?.quotes
+      ) {
+        quotes.push(...fastwayQuote.value.data.quotes);
+      }
+    } catch (quoteError) {
+      console.error("Failed to get quotes:", quoteError);
+    }
+
+    // Step 2: Select best quote (cheapest available)
+    let selectedQuote = null;
+    if (quotes.length > 0) {
+      selectedQuote = quotes.reduce((best, current) =>
+        current.price < best.price ? current : best,
       );
     }
 
-    console.log(`📋 Order found: ${order.id}, seller: ${order.seller?.name}`);
-
-    // 🚚 STEP 2: CALL REAL COURIER APIs FOR PICKUP BOOKING
-    const pickupData = {
-      pickup_address: {
-        name: order.seller?.name || "Seller",
-        street:
-          order.seller?.pickup_address?.streetAddress ||
-          order.pickup_address?.streetAddress ||
-          "",
-        city:
-          order.seller?.pickup_address?.city ||
-          order.pickup_address?.city ||
-          "",
-        province:
-          order.seller?.pickup_address?.province ||
-          order.pickup_address?.province ||
-          "",
-        postal_code:
-          order.seller?.pickup_address?.postalCode ||
-          order.pickup_address?.postalCode ||
-          "0000",
-        phone: order.seller?.phone || "",
-        email: order.seller?.email || "",
-      },
-      delivery_address: order.shipping_address || order.delivery_address,
-      parcel: {
-        weight: order.books?.[0]?.weight || 0.5, // Book weight in kg
-        length: 25,
-        width: 20,
-        height: 5,
-        description: `Book: ${order.books?.[0]?.title || order.book_title || "Textbook"}`,
-        value: (order.amount || order.total_amount || 0) / 100, // Convert from cents to rands
-      },
-      service_level: "standard",
-      reference: order_id,
-    };
-
-    console.log(`📞 Calling courier service with data:`, pickupData);
-
-    let bookingResult;
-    let bookingError;
-
-    // 📞 TRY COURIER GUY FIRST
-    try {
-      const response = await supabase.functions.invoke("courier-guy-shipment", {
-        body: pickupData,
-      });
-
-      if (response.data?.success) {
-        bookingResult = response.data;
-        console.log("✅ Courier Guy booking successful:", bookingResult);
-      } else {
-        bookingError = response.error || "Courier Guy booking failed";
-        console.warn("⚠️ Courier Guy booking failed:", bookingError);
-      }
-    } catch (error) {
-      bookingError = error;
-      console.warn("⚠️ Courier Guy API error:", error);
-    }
-
-    // 📞 FALLBACK TO FASTWAY IF COURIER GUY FAILS
-    if (!bookingResult) {
+    // Step 3: Create shipment with selected courier
+    let shipmentResult = null;
+    if (selectedQuote) {
       try {
-        console.log("🔄 Trying Fastway as fallback...");
-        const response = await supabase.functions.invoke("fastway-shipment", {
-          body: pickupData,
-        });
+        const shipmentFunction =
+          selectedQuote.courier === "courier-guy"
+            ? "courier-guy-shipment"
+            : "fastway-shipment";
 
-        if (response.data?.success) {
-          bookingResult = response.data;
-          bookingResult.courier_provider = "fastway";
-          console.log("✅ Fastway booking successful:", bookingResult);
-        } else {
-          bookingError = response.error || "Fastway booking failed";
-          console.warn("⚠️ Fastway booking also failed:", bookingError);
-        }
-      } catch (error) {
-        console.error("⚠️ Fastway API error:", error);
-        bookingError = error;
-      }
-    }
-
-    if (!bookingResult) {
-      throw new Error(`Failed to book courier pickup: ${bookingError}`);
-    }
-
-    // 📄 STEP 3: DOWNLOAD & STORE SHIPPING LABEL PDF
-    let labelUrl = bookingResult.label_url;
-
-    if (bookingResult.label_url) {
-      try {
-        labelUrl = await downloadAndStoreLabel(
-          bookingResult.label_url,
-          order_id,
-          supabase,
+        const { data: shipmentData } = await supabase.functions.invoke(
+          shipmentFunction,
+          {
+            body: {
+              order_id,
+              service_code: selectedQuote.service_code,
+              pickup_address: seller_address,
+              delivery_address: buyer_address,
+              weight: weight || 1,
+              reference: `AUTO-${order_id}`,
+            },
+          },
         );
-        console.log("📄 Shipping label stored:", labelUrl);
-      } catch (error) {
-        console.warn("⚠️ Failed to store shipping label:", error);
-        // Use original URL as fallback
+
+        shipmentResult = shipmentData;
+      } catch (shipmentError) {
+        console.error("Failed to create shipment:", shipmentError);
       }
     }
 
-    // 📊 STEP 4: UPDATE ORDER WITH DELIVERY INFO
-    const updateData = {
-      courier_provider: bookingResult.courier_provider || "courier-guy",
-      courier_tracking_number:
-        bookingResult.waybill_number || bookingResult.tracking_number,
-      courier_pickup_date: bookingResult.pickup_date,
-      courier_pickup_time:
-        bookingResult.pickup_time_window || bookingResult.pickup_time,
-      shipping_label_url: labelUrl,
-      status: "courier_scheduled",
-      updated_at: new Date().toISOString(),
+    // Step 4: Update order with delivery information
+    const updateData: any = {
+      delivery_automated: true,
+      delivery_automation_date: new Date().toISOString(),
     };
+
+    if (selectedQuote) {
+      updateData.selected_courier = selectedQuote.courier;
+      updateData.delivery_cost = selectedQuote.price;
+    }
+
+    if (shipmentResult?.success) {
+      updateData.status = "courier_scheduled";
+      updateData.tracking_number = shipmentResult.tracking_number;
+      updateData.courier_reference = shipmentResult.shipment_id;
+    }
 
     const { error: updateError } = await supabase
       .from("orders")
@@ -201,35 +144,42 @@ serve(async (req: Request) => {
       .eq("id", order_id);
 
     if (updateError) {
-      console.error("⚠️ Failed to update order:", updateError);
-      // Don't fail the entire operation for database update errors
-    } else {
-      console.log("✅ Order updated with delivery info");
+      console.error("Failed to update order:", updateError);
     }
 
-    const response = {
-      success: true,
-      pickup_date: bookingResult.pickup_date,
-      pickup_time_window:
-        bookingResult.pickup_time_window || bookingResult.pickup_time,
-      courier_provider: bookingResult.courier_provider || "courier-guy",
-      tracking_number:
-        bookingResult.waybill_number || bookingResult.tracking_number,
-      shipping_label_url: labelUrl,
-    };
-
-    console.log("🎉 Delivery automation completed successfully:", response);
-
-    return new Response(JSON.stringify(response), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Step 5: Log automation activity
+    await supabase.from("delivery_automation_log").insert({
+      order_id,
+      quotes_received: quotes.length,
+      selected_courier: selectedQuote?.courier,
+      delivery_cost: selectedQuote?.price,
+      shipment_created: !!shipmentResult?.success,
+      tracking_number: shipmentResult?.tracking_number,
+      automation_status: shipmentResult?.success ? "success" : "partial",
+      created_at: new Date().toISOString(),
     });
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        automation_status: shipmentResult?.success ? "complete" : "partial",
+        quotes_received: quotes.length,
+        selected_courier: selectedQuote?.courier,
+        delivery_cost: selectedQuote?.price,
+        tracking_number: shipmentResult?.tracking_number,
+        shipment_created: !!shipmentResult?.success,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
-    console.error("💥 Delivery automation error:", error);
+    console.error("Automate delivery error:", error);
+
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || "Delivery automation failed",
+        error: error.message || "Failed to automate delivery",
       }),
       {
         status: 500,
@@ -238,55 +188,3 @@ serve(async (req: Request) => {
     );
   }
 });
-
-// 📄 DOWNLOAD & STORE PDF FUNCTION
-async function downloadAndStoreLabel(
-  labelUrl: string,
-  orderId: string,
-  supabase: any,
-): Promise<string> {
-  try {
-    console.log(`📄 Downloading shipping label from: ${labelUrl}`);
-
-    // Download the PDF from courier API
-    const response = await fetch(labelUrl);
-    if (!response.ok) {
-      throw new Error(`Failed to download label: ${response.statusText}`);
-    }
-
-    const blob = await response.blob();
-    console.log(`📄 Downloaded label, size: ${blob.size} bytes`);
-
-    // Upload to Supabase Storage
-    const fileName = `shipping-labels/${orderId}-${Date.now()}.pdf`;
-    const { data, error } = await supabase.storage
-      .from("order-documents")
-      .upload(fileName, blob, {
-        contentType: "application/pdf",
-        upsert: false,
-      });
-
-    if (error) {
-      console.error("Storage error:", error);
-      throw new Error(`Failed to store label: ${error.message}`);
-    }
-
-    console.log(`📄 Label stored successfully: ${fileName}`);
-
-    // Get public URL for download
-    const { data: urlData } = supabase.storage
-      .from("order-documents")
-      .getPublicUrl(fileName);
-
-    if (!urlData?.publicUrl) {
-      throw new Error("Failed to get public URL for stored label");
-    }
-
-    console.log(`📄 Public URL generated: ${urlData.publicUrl}`);
-    return urlData.publicUrl;
-  } catch (error) {
-    console.error("📄 Failed to store shipping label:", error);
-    // Return original URL as fallback
-    return labelUrl;
-  }
-}

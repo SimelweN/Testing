@@ -2,29 +2,37 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    const { tracking_number } = await req.json();
+
+    if (!tracking_number) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Missing tracking number",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Courier Guy API integration
     const COURIER_GUY_API_KEY = Deno.env.get("COURIER_GUY_API_KEY");
+    const COURIER_GUY_API_URL =
+      Deno.env.get("COURIER_GUY_API_URL") || "https://api.courierguy.co.za";
 
     if (!COURIER_GUY_API_KEY) {
       throw new Error("Courier Guy API key not configured");
     }
 
-    const url = new URL(req.url);
-    const trackingId = url.pathname.split("/").pop();
-
-    if (!trackingId) {
-      throw new Error("Tracking ID is required");
-    }
-
-    console.log("Tracking shipment:", trackingId);
-
     const response = await fetch(
-      `https://api.courierguy.co.za/v1/shipments/${trackingId}`,
+      `${COURIER_GUY_API_URL}/api/v1/track/${tracking_number}`,
       {
         method: "GET",
         headers: {
@@ -35,42 +43,50 @@ serve(async (req) => {
     );
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Courier Guy tracking API error:", errorText);
-
-      if (response.status === 404) {
-        throw new Error("Shipment not found");
-      }
-
-      throw new Error(
-        `Courier Guy API error: ${response.status} - ${errorText}`,
-      );
+      throw new Error(`Courier Guy tracking API error: ${response.status}`);
     }
 
     const trackingData = await response.json();
-    console.log("Tracking data received:", trackingData);
+
+    // Format tracking events
+    const events =
+      trackingData.tracking_events?.map((event: any) => ({
+        timestamp: event.timestamp,
+        status: event.status,
+        description: event.description,
+        location: event.location,
+      })) || [];
+
+    const trackingInfo = {
+      tracking_number,
+      status: trackingData.status,
+      current_location: trackingData.current_location,
+      estimated_delivery: trackingData.estimated_delivery,
+      delivered_at: trackingData.delivered_at,
+      events,
+      provider: "courier-guy",
+    };
 
     return new Response(
       JSON.stringify({
         success: true,
-        tracking: trackingData,
+        tracking: trackingInfo,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
       },
     );
   } catch (error) {
-    console.error("Error tracking shipment:", error);
+    console.error("Courier Guy tracking error:", error);
 
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: error.message || "Failed to track Courier Guy shipment",
       }),
       {
+        status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: error.message.includes("not found") ? 404 : 400,
       },
     );
   }

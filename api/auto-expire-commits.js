@@ -53,42 +53,37 @@ export default async function handler(req, res) {
     // Process each expired order
     for (const order of expiredOrders) {
       try {
-        // Call decline-commit function to handle the expiration
-        const declineResponse = await fetch(
-          `${req.headers.host}/api/decline-commit`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
+        // Call decline-commit Supabase Edge Function to handle the expiration
+        const { data: declineData, error: declineError } =
+          await supabase.functions.invoke("decline-commit", {
+            body: {
               order_id: order.id,
               seller_id: order.seller_id,
               reason: "Order expired - seller did not commit within 48 hours",
-            }),
-          },
-        );
-
-        const declineResult = await declineResponse.json();
-
-        if (declineResult.success) {
-          processedOrders.push({
-            order_id: order.id,
-            buyer_email: order.buyer.email,
-            seller_email: order.seller.email,
-            amount: order.total_amount,
-            expired_at: new Date().toISOString(),
+            },
           });
 
-          logEvent("order_auto_expired", {
-            order_id: order.id,
-            seller_id: order.seller_id,
-            amount: order.total_amount,
-          });
-        } else {
-          errors.push({
-            order_id: order.id,
-            error: declineResult.error,
-          });
+        if (declineError) {
+          throw new Error(`Decline function error: ${declineError.message}`);
         }
+
+        if (!declineData?.success) {
+          throw new Error(declineData?.error || "Failed to decline order");
+        }
+
+        processedOrders.push({
+          order_id: order.id,
+          buyer_email: order.buyer.email,
+          seller_email: order.seller.email,
+          amount: order.total_amount,
+          expired_at: new Date().toISOString(),
+        });
+
+        logEvent("order_auto_expired", {
+          order_id: order.id,
+          seller_id: order.seller_id,
+          amount: order.total_amount,
+        });
       } catch (orderError) {
         logEvent("order_expiry_error", {
           order_id: order.id,

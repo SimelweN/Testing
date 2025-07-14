@@ -1,153 +1,136 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 
-interface ShipmentData {
-  senderName: string;
-  senderAddress: string;
-  senderCity: string;
-  senderProvince: string;
-  senderPostalCode: string;
-  senderPhone: string;
-  recipientName: string;
-  recipientAddress: string;
-  recipientCity: string;
-  recipientProvince: string;
-  recipientPostalCode: string;
-  recipientPhone: string;
-  weight: number;
-  dimensions?: {
-    length: number;
-    width: number;
-    height: number;
-  };
-  description: string;
-  value: number;
-  reference?: string;
-}
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    const {
+      order_id,
+      service_code,
+      pickup_address,
+      delivery_address,
+      weight,
+      dimensions,
+      reference,
+    } = await req.json();
+
+    if (!order_id || !service_code || !pickup_address || !delivery_address) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Missing required fields",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+    // Courier Guy API integration
     const COURIER_GUY_API_KEY = Deno.env.get("COURIER_GUY_API_KEY");
+    const COURIER_GUY_API_URL =
+      Deno.env.get("COURIER_GUY_API_URL") || "https://api.courierguy.co.za";
 
     if (!COURIER_GUY_API_KEY) {
       throw new Error("Courier Guy API key not configured");
     }
 
-    const shipmentData: ShipmentData = await req.json();
-
-    // Validate required fields
-    const requiredFields = [
-      "senderName",
-      "senderAddress",
-      "senderCity",
-      "senderProvince",
-      "senderPostalCode",
-      "recipientName",
-      "recipientAddress",
-      "recipientCity",
-      "recipientProvince",
-      "recipientPostalCode",
-      "weight",
-      "description",
-      "value",
-    ];
-
-    for (const field of requiredFields) {
-      if (!shipmentData[field as keyof ShipmentData]) {
-        throw new Error(`Missing required field: ${field}`);
-      }
-    }
-
-    // Format data for Courier Guy API
-    const courierGuyPayload = {
-      collection: {
-        name: shipmentData.senderName,
-        address: {
-          street: shipmentData.senderAddress,
-          city: shipmentData.senderCity,
-          province: shipmentData.senderProvince,
-          postal_code: shipmentData.senderPostalCode,
-        },
-        contact: {
-          phone: shipmentData.senderPhone || "",
-        },
+    const shipmentRequest = {
+      service_code,
+      reference: reference || `ORDER-${order_id}`,
+      collection_details: {
+        company_name: pickup_address.company || "ReBooked Solutions",
+        contact_name: pickup_address.name,
+        phone: pickup_address.phone,
+        email: pickup_address.email,
+        address_line_1: pickup_address.address_line_1,
+        suburb: pickup_address.suburb,
+        postal_code: pickup_address.postal_code,
+        province: pickup_address.province,
       },
-      delivery: {
-        name: shipmentData.recipientName,
-        address: {
-          street: shipmentData.recipientAddress,
-          city: shipmentData.recipientCity,
-          province: shipmentData.recipientProvince,
-          postal_code: shipmentData.recipientPostalCode,
-        },
-        contact: {
-          phone: shipmentData.recipientPhone || "",
-        },
+      delivery_details: {
+        company_name: delivery_address.company || "",
+        contact_name: delivery_address.name,
+        phone: delivery_address.phone,
+        email: delivery_address.email,
+        address_line_1: delivery_address.address_line_1,
+        suburb: delivery_address.suburb,
+        postal_code: delivery_address.postal_code,
+        province: delivery_address.province,
       },
-      parcels: [
-        {
-          weight: shipmentData.weight,
-          dimensions: shipmentData.dimensions || {
-            length: 30,
-            width: 20,
-            height: 10,
-          },
-          description: shipmentData.description,
-          value: shipmentData.value,
-        },
-      ],
-      reference: shipmentData.reference || `RBS-${Date.now()}`,
-      service_type: "standard", // Can be made configurable
+      parcel_details: {
+        weight_kg: weight,
+        length_cm: dimensions?.length || 30,
+        width_cm: dimensions?.width || 20,
+        height_cm: dimensions?.height || 10,
+        description: "Textbook",
+      },
     };
 
-    console.log("Creating shipment with Courier Guy:", courierGuyPayload);
-
-    const response = await fetch("https://api.courierguy.co.za/v1/shipments", {
+    const response = await fetch(`${COURIER_GUY_API_URL}/api/v1/shipments`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${COURIER_GUY_API_KEY}`,
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(courierGuyPayload),
+      body: JSON.stringify(shipmentRequest),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Courier Guy API error:", errorText);
-      throw new Error(
-        `Courier Guy API error: ${response.status} - ${errorText}`,
-      );
+      throw new Error(`Courier Guy API error: ${response.status}`);
     }
 
-    const shipmentResult = await response.json();
-    console.log("Shipment created successfully:", shipmentResult);
+    const shipmentData = await response.json();
+
+    // Update order with tracking information
+    const { error: updateError } = await supabase
+      .from("orders")
+      .update({
+        tracking_number: shipmentData.tracking_number,
+        courier_reference: shipmentData.shipment_id,
+        courier_service: "courier-guy",
+        status: "shipped",
+        shipped_at: new Date().toISOString(),
+      })
+      .eq("id", order_id);
+
+    if (updateError) {
+      console.error("Failed to update order:", updateError);
+    }
 
     return new Response(
       JSON.stringify({
         success: true,
-        shipment: shipmentResult,
+        tracking_number: shipmentData.tracking_number,
+        shipment_id: shipmentData.shipment_id,
+        label_url: shipmentData.label_url,
+        estimated_delivery: shipmentData.estimated_delivery,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
       },
     );
   } catch (error) {
-    console.error("Error creating shipment:", error);
+    console.error("Courier Guy shipment error:", error);
 
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: error.message || "Failed to create Courier Guy shipment",
       }),
       {
+        status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400,
       },
     );
   }

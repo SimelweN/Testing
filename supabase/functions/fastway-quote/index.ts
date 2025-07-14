@@ -1,105 +1,74 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { corsHeaders } from "../_shared/cors.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
-
-interface CourierAddress {
-  street: string;
-  city: string;
-  province: string;
-  postal_code: string;
-  country?: string;
-}
-
-interface ParcelDetails {
-  weight: number;
-  length: number;
-  width: number;
-  height: number;
-  value: number;
-}
-
-serve(async (req: Request) => {
-  // Handle CORS
+serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const { pickup_address, delivery_address, parcel_details } =
-      await req.json();
+    const {
+      fromAddress,
+      toAddress,
+      weight,
+      dimensions,
+      serviceType = "standard",
+    } = await req.json();
 
-    // Get environment variables
-    const FASTWAY_API_KEY = Deno.env.get("FASTWAY_API_KEY");
-    const FASTWAY_BASE_URL = "https://api.fastway.co.za/v1";
-
-    if (!FASTWAY_API_KEY) {
-      console.warn("Fastway API key not configured, using fallback rates");
-      return getFallbackRates(pickup_address, delivery_address, parcel_details);
+    if (!fromAddress || !toAddress || !weight) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Missing required fields: fromAddress, toAddress, weight",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
-    // 🔑 Real Fastway API integration
-    const quoteData = {
-      pickup_address: {
-        street_address: pickup_address.street,
-        city: pickup_address.city,
-        province: pickup_address.province,
-        postal_code: pickup_address.postal_code,
-        country: pickup_address.country || "South Africa",
-      },
-      delivery_address: {
-        street_address: delivery_address.street,
-        city: delivery_address.city,
-        province: delivery_address.province,
-        postal_code: delivery_address.postal_code,
-        country: delivery_address.country || "South Africa",
-      },
-      parcel: {
-        weight_kg: parcel_details.weight || 0.5,
-        length_cm: parcel_details.length || 20,
-        width_cm: parcel_details.width || 15,
-        height_cm: parcel_details.height || 5,
-        value_zar: parcel_details.value || 100,
-      },
+    // Fastway API integration
+    const FASTWAY_API_KEY = Deno.env.get("FASTWAY_API_KEY");
+    if (!FASTWAY_API_KEY) {
+      throw new Error("Fastway API key not configured");
+    }
+
+    const quoteRequest = {
+      from_suburb: fromAddress.suburb,
+      from_postcode: fromAddress.postal_code,
+      to_suburb: toAddress.suburb,
+      to_postcode: toAddress.postal_code,
+      weight_kg: weight,
+      length_cm: dimensions?.length || 30,
+      width_cm: dimensions?.width || 20,
+      height_cm: dimensions?.height || 10,
+      service_type: serviceType,
     };
 
-    console.log(
-      "Calling Fastway API with:",
-      JSON.stringify(quoteData, null, 2),
-    );
-
-    // 📡 Call Real Fastway API
-    const response = await fetch(`${FASTWAY_BASE_URL}/quote`, {
+    const response = await fetch("https://api.fastway.com.au/v3/quote", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${FASTWAY_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(quoteData),
+      body: JSON.stringify(quoteRequest),
     });
 
     if (!response.ok) {
-      console.warn(
-        `Fastway API error: ${response.status} ${response.statusText}`,
-      );
-      return getFallbackRates(pickup_address, delivery_address, parcel_details);
+      throw new Error(`Fastway API error: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log("Fastway API response:", JSON.stringify(data, null, 2));
+    const quoteData = await response.json();
 
-    // 🔄 Transform API response to standard format
+    // Format the response for our system
     const quotes =
-      data.quotes?.map((quote: any) => ({
+      quoteData.quotes?.map((quote: any) => ({
         service_name: quote.service_name,
+        price: parseFloat(quote.price),
+        estimated_days: quote.transit_days,
         service_code: quote.service_code,
-        price: parseFloat(quote.total_price) || parseFloat(quote.price) || 0,
-        currency: "ZAR",
-        estimated_days: quote.delivery_days || quote.estimated_days || "2-3",
-        description: `${quote.service_name} delivery via Fastway`,
+        courier: "fastway",
       })) || [];
 
     return new Response(
@@ -113,70 +82,17 @@ serve(async (req: Request) => {
       },
     );
   } catch (error) {
-    console.error("Fastway API error:", error);
+    console.error("Fastway quote error:", error);
 
-    // 🔄 Fallback quote on error
-    return getFallbackRates(pickup_address, delivery_address, parcel_details);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error.message || "Failed to get Fastway quote",
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   }
 });
-
-// Fallback rate calculation for Fastway
-function getFallbackRates(
-  fromAddress: CourierAddress,
-  toAddress: CourierAddress,
-  parcel: ParcelDetails,
-) {
-  const majorProvinces = ["Gauteng", "Western Cape", "KwaZulu-Natal"];
-  const fromMajor = majorProvinces.includes(fromAddress.province);
-  const toMajor = majorProvinces.includes(toAddress.province);
-
-  let baseStandard = 65;
-  let baseExpress = 90;
-
-  if (fromAddress.province === toAddress.province) {
-    baseStandard = fromMajor ? 50 : 60;
-    baseExpress = fromMajor ? 70 : 80;
-  } else if (fromMajor && toMajor) {
-    baseStandard = 80;
-    baseExpress = 100;
-  } else if (fromMajor || toMajor) {
-    baseStandard = 90;
-    baseExpress = 115;
-  } else {
-    baseStandard = 100;
-    baseExpress = 130;
-  }
-
-  const weightMultiplier = Math.max(1, parcel.weight / 2);
-
-  const quotes = [
-    {
-      service_name: "Standard Delivery",
-      service_code: "STD",
-      price: Math.round(baseStandard * weightMultiplier),
-      currency: "ZAR",
-      estimated_days: "2-4",
-      description: "Standard delivery service (calculated rate)",
-    },
-    {
-      service_name: "Express Delivery",
-      service_code: "EXP",
-      price: Math.round(baseExpress * weightMultiplier),
-      currency: "ZAR",
-      estimated_days: "1-2",
-      description: "Express delivery service (calculated rate)",
-    },
-  ];
-
-  return new Response(
-    JSON.stringify({
-      success: true,
-      quotes,
-      provider: "fastway",
-      fallback: true,
-    }),
-    {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    },
-  );
-}
