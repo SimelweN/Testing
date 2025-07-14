@@ -33,7 +33,7 @@ import {
   EyeOff,
   Eye,
 } from "lucide-react";
-import UserProfileTabs from "@/components/profile/UserProfileTabs";
+import ModernUserProfileTabs from "@/components/profile/ModernUserProfileTabs";
 import { saveUserAddresses, getUserAddresses } from "@/services/addressService";
 import { getUserBooks } from "@/services/book/bookQueries";
 import { deleteBook } from "@/services/book/bookMutations";
@@ -518,7 +518,7 @@ const Profile = () => {
 
             {/* Right Content - Tabs (Keep as-is) */}
             <div className="col-span-8">
-              <UserProfileTabs
+              <ModernUserProfileTabs
                 activeListings={activeListings}
                 isLoading={isLoadingListings}
                 onEditBook={handleEditBook}
@@ -612,7 +612,7 @@ const Profile = () => {
 
             {/* Main Content - Tabs (Keep as-is) */}
             <div className="w-full">
-              <UserProfileTabs
+              <ModernUserProfileTabs
                 activeListings={activeListings}
                 isLoading={isLoadingListings}
                 onEditBook={handleEditBook}
