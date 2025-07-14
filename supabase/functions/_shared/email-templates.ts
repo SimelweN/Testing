@@ -27,6 +27,15 @@ export function renderTemplate(
     case EMAIL_TEMPLATES.BOOKING_CONFIRMATION:
       return renderBookingConfirmationTemplate(data);
 
+    case EMAIL_TEMPLATES.SELLER_PICKUP_NOTIFICATION:
+      return renderSellerPickupNotificationTemplate(data);
+
+    case EMAIL_TEMPLATES.BUYER_ORDER_CONFIRMED:
+      return renderBuyerOrderConfirmedTemplate(data);
+
+    case EMAIL_TEMPLATES.COMMIT_CONFIRMATION_BASIC:
+      return renderCommitConfirmationBasicTemplate(data);
+
     default:
       throw new Error(`Template not found: ${templateName}`);
   }
