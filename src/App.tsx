@@ -185,6 +185,14 @@ function App() {
                       }
                     />
                     <Route
+                      path="/banking-setup"
+                      element={
+                        <ProtectedRoute>
+                          <BankingSetup />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
                       path="/activity"
                       element={
                         <ProtectedRoute>
