@@ -357,11 +357,8 @@ export const declineBookSale = async (bookId: string): Promise<void> => {
       timestamp: new Date().toISOString(),
     });
 
-    // TODO: Trigger refund process
-    // This would typically involve:
-    // 1. Processing refund to buyer's payment method
-    // 2. Notifying the buyer about the declined sale
-    // 3. Updating seller's reputation metrics
+    // Trigger refund process
+    await processRefund(bookId, "declined_by_seller");
 
     console.log("[CommitService] Book sale declined successfully:", bookId);
   } catch (error) {
