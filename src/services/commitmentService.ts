@@ -183,7 +183,7 @@ export const getAllCommitments = async (
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Error fetching commitments:", error.message || error);
+      console.log("All commitments table not available:", error.message);
       // If table doesn't exist, return empty array
       if (
         error.message?.includes("relation") ||
@@ -191,7 +191,8 @@ export const getAllCommitments = async (
       ) {
         return [];
       }
-      throw new Error(error.message || "Failed to fetch commitments");
+      // Return empty array for any database errors related to the commitments system
+      return [];
     }
 
     if (!commitments || commitments.length === 0) {
