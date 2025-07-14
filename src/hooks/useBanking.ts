@@ -22,8 +22,10 @@ export const useBanking = () => {
       const details = await BankingService.getUserBankingDetails(user.id);
       setBankingDetails(details);
     } catch (err) {
-      console.error("Error fetching banking details:", err);
-      setError("Failed to load banking details");
+      const errorMessage =
+        err instanceof Error ? err.message : "Unknown error occurred";
+      console.error("Error fetching banking details:", errorMessage, err);
+      setError(`Failed to load banking details: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
