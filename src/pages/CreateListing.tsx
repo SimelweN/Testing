@@ -338,9 +338,9 @@ const CreateListing = () => {
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           {isMobile ? "" : "Back"}
-        </Button>
+                </Button>
 
-                <BankingRequirementCheck onCanProceed={setCanProceedWithBanking}>
+        <BankingRequirementCheck onCanProceed={setCanProceedWithBanking}>
           <div
             className={`bg-white rounded-lg shadow-md ${isMobile ? "p-4" : "p-8"}`}
           >
