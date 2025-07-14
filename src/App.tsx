@@ -33,7 +33,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 import Cart from "./pages/Cart";
-import Checkout from "./pages/Checkout";
+import CheckoutSimplified from "./pages/CheckoutSimplified";
 import NotificationsOld from "./pages/Notifications";
 import Notifications from "./pages/NotificationsNew";
 import Shipping from "./pages/Shipping";
@@ -126,8 +126,14 @@ function App() {
 
                     {/* Shopping and Cart Routes */}
                     <Route path="/cart" element={<Cart />} />
-                    <Route path="/checkout/:id" element={<Checkout />} />
-                    <Route path="/checkout/cart" element={<Checkout />} />
+                    <Route
+                      path="/checkout/:id"
+                      element={<CheckoutSimplified />}
+                    />
+                    <Route
+                      path="/checkout/cart"
+                      element={<CheckoutSimplified />}
+                    />
                     <Route path="/shipping" element={<Shipping />} />
 
                     {/* Support and Info Pages */}
