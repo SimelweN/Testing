@@ -100,7 +100,7 @@ const UserProfileTabs = ({
       label: "Activity",
       icon: Activity,
       color: "blue",
-      description: "Recent activity & commits",
+      description: "View activity center",
     },
     ...(isOwnProfile
       ? [
