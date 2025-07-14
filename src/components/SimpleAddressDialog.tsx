@@ -44,7 +44,14 @@ const SimpleAddressDialog = ({
     }
   }, [addressData]);
 
-  const handlePickupAddressSelect = (address: any) => {
+  const handlePickupAddressSelect = (address: {
+    street: string;
+    city: string;
+    province: string;
+    postalCode: string;
+    country: string;
+    formattedAddress: string;
+  }) => {
     const formattedAddress: Address = {
       street: address.street,
       city: address.city,
@@ -59,7 +66,14 @@ const SimpleAddressDialog = ({
     }
   };
 
-  const handleShippingAddressSelect = (address: any) => {
+  const handleShippingAddressSelect = (address: {
+    street: string;
+    city: string;
+    province: string;
+    postalCode: string;
+    country: string;
+    formattedAddress: string;
+  }) => {
     const formattedAddress: Address = {
       street: address.street,
       city: address.city,
