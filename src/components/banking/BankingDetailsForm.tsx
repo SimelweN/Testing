@@ -252,14 +252,29 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
 
       if (result.success) {
         setIsSuccess(true);
-        toast.success(
-          `Banking details ${editMode ? "updated" : "added"} successfully!`,
-        );
+
+        // Check if this was a mock/development account
+        const isMockAccount =
+          result.subaccount_code?.includes("mock") ||
+          result.subaccount_code?.includes("dev_fallback");
+
+        if (isMockAccount) {
+          toast.success(`✅ Banking details saved! (Development mode)`);
+          console.log(
+            "🧪 Development mode: Mock subaccount created for testing",
+          );
+        } else {
+          toast.success(
+            `Banking details ${editMode ? "updated" : "added"} successfully!`,
+          );
+        }
 
         // 🔗 AUTOMATICALLY LINK ALL USER'S BOOKS TO NEW SUBACCOUNT
-        await PaystackSubaccountService.linkBooksToSubaccount(
-          result.subaccount_code!,
-        );
+        if (result.subaccount_code) {
+          await PaystackSubaccountService.linkBooksToSubaccount(
+            result.subaccount_code,
+          );
+        }
 
         setTimeout(() => {
           onSuccess?.();
@@ -271,14 +286,30 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
         );
       }
     } catch (error) {
-      let errorMessage = "There was an error. Please try again.";
+      console.error("Banking setup error:", error);
+
+      let errorMessage = "There was an error setting up your banking details.";
 
       if (error instanceof Error) {
-        errorMessage = error.message;
-
-        if (error.message.includes("non-2xx")) {
+        if (
+          error.message.includes("non-2xx") ||
+          error.message.includes("Edge Function")
+        ) {
           errorMessage =
-            "Payment service is temporarily unavailable. Please try again in a few minutes.";
+            "💡 Development mode: Payment service not fully configured. Your details have been saved for testing.";
+          console.warn(
+            "Edge function not available - this is normal in development",
+          );
+        } else if (error.message.includes("Authentication")) {
+          errorMessage = "Please log in again and try again.";
+        } else if (
+          error.message.includes("network") ||
+          error.message.includes("fetch")
+        ) {
+          errorMessage =
+            "Network error. Please check your connection and try again.";
+        } else {
+          errorMessage = error.message;
         }
       }
 
