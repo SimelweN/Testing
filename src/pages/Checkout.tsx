@@ -110,7 +110,11 @@ const Checkout = () => {
 
   // Computed values
   const subtotal = useMemo(() => {
-    return items.reduce((total, item) => total + item.price, 0);
+    if (!Array.isArray(items) || items.length === 0) return 0;
+    return items.reduce((total, item) => {
+      const price = typeof item.price === "number" ? item.price : 0;
+      return total + price;
+    }, 0);
   }, [items]);
 
   const deliveryFee = selectedDelivery?.price || 0;
