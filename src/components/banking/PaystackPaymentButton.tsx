@@ -88,8 +88,9 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
     }
   }, []);
 
-  // Calculate payment breakdown
-  const paymentSplit = calculatePaymentSplit(amount, deliveryFee);
+  // Calculate payment breakdown (convert from cents to rands first)
+  const amountInRands = amount / 100;
+  const paymentSplit = calculatePaymentSplit(amountInRands, deliveryFee);
 
   const initializePayment = async (): Promise<{
     success: boolean;
