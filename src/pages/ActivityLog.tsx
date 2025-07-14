@@ -27,6 +27,7 @@ import {
   RefreshCw,
   Package,
   TrendingUp,
+  X,
 } from "lucide-react";
 
 const ActivityLog = () => {
