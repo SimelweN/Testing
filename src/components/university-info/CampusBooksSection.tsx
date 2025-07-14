@@ -113,83 +113,79 @@ const CampusBooksSection = () => {
     );
 
     return (
-      <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500">
-        <CardHeader className="pb-3 sm:pb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 mb-2">
-            <CardTitle className="text-base sm:text-lg font-bold text-blue-900 line-clamp-2">
+      <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-200 book-card-hover flex flex-col">
+        <div
+          className="block flex-1 cursor-pointer"
+          onClick={() => navigate(`/books/${book.id}`)}
+        >
+          <div className="relative h-48 overflow-hidden">
+            <img
+              src={book.imageUrl || "/placeholder.svg"}
+              alt={book.title}
+              className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "/placeholder.svg";
+              }}
+            />
+            <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full text-sm font-semibold text-book-800">
+              R{book.price.toLocaleString()}
+            </div>
+            {book.sold && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                  SOLD
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="p-4 flex-grow flex flex-col">
+            <h3 className="font-bold text-lg mb-1 text-book-800 line-clamp-1">
               {book.title}
-            </CardTitle>
-            <Badge
-              className={`${getConditionColor(book.condition)} text-xs whitespace-nowrap`}
-            >
-              {book.condition}
-            </Badge>
-          </div>
-          <CardDescription className="text-sm text-gray-600 mb-2">
-            by {book.author}
-          </CardDescription>
-          <div className="text-xl sm:text-2xl font-bold text-green-600 mb-2">
-            R{book.price.toFixed(2)}
-          </div>
-        </CardHeader>
+            </h3>
+            <p className="text-gray-600 mb-2">{book.author}</p>
+            <p className="text-gray-500 text-sm mb-auto line-clamp-2">
+              {book.description}
+            </p>
 
-        <CardContent className="pt-0">
-          {/* University and Location Info */}
-          <div className="mb-3 space-y-1">
-            <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-600">
-              <Building className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="truncate">
-                {universityInfo?.name || book.university}
+            {/* University and Location Info */}
+            <div className="mt-2 space-y-1">
+              <div className="flex items-center gap-1 text-xs text-gray-500">
+                <Building className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">
+                  {universityInfo?.name || book.university}
+                </span>
+              </div>
+              {book.location && (
+                <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <MapPin className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{book.location}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between mt-4 gap-1">
+              <span className="bg-book-100 text-book-800 px-2 py-1 rounded text-xs font-medium">
+                {book.condition}
               </span>
+              {book.universityYear && (
+                <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-medium flex items-center">
+                  <GraduationCap className="h-3 w-3 mr-1" />
+                  {book.universityYear}
+                </span>
+              )}
+              <span className="text-gray-500 text-xs">{book.category}</span>
             </div>
-            {book.universityYear && (
-              <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-600">
-                <GraduationCap className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                <span className="truncate">{book.universityYear}</span>
-              </div>
-            )}
-            {book.location && (
-              <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-600">
-                <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                <span className="truncate">{book.location}</span>
-              </div>
-            )}
-          </div>
 
-          <p className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-2">
-            {book.description}
-          </p>
-
-          <div className="flex items-center justify-between text-xs text-gray-500 mb-3 sm:mb-4">
-            <span className="truncate">Sold by: {book.seller.name}</span>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <Star className="w-3 h-3 fill-current text-yellow-400" />
-              <span>4.5</span>
+            <div className="mt-3 text-xs text-gray-500 flex items-center justify-between">
+              <span className="truncate">Sold by: {book.seller.name}</span>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <Star className="w-3 h-3 fill-current text-yellow-400" />
+                <span>4.5</span>
+              </div>
             </div>
           </div>
-
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button
-              size="sm"
-              className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm"
-              onClick={() => navigate(`/books/${book.id}`)}
-            >
-              <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-              View Details
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full sm:w-auto border-green-200 text-green-600 hover:bg-green-50 text-xs sm:text-sm"
-              onClick={() => navigate(`/books/${book.id}`)}
-            >
-              <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 mr-2 sm:mr-0" />
-              <span className="sm:hidden">Add to Cart</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   };
 
