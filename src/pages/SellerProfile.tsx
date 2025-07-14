@@ -278,8 +278,8 @@ const SellerProfile = () => {
                 </Card>
               ))}
             </div>
-          </>
-                )}
+                    </>
+        )}
       </div>
       </div>
     </Layout>
