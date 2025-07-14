@@ -249,21 +249,34 @@ const Checkout = () => {
       setLoadingQuotes(true);
       try {
         // Get seller addresses for accurate delivery calculation
+        console.log("Fetching seller addresses for delivery calculation");
         const sellerAddresses = await Promise.all(
           items.map(async (item) => {
             try {
+              console.log("Getting pickup address for seller:", item.seller.id);
               const sellerAddr = await getSellerPickupAddress(item.seller.id);
-              return (
-                sellerAddr || {
-                  street: "Default Street",
+
+              if (sellerAddr) {
+                console.log("Found seller address:", sellerAddr);
+                return sellerAddr;
+              } else {
+                console.log("No seller address found, using default");
+                return {
+                  street: "Default Business Address",
                   city: "Johannesburg",
                   province: "Gauteng",
                   postalCode: "2196",
-                }
-              );
-            } catch {
+                };
+              }
+            } catch (error) {
+              console.error("Error fetching seller address:", {
+                error,
+                sellerId: item.seller.id,
+                message: error instanceof Error ? error.message : String(error),
+              });
+
               return {
-                street: "Default Street",
+                street: "Default Business Address",
                 city: "Johannesburg",
                 province: "Gauteng",
                 postalCode: "2196",
