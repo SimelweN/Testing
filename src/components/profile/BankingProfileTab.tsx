@@ -99,28 +99,27 @@ const BankingProfileTab = () => {
   };
 
   const handleSave = async () => {
-    if (!validateForm()) return;
+    if (!validateForm() || !user) return;
 
     try {
       setSaving(true);
 
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          banking_info: formData,
-          banking_setup_at: new Date().toISOString(),
-          banking_verified: false, // Requires manual verification
-        })
-        .eq("id", user?.id);
+      // Set up banking with Paystack integration
+      const result = await setupSellerBanking(user.id, formData);
 
-      if (error) {
-        throw error;
+      if (result.success) {
+        setBankingInfo(formData);
+        setIsVerified(true); // Auto-verified through Paystack integration
+        setIsEditing(false);
+        toast.success(
+          "Banking information saved and Paystack subaccount created successfully!",
+        );
+
+        // Refresh banking info to get the latest data
+        await fetchBankingInfo();
+      } else {
+        toast.error(result.error || "Failed to set up banking information");
       }
-
-      setBankingInfo(formData);
-      setIsVerified(false);
-      setIsEditing(false);
-      toast.success("Banking information saved successfully");
     } catch (error) {
       console.error("Error saving banking info:", error);
       toast.error("Failed to save banking information");
