@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import {
   commitBookSale,
+  declineBookSale,
   getCommitPendingBooks,
 } from "@/services/commitService";
 import { toast } from "sonner";
