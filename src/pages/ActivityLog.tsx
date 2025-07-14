@@ -483,7 +483,21 @@ const ActivityLog = () => {
 
                               <div className="ml-6 flex flex-col gap-3">
                                 <Button
-                                  onClick={() => commitBook(commit.bookId)}
+                                  onClick={async (e) => {
+                                    e.preventDefault();
+                                    try {
+                                      await commitBook(commit.bookId);
+                                      // Scroll to top after successful commit
+                                      setTimeout(() => {
+                                        window.scrollTo({
+                                          top: 0,
+                                          behavior: "smooth",
+                                        });
+                                      }, 500);
+                                    } catch (error) {
+                                      // Error is already handled in commitBook
+                                    }
+                                  }}
                                   disabled={isCommitting || isDeclining}
                                   size="lg"
                                   className={`${
@@ -505,7 +519,21 @@ const ActivityLog = () => {
                                   )}
                                 </Button>
                                 <Button
-                                  onClick={() => declineBook(commit.bookId)}
+                                  onClick={async (e) => {
+                                    e.preventDefault();
+                                    try {
+                                      await declineBook(commit.bookId);
+                                      // Scroll to top after successful decline
+                                      setTimeout(() => {
+                                        window.scrollTo({
+                                          top: 0,
+                                          behavior: "smooth",
+                                        });
+                                      }, 500);
+                                    } catch (error) {
+                                      // Error is already handled in declineBook
+                                    }
+                                  }}
                                   disabled={isCommitting || isDeclining}
                                   variant="destructive"
                                   size="lg"
