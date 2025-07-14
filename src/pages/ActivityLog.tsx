@@ -480,15 +480,15 @@ const ActivityLog = () => {
                                 </div>
                               </div>
 
-                              <div className="ml-6">
+                              <div className="ml-6 flex flex-col gap-3">
                                 <Button
                                   onClick={() => commitBook(commit.bookId)}
-                                  disabled={isCommitting}
+                                  disabled={isCommitting || isDeclining}
                                   size="lg"
                                   className={`${
                                     isUrgent
-                                      ? "bg-red-600 hover:bg-red-700"
-                                      : "bg-orange-600 hover:bg-orange-700"
+                                      ? "bg-green-600 hover:bg-green-700"
+                                      : "bg-green-600 hover:bg-green-700"
                                   } text-white font-bold px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all`}
                                 >
                                   {isCommitting ? (
@@ -500,6 +500,25 @@ const ActivityLog = () => {
                                     <>
                                       <Check className="h-5 w-5 mr-2" />
                                       Commit to Sale
+                                    </>
+                                  )}
+                                </Button>
+                                <Button
+                                  onClick={() => declineBook(commit.bookId)}
+                                  disabled={isCommitting || isDeclining}
+                                  variant="destructive"
+                                  size="lg"
+                                  className="text-white font-bold px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all"
+                                >
+                                  {isDeclining ? (
+                                    <>
+                                      <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
+                                      Processing...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <X className="h-5 w-5 mr-2" />
+                                      Decline Sale
                                     </>
                                   )}
                                 </Button>
