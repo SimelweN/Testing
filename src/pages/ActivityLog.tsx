@@ -637,10 +637,17 @@ const ActivityLog = () => {
                           📚 For Sellers:
                         </h4>
                         <ul className="space-y-1 text-blue-700 text-sm">
-                          <li>• Verify book availability within 48 hours</li>
-                          <li>• Commitment guarantees sale completion</li>
-                          <li>• Builds trust and seller reputation</li>
-                          <li>• Payment released after delivery</li>
+                          <li>
+                            • <strong>Must commit within 48 hours</strong> or
+                            buyer gets full refund
+                          </li>
+                          <li>• Verify book availability before committing</li>
+                          <li>• Can decline sale if book not available</li>
+                          <li>• Missed commits affect seller reputation</li>
+                          <li>
+                            • Payment released after delivery confirmation
+                          </li>
+                          <li>• Automatic refund system protects buyers</li>
                         </ul>
                       </div>
                     </div>
