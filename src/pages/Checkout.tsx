@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { getBookById } from "@/services/book/bookQueries";
 import { getUserAddresses } from "@/services/addressService";
+import { getSellerPickupAddress } from "@/services/addressService";
 import { getDeliveryQuotes, DeliveryQuote } from "@/services/deliveryService";
 import { automaticShipmentService } from "@/services/automaticShipmentService";
 import { createAutomaticShipment } from "@/services/automaticShipmentService";
@@ -69,6 +70,7 @@ const Checkout = () => {
       }[]
     | null
   >(null);
+  const [sellerPickupAddress, setSellerPickupAddress] = useState<any>(null);
   const [selectedAddress, setSelectedAddress] = useState<
     "pickup" | "shipping" | "new"
   >("new");
@@ -214,14 +216,25 @@ const Checkout = () => {
 
     setLoadingQuotes(true);
     try {
-      // Use a default "from" address (seller's address or business address)
-      const fromAddress = {
+      // Use seller's pickup address or default business address
+      let fromAddress = {
         streetAddress: "123 Business Park",
         suburb: "Sandton",
         city: "Johannesburg",
         province: "Gauteng",
         postalCode: "2196",
       };
+
+      // If we have seller's pickup address, use it
+      if (sellerPickupAddress) {
+        fromAddress = {
+          streetAddress: sellerPickupAddress.street || "Unknown Street",
+          suburb: sellerPickupAddress.suburb || sellerPickupAddress.city,
+          city: sellerPickupAddress.city,
+          province: sellerPickupAddress.province,
+          postalCode: sellerPickupAddress.postalCode,
+        };
+      }
 
       const quotes = await getDeliveryQuotes(fromAddress, shippingAddress, 1);
       setDeliveryQuotes(quotes);
