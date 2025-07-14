@@ -47,18 +47,39 @@ const CommitTab = () => {
 
     try {
       setLoading(true);
-      const [pending, all, commitmentStats] = await Promise.all([
-        getPendingCommitments(user.id),
-        getAllCommitments(user.id),
-        getCommitmentStats(user.id),
-      ]);
 
-      setPendingCommitments(pending);
-      setAllCommitments(all);
-      setStats(commitmentStats);
+      // Try to fetch data, but handle gracefully if tables don't exist
+      try {
+        const [pending, all, commitmentStats] = await Promise.all([
+          getPendingCommitments(user.id),
+          getAllCommitments(user.id),
+          getCommitmentStats(user.id),
+        ]);
+
+        setPendingCommitments(pending);
+        setAllCommitments(all);
+        setStats(commitmentStats);
+      } catch (tableError) {
+        console.log(
+          "Commitment system not available yet - tables may not exist",
+        );
+        // Set empty defaults
+        setPendingCommitments([]);
+        setAllCommitments([]);
+        setStats({
+          totalCommitments: 0,
+          committedCount: 0,
+          declinedCount: 0,
+          expiredCount: 0,
+          averageResponseTimeHours: 0,
+          reliabilityScore: 0,
+        });
+      }
     } catch (error) {
       console.error("Error fetching commitment data:", error);
-      toast.error("Failed to load commitment data");
+      toast.error(
+        "Commitment system is being set up. Please check back later.",
+      );
     } finally {
       setLoading(false);
     }
