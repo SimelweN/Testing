@@ -67,8 +67,10 @@ function useLocalStorage<T>(key: string, initialValue: T) {
 
 export function useAPSAwareCourseAssignment(universityId?: string) {
   // Temporary user APS profile (session only)
-  const [userProfile, setUserProfile] =
-    useSessionStorage<UserAPSProfile | null>("userAPSProfile", null);
+  const [userProfile, setUserProfile] = useLocalStorage<UserAPSProfile | null>(
+    "reBooked-aps-profile",
+    null,
+  );
 
   // Component state
   const [isLoading, setIsLoading] = useState(false);
