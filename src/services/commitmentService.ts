@@ -281,21 +281,8 @@ export const getCommitmentStats = async (sellerId: string) => {
       .eq("seller_id", sellerId);
 
     if (error) {
-      console.error("Error fetching commitment stats:", error.message || error);
-      // If table doesn't exist, return default stats
-      if (
-        error.message?.includes("relation") ||
-        error.message?.includes("does not exist")
-      ) {
-        return {
-          totalCommitments: 0,
-          committedCount: 0,
-          declinedCount: 0,
-          expiredCount: 0,
-          averageResponseTimeHours: 0,
-          reliabilityScore: 0,
-        };
-      }
+      console.log("Commitment stats table not available:", error.message);
+      // Always return default stats if there's any error
       return {
         totalCommitments: 0,
         committedCount: 0,
