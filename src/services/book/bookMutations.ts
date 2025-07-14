@@ -28,14 +28,16 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
         .single();
 
       if (profileData?.pickup_address) {
-        // Check if pickup_address has province property
-        const pickupAddress = profileData.pickup_address as any;
-        if (pickupAddress?.province) {
-          province = pickupAddress.province;
-        } else if (typeof pickupAddress === "string") {
+        pickupAddress = profileData.pickup_address;
+
+        // Extract province from pickup address
+        const addressObj = profileData.pickup_address as any;
+        if (addressObj?.province) {
+          province = addressObj.province;
+        } else if (typeof addressObj === "string") {
           // If pickup_address is a string, try to extract province from it
           // This is a fallback for older address formats
-          const addressStr = pickupAddress.toLowerCase();
+          const addressStr = addressObj.toLowerCase();
           if (addressStr.includes("western cape")) province = "Western Cape";
           else if (addressStr.includes("gauteng")) province = "Gauteng";
           else if (addressStr.includes("kwazulu")) province = "KwaZulu-Natal";
@@ -48,6 +50,14 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
             province = "Northern Cape";
           else if (addressStr.includes("north west")) province = "North West";
         }
+      }
+
+      // Get Paystack subaccount code if banking is verified
+      if (
+        profileData?.banking_verified &&
+        profileData?.paystack_subaccount_code
+      ) {
+        paystackSubaccountCode = profileData.paystack_subaccount_code;
       }
     } catch (addressError) {
       console.warn("Could not fetch user address for province:", addressError);
