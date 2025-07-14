@@ -301,20 +301,39 @@ const EnhancedAPSCalculator: React.FC = () => {
     toast.success("All data cleared");
   }, [clearError]);
 
-  // Clear APS profile from all universities
-  const handleClearAPSProfile = useCallback(() => {
-    clearAPSProfile();
-    setSubjects([]);
-    setSelectedSubject("");
-    setSelectedMarks("");
-    setSearchResults([]);
-    setSelectedProgram(null);
-    setIsDetailsModalOpen(false);
-    setShowProgramsSection(false);
-    setUniversitySpecificScores(null);
-    clearError();
-    toast.success("APS profile cleared from all universities");
-  }, [clearAPSProfile, clearError]);
+  // 🔴 CLEAR APS PROFILE - Enhanced localStorage implementation
+  const handleClearAPSProfile = useCallback(async () => {
+    try {
+      // Use enhanced storage clear function
+      const success = await clearAPSProfileEnhanced();
+
+      if (success) {
+        // Clear legacy storage as well for compatibility
+        clearAPSProfile();
+
+        // Reset local component state
+        setSubjects([]);
+        setSelectedSubject("");
+        setSelectedMarks("");
+        setSearchResults([]);
+        setSelectedProgram(null);
+        setIsDetailsModalOpen(false);
+        setShowProgramsSection(false);
+        setUniversitySpecificScores(null);
+
+        // Clear errors
+        clearError();
+        clearStorageError();
+
+        toast.success("🗑️ APS profile cleared successfully");
+      } else {
+        toast.error("Failed to clear APS profile");
+      }
+    } catch (error) {
+      console.error("Error clearing APS profile:", error);
+      toast.error("Error clearing APS profile");
+    }
+  }, [clearAPSProfileEnhanced, clearAPSProfile, clearError, clearStorageError]);
 
   // Search programs function
   const searchPrograms = useCallback(async () => {
