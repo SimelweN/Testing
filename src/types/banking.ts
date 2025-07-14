@@ -5,6 +5,7 @@ export interface BankingDetails {
   userId: string;
   businessName: string;
   email: string;
+  phone?: string;
   bankName: string;
   bankCode: string;
   accountNumber: string;
@@ -196,7 +197,7 @@ export interface SellerRequirements {
   setupCompletionPercentage: number;
 }
 
-export interface BankingStatus {
+export interface BankingRequirementsStatus {
   hasBankingInfo: boolean;
   isVerified: boolean;
   canListBooks: boolean;
@@ -226,7 +227,7 @@ export enum PayoutStatus {
   FAILED = "failed",
 }
 
-export enum BankingStatus {
+export enum BankingStatusEnum {
   PENDING = "pending",
   ACTIVE = "active",
   SUSPENDED = "suspended",
