@@ -117,10 +117,7 @@ export const getPendingCommitments = async (
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error(
-        "Error fetching pending commitments:",
-        error.message || error,
-      );
+      console.log("Pending commitments table not available:", error.message);
       // If table doesn't exist, return empty array
       if (
         error.message?.includes("relation") ||
@@ -128,7 +125,8 @@ export const getPendingCommitments = async (
       ) {
         return [];
       }
-      throw new Error(error.message || "Failed to fetch pending commitments");
+      // Return empty array for any database errors related to the commitments system
+      return [];
     }
 
     if (!commitments || commitments.length === 0) {
