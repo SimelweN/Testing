@@ -106,6 +106,26 @@ window.addEventListener(
 const originalFetch = window.fetch;
 window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
   try {
+    const url = args[0];
+    const urlString = typeof url === "string" ? url : url?.toString() || "";
+
+    // Skip interception for known third-party services that should fail silently
+    if (
+      urlString.includes("fullstory.com") ||
+      urlString.includes("googletagmanager.com") ||
+      urlString.includes("analytics.google.com")
+    ) {
+      try {
+        return await originalFetch.apply(window, args);
+      } catch (error) {
+        console.debug("[Third-party fetch failed silently]:", urlString);
+        return new Response(null, {
+          status: 0,
+          statusText: "Third-party service unavailable",
+        });
+      }
+    }
+
     return await originalFetch.apply(window, args);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
