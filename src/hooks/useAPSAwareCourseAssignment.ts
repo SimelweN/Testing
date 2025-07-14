@@ -56,7 +56,7 @@ function useLocalStorage<T>(key: string, initialValue: T) {
           localStorage.setItem(key, JSON.stringify(valueToStore));
         }
       } catch (error) {
-        console.warn(`Error setting sessionStorage key "${key}":`, error);
+        console.warn(`Error setting localStorage key "${key}":`, error);
       }
     },
     [key, storedValue],
