@@ -191,27 +191,65 @@ const Cart = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg md:text-xl">
-                  Order Summary
+                  Multi-Seller Checkout
                 </CardTitle>
+                <p className="text-sm text-gray-600">
+                  Orders from {Object.keys(sellerTotals).length} seller(s) will
+                  be processed separately
+                </p>
               </CardHeader>
               <CardContent className="space-y-4">
-                {Object.entries(sellerTotals).map(([sellerId, seller]) => (
-                  <div key={sellerId} className="p-3 bg-gray-50 rounded-lg">
-                    <p className="font-medium text-sm truncate">
-                      {seller.sellerName}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Items: R{seller.total.toFixed(2)}
-                    </p>
-                  </div>
-                ))}
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <h4 className="font-medium text-blue-900 mb-2">
+                    How it works:
+                  </h4>
+                  <ul className="text-xs text-blue-800 space-y-1">
+                    <li>• Each seller gets a separate order</li>
+                    <li>• Different delivery fees per seller</li>
+                    <li>• Independent tracking per order</li>
+                    <li>• 48-hour seller commitment required</li>
+                  </ul>
+                </div>
+
+                {Object.entries(sellerTotals).map(
+                  ([sellerId, seller], index) => (
+                    <div key={sellerId} className="p-3 bg-gray-50 rounded-lg">
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="font-medium text-sm truncate">
+                          Order #{index + 1}
+                        </p>
+                        <span className="font-bold text-book-600">
+                          R{seller.total.toFixed(2)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600">
+                        {seller.sellerName}
+                      </p>
+                      <div className="text-xs text-gray-500 mt-1">
+                        Seller receives R{seller.sellerReceives.toFixed(2)} •
+                        Fee R{seller.commission.toFixed(2)}
+                      </div>
+                    </div>
+                  ),
+                )}
 
                 <Separator />
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
+                    <span className="text-sm">Subtotal (books only):</span>
+                    <span className="text-sm">R{totalPrice.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Delivery fees:</span>
+                    <span className="text-sm text-orange-600">
+                      Calculated at checkout
+                    </span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between items-center">
                     <span className="text-base md:text-lg font-bold">
-                      Total
+                      Book Total
                     </span>
                     <span className="text-base md:text-lg font-bold">
                       R{totalPrice.toFixed(2)}
@@ -226,8 +264,12 @@ const Cart = () => {
                 >
                   {isProcessing
                     ? "Processing..."
-                    : `Checkout - R${totalPrice.toFixed(2)}`}
+                    : "Proceed to Multi-Seller Checkout"}
                 </Button>
+
+                <p className="text-xs text-gray-500 text-center">
+                  Final totals including delivery will be shown at checkout
+                </p>
               </CardContent>
             </Card>
           </div>
