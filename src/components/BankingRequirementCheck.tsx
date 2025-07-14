@@ -43,7 +43,7 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
 
     try {
       setLoading(true);
-      const status = await checkBankingRequirements(user.id);
+      const status = await BankingService.checkBankingRequirements(user.id);
       setBankingStatus(status);
       onCanProceed(status.canListBooks);
     } catch (error) {
