@@ -125,7 +125,7 @@ window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
       } catch (error) {
         console.debug("[Third-party fetch failed silently]:", urlString);
         return new Response(null, {
-          status: 0,
+          status: 204,
           statusText: "Third-party service unavailable",
         });
       }
