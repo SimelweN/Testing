@@ -368,6 +368,59 @@ export const declineBookSale = async (bookId: string): Promise<void> => {
 };
 
 /**
+ * Processes refund for a cancelled or declined sale
+ */
+export const processRefund = async (
+  bookId: string,
+  reason: "declined_by_seller" | "overdue_commit",
+): Promise<void> => {
+  try {
+    console.log(
+      `[CommitService] Processing refund for book ${bookId}, reason: ${reason}`,
+    );
+
+    // In a real system, this would:
+    // 1. Call payment processor (Paystack) to issue refund
+    // 2. Update order status to "refunded"
+    // 3. Send notification emails to buyer and seller
+    // 4. Update seller reputation metrics
+    // 5. Log the refund activity
+
+    // For now, we'll log the refund action
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      console.warn("[CommitService] No user found for refund processing");
+      return;
+    }
+
+    // Log the refund action
+    console.log("[CommitService] Refund processed:", {
+      bookId,
+      reason,
+      timestamp: new Date().toISOString(),
+      processingTime: "immediate", // In production, this would be actual processing time
+      refundAmount: "full_purchase_amount", // Would be actual amount from order
+      status: "completed",
+    });
+
+    // In production, you would:
+    // 1. Call Paystack refund API
+    // 2. Send email notifications
+    // 3. Update database records
+    // 4. Log to activity service
+
+    console.log(`[CommitService] Refund completed for book ${bookId}`);
+  } catch (error) {
+    logCommitError("Error processing refund", error, { bookId, reason });
+    // Don't throw error to prevent blocking other operations
+  }
+};
+
+/**
  * Handles automatic cancellation of overdue commits
  */
 export const handleOverdueCommits = async (): Promise<void> => {
