@@ -64,6 +64,7 @@ const CreateListing = () => {
   const [sellerPolicyAccepted, setSellerPolicyAccepted] = useState(false);
   const [canListBooks, setCanListBooks] = useState<boolean | null>(null);
   const [isCheckingAddress, setIsCheckingAddress] = useState(true);
+  const [canProceedWithBanking, setCanProceedWithBanking] = useState(false);
 
   // Check if user can list books on component mount
   useEffect(() => {
