@@ -82,10 +82,11 @@ const OrderCommitButton: React.FC<OrderCommitButtonProps> = ({
 
       // Call success callback
       onCommitSuccess?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("💥 Commit error:", error);
 
       let errorMessage = "Failed to commit to sale";
+      const errorObj = error as Error;
 
       // Handle specific error messages
       if (error.message?.includes("already committed")) {
