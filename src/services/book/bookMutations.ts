@@ -15,12 +15,15 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
       throw new Error("User not authenticated");
     }
 
-    // Fetch province from user's pickup address
+    // Fetch province, pickup address, and banking info from user profile
     let province = null;
+    let pickupAddress = null;
+    let paystackSubaccountCode = null;
+
     try {
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("pickup_address")
+        .select("pickup_address, paystack_subaccount_code, banking_verified")
         .eq("id", user.id)
         .single();
 
