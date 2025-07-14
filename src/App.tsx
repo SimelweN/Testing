@@ -242,6 +242,7 @@ function App() {
           </GoogleMapsProvider>
         </ThemeProvider>
       </QueryClientProvider>
+      <Analytics />
     </ErrorBoundary>
   );
 }
