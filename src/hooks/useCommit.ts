@@ -8,7 +8,9 @@ import { toast } from "sonner";
 
 interface UseCommitReturn {
   isCommitting: boolean;
+  isDeclining: boolean;
   commitBook: (bookId: string) => Promise<void>;
+  declineBook: (bookId: string) => Promise<void>;
   pendingCommits: any[];
   refreshPendingCommits: () => Promise<void>;
   isLoading: boolean;
