@@ -11,7 +11,8 @@ import { calculateAPS, validateAPSSubjects } from "@/utils/apsCalculation";
 
 /**
  * Enhanced hook for APS-aware course assignment with user state management
- * Uses sessionStorage for temporary storage - data clears on browser refresh
+ * Uses localStorage for persistent storage - data persists across browser sessions
+ * Users can manually clear their APS profile when needed
  */
 
 export interface UserAPSProfile {
