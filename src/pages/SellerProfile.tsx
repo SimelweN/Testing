@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { User, MapPin, Calendar, BookOpen, Star } from "lucide-react";
+import {
+  User,
+  MapPin,
+  Calendar,
+  BookOpen,
+  Star,
+  ArrowLeft,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Book } from "@/types/book";
 import { toast } from "sonner";
 import { useCart } from "@/contexts/CartContext";
+import Layout from "@/components/Layout";
 
 interface SellerProfile {
   id: string;
@@ -114,6 +122,10 @@ const SellerProfile = () => {
 
   const handleBookClick = (bookId: string) => {
     navigate(`/books/${bookId}`);
+  };
+
+  const handleBackToMarketplace = () => {
+    navigate("/books");
   };
 
   if (loading) {
