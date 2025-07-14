@@ -9,6 +9,7 @@ import { getDeliveryQuotes, DeliveryQuote } from "@/services/deliveryService";
 import { automaticShipmentService } from "@/services/automaticShipmentService";
 import { createAutomaticShipment } from "@/services/automaticShipmentService";
 import { ActivityService } from "@/services/activityService";
+import { createSaleCommitment } from "@/services/commitmentService";
 import { Book } from "@/types/book";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
