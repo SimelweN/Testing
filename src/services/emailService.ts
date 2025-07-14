@@ -38,6 +38,9 @@ export const EMAIL_TEMPLATES = {
   SHIPPING_NOTIFICATION: "shipping-notification",
   CONTACT_FORM: "contact-form",
   BOOKING_CONFIRMATION: "booking-confirmation",
+  SELLER_PICKUP_NOTIFICATION: "seller-pickup-notification",
+  BUYER_ORDER_CONFIRMED: "buyer-order-confirmed",
+  COMMIT_CONFIRMATION_BASIC: "commit-confirmation-basic",
 } as const;
 
 export type EmailTemplateName =
@@ -122,6 +125,12 @@ class EmailService {
         return "New Contact Form Submission";
       case EMAIL_TEMPLATES.BOOKING_CONFIRMATION:
         return "Booking Confirmation";
+      case EMAIL_TEMPLATES.SELLER_PICKUP_NOTIFICATION:
+        return "Courier Pickup Scheduled - ReBooked Solutions";
+      case EMAIL_TEMPLATES.BUYER_ORDER_CONFIRMED:
+        return "Your Order is Confirmed - ReBooked Solutions";
+      case EMAIL_TEMPLATES.COMMIT_CONFIRMATION_BASIC:
+        return "Order Commitment Confirmed - ReBooked Solutions";
       default:
         return "Notification from ReBooked Solutions";
     }
