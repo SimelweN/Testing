@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -22,6 +23,10 @@ import {
   Loader2,
   Shield,
   DollarSign,
+  ArrowRight,
+  ArrowLeft,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   SA_BANKS,
@@ -31,6 +36,7 @@ import {
 } from "@/config/paystack";
 import { BankingService } from "@/services/bankingService";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import type { BankingFormData, BankingValidationErrors } from "@/types/banking";
 
 interface BankingSetupFormProps {
@@ -39,12 +45,15 @@ interface BankingSetupFormProps {
   initialData?: Partial<BankingFormData>;
 }
 
+type FormStep = "business" | "banking" | "verification" | "complete";
+
 const BankingSetupForm: React.FC<BankingSetupFormProps> = ({
   onSuccess,
   onCancel,
   initialData = {},
 }) => {
   const { user } = useAuth();
+  const [currentStep, setCurrentStep] = useState<FormStep>("business");
   const [formData, setFormData] = useState<BankingFormData>({
     businessName: initialData.businessName || "",
     email: initialData.email || user?.email || "",
@@ -61,6 +70,17 @@ const BankingSetupForm: React.FC<BankingSetupFormProps> = ({
     valid?: boolean;
     accountName?: string;
   }>({});
+  const [showAccountNumber, setShowAccountNumber] = useState(false);
+
+  const steps = [
+    { id: "business", label: "Business Info", icon: Building2 },
+    { id: "banking", label: "Bank Details", icon: CreditCard },
+    { id: "verification", label: "Verify", icon: Shield },
+    { id: "complete", label: "Complete", icon: CheckCircle },
+  ];
+
+  const currentStepIndex = steps.findIndex((step) => step.id === currentStep);
+  const progress = ((currentStepIndex + 1) / steps.length) * 100;
 
   // Real-time account number validation
   useEffect(() => {
@@ -75,13 +95,19 @@ const BankingSetupForm: React.FC<BankingSetupFormProps> = ({
       }
 
       setIsValidatingAccount(true);
-      const bankCode = getBankCode(formData.bankName as keyof typeof SA_BANKS);
-      const result = await BankingService.validateAccountNumber(
-        formData.accountNumber,
-        bankCode,
-      );
-
-      setAccountValidation(result);
+      try {
+        const bankCode = getBankCode(
+          formData.bankName as keyof typeof SA_BANKS,
+        );
+        const result = await BankingService.validateAccountNumber(
+          formData.accountNumber.replace(/\s/g, ""),
+          bankCode,
+        );
+        setAccountValidation(result);
+      } catch (error) {
+        console.error("Account validation error:", error);
+        setAccountValidation({ valid: false });
+      }
       setIsValidatingAccount(false);
     };
 
@@ -89,355 +115,517 @@ const BankingSetupForm: React.FC<BankingSetupFormProps> = ({
     return () => clearTimeout(timeoutId);
   }, [formData.accountNumber, formData.bankName]);
 
-  const validateForm = (): boolean => {
-    const newErrors: BankingValidationErrors = {};
+  const validateStep = (step: FormStep): string[] => {
+    const stepErrors: string[] = [];
 
-    // Business name validation
-    if (!formData.businessName.trim()) {
-      newErrors.businessName = "Business name is required";
-    } else if (formData.businessName.trim().length < 2) {
-      newErrors.businessName = "Business name must be at least 2 characters";
+    switch (step) {
+      case "business":
+        if (!formData.businessName.trim()) {
+          stepErrors.push("Business name is required");
+        } else if (formData.businessName.trim().length < 2) {
+          stepErrors.push("Business name must be at least 2 characters");
+        }
+
+        if (!formData.email.trim()) {
+          stepErrors.push("Email is required");
+        } else if (!isValidEmail(formData.email)) {
+          stepErrors.push("Please enter a valid email address");
+        }
+        break;
+
+      case "banking":
+        if (!formData.bankName) {
+          stepErrors.push("Please select a bank");
+        }
+
+        if (!formData.accountNumber.trim()) {
+          stepErrors.push("Account number is required");
+        } else if (!isValidAccountNumber(formData.accountNumber)) {
+          stepErrors.push("Please enter a valid account number (9-11 digits)");
+        }
+
+        if (!formData.accountHolderName.trim()) {
+          stepErrors.push("Account holder name is required");
+        }
+
+        if (formData.accountNumber !== formData.confirmAccountNumber) {
+          stepErrors.push("Account numbers do not match");
+        }
+        break;
+
+      case "verification":
+        if (!accountValidation.valid) {
+          stepErrors.push(
+            "Account validation failed. Please check your details.",
+          );
+        }
+        break;
     }
 
-    // Email validation
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!isValidEmail(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    // Bank validation
-    if (!formData.bankName) {
-      newErrors.bankName = "Please select a bank";
-    }
-
-    // Account number validation
-    if (!formData.accountNumber.trim()) {
-      newErrors.accountNumber = "Account number is required";
-    } else if (!isValidAccountNumber(formData.accountNumber)) {
-      newErrors.accountNumber = "Account number must be 9-11 digits";
-    }
-
-    // Account holder name validation
-    if (!formData.accountHolderName.trim()) {
-      newErrors.accountHolderName = "Account holder name is required";
-    }
-
-    // Confirm account number validation
-    if (!formData.confirmAccountNumber.trim()) {
-      newErrors.confirmAccountNumber = "Please confirm your account number";
-    } else if (formData.accountNumber !== formData.confirmAccountNumber) {
-      newErrors.confirmAccountNumber = "Account numbers do not match";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return stepErrors;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm() || !user) {
-      return;
-    }
-
-    setIsSubmitting(true);
+  const canProceedToNextStep = () => {
+    const stepErrors = validateStep(currentStep);
     setErrors({});
 
-    try {
-      const bankCode = getBankCode(formData.bankName as keyof typeof SA_BANKS);
+    if (stepErrors.length > 0) {
+      const errorObj: BankingValidationErrors = {};
+      stepErrors.forEach((error) => {
+        if (error.includes("Business name")) errorObj.businessName = error;
+        if (error.includes("Email")) errorObj.email = error;
+        if (error.includes("bank")) errorObj.bankName = error;
+        if (error.includes("Account number")) errorObj.accountNumber = error;
+        if (error.includes("Account holder"))
+          errorObj.accountHolderName = error;
+        if (error.includes("do not match"))
+          errorObj.confirmAccountNumber = error;
+      });
+      setErrors(errorObj);
+      return false;
+    }
 
-      const result = await BankingService.createOrUpdateSubaccount(user.id, {
-        userId: user.id,
-        businessName: formData.businessName,
-        email: formData.email,
+    return true;
+  };
+
+  const handleNext = () => {
+    if (!canProceedToNextStep()) return;
+
+    const stepOrder: FormStep[] = [
+      "business",
+      "banking",
+      "verification",
+      "complete",
+    ];
+    const currentIndex = stepOrder.indexOf(currentStep);
+    if (currentIndex < stepOrder.length - 1) {
+      setCurrentStep(stepOrder[currentIndex + 1]);
+    }
+  };
+
+  const handlePrevious = () => {
+    const stepOrder: FormStep[] = [
+      "business",
+      "banking",
+      "verification",
+      "complete",
+    ];
+    const currentIndex = stepOrder.indexOf(currentStep);
+    if (currentIndex > 0) {
+      setCurrentStep(stepOrder[currentIndex - 1]);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!canProceedToNextStep()) return;
+
+    setIsSubmitting(true);
+    try {
+      const result = await BankingService.createBankingSubaccount({
+        businessName: formData.businessName.trim(),
+        email: formData.email.trim(),
         bankName: formData.bankName,
-        bankCode,
-        accountNumber: formData.accountNumber,
-        accountHolderName: formData.accountHolderName,
-        status: "pending",
+        accountNumber: formData.accountNumber.replace(/\s/g, ""),
+        accountHolderName: formData.accountHolderName.trim(),
       });
 
       if (result.success) {
-        // Try to link user's books to the new subaccount (non-critical)
-        try {
-          await BankingService.linkBooksToSubaccount(user.id);
-        } catch (linkError) {
-          console.warn("Book linking failed (non-critical):", linkError);
-          // Continue with success even if book linking fails
-        }
-        onSuccess?.();
+        setCurrentStep("complete");
+        toast.success("Banking setup completed successfully!");
+        setTimeout(() => {
+          onSuccess?.();
+        }, 2000);
       } else {
-        setErrors({
-          general: result.error || "Failed to set up banking details",
-        });
+        toast.error(result.error || "Failed to set up banking details");
       }
     } catch (error) {
       console.error("Banking setup error:", error);
-      setErrors({ general: "An unexpected error occurred. Please try again." });
+      toast.error("An error occurred during setup. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleInputChange = (field: keyof BankingFormData, value: string) => {
+  const updateFormData = (field: keyof BankingFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-
-    // Clear specific field error
+    // Clear related error
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
-  return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CreditCard className="h-6 w-6 text-green-600" />
-          Banking Setup
-        </CardTitle>
-        <p className="text-sm text-gray-600">
-          Set up your banking details to receive payments from book sales.
-        </p>
-      </CardHeader>
+  const formatAccountNumber = (value: string) => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, "");
+    // Add spaces every 4 digits for display
+    return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
+  };
 
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* General Error */}
-          {errors.general && (
-            <Alert className="border-red-200 bg-red-50">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-800">
-                {errors.general}
-              </AlertDescription>
-            </Alert>
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      {/* Progress Header */}
+      <Card className="border-2 border-purple-100">
+        <CardHeader className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-t-lg">
+          <CardTitle className="text-center">
+            Banking Setup - Step {currentStepIndex + 1} of {steps.length}
+          </CardTitle>
+          <div className="mt-4">
+            <Progress value={progress} className="h-3" />
+            <div className="flex justify-between mt-2">
+              {steps.map((step, index) => {
+                const Icon = step.icon;
+                const isActive = index === currentStepIndex;
+                const isCompleted = index < currentStepIndex;
+
+                return (
+                  <div key={step.id} className="flex flex-col items-center">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+                        isCompleted
+                          ? "bg-green-600 border-green-600 text-white"
+                          : isActive
+                            ? "bg-purple-600 border-purple-600 text-white"
+                            : "border-gray-300 text-gray-400"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <span
+                      className={`text-xs mt-1 ${
+                        isActive
+                          ? "text-purple-600 font-medium"
+                          : isCompleted
+                            ? "text-green-600"
+                            : "text-gray-500"
+                      }`}
+                    >
+                      {step.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* Form Content */}
+      <Card className="border-2 border-gray-100">
+        <CardContent className="p-8">
+          {currentStep === "business" && (
+            <div className="space-y-6">
+              <div className="text-center mb-6">
+                <Building2 className="h-12 w-12 text-purple-600 mx-auto mb-3" />
+                <h2 className="text-xl font-bold">Business Information</h2>
+                <p className="text-gray-600">
+                  Tell us about your business for payment processing
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="businessName">Business Name *</Label>
+                  <Input
+                    id="businessName"
+                    value={formData.businessName}
+                    onChange={(e) =>
+                      updateFormData("businessName", e.target.value)
+                    }
+                    placeholder="Your business or trading name"
+                    className={errors.businessName ? "border-red-500" : ""}
+                  />
+                  {errors.businessName && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.businessName}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="email">Email Address *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => updateFormData("email", e.target.value)}
+                    placeholder="your@email.com"
+                    className={errors.email ? "border-red-500" : ""}
+                  />
+                  {errors.email && (
+                    <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                  )}
+                </div>
+              </div>
+            </div>
           )}
 
-          {/* Business Name */}
-          <div className="space-y-2">
-            <Label htmlFor="businessName" className="flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              Business Name
-            </Label>
-            <Input
-              id="businessName"
-              value={formData.businessName}
-              onChange={(e) =>
-                handleInputChange("businessName", e.target.value)
-              }
-              placeholder="Your business or personal name"
-              className={errors.businessName ? "border-red-300" : ""}
-            />
-            {errors.businessName && (
-              <p className="text-sm text-red-600">{errors.businessName}</p>
-            )}
-          </div>
+          {currentStep === "banking" && (
+            <div className="space-y-6">
+              <div className="text-center mb-6">
+                <CreditCard className="h-12 w-12 text-purple-600 mx-auto mb-3" />
+                <h2 className="text-xl font-bold">Bank Account Details</h2>
+                <p className="text-gray-600">
+                  Enter your bank account information securely
+                </p>
+              </div>
 
-          {/* Email */}
-          <div className="space-y-2">
-            <Label htmlFor="email" className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              Email Address
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
-              placeholder="your@email.com"
-              className={errors.email ? "border-red-300" : ""}
-            />
-            {errors.email && (
-              <p className="text-sm text-red-600">{errors.email}</p>
-            )}
-          </div>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="bankName">Bank *</Label>
+                  <Select
+                    value={formData.bankName}
+                    onValueChange={(value) => updateFormData("bankName", value)}
+                  >
+                    <SelectTrigger
+                      className={errors.bankName ? "border-red-500" : ""}
+                    >
+                      <SelectValue placeholder="Select your bank" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SA_BANKS.map((bank) => (
+                        <SelectItem key={bank} value={bank}>
+                          {bank}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.bankName && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.bankName}
+                    </p>
+                  )}
+                </div>
 
-          {/* Bank Selection */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              Bank
-            </Label>
-            <Select
-              value={formData.bankName}
-              onValueChange={(value) => handleInputChange("bankName", value)}
-            >
-              <SelectTrigger
-                className={errors.bankName ? "border-red-300" : ""}
-              >
-                <SelectValue placeholder="Select your bank" />
-              </SelectTrigger>
-              <SelectContent>
-                {SA_BANKS.map((bank) => (
-                  <SelectItem key={bank} value={bank}>
-                    {bank}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.bankName && (
-              <p className="text-sm text-red-600">{errors.bankName}</p>
-            )}
-          </div>
+                <div>
+                  <Label htmlFor="accountNumber">Account Number *</Label>
+                  <div className="relative">
+                    <Input
+                      id="accountNumber"
+                      type={showAccountNumber ? "text" : "password"}
+                      value={
+                        showAccountNumber
+                          ? formatAccountNumber(formData.accountNumber)
+                          : formData.accountNumber.replace(/./g, "•")
+                      }
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\s/g, "");
+                        updateFormData("accountNumber", value);
+                      }}
+                      placeholder="Enter your account number"
+                      className={
+                        errors.accountNumber ? "border-red-500 pr-10" : "pr-10"
+                      }
+                      maxLength={15}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                      onClick={() => setShowAccountNumber(!showAccountNumber)}
+                    >
+                      {showAccountNumber ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  {isValidatingAccount && (
+                    <div className="flex items-center mt-1 text-sm text-blue-600">
+                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                      Validating account...
+                    </div>
+                  )}
+                  {accountValidation.accountName && (
+                    <div className="flex items-center mt-1 text-sm text-green-600">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Account holder: {accountValidation.accountName}
+                    </div>
+                  )}
+                  {errors.accountNumber && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.accountNumber}
+                    </p>
+                  )}
+                </div>
 
-          {/* Account Number */}
-          <div className="space-y-2">
-            <Label htmlFor="accountNumber" className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              Account Number
-            </Label>
-            <div className="relative">
-              <Input
-                id="accountNumber"
-                value={formData.accountNumber}
-                onChange={(e) =>
-                  handleInputChange(
-                    "accountNumber",
-                    e.target.value.replace(/\D/g, ""),
-                  )
-                }
-                placeholder="1234567890"
-                maxLength={11}
-                className={errors.accountNumber ? "border-red-300" : ""}
-              />
-              {isValidatingAccount && (
-                <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-gray-400" />
-              )}
-              {!isValidatingAccount && accountValidation.valid === true && (
-                <CheckCircle className="absolute right-3 top-3 h-4 w-4 text-green-600" />
-              )}
-              {!isValidatingAccount && accountValidation.valid === false && (
-                <AlertCircle className="absolute right-3 top-3 h-4 w-4 text-red-600" />
-              )}
+                <div>
+                  <Label htmlFor="confirmAccountNumber">
+                    Confirm Account Number *
+                  </Label>
+                  <Input
+                    id="confirmAccountNumber"
+                    type="password"
+                    value={formData.confirmAccountNumber}
+                    onChange={(e) =>
+                      updateFormData("confirmAccountNumber", e.target.value)
+                    }
+                    placeholder="Re-enter your account number"
+                    className={
+                      errors.confirmAccountNumber ? "border-red-500" : ""
+                    }
+                  />
+                  {errors.confirmAccountNumber && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.confirmAccountNumber}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="accountHolderName">
+                    Account Holder Name *
+                  </Label>
+                  <Input
+                    id="accountHolderName"
+                    value={formData.accountHolderName}
+                    onChange={(e) =>
+                      updateFormData("accountHolderName", e.target.value)
+                    }
+                    placeholder="Name as it appears on your bank account"
+                    className={errors.accountHolderName ? "border-red-500" : ""}
+                  />
+                  {errors.accountHolderName && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.accountHolderName}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
-            {errors.accountNumber && (
-              <p className="text-sm text-red-600">{errors.accountNumber}</p>
-            )}
-            {accountValidation.accountName && (
-              <p className="text-sm text-green-600">
-                ✓ Account holder: {accountValidation.accountName}
+          )}
+
+          {currentStep === "verification" && (
+            <div className="space-y-6">
+              <div className="text-center mb-6">
+                <Shield className="h-12 w-12 text-purple-600 mx-auto mb-3" />
+                <h2 className="text-xl font-bold">Verify Your Information</h2>
+                <p className="text-gray-600">
+                  Review your details before submitting
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <Card className="bg-gray-50">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex justify-between">
+                      <span className="font-medium">Business Name:</span>
+                      <span>{formData.businessName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Email:</span>
+                      <span>{formData.email}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Bank:</span>
+                      <span>{formData.bankName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Account Number:</span>
+                      <span className="font-mono">
+                        {"•".repeat(formData.accountNumber.length - 4) +
+                          formData.accountNumber.slice(-4)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Account Holder:</span>
+                      <span>{formData.accountHolderName}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {accountValidation.valid && (
+                  <Alert>
+                    <CheckCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Account validation successful! Your banking details are
+                      ready to be submitted.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            </div>
+          )}
+
+          {currentStep === "complete" && (
+            <div className="text-center space-y-6">
+              <CheckCircle className="h-16 w-16 text-green-600 mx-auto" />
+              <h2 className="text-2xl font-bold text-green-900">
+                Setup Complete!
+              </h2>
+              <p className="text-gray-600">
+                Your banking details have been successfully configured. You can
+                now start selling books!
               </p>
-            )}
-          </div>
-
-          {/* Confirm Account Number */}
-          <div className="space-y-2">
-            <Label
-              htmlFor="confirmAccountNumber"
-              className="flex items-center gap-2"
-            >
-              <CreditCard className="h-4 w-4" />
-              Confirm Account Number
-            </Label>
-            <Input
-              id="confirmAccountNumber"
-              value={formData.confirmAccountNumber}
-              onChange={(e) =>
-                handleInputChange(
-                  "confirmAccountNumber",
-                  e.target.value.replace(/\D/g, ""),
-                )
-              }
-              placeholder="Confirm your account number"
-              maxLength={11}
-              className={errors.confirmAccountNumber ? "border-red-300" : ""}
-            />
-            {errors.confirmAccountNumber && (
-              <p className="text-sm text-red-600">
-                {errors.confirmAccountNumber}
-              </p>
-            )}
-          </div>
-
-          {/* Account Holder Name */}
-          <div className="space-y-2">
-            <Label
-              htmlFor="accountHolderName"
-              className="flex items-center gap-2"
-            >
-              <User className="h-4 w-4" />
-              Account Holder Name
-            </Label>
-            <Input
-              id="accountHolderName"
-              value={formData.accountHolderName}
-              onChange={(e) =>
-                handleInputChange("accountHolderName", e.target.value)
-              }
-              placeholder="Full name as it appears on your bank account"
-              className={errors.accountHolderName ? "border-red-300" : ""}
-            />
-            {errors.accountHolderName && (
-              <p className="text-sm text-red-600">{errors.accountHolderName}</p>
-            )}
-          </div>
-
-          {/* Commission Information */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <DollarSign className="h-5 w-5 text-blue-600 mt-0.5" />
-              <div>
-                <h4 className="font-medium text-blue-900 mb-1">
-                  Payment Information
-                </h4>
-                <ul className="text-sm text-blue-800 space-y-1">
-                  <li>• You receive 90% of each book sale</li>
-                  <li>• Platform fee: 10% per transaction</li>
-                  <li>• Payments released after buyer collection</li>
-                  <li>• Funds typically arrive within 1-2 business days</li>
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h3 className="font-medium text-green-900 mb-2">
+                  What happens next?
+                </h3>
+                <ul className="text-sm text-green-800 space-y-1 text-left">
+                  <li>• Your account will be verified within 24-48 hours</li>
+                  <li>
+                    • You'll receive email updates on your verification status
+                  </li>
+                  <li>• Once verified, you can start receiving payments</li>
+                  <li>• Payments are processed securely through Paystack</li>
                 </ul>
               </div>
             </div>
-          </div>
+          )}
+        </CardContent>
+      </Card>
 
-          {/* Security Notice */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <Shield className="h-5 w-5 text-green-600 mt-0.5" />
-              <div>
-                <h4 className="font-medium text-green-900 mb-1">
-                  Secure & Protected
-                </h4>
-                <p className="text-sm text-green-800">
-                  Your banking details are encrypted and securely stored. We use
-                  industry-standard security measures to protect your
-                  information.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Form Actions */}
-          <div className="flex gap-4 pt-4">
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex-1 bg-green-600 hover:bg-green-700"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Setting up...
-                </>
-              ) : (
-                "Complete Banking Setup"
-              )}
-            </Button>
-
-            {onCancel && (
+      {/* Navigation Buttons */}
+      {currentStep !== "complete" && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex justify-between">
               <Button
-                type="button"
+                onClick={handlePrevious}
                 variant="outline"
-                onClick={onCancel}
-                disabled={isSubmitting}
+                disabled={currentStep === "business"}
               >
-                Cancel
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Previous
               </Button>
-            )}
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+
+              {currentStep === "verification" ? (
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || !accountValidation.valid}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                  )}
+                  {isSubmitting ? "Setting up..." : "Complete Setup"}
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleNext}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  Next
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Cancel Button */}
+      {onCancel && currentStep !== "complete" && (
+        <div className="text-center">
+          <Button onClick={onCancel} variant="ghost" size="sm">
+            Cancel Setup
+          </Button>
+        </div>
+      )}
+    </div>
   );
 };
 
