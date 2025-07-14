@@ -1,0 +1,13 @@
+{
+  "name": "vercel-functions",
+  "version": "1.0.0",
+  "description": "Vercel serverless functions for ReBooked Solutions",
+  "type": "module",
+  "dependencies": {
+    "nodemailer": "^6.9.7",
+    "@supabase/supabase-js": "^2.50.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
