@@ -135,197 +135,205 @@ const Checkout = () => {
   // Data fetching
   useEffect(() => {
     const initializeCheckout = async () => {
-      if (!user?.id) {
-        toast.error("Please log in to complete your purchase");
-        navigate("/login");
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-
       try {
-        let checkoutItems: CheckoutItem[] = [];
-
-        if (isCartCheckout) {
-          // Use cart data
-          checkoutItems = cartData.map((item: any) => ({
-            id: item.id,
-            title: item.title,
-            author: item.author,
-            price: item.price,
-            condition: item.condition,
-            category: item.category,
-            imageUrl: item.frontCover || item.imageUrl,
-            seller: item.seller || { id: "", name: "Unknown", email: "" },
-          }));
-        } else if (id) {
-          // Fetch single book
-          const book = await getBookById(id);
-          if (!book) {
-            setError("Book not found");
-            return;
-          }
-          if (book.sold) {
-            setError("This book has already been sold");
-            return;
-          }
-          if (book.seller?.id === user.id) {
-            setError("You cannot purchase your own book");
-            return;
-          }
-
-          checkoutItems = [
-            {
-              id: book.id,
-              title: book.title,
-              author: book.author,
-              price: book.price,
-              condition: book.condition,
-              category: book.category,
-              imageUrl: book.frontCover || book.imageUrl,
-              seller: book.seller || { id: "", name: "Unknown", email: "" },
-            },
-          ];
-        }
-
-        if (checkoutItems.length === 0) {
-          setError("No items to checkout");
+        if (!user?.id) {
+          toast.error("Please log in to complete your purchase");
+          navigate("/login");
           return;
         }
 
-        // Validate that all items have seller information
-        const invalidItems = checkoutItems.filter((item) => !item.seller?.id);
-        if (invalidItems.length > 0) {
-          setError(
-            "Some items are missing seller information. Please try again.",
-          );
-          return;
-        }
+        setIsLoading(true);
+        setError(null);
 
-        // Check if we have multiple sellers (for now, we only support single seller checkouts)
-        const uniqueSellers = new Set(
-          checkoutItems.map((item) => item.seller.id),
-        );
-        if (uniqueSellers.size > 1) {
-          setError(
-            "Multiple seller checkout is not yet supported. Please checkout items from one seller at a time.",
-          );
-          return;
-        }
+        try {
+          let checkoutItems: CheckoutItem[] = [];
 
-        // STEP 2: CHECKOUT INITIALIZATION - Validate seller banking setup
-        if (checkoutItems.length > 0) {
-          const sellerId = checkoutItems[0].seller.id;
-
-          try {
-            // 🔍 DATABASE QUERY: Get seller profile with banking info
-            const { data: sellerProfile, error: sellerError } = await supabase
-              .from("profiles")
-              .select("id, name, email, pickup_address, subaccount_code")
-              .eq("id", sellerId)
-              .single();
-
-            if (sellerError) {
-              console.warn("Seller validation warning:", sellerError);
-              // Continue without failing - payment will handle validation
+          if (isCartCheckout) {
+            // Use cart data
+            checkoutItems = cartData.map((item: any) => ({
+              id: item.id,
+              title: item.title,
+              author: item.author,
+              price: item.price,
+              condition: item.condition,
+              category: item.category,
+              imageUrl: item.frontCover || item.imageUrl,
+              seller: item.seller || { id: "", name: "Unknown", email: "" },
+            }));
+          } else if (id) {
+            // Fetch single book
+            const book = await getBookById(id);
+            if (!book) {
+              setError("Book not found");
+              return;
+            }
+            if (book.sold) {
+              setError("This book has already been sold");
+              return;
+            }
+            if (book.seller?.id === user.id) {
+              setError("You cannot purchase your own book");
+              return;
             }
 
-            if (sellerProfile) {
-              // ✅ VALIDATION CHECKS (warnings only):
-              // - sellerProfile.subaccount_code exists (seller banking setup)
-              if (!sellerProfile.subaccount_code) {
-                console.warn(
-                  "Seller banking setup incomplete - payment may fail later",
-                );
+            checkoutItems = [
+              {
+                id: book.id,
+                title: book.title,
+                author: book.author,
+                price: book.price,
+                condition: book.condition,
+                category: book.category,
+                imageUrl: book.frontCover || book.imageUrl,
+                seller: book.seller || { id: "", name: "Unknown", email: "" },
+              },
+            ];
+          }
+
+          if (checkoutItems.length === 0) {
+            setError("No items to checkout");
+            return;
+          }
+
+          // Validate that all items have seller information
+          const invalidItems = checkoutItems.filter((item) => !item.seller?.id);
+          if (invalidItems.length > 0) {
+            setError(
+              "Some items are missing seller information. Please try again.",
+            );
+            return;
+          }
+
+          // Check if we have multiple sellers (for now, we only support single seller checkouts)
+          const uniqueSellers = new Set(
+            checkoutItems.map((item) => item.seller.id),
+          );
+          if (uniqueSellers.size > 1) {
+            setError(
+              "Multiple seller checkout is not yet supported. Please checkout items from one seller at a time.",
+            );
+            return;
+          }
+
+          // STEP 2: CHECKOUT INITIALIZATION - Validate seller banking setup
+          if (checkoutItems.length > 0) {
+            const sellerId = checkoutItems[0].seller.id;
+
+            try {
+              // 🔍 DATABASE QUERY: Get seller profile with banking info
+              const { data: sellerProfile, error: sellerError } = await supabase
+                .from("profiles")
+                .select("id, name, email, pickup_address, subaccount_code")
+                .eq("id", sellerId)
+                .single();
+
+              if (sellerError) {
+                console.warn("Seller validation warning:", sellerError);
+                // Continue without failing - payment will handle validation
               }
-            }
 
-            // - sellerProfile.pickup_address complete
-            if (!sellerProfile.pickup_address) {
+              if (sellerProfile) {
+                // ✅ VALIDATION CHECKS (warnings only):
+                // - sellerProfile.subaccount_code exists (seller banking setup)
+                if (!sellerProfile.subaccount_code) {
+                  console.warn(
+                    "Seller banking setup incomplete - payment may fail later",
+                  );
+                }
+              }
+
+              // - sellerProfile.pickup_address complete
+              if (!sellerProfile.pickup_address) {
+                console.warn(
+                  "Seller pickup address not configured, will use default",
+                );
+              } else {
+                const pickupAddr = sellerProfile.pickup_address;
+                // - seller address has street, city, province, postal_code
+                if (
+                  !pickupAddr.street ||
+                  !pickupAddr.city ||
+                  !pickupAddr.province ||
+                  !pickupAddr.postalCode
+                ) {
+                  console.warn(
+                    "Seller pickup address incomplete, will use default for delivery calculations",
+                  );
+                }
+              }
+
+              console.log("Seller validation passed:", {
+                sellerId: sellerProfile.id,
+                hasSubaccount: !!sellerProfile.subaccount_code,
+                hasPickupAddress: !!sellerProfile.pickup_address,
+              });
+            } catch (validationError) {
               console.warn(
-                "Seller pickup address not configured, will use default",
+                "Seller validation error (continuing anyway):",
+                validationError,
+              );
+              // Continue with checkout - let payment step handle validation
+            }
+          }
+
+          setItems(checkoutItems);
+
+          // Load saved addresses
+          try {
+            console.log("Loading addresses for user:", user.id);
+            const addressData = await getUserAddresses(user.id);
+
+            if (addressData?.shipping_address) {
+              const shippingAddr = addressData.shipping_address;
+              setShippingAddress({
+                street: shippingAddr.street || "",
+                city: shippingAddr.city || "",
+                province: shippingAddr.province || "",
+                postalCode: shippingAddr.postalCode || "",
+                country: "South Africa",
+              });
+            }
+            setSavedAddresses(addressData ? [addressData] : []);
+            console.log("Successfully loaded address data");
+          } catch (addressError) {
+            console.error("Error loading addresses:", {
+              error: addressError,
+              message:
+                addressError instanceof Error
+                  ? addressError.message
+                  : String(addressError),
+              userId: user.id,
+            });
+
+            // Show user-friendly error message
+            if (
+              addressError instanceof Error &&
+              addressError.message.includes("Network connection")
+            ) {
+              toast.error(
+                "Network error loading saved addresses. You can still enter your address manually.",
               );
             } else {
-              const pickupAddr = sellerProfile.pickup_address;
-              // - seller address has street, city, province, postal_code
-              if (
-                !pickupAddr.street ||
-                !pickupAddr.city ||
-                !pickupAddr.province ||
-                !pickupAddr.postalCode
-              ) {
-                console.warn(
-                  "Seller pickup address incomplete, will use default for delivery calculations",
-                );
-              }
+              toast.error(
+                "Could not load saved addresses. You can still enter your address manually.",
+              );
             }
 
-            console.log("Seller validation passed:", {
-              sellerId: sellerProfile.id,
-              hasSubaccount: !!sellerProfile.subaccount_code,
-              hasPickupAddress: !!sellerProfile.pickup_address,
-            });
-          } catch (validationError) {
-            console.warn(
-              "Seller validation error (continuing anyway):",
-              validationError,
-            );
-            // Continue with checkout - let payment step handle validation
+            // Don't fail the entire checkout for address loading issues
           }
+        } catch (err) {
+          console.error("Checkout initialization error:", err);
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Failed to initialize checkout",
+          );
+        } finally {
+          setIsLoading(false);
         }
-
-        setItems(checkoutItems);
-
-        // Load saved addresses
-        try {
-          console.log("Loading addresses for user:", user.id);
-          const addressData = await getUserAddresses(user.id);
-
-          if (addressData?.shipping_address) {
-            const shippingAddr = addressData.shipping_address;
-            setShippingAddress({
-              street: shippingAddr.street || "",
-              city: shippingAddr.city || "",
-              province: shippingAddr.province || "",
-              postalCode: shippingAddr.postalCode || "",
-              country: "South Africa",
-            });
-          }
-          setSavedAddresses(addressData ? [addressData] : []);
-          console.log("Successfully loaded address data");
-        } catch (addressError) {
-          console.error("Error loading addresses:", {
-            error: addressError,
-            message:
-              addressError instanceof Error
-                ? addressError.message
-                : String(addressError),
-            userId: user.id,
-          });
-
-          // Show user-friendly error message
-          if (
-            addressError instanceof Error &&
-            addressError.message.includes("Network connection")
-          ) {
-            toast.error(
-              "Network error loading saved addresses. You can still enter your address manually.",
-            );
-          } else {
-            toast.error(
-              "Could not load saved addresses. You can still enter your address manually.",
-            );
-          }
-
-          // Don't fail the entire checkout for address loading issues
-        }
-      } catch (err) {
-        console.error("Checkout initialization error:", err);
-        setError(
-          err instanceof Error ? err.message : "Failed to initialize checkout",
-        );
-      } finally {
+      } catch (outerError) {
+        console.error("Critical checkout error:", outerError);
+        setError("Something went wrong. Please try again.");
         setIsLoading(false);
       }
     };
