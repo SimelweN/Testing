@@ -35,15 +35,14 @@ export class BankingService {
           return null;
         }
 
-        // Check if table doesn't exist (development scenario)
+        // Check if table doesn't exist
         if (
           error.code === "42P01" ||
           error.message?.includes("does not exist")
         ) {
-          console.warn(
-            "🛠️ Banking table doesn't exist - using development fallback",
+          throw new Error(
+            "Banking system not properly configured. Please contact support.",
           );
-          return null; // Return null indicating no banking setup yet
         }
 
         console.error("Database error fetching banking details:", {
@@ -67,10 +66,9 @@ export class BankingService {
           (error.message?.includes("relation") &&
             error.message?.includes("banking_subaccounts"))
         ) {
-          console.warn(
-            "🛠️ Banking table doesn't exist - using development fallback",
+          throw new Error(
+            "Banking system not properly configured. Please contact support.",
           );
-          return null; // Return null indicating no banking setup yet
         }
         console.error("Error fetching banking details:", error.message);
         throw error;
@@ -99,12 +97,13 @@ export class BankingService {
         return this.updateSubaccount(userId, bankingDetails);
       }
 
-      // Check if we should use development fallback
-      if (!PAYSTACK_CONFIG.isConfigured() || PAYSTACK_CONFIG.isDevelopment()) {
-        console.warn(
-          "🛠️ Using development fallback (Paystack not configured or in dev mode)",
-        );
-        return this.createDevelopmentSubaccount(userId, bankingDetails);
+      // Check if Paystack is configured
+      if (!PAYSTACK_CONFIG.isConfigured()) {
+        console.error("Paystack not configured. Banking setup unavailable.");
+        return {
+          success: false,
+          error: "Banking service not configured. Please contact support.",
+        };
       }
 
       // Create new subaccount via Edge Function
@@ -148,10 +147,11 @@ export class BankingService {
           error.message?.includes("404") ||
           error.message?.includes("Function not found")
         ) {
-          console.warn(
-            "🛠️ Edge Function not deployed - using development fallback",
-          );
-          return this.createDevelopmentSubaccount(userId, bankingDetails);
+          console.error("Banking service unavailable");
+          return {
+            success: false,
+            error: "Banking service unavailable. Please contact support.",
+          };
         }
 
         return {
@@ -268,26 +268,6 @@ export class BankingService {
     );
 
     if (error) {
-      // Check if table doesn't exist (development scenario)
-      if (
-        error.code === "42P01" ||
-        error.message?.includes("does not exist") ||
-        error.message?.includes("relation") ||
-        error.message?.includes("banking_subaccounts")
-      ) {
-        console.warn(
-          "🛠️ Banking table doesn't exist - using development fallback for saving",
-        );
-        console.log("ℹ️ Banking details would be saved:", {
-          user_id: userId,
-          business_name: bankingDetails.businessName,
-          bank_name: bankingDetails.bankName,
-          subaccount_code: bankingDetails.subaccountCode,
-          status: bankingDetails.status,
-        });
-        return; // Silently succeed in development
-      }
-
       console.error("Error saving banking details:", {
         code: error.code,
         message: error.message,
@@ -366,10 +346,9 @@ export class BankingService {
       const bankingDetails = await this.getUserBankingDetails(userId);
 
       if (!bankingDetails?.subaccount_code) {
-        console.warn(
-          "🛠️ No subaccount found for user - this might be expected in development",
+        throw new Error(
+          "No banking account found. Please set up banking first.",
         );
-        return; // Don't throw error, just return silently
       }
 
       // Update all user's books to include subaccount code
@@ -379,23 +358,6 @@ export class BankingService {
         .eq("seller_id", userId);
 
       if (error) {
-        // Check if books table doesn't exist (development scenario)
-        if (
-          error.code === "42P01" ||
-          error.message?.includes("does not exist") ||
-          error.message?.includes("relation") ||
-          error.message?.includes("books")
-        ) {
-          console.warn(
-            "🛠️ Books table doesn't exist - using development fallback for linking",
-          );
-          console.log("ℹ️ Books would be linked to subaccount:", {
-            seller_id: userId,
-            subaccount_code: bankingDetails.subaccount_code,
-          });
-          return; // Silently succeed in development
-        }
-
         throw error;
       }
 
@@ -411,47 +373,7 @@ export class BankingService {
         fullError: error,
       });
 
-      // Don't throw error in development mode if it's a table issue
-      if (
-        error.code === "42P01" ||
-        error.message?.includes("does not exist") ||
-        error.message?.includes("relation")
-      ) {
-        console.warn("🛠️ Skipping book linking in development mode");
-        return;
-      }
-
       throw new Error("Failed to link books to payment account");
-    }
-  }
-
-  /**
-   * Development fallback when Paystack is not configured
-   */
-  static async createDevelopmentSubaccount(
-    userId: string,
-    bankingDetails: BankingDetails,
-  ): Promise<{ success: boolean; subaccountCode?: string; error?: string }> {
-    console.warn("🛠️ Using development fallback for banking setup");
-
-    try {
-      const mockSubaccountCode = `ACCT_dev_${userId.slice(0, 8)}_${Date.now()}`;
-
-      await this.saveBankingDetails(userId, {
-        ...bankingDetails,
-        subaccountCode: mockSubaccountCode,
-        status: "active",
-      });
-
-      return {
-        success: true,
-        subaccountCode: mockSubaccountCode,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: "Development fallback failed",
-      };
     }
   }
 
@@ -464,10 +386,9 @@ export class BankingService {
   ): Promise<{ valid: boolean; accountName?: string; error?: string }> {
     try {
       if (!PAYSTACK_CONFIG.isConfigured()) {
-        // Development fallback
         return {
-          valid: true,
-          accountName: "John Doe (Development)",
+          valid: false,
+          error: "Account validation service not available",
         };
       }
 

@@ -36,8 +36,8 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name.trim() || !email.trim()) {
-      toast.error("Please fill in all fields");
+    if (!name.trim()) {
+      toast.error("Please enter your name");
       return;
     }
 
@@ -49,11 +49,11 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
     setIsLoading(true);
 
     try {
+      // Only update the name, not the email
       const { error } = await supabase
         .from("profiles")
         .update({
           name: name.trim(),
-          email: email.trim(),
           updated_at: new Date().toISOString(),
         })
         .eq("id", user.id);
@@ -96,7 +96,7 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
     if (!isLoading) {
       onClose();
       setName(profile?.name || "");
-      setEmail(profile?.email || user?.email || "");
+      // Email is read-only, no need to reset it
     }
   };
 
@@ -131,8 +131,11 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium">
-              Email
+            <Label
+              htmlFor="email"
+              className="text-sm font-medium text-gray-600"
+            >
+              Email Address
             </Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -140,13 +143,16 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="pl-10"
-                placeholder="Enter your email address"
-                required
-                disabled={isLoading}
+                className="pl-10 bg-gray-100 text-gray-600 cursor-not-allowed"
+                placeholder="Email cannot be changed"
+                disabled={true}
+                readOnly={true}
               />
             </div>
+            <p className="text-xs text-gray-500 mt-1">
+              For security reasons, email addresses cannot be changed. Contact
+              support if you need to update your email.
+            </p>
           </div>
         </form>
 

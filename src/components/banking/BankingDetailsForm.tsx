@@ -231,6 +231,9 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Prevent any potential scrolling issues
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
     if (!validateForm()) return;
 
     setIsSubmitting(true);
@@ -253,21 +256,9 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
       if (result.success) {
         setIsSuccess(true);
 
-        // Check if this was a mock/development account
-        const isMockAccount =
-          result.subaccount_code?.includes("mock") ||
-          result.subaccount_code?.includes("dev_fallback");
-
-        if (isMockAccount) {
-          toast.success(`✅ Banking details saved! (Development mode)`);
-          console.log(
-            "🧪 Development mode: Mock subaccount created for testing",
-          );
-        } else {
-          toast.success(
-            `Banking details ${editMode ? "updated" : "added"} successfully!`,
-          );
-        }
+        toast.success(
+          `Banking details ${editMode ? "updated" : "added"} successfully!`,
+        );
 
         // 🔗 AUTOMATICALLY LINK ALL USER'S BOOKS TO NEW SUBACCOUNT
         if (result.subaccount_code) {
@@ -291,16 +282,7 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
       let errorMessage = "There was an error setting up your banking details.";
 
       if (error instanceof Error) {
-        if (
-          error.message.includes("non-2xx") ||
-          error.message.includes("Edge Function")
-        ) {
-          errorMessage =
-            "💡 Development mode: Payment service not fully configured. Your details have been saved for testing.";
-          console.warn(
-            "Edge function not available - this is normal in development",
-          );
-        } else if (error.message.includes("Authentication")) {
+        if (error.message.includes("Authentication")) {
           errorMessage = "Please log in again and try again.";
         } else if (
           error.message.includes("network") ||

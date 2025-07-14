@@ -7,6 +7,19 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    hmr: {
+      // More resilient HMR configuration
+      overlay: false, // Disable error overlay that might interfere
+      clientPort: 8080, // Ensure client connects to correct port
+      // Add timeout and retry configuration
+      timeout: 30000, // 30 second timeout
+      // Handle connection errors gracefully
+      skipErrors: true,
+    },
+    // Add CORS headers for better cross-origin support
+    cors: true,
+    // Improve connection stability
+    strictPort: false,
   },
   plugins: [react()],
   resolve: {

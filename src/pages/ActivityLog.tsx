@@ -27,13 +27,20 @@ import {
   RefreshCw,
   Package,
   TrendingUp,
+  X,
 } from "lucide-react";
 
 const ActivityLog = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const { commitBook, pendingCommits, refreshPendingCommits, isCommitting } =
-    useCommit();
+  const {
+    commitBook,
+    declineBook,
+    pendingCommits,
+    refreshPendingCommits,
+    isCommitting,
+    isDeclining,
+  } = useCommit();
   const [activeTab, setActiveTab] = useState("commits");
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -474,15 +481,29 @@ const ActivityLog = () => {
                                 </div>
                               </div>
 
-                              <div className="ml-6">
+                              <div className="ml-6 flex flex-col gap-3">
                                 <Button
-                                  onClick={() => commitBook(commit.bookId)}
-                                  disabled={isCommitting}
+                                  onClick={async (e) => {
+                                    e.preventDefault();
+                                    try {
+                                      await commitBook(commit.bookId);
+                                      // Scroll to top after successful commit
+                                      setTimeout(() => {
+                                        window.scrollTo({
+                                          top: 0,
+                                          behavior: "smooth",
+                                        });
+                                      }, 500);
+                                    } catch (error) {
+                                      // Error is already handled in commitBook
+                                    }
+                                  }}
+                                  disabled={isCommitting || isDeclining}
                                   size="lg"
                                   className={`${
                                     isUrgent
-                                      ? "bg-red-600 hover:bg-red-700"
-                                      : "bg-orange-600 hover:bg-orange-700"
+                                      ? "bg-green-600 hover:bg-green-700"
+                                      : "bg-green-600 hover:bg-green-700"
                                   } text-white font-bold px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all`}
                                 >
                                   {isCommitting ? (
@@ -494,6 +515,39 @@ const ActivityLog = () => {
                                     <>
                                       <Check className="h-5 w-5 mr-2" />
                                       Commit to Sale
+                                    </>
+                                  )}
+                                </Button>
+                                <Button
+                                  onClick={async (e) => {
+                                    e.preventDefault();
+                                    try {
+                                      await declineBook(commit.bookId);
+                                      // Scroll to top after successful decline
+                                      setTimeout(() => {
+                                        window.scrollTo({
+                                          top: 0,
+                                          behavior: "smooth",
+                                        });
+                                      }, 500);
+                                    } catch (error) {
+                                      // Error is already handled in declineBook
+                                    }
+                                  }}
+                                  disabled={isCommitting || isDeclining}
+                                  variant="destructive"
+                                  size="lg"
+                                  className="text-white font-bold px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all"
+                                >
+                                  {isDeclining ? (
+                                    <>
+                                      <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
+                                      Processing...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <X className="h-5 w-5 mr-2" />
+                                      Decline Sale
                                     </>
                                   )}
                                 </Button>
@@ -568,9 +622,14 @@ const ActivityLog = () => {
                         </h4>
                         <ul className="space-y-1 text-blue-700 text-sm">
                           <li>• Payment securely held in escrow</li>
-                          <li>• Seller has 48 hours to commit</li>
-                          <li>• Full refund if seller doesn't commit</li>
+                          <li>• Seller has exactly 48 hours to commit</li>
+                          <li>
+                            • <strong>Automatic full refund</strong> if seller
+                            doesn't commit
+                          </li>
+                          <li>• Refund processed immediately after 48 hours</li>
                           <li>• Order confirmed once seller commits</li>
+                          <li>• No penalties or fees for failed commits</li>
                         </ul>
                       </div>
                       <div>
@@ -578,10 +637,17 @@ const ActivityLog = () => {
                           📚 For Sellers:
                         </h4>
                         <ul className="space-y-1 text-blue-700 text-sm">
-                          <li>• Verify book availability within 48 hours</li>
-                          <li>• Commitment guarantees sale completion</li>
-                          <li>• Builds trust and seller reputation</li>
-                          <li>• Payment released after delivery</li>
+                          <li>
+                            • <strong>Must commit within 48 hours</strong> or
+                            buyer gets full refund
+                          </li>
+                          <li>• Verify book availability before committing</li>
+                          <li>• Can decline sale if book not available</li>
+                          <li>• Missed commits affect seller reputation</li>
+                          <li>
+                            • Payment released after delivery confirmation
+                          </li>
+                          <li>• Automatic refund system protects buyers</li>
                         </ul>
                       </div>
                     </div>
