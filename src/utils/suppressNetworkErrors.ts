@@ -140,7 +140,7 @@ window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
       console.debug("[Network Error Handled]:", message);
       // Return a failed response instead of throwing
       return new Response(null, {
-        status: 0,
+        status: 204,
         statusText: "Network Error (Suppressed)",
       });
     }
