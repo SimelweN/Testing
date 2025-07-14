@@ -52,6 +52,8 @@ export const saveUserAddresses = async (
 
 export const getSellerPickupAddress = async (sellerId: string) => {
   try {
+    console.log("Fetching pickup address for seller:", sellerId);
+
     const { data, error } = await supabase
       .from("profiles")
       .select("pickup_address")
@@ -59,14 +61,48 @@ export const getSellerPickupAddress = async (sellerId: string) => {
       .single();
 
     if (error) {
-      safeLogError("Error fetching seller pickup address", error);
-      throw error;
+      const errorMsg =
+        error.message || error.details || "Unknown database error";
+      console.error("Database error fetching seller pickup address:", {
+        message: errorMsg,
+        code: error.code,
+        sellerId,
+      });
+
+      // Handle no data found case
+      if (error.code === "PGRST116") {
+        console.log("No pickup address found for seller");
+        return null;
+      }
+
+      throw new Error(`Failed to fetch seller pickup address: ${errorMsg}`);
     }
 
+    console.log(
+      "Successfully fetched seller pickup address:",
+      data?.pickup_address,
+    );
     return data?.pickup_address || null;
   } catch (error) {
-    safeLogError("Error in getSellerPickupAddress", error);
-    throw error;
+    console.error("Error in getSellerPickupAddress:", {
+      error,
+      sellerId,
+      message: error instanceof Error ? error.message : String(error),
+    });
+
+    // Handle network errors
+    if (
+      error instanceof TypeError &&
+      error.message.includes("Failed to fetch")
+    ) {
+      throw new Error(
+        "Network connection error while fetching seller address.",
+      );
+    }
+
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    throw new Error(`Failed to get seller pickup address: ${errorMessage}`);
   }
 };
 
