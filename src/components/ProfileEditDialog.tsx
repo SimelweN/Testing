@@ -96,7 +96,7 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
     if (!isLoading) {
       onClose();
       setName(profile?.name || "");
-      setEmail(profile?.email || user?.email || "");
+      // Email is read-only, no need to reset it
     }
   };
 
