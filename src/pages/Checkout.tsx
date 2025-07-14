@@ -34,6 +34,7 @@ import {
 import { toast } from "sonner";
 import SaleSuccessPopup from "@/components/SaleSuccessPopup";
 import CommitReminderModal from "@/components/CommitReminderModal";
+import PaystackPaymentButton from "@/components/banking/PaystackPaymentButton";
 
 interface AddressData {
   complex?: string;
@@ -273,25 +274,14 @@ const Checkout = () => {
     return true;
   };
 
-  const handlePayment = async () => {
-    if (!validateAddress()) {
-      return;
-    }
-
+  const handlePaymentSuccess = async (reference: string) => {
     if (!user) {
       toast.error("Please log in to complete your purchase.");
       return;
     }
 
     try {
-      toast.loading("Processing payment...", { id: "payment" });
-
-      // Simulate payment processing
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      toast.success("Payment successful! Processing shipment...", {
-        id: "payment",
-      });
+      toast.success("Payment successful! Processing shipment...");
 
       // Show commit reminder modal first
       setShowCommitReminderModal(true);
@@ -867,15 +857,38 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                <Button
-                  onClick={handlePayment}
-                  className="w-full bg-book-600 hover:bg-book-700 text-sm md:text-base py-2 md:py-3 min-h-[48px]"
-                  size="lg"
-                  disabled={!selectedDelivery}
-                >
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Pay R{totalAmount.toFixed(2)}
-                </Button>
+                {book && (
+                  <PaystackPaymentButton
+                    amount={Math.round(totalAmount * 100)} // Convert to cents
+                    bookIds={
+                      isCartCheckout
+                        ? cartData.map((item: any) => item.id)
+                        : [book.id]
+                    }
+                    sellerId={book.seller?.id || ""}
+                    shippingAddress={{
+                      street: shippingAddress.streetAddress,
+                      city: shippingAddress.city,
+                      state: shippingAddress.province,
+                      postal_code: shippingAddress.postalCode,
+                      country: "South Africa",
+                    }}
+                    deliveryMethod={selectedDelivery ? "delivery" : "pickup"}
+                    deliveryFee={selectedDelivery?.price || 0}
+                    onSuccess={handlePaymentSuccess}
+                    onError={(error) => {
+                      toast.error(`Payment failed: ${error}`);
+                    }}
+                    onCancel={() => {
+                      toast.error("Payment was cancelled");
+                    }}
+                    disabled={!selectedDelivery || !validateAddress()}
+                    className="w-full bg-book-600 hover:bg-book-700 text-sm md:text-base py-2 md:py-3 min-h-[48px]"
+                  >
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Pay R{totalAmount.toFixed(2)}
+                  </PaystackPaymentButton>
+                )}
               </CardContent>
             </Card>
           </div>
