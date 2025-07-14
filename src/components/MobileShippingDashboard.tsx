@@ -71,11 +71,7 @@ const MobileShippingDashboard = ({
                         : "border-green-500 bg-green-50"
                     : "border-gray-200 hover:border-gray-300"
                 }`}
-                onClick={() =>
-                  setSelectedProvider(
-                    provider.id as "courierGuy" | "shipLogic" | "fastway",
-                  )
-                }
+                onClick={() => setSelectedProvider(provider.id as "shipLogic")}
               >
                 <div className="flex items-start space-x-3">
                   <div className="text-xl sm:text-2xl">{provider.logo}</div>
