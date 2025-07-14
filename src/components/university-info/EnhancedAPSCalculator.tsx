@@ -421,7 +421,11 @@ const EnhancedAPSCalculator: React.FC = () => {
           African universities
         </p>
         {hasValidProfile && (
-          <div className="flex justify-center pt-2">
+          <div className="flex flex-col items-center gap-2 pt-2">
+            <div className="text-sm text-green-600 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" />
+              Your APS profile is saved and will persist between sessions
+            </div>
             <Button
               variant="outline"
               size="sm"
