@@ -11,6 +11,10 @@ export default defineConfig(({ mode }) => ({
       // More resilient HMR configuration
       overlay: false, // Disable error overlay that might interfere
       clientPort: 8080, // Ensure client connects to correct port
+      // Add timeout and retry configuration
+      timeout: 30000, // 30 second timeout
+      // Handle connection errors gracefully
+      skipErrors: true,
     },
     // Add CORS headers for better cross-origin support
     cors: true,
