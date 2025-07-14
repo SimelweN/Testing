@@ -108,16 +108,10 @@ export const getPendingCommitments = async (
   sellerId: string,
 ): Promise<CommitmentWithDetails[]> => {
   try {
-    const { data, error } = await supabase
+    // First get the commitments
+    const { data: commitments, error } = await supabase
       .from("sale_commitments")
-      .select(
-        `
-        *,
-        books!inner(title, image_url),
-        seller:profiles!sale_commitments_seller_id_fkey(name),
-        buyer:profiles!sale_commitments_buyer_id_fkey(name)
-      `,
-      )
+      .select("*")
       .eq("seller_id", sellerId)
       .eq("status", "pending")
       .order("created_at", { ascending: false });
@@ -127,14 +121,42 @@ export const getPendingCommitments = async (
       throw new Error(error.message || "Failed to fetch pending commitments");
     }
 
-    return (data || []).map((commitment) => ({
-      ...commitment,
-      book_title: commitment.books?.title || "Unknown Book",
-      book_image_url: commitment.books?.image_url || "",
-      seller_name: commitment.seller?.name || "Unknown Seller",
-      buyer_name: commitment.buyer?.name || "Unknown Buyer",
-      time_remaining: calculateTimeRemaining(commitment.expires_at),
-    }));
+    if (!commitments || commitments.length === 0) {
+      return [];
+    }
+
+    // Get book details separately
+    const bookIds = commitments.map((c) => c.book_id);
+    const { data: books } = await supabase
+      .from("books")
+      .select("id, title, image_url")
+      .in("id", bookIds);
+
+    // Get profile details separately
+    const userIds = [
+      ...commitments.map((c) => c.seller_id),
+      ...commitments.map((c) => c.buyer_id),
+    ];
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, name")
+      .in("id", userIds);
+
+    // Combine the data
+    return commitments.map((commitment) => {
+      const book = books?.find((b) => b.id === commitment.book_id);
+      const seller = profiles?.find((p) => p.id === commitment.seller_id);
+      const buyer = profiles?.find((p) => p.id === commitment.buyer_id);
+
+      return {
+        ...commitment,
+        book_title: book?.title || "Unknown Book",
+        book_image_url: book?.image_url || "",
+        seller_name: seller?.name || "Unknown Seller",
+        buyer_name: buyer?.name || "Unknown Buyer",
+        time_remaining: calculateTimeRemaining(commitment.expires_at),
+      };
+    });
   } catch (error) {
     console.error("Error in getPendingCommitments:", error);
     throw error;
