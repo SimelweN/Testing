@@ -53,7 +53,7 @@ function useLocalStorage<T>(key: string, initialValue: T) {
         if (valueToStore === null || valueToStore === undefined) {
           sessionStorage.removeItem(key);
         } else {
-          sessionStorage.setItem(key, JSON.stringify(valueToStore));
+          localStorage.setItem(key, JSON.stringify(valueToStore));
         }
       } catch (error) {
         console.warn(`Error setting sessionStorage key "${key}":`, error);
