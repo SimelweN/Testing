@@ -221,13 +221,19 @@ const BankingSetupForm: React.FC<BankingSetupFormProps> = ({
 
     setIsSubmitting(true);
     try {
-      const result = await BankingService.createBankingSubaccount({
+      const bankingDetails = {
         businessName: formData.businessName.trim(),
         email: formData.email.trim(),
         bankName: formData.bankName,
+        bankCode: getBankCode(formData.bankName as keyof typeof SA_BANKS),
         accountNumber: formData.accountNumber.replace(/\s/g, ""),
         accountHolderName: formData.accountHolderName.trim(),
-      });
+      };
+
+      const result = await BankingService.createOrUpdateSubaccount(
+        user!.id,
+        bankingDetails,
+      );
 
       if (result.success) {
         setCurrentStep("complete");
