@@ -26,6 +26,7 @@ import {
   AlertCircle,
   RefreshCw,
   Package,
+  TrendingUp,
 } from "lucide-react";
 
 const ActivityLog = () => {
