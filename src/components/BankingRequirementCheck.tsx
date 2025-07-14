@@ -12,10 +12,8 @@ import {
   Clock,
   ArrowRight,
 } from "lucide-react";
-import {
-  checkBankingRequirements,
-  BankingStatus,
-} from "@/services/bankingService";
+import { BankingService } from "@/services/bankingService";
+import type { BankingStatus } from "@/types/banking";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface BankingRequirementCheckProps {
