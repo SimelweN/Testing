@@ -439,7 +439,7 @@ const Checkout = () => {
     };
 
     fetchDeliveryQuotes();
-  }, [shippingAddress, currentStep, items, selectedDelivery]);
+  }, [shippingAddress, currentStep, items]);
 
   const handlePaymentSuccess = async (reference: string) => {
     try {
