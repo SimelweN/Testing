@@ -32,22 +32,6 @@ const MobileShippingDashboard = ({
 
   const providers = [
     {
-      id: "courierGuy",
-      name: "Courier Guy",
-      logo: "🚚",
-      description: "Local courier service",
-      features: ["Local SA courier", "Reliable tracking", "2-3 business days"],
-      color: "blue",
-    },
-    {
-      id: "fastway",
-      name: "Fastway",
-      logo: "🏃‍♂️",
-      description: "Express courier service",
-      features: ["Express delivery", "Wide coverage", "Competitive rates"],
-      color: "orange",
-    },
-    {
       id: "shipLogic",
       name: "ShipLogic",
       logo: "📦",
