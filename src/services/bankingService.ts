@@ -99,12 +99,13 @@ export class BankingService {
         return this.updateSubaccount(userId, bankingDetails);
       }
 
-      // Check if we should use development fallback
-      if (!PAYSTACK_CONFIG.isConfigured() || PAYSTACK_CONFIG.isDevelopment()) {
-        console.warn(
-          "🛠️ Using development fallback (Paystack not configured or in dev mode)",
-        );
-        return this.createDevelopmentSubaccount(userId, bankingDetails);
+      // Check if Paystack is configured
+      if (!PAYSTACK_CONFIG.isConfigured()) {
+        console.error("Paystack not configured. Banking setup unavailable.");
+        return {
+          success: false,
+          error: "Banking service not configured. Please contact support.",
+        };
       }
 
       // Create new subaccount via Edge Function
@@ -148,10 +149,11 @@ export class BankingService {
           error.message?.includes("404") ||
           error.message?.includes("Function not found")
         ) {
-          console.warn(
-            "🛠️ Edge Function not deployed - using development fallback",
-          );
-          return this.createDevelopmentSubaccount(userId, bankingDetails);
+          console.error("Banking service unavailable");
+          return {
+            success: false,
+            error: "Banking service unavailable. Please contact support.",
+          };
         }
 
         return {
@@ -426,36 +428,6 @@ export class BankingService {
   }
 
   /**
-   * Development fallback when Paystack is not configured
-   */
-  static async createDevelopmentSubaccount(
-    userId: string,
-    bankingDetails: BankingDetails,
-  ): Promise<{ success: boolean; subaccountCode?: string; error?: string }> {
-    console.warn("🛠️ Using development fallback for banking setup");
-
-    try {
-      const mockSubaccountCode = `ACCT_dev_${userId.slice(0, 8)}_${Date.now()}`;
-
-      await this.saveBankingDetails(userId, {
-        ...bankingDetails,
-        subaccountCode: mockSubaccountCode,
-        status: "active",
-      });
-
-      return {
-        success: true,
-        subaccountCode: mockSubaccountCode,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: "Development fallback failed",
-      };
-    }
-  }
-
-  /**
    * Validate account number with bank
    */
   static async validateAccountNumber(
@@ -464,10 +436,9 @@ export class BankingService {
   ): Promise<{ valid: boolean; accountName?: string; error?: string }> {
     try {
       if (!PAYSTACK_CONFIG.isConfigured()) {
-        // Development fallback
         return {
-          valid: true,
-          accountName: "John Doe (Development)",
+          valid: false,
+          error: "Account validation service not available",
         };
       }
 
