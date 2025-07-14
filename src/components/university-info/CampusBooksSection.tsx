@@ -28,7 +28,7 @@ import {
   Building,
   GraduationCap,
   AlertCircle,
-  Book,
+  Book as BookIcon,
 } from "lucide-react";
 import { ALL_SOUTH_AFRICAN_UNIVERSITIES } from "@/constants/universities";
 import { getBooks } from "@/services/book/bookQueries";
@@ -319,7 +319,7 @@ const CampusBooksSection = () => {
               onClick={() => navigate("/create-listing")}
               className="bg-green-600 hover:bg-green-700 text-white text-sm"
             >
-              <Book className="w-4 h-4 mr-2" />
+              <BookIcon className="w-4 h-4 mr-2" />
               Sell Books
             </Button>
           </div>
