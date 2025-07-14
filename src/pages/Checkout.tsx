@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,45 +7,65 @@ import { getBookById } from "@/services/book/bookQueries";
 import { getUserAddresses } from "@/services/addressService";
 import { getSellerPickupAddress } from "@/services/addressService";
 import { getDeliveryQuotes, DeliveryQuote } from "@/services/deliveryService";
-import { automaticShipmentService } from "@/services/automaticShipmentService";
-import { createAutomaticShipment } from "@/services/automaticShipmentService";
-import { ActivityService } from "@/services/activityService";
 import { createSaleCommitment } from "@/services/commitmentService";
 import { Book } from "@/types/book";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 import {
   ArrowLeft,
+  ArrowRight,
   CreditCard,
-  AlertTriangle,
-  ShoppingCart,
+  MapPin,
+  Package,
   Truck,
+  Shield,
+  CheckCircle,
+  Clock,
+  User,
+  Edit,
+  Plus,
+  Loader2,
+  Info,
 } from "lucide-react";
 import { toast } from "sonner";
+import SimpleAddressInput from "@/components/SimpleAddressInput";
+import PaystackPaymentButton from "@/components/banking/PaystackPaymentButton";
 import SaleSuccessPopup from "@/components/SaleSuccessPopup";
 import CommitReminderModal from "@/components/CommitReminderModal";
-import PaystackPaymentButton from "@/components/banking/PaystackPaymentButton";
 
-interface AddressData {
-  complex?: string;
-  unitNumber?: string;
-  streetAddress?: string;
-  suburb?: string;
-  city?: string;
-  province?: string;
-  postalCode?: string;
+interface CheckoutAddress {
+  street: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  country: string;
 }
+
+interface CheckoutItem {
+  id: string;
+  title: string;
+  author: string;
+  price: number;
+  condition: string;
+  category: string;
+  imageUrl: string;
+  seller: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+type CheckoutStep =
+  | "items"
+  | "shipping"
+  | "delivery"
+  | "payment"
+  | "confirmation";
 
 const Checkout = () => {
   const { id } = useParams<{ id: string }>();
@@ -54,54 +74,54 @@ const Checkout = () => {
   const { user } = useAuth();
   const { items: cartItems, clearCart } = useCart();
 
-  const [book, setBook] = useState<Book | null>(null);
+  // Core state
+  const [currentStep, setCurrentStep] = useState<CheckoutStep>("items");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [savedAddresses, setSavedAddresses] = useState<
-    | {
-        id: string;
-        complex: string;
-        unit_number: string;
-        street_address: string;
-        suburb: string;
-        city: string;
-        province: string;
-        postal_code: string;
-      }[]
-    | null
-  >(null);
-  const [sellerPickupAddress, setSellerPickupAddress] = useState<any>(null);
-  const [selectedAddress, setSelectedAddress] = useState<
-    "pickup" | "shipping" | "new"
-  >("new");
-  const [shippingAddress, setShippingAddress] = useState({
-    complex: "",
-    unitNumber: "",
-    streetAddress: "",
-    suburb: "",
-    city: "",
-    province: "",
-    postalCode: "",
-  });
+  const [items, setItems] = useState<CheckoutItem[]>([]);
+
+  // Address state
+  const [shippingAddress, setShippingAddress] =
+    useState<CheckoutAddress | null>(null);
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+
+  // Delivery state
   const [deliveryQuotes, setDeliveryQuotes] = useState<DeliveryQuote[]>([]);
   const [selectedDelivery, setSelectedDelivery] =
     useState<DeliveryQuote | null>(null);
   const [loadingQuotes, setLoadingQuotes] = useState(false);
+
+  // Payment state
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [showSalePopup, setShowSalePopup] = useState(false);
   const [showCommitReminderModal, setShowCommitReminderModal] = useState(false);
-  const [saleData, setSaleData] = useState<{
-    bookTitle: string;
-    bookPrice: number;
-    buyerName: string;
-    buyerEmail: string;
-    saleId?: string;
-  } | null>(null);
+  const [saleData, setSaleData] = useState<any>(null);
 
   const isCartCheckout = id === "cart";
   const cartData = location.state?.cartItems || [];
 
+  // Computed values
+  const subtotal = useMemo(() => {
+    return items.reduce((total, item) => total + item.price, 0);
+  }, [items]);
+
+  const deliveryFee = selectedDelivery?.price || 0;
+  const totalAmount = subtotal + deliveryFee;
+
+  const steps = [
+    { id: "items", label: "Review Items", icon: Package },
+    { id: "shipping", label: "Shipping Address", icon: MapPin },
+    { id: "delivery", label: "Delivery Options", icon: Truck },
+    { id: "payment", label: "Payment", icon: CreditCard },
+  ];
+
+  const currentStepIndex = steps.findIndex((step) => step.id === currentStep);
+  const progress = ((currentStepIndex + 1) / steps.length) * 100;
+
+  // Data fetching
   useEffect(() => {
-    const loadData = async () => {
+    const initializeCheckout = async () => {
       if (!user?.id) {
         toast.error("Please log in to complete your purchase");
         navigate("/login");
@@ -112,358 +132,249 @@ const Checkout = () => {
       setError(null);
 
       try {
-        // Load saved addresses
-        const addresses = await getUserAddresses(user.id);
-        setSavedAddresses(addresses);
+        let checkoutItems: CheckoutItem[] = [];
 
-        // Autofill with saved shipping address if available
-        if (addresses?.shipping_address) {
-          const shippingAddr = addresses.shipping_address as AddressData;
-          setShippingAddress({
-            complex: shippingAddr.complex || "",
-            unitNumber: shippingAddr.unitNumber || "",
-            streetAddress: shippingAddr.streetAddress || "",
-            suburb: shippingAddr.suburb || "",
-            city: shippingAddr.city || "",
-            province: shippingAddr.province || "",
-            postalCode: shippingAddr.postalCode || "",
-          });
-          setSelectedAddress("shipping");
-        }
-
-        // Load book data if single book checkout
-        if (!isCartCheckout && id) {
-          const bookData = await getBookById(id);
-          if (!bookData) {
+        if (isCartCheckout) {
+          // Use cart data
+          checkoutItems = cartData.map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            author: item.author,
+            price: item.price,
+            condition: item.condition,
+            category: item.category,
+            imageUrl: item.frontCover || item.imageUrl,
+            seller: item.seller || { id: "", name: "Unknown", email: "" },
+          }));
+        } else if (id) {
+          // Fetch single book
+          const book = await getBookById(id);
+          if (!book) {
             setError("Book not found");
             return;
           }
-          if (bookData.sold) {
+          if (book.sold) {
             setError("This book has already been sold");
             return;
           }
-          if (bookData.seller?.id === user.id) {
+          if (book.seller?.id === user.id) {
             setError("You cannot purchase your own book");
             return;
           }
-          setBook(bookData);
 
-          // Fetch seller's pickup address
-          if (bookData.seller?.id) {
-            try {
-              const sellerAddress = await getSellerPickupAddress(
-                bookData.seller.id,
-              );
-              setSellerPickupAddress(sellerAddress);
-            } catch (error) {
-              console.error("Error fetching seller address:", error);
-            }
-          }
-        } else if (isCartCheckout && cartData.length === 0) {
-          setError("Your cart is empty");
+          checkoutItems = [
+            {
+              id: book.id,
+              title: book.title,
+              author: book.author,
+              price: book.price,
+              condition: book.condition,
+              category: book.category,
+              imageUrl: book.frontCover || book.imageUrl,
+              seller: book.seller || { id: "", name: "Unknown", email: "" },
+            },
+          ];
+        }
+
+        if (checkoutItems.length === 0) {
+          setError("No items to checkout");
           return;
         }
-      } catch (error) {
-        console.error("Error loading checkout data:", error);
-        setError("Failed to load checkout data. Please try again.");
+
+        setItems(checkoutItems);
+
+        // Load saved addresses
+        try {
+          const addressData = await getUserAddresses(user.id);
+          if (addressData?.shipping_address) {
+            setShippingAddress({
+              street: addressData.shipping_address.street || "",
+              city: addressData.shipping_address.city || "",
+              province: addressData.shipping_address.province || "",
+              postalCode: addressData.shipping_address.postalCode || "",
+              country: "South Africa",
+            });
+          }
+          setSavedAddresses(addressData ? [addressData] : []);
+        } catch (addressError) {
+          console.error("Error loading addresses:", addressError);
+        }
+      } catch (err) {
+        console.error("Checkout initialization error:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to initialize checkout",
+        );
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadData();
-  }, [id, user?.id, navigate, isCartCheckout, cartData.length]);
+    initializeCheckout();
+  }, [id, user?.id, navigate, isCartCheckout, cartData]);
 
-  const handleAddressSelection = (type: "pickup" | "shipping" | "new") => {
-    setSelectedAddress(type);
+  // Get delivery quotes when address changes
+  useEffect(() => {
+    const fetchDeliveryQuotes = async () => {
+      if (!shippingAddress || currentStep !== "delivery") return;
 
-    if (type === "pickup" && savedAddresses?.pickup_address) {
-      const pickupAddr = savedAddresses.pickup_address as AddressData;
-      setShippingAddress({
-        complex: pickupAddr.complex || "",
-        unitNumber: pickupAddr.unitNumber || "",
-        streetAddress: pickupAddr.streetAddress || "",
-        suburb: pickupAddr.suburb || "",
-        city: pickupAddr.city || "",
-        province: pickupAddr.province || "",
-        postalCode: pickupAddr.postalCode || "",
-      });
-    } else if (type === "shipping" && savedAddresses?.shipping_address) {
-      const shippingAddr = savedAddresses.shipping_address as AddressData;
-      setShippingAddress({
-        complex: shippingAddr.complex || "",
-        unitNumber: shippingAddr.unitNumber || "",
-        streetAddress: shippingAddr.streetAddress || "",
-        suburb: shippingAddr.suburb || "",
-        city: shippingAddr.city || "",
-        province: shippingAddr.province || "",
-        postalCode: shippingAddr.postalCode || "",
-      });
-    } else if (type === "new") {
-      setShippingAddress({
-        complex: "",
-        unitNumber: "",
-        streetAddress: "",
-        suburb: "",
-        city: "",
-        province: "",
-        postalCode: "",
-      });
-    }
+      setLoadingQuotes(true);
+      try {
+        // Get seller addresses for accurate delivery calculation
+        const sellerAddresses = await Promise.all(
+          items.map(async (item) => {
+            try {
+              const sellerAddr = await getSellerPickupAddress(item.seller.id);
+              return (
+                sellerAddr || {
+                  street: "Default Street",
+                  city: "Johannesburg",
+                  province: "Gauteng",
+                  postalCode: "2196",
+                }
+              );
+            } catch {
+              return {
+                street: "Default Street",
+                city: "Johannesburg",
+                province: "Gauteng",
+                postalCode: "2196",
+              };
+            }
+          }),
+        );
 
-    // Clear delivery quotes when address changes
-    setDeliveryQuotes([]);
-    setSelectedDelivery(null);
-  };
-
-  const getDeliveryQuotesForAddress = async () => {
-    if (
-      !shippingAddress.streetAddress ||
-      !shippingAddress.city ||
-      !shippingAddress.postalCode
-    ) {
-      toast.error("Please fill in the delivery address first");
-      return;
-    }
-
-    setLoadingQuotes(true);
-    try {
-      // Use seller's pickup address or default business address
-      let fromAddress = {
-        streetAddress: "123 Business Park",
-        suburb: "Sandton",
-        city: "Johannesburg",
-        province: "Gauteng",
-        postalCode: "2196",
-      };
-
-      // If we have seller's pickup address, use it
-      if (sellerPickupAddress) {
-        fromAddress = {
-          streetAddress: sellerPickupAddress.street || "Unknown Street",
-          suburb: sellerPickupAddress.suburb || sellerPickupAddress.city,
-          city: sellerPickupAddress.city,
-          province: sellerPickupAddress.province,
-          postalCode: sellerPickupAddress.postalCode,
+        // Use the first seller's address as the "from" address
+        const fromAddress = {
+          streetAddress: sellerAddresses[0].street,
+          suburb: sellerAddresses[0].city,
+          city: sellerAddresses[0].city,
+          province: sellerAddresses[0].province,
+          postalCode: sellerAddresses[0].postalCode,
         };
+
+        const toAddress = {
+          streetAddress: shippingAddress.street,
+          suburb: shippingAddress.city,
+          city: shippingAddress.city,
+          province: shippingAddress.province,
+          postalCode: shippingAddress.postalCode,
+        };
+
+        const quotes = await getDeliveryQuotes(
+          fromAddress,
+          toAddress,
+          items.length,
+        );
+        setDeliveryQuotes(quotes);
+
+        if (quotes.length > 0 && !selectedDelivery) {
+          setSelectedDelivery(quotes[0]);
+        }
+      } catch (error) {
+        console.error("Error fetching delivery quotes:", error);
+        toast.error("Failed to get delivery quotes");
+      } finally {
+        setLoadingQuotes(false);
       }
+    };
 
-      const quotes = await getDeliveryQuotes(fromAddress, shippingAddress, 1);
-      setDeliveryQuotes(quotes);
-
-      if (quotes.length > 0) {
-        setSelectedDelivery(quotes[0]); // Select first quote by default
-      }
-    } catch (error) {
-      console.error("Error getting delivery quotes:", error);
-      toast.error("Failed to get delivery quotes. Please try again.");
-    } finally {
-      setLoadingQuotes(false);
-    }
-  };
-
-  const calculateTotal = () => {
-    const itemsTotal = isCartCheckout
-      ? cartData.reduce(
-          (total: number, item: { price: number }) => total + item.price,
-          0,
-        )
-      : book?.price || 0;
-
-    const deliveryTotal = selectedDelivery?.price || 0;
-    return itemsTotal + deliveryTotal;
-  };
-
-  const validateAddress = () => {
-    const requiredFields = [
-      "streetAddress",
-      "suburb",
-      "city",
-      "province",
-      "postalCode",
-    ];
-    const missingFields = requiredFields.filter(
-      (field) => !shippingAddress[field as keyof typeof shippingAddress],
-    );
-
-    if (missingFields.length > 0) {
-      toast.error("Please fill in all required address fields");
-      return false;
-    }
-
-    if (!selectedDelivery) {
-      toast.error("Please select a delivery option");
-      return false;
-    }
-
-    return true;
-  };
+    fetchDeliveryQuotes();
+  }, [shippingAddress, currentStep, items, selectedDelivery]);
 
   const handlePaymentSuccess = async (reference: string) => {
-    if (!user) {
-      toast.error("Please log in to complete your purchase.");
-      return;
-    }
-
     try {
-      toast.success("Payment successful! Processing shipment...");
+      setPaymentProcessing(true);
 
-      // Show commit reminder modal first
+      // Create sale commitments
+      for (const item of items) {
+        await createSaleCommitment({
+          bookId: item.id,
+          buyerId: user!.id,
+          sellerId: item.seller.id,
+          commitmentDate: new Date().toISOString(),
+          expiryDate: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+        });
+      }
+
+      // Show success
       setShowCommitReminderModal(true);
 
-      // Create sale commitments and automatic shipments for purchased books
-      const purchasedBooks = isCartCheckout ? cartData : book ? [book] : [];
+      // Set sale data
+      setSaleData({
+        bookTitle: items.length > 1 ? `${items.length} books` : items[0].title,
+        bookPrice: totalAmount,
+        buyerName: user!.email?.split("@")[0] || "Buyer",
+        buyerEmail: user!.email || "",
+        saleId: reference,
+      });
 
-      for (const purchasedBook of purchasedBooks) {
-        try {
-          console.log("Processing purchase for book:", purchasedBook.title);
-
-          const bookDetails = {
-            id: purchasedBook.id,
-            title: purchasedBook.title,
-            author: purchasedBook.author,
-            price: purchasedBook.price,
-            sellerId: purchasedBook.seller?.id || purchasedBook.sellerId,
-          };
-
-          // Create sale commitment (48-hour seller commitment system)
-          try {
-            const deliveryFee = selectedQuote?.price || 0;
-            const paymentReference = `PAY_${Date.now()}_${purchasedBook.id.slice(0, 8)}`;
-
-            const commitmentId = await createSaleCommitment(
-              purchasedBook.id,
-              user.id,
-              purchasedBook.price,
-              deliveryFee,
-              paymentReference,
-            );
-
-            console.log("✅ Sale commitment created:", commitmentId);
-            toast.success(
-              `Seller has 48 hours to commit to "${purchasedBook.title}". You'll be refunded if they don't respond.`,
-              { duration: 6000 },
-            );
-          } catch (commitmentError) {
-            console.error(
-              "⚠️ Failed to create sale commitment:",
-              commitmentError,
-            );
-            // Continue with other processing even if commitment creation fails
-          }
-
-          // Log purchase activity
-          try {
-            await ActivityService.logBookPurchase(
-              user.id,
-              purchasedBook.id,
-              purchasedBook.title,
-              purchasedBook.price,
-              bookDetails.sellerId,
-            );
-            console.log(
-              "✅ Purchase activity logged for:",
-              purchasedBook.title,
-            );
-
-            // Also log sale activity for the seller
-            if (bookDetails.sellerId) {
-              await ActivityService.logBookSale(
-                bookDetails.sellerId,
-                purchasedBook.id,
-                purchasedBook.title,
-                purchasedBook.price,
-                user.id,
-              );
-              console.log("✅ Sale activity logged for seller");
-            }
-          } catch (activityError) {
-            console.warn(
-              "⚠️ Failed to log purchase/sale activity:",
-              activityError,
-            );
-          }
-
-          // Attempt automatic shipment creation (optional)
-          try {
-            const shipmentResult = await createAutomaticShipment(
-              bookDetails,
-              user.id,
-            );
-
-            if (shipmentResult) {
-              console.log(
-                `✅ Automatic shipment created for "${purchasedBook.title}":`,
-                shipmentResult,
-              );
-              toast.success(
-                `Automatic delivery arranged for "${purchasedBook.title}" - Tracking: ${shipmentResult.trackingNumber}`,
-                {
-                  duration: 5000,
-                },
-              );
-            } else {
-              console.log(
-                `ℹ️ Manual delivery required for "${purchasedBook.title}" - addresses not configured`,
-              );
-              // Don't show warning to user - this is normal
-            }
-          } catch (shipmentError) {
-            console.warn(
-              `⚠️ Automatic shipment failed for "${purchasedBook.title}":`,
-              shipmentError.message,
-            );
-            // Don't show error to user - manual delivery is still available
-          }
-        } catch (generalError) {
-          console.error(
-            `❌ Unexpected error processing "${purchasedBook.title}":`,
-            generalError,
-          );
-          // Don't fail the entire purchase for individual book errors
-        }
-      }
-
-      // Set sale data but don't show popup immediately - will show after commit reminder
-      const firstBook = purchasedBooks[0];
-      if (firstBook) {
-        setSaleData({
-          bookTitle: firstBook.title,
-          bookPrice: firstBook.price,
-          buyerName: user.name || user.email || "Unknown Buyer",
-          buyerEmail: user.email || "",
-          saleId: "sale_" + Date.now(), // Generate a simple sale ID
-        });
-        // setShowSalePopup(true); - Removed: will show after commit reminder
-      }
-
-      toast.success(
-        "Order completed successfully! Check the shipping page for tracking information.",
-        {
-          id: "payment",
-          duration: 5000,
-        },
-      );
-
+      // Clear cart if it was a cart checkout
       if (isCartCheckout) {
         clearCart();
       }
 
-      // Note: Don't auto-redirect so user can see the popup
-      // navigate("/shipping"); - removed
+      toast.success("Payment successful! Order confirmed.");
+      setCurrentStep("confirmation");
     } catch (error) {
-      console.error("Payment error:", error);
-      toast.error("Payment failed. Please try again.", { id: "payment" });
+      console.error("Post-payment processing error:", error);
+      toast.error(
+        "Payment successful but there was an issue processing your order",
+      );
+    } finally {
+      setPaymentProcessing(false);
+    }
+  };
+
+  const canProceedToNextStep = () => {
+    switch (currentStep) {
+      case "items":
+        return items.length > 0;
+      case "shipping":
+        return shippingAddress !== null;
+      case "delivery":
+        return selectedDelivery !== null;
+      case "payment":
+        return false; // Payment step doesn't have a "next" - it goes directly to confirmation
+      default:
+        return false;
+    }
+  };
+
+  const handleNextStep = () => {
+    const stepOrder: CheckoutStep[] = [
+      "items",
+      "shipping",
+      "delivery",
+      "payment",
+    ];
+    const currentIndex = stepOrder.indexOf(currentStep);
+    if (currentIndex < stepOrder.length - 1) {
+      setCurrentStep(stepOrder[currentIndex + 1]);
+    }
+  };
+
+  const handlePreviousStep = () => {
+    const stepOrder: CheckoutStep[] = [
+      "items",
+      "shipping",
+      "delivery",
+      "payment",
+    ];
+    const currentIndex = stepOrder.indexOf(currentStep);
+    if (currentIndex > 0) {
+      setCurrentStep(stepOrder[currentIndex - 1]);
     }
   };
 
   if (isLoading) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-8 flex justify-center items-center min-h-[60vh]">
-          <div className="flex flex-col items-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-book-600"></div>
-            <p className="text-gray-600">Loading checkout...</p>
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-book-600" />
+              <p className="text-gray-600">Loading checkout...</p>
+            </div>
           </div>
         </div>
       </Layout>
@@ -473,448 +384,564 @@ const Checkout = () => {
   if (error) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col items-center justify-center min-h-[400px] max-w-md mx-auto text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-              <AlertTriangle className="h-8 w-8 text-red-600" />
-            </div>
-            <h2 className="text-2xl font-semibold mb-2 text-gray-800">
-              Checkout Error
-            </h2>
-            <p className="text-gray-600 mb-6">{error}</p>
-            <div className="space-y-3 w-full">
-              <Button
-                onClick={() => navigate("/books")}
-                className="bg-book-600 hover:bg-book-700 w-full min-h-[48px]"
-                size="lg"
-              >
-                Browse Books
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => navigate(-1)}
-                className="w-full min-h-[48px]"
-                size="lg"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Go Back
-              </Button>
-            </div>
-          </div>
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="p-8 text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="h-8 w-8 text-red-600" />
+              </div>
+              <h2 className="text-xl font-semibold text-red-900 mb-2">
+                Checkout Error
+              </h2>
+              <p className="text-red-700 mb-6">{error}</p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button onClick={() => navigate("/books")} variant="outline">
+                  Browse Books
+                </Button>
+                <Button onClick={() => navigate(-1)}>Go Back</Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </Layout>
     );
   }
 
-  const totalAmount = calculateTotal();
-  const itemsTotal = isCartCheckout
-    ? cartData.reduce(
-        (total: number, item: { price: number }) => total + item.price,
-        0,
-      )
-    : book?.price || 0;
-
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-4 md:py-8 max-w-6xl">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-6 text-book-600 min-h-[44px]"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back
-        </Button>
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Header */}
+        <div className="mb-8">
+          <Button
+            onClick={() => navigate(-1)}
+            variant="ghost"
+            className="mb-4 text-book-600 hover:text-book-700"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
 
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 md:mb-8">
-          Checkout
-        </h1>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
-          {/* Shipping Information */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg md:text-xl">
-                  Shipping Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* ... keep existing code (address selection and fields) */}
-                {savedAddresses &&
-                  (savedAddresses.pickup_address ||
-                    savedAddresses.shipping_address) && (
-                    <div>
-                      <Label className="text-base font-medium">
-                        Use saved address
-                      </Label>
-                      <Select
-                        value={selectedAddress}
-                        onValueChange={(value: "pickup" | "shipping" | "new") =>
-                          handleAddressSelection(value)
-                        }
-                      >
-                        <SelectTrigger className="mt-2 min-h-[44px]">
-                          <SelectValue placeholder="Select an address" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {savedAddresses.pickup_address && (
-                            <SelectItem value="pickup">
-                              Pickup Address
-                            </SelectItem>
-                          )}
-                          {savedAddresses.shipping_address && (
-                            <SelectItem value="shipping">
-                              Shipping Address
-                            </SelectItem>
-                          )}
-                          <SelectItem value="new">Enter new address</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="complex">Complex/Building</Label>
-                    <Input
-                      id="complex"
-                      value={shippingAddress.complex}
-                      onChange={(e) =>
-                        setShippingAddress((prev) => ({
-                          ...prev,
-                          complex: e.target.value,
-                        }))
-                      }
-                      placeholder="Optional"
-                      className="w-full min-h-[44px]"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="unitNumber">Unit Number</Label>
-                    <Input
-                      id="unitNumber"
-                      value={shippingAddress.unitNumber}
-                      onChange={(e) =>
-                        setShippingAddress((prev) => ({
-                          ...prev,
-                          unitNumber: e.target.value,
-                        }))
-                      }
-                      placeholder="Optional"
-                      className="w-full min-h-[44px]"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="streetAddress">Street Address *</Label>
-                  <Input
-                    id="streetAddress"
-                    value={shippingAddress.streetAddress}
-                    onChange={(e) =>
-                      setShippingAddress((prev) => ({
-                        ...prev,
-                        streetAddress: e.target.value,
-                      }))
-                    }
-                    placeholder="123 Main Street"
-                    required
-                    className="w-full min-h-[44px]"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="suburb">Suburb *</Label>
-                    <Input
-                      id="suburb"
-                      value={shippingAddress.suburb}
-                      onChange={(e) =>
-                        setShippingAddress((prev) => ({
-                          ...prev,
-                          suburb: e.target.value,
-                        }))
-                      }
-                      placeholder="Suburb"
-                      required
-                      className="w-full min-h-[44px]"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="city">City *</Label>
-                    <Input
-                      id="city"
-                      value={shippingAddress.city}
-                      onChange={(e) =>
-                        setShippingAddress((prev) => ({
-                          ...prev,
-                          city: e.target.value,
-                        }))
-                      }
-                      placeholder="City"
-                      required
-                      className="w-full min-h-[44px]"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="province">Province *</Label>
-                    <Select
-                      value={shippingAddress.province}
-                      onValueChange={(value) =>
-                        setShippingAddress((prev) => ({
-                          ...prev,
-                          province: value,
-                        }))
-                      }
-                    >
-                      <SelectTrigger className="w-full min-h-[44px]">
-                        <SelectValue placeholder="Select province" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Eastern Cape">
-                          Eastern Cape
-                        </SelectItem>
-                        <SelectItem value="Free State">Free State</SelectItem>
-                        <SelectItem value="Gauteng">Gauteng</SelectItem>
-                        <SelectItem value="KwaZulu-Natal">
-                          KwaZulu-Natal
-                        </SelectItem>
-                        <SelectItem value="Limpopo">Limpopo</SelectItem>
-                        <SelectItem value="Mpumalanga">Mpumalanga</SelectItem>
-                        <SelectItem value="Northern Cape">
-                          Northern Cape
-                        </SelectItem>
-                        <SelectItem value="North West">North West</SelectItem>
-                        <SelectItem value="Western Cape">
-                          Western Cape
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="postalCode">Postal Code *</Label>
-                    <Input
-                      id="postalCode"
-                      value={shippingAddress.postalCode}
-                      onChange={(e) =>
-                        setShippingAddress((prev) => ({
-                          ...prev,
-                          postalCode: e.target.value,
-                        }))
-                      }
-                      placeholder="1234"
-                      required
-                      className="w-full min-h-[44px]"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-4">
-                  <Button
-                    onClick={getDeliveryQuotesForAddress}
-                    disabled={loadingQuotes || !shippingAddress.streetAddress}
-                    className="w-full"
-                    variant="outline"
-                  >
-                    <Truck className="mr-2 h-4 w-4" />
-                    {loadingQuotes
-                      ? "Getting Quotes..."
-                      : "Get Delivery Quotes"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Delivery Options */}
-            {deliveryQuotes.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg md:text-xl">
-                    Delivery Options
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <RadioGroup
-                    value={selectedDelivery?.courier || ""}
-                    onValueChange={(value) => {
-                      const quote = deliveryQuotes.find(
-                        (q) => q.courier === value,
-                      );
-                      setSelectedDelivery(quote || null);
-                    }}
-                  >
-                    {deliveryQuotes.map((quote, index) => (
-                      <div
-                        key={`${quote.courier}-${quote.serviceName}-${index}`}
-                        className="flex items-center space-x-2 p-3 border rounded-lg"
-                      >
-                        <RadioGroupItem
-                          value={quote.courier}
-                          id={quote.courier}
-                        />
-                        <div className="flex-1">
-                          <Label
-                            htmlFor={quote.courier}
-                            className="cursor-pointer"
-                          >
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <p className="font-medium">
-                                  {quote.serviceName}
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                  Estimated delivery: {quote.estimatedDays} days
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <p className="font-bold">
-                                  R{quote.price.toFixed(2)}
-                                </p>
-                              </div>
-                            </div>
-                          </Label>
-                        </div>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </CardContent>
-              </Card>
-            )}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
+              <p className="text-gray-600 mt-1">
+                {items.length} {items.length === 1 ? "item" : "items"} • Total:
+                R{totalAmount.toFixed(2)}
+              </p>
+            </div>
+            <Badge variant="outline" className="text-sm">
+              {isCartCheckout ? "Cart Checkout" : "Single Item"}
+            </Badge>
           </div>
 
-          {/* Order Summary */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg md:text-xl">
-                  Order Summary
+          {/* Progress Steps */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              {steps.map((step, index) => {
+                const Icon = step.icon;
+                const isActive = step.id === currentStep;
+                const isCompleted = index < currentStepIndex;
+
+                return (
+                  <div key={step.id} className="flex items-center">
+                    <div
+                      className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
+                        isCompleted
+                          ? "bg-green-600 border-green-600 text-white"
+                          : isActive
+                            ? "bg-book-600 border-book-600 text-white"
+                            : "bg-gray-100 border-gray-300 text-gray-400"
+                      }`}
+                    >
+                      {isCompleted ? (
+                        <CheckCircle className="h-5 w-5" />
+                      ) : (
+                        <Icon className="h-5 w-5" />
+                      )}
+                    </div>
+                    <div className="ml-3 hidden sm:block">
+                      <p
+                        className={`text-sm font-medium ${isActive ? "text-book-600" : isCompleted ? "text-green-600" : "text-gray-500"}`}
+                      >
+                        {step.label}
+                      </p>
+                    </div>
+                    {index < steps.length - 1 && (
+                      <div
+                        className={`hidden sm:block w-20 h-0.5 mx-4 ${isCompleted ? "bg-green-600" : "bg-gray-300"}`}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <Progress value={progress} className="h-2" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            <Card className="shadow-lg">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2">
+                  {(() => {
+                    const step = steps.find((s) => s.id === currentStep);
+                    const Icon = step?.icon || Package;
+                    return (
+                      <>
+                        <Icon className="h-5 w-5 text-book-600" />
+                        {step?.label}
+                      </>
+                    );
+                  })()}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {/* ... keep existing code (items display) */}
-                  {isCartCheckout ? (
-                    cartData.map(
-                      (item: {
-                        id: string;
-                        imageUrl: string;
-                        title: string;
-                        author: string;
-                        price: number;
-                      }) => (
+
+              <CardContent className="space-y-6">
+                {/* Items Step */}
+                {currentStep === "items" && (
+                  <div className="space-y-4">
+                    <Alert>
+                      <Info className="h-4 w-4" />
+                      <AlertDescription>
+                        Review your items before proceeding to shipping.
+                      </AlertDescription>
+                    </Alert>
+
+                    <div className="space-y-4">
+                      {items.map((item) => (
                         <div
                           key={item.id}
-                          className="flex items-center gap-3 p-3 border rounded-lg"
+                          className="flex items-center gap-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                         >
                           <img
                             src={item.imageUrl}
                             alt={item.title}
-                            className="w-12 h-16 md:w-16 md:h-20 object-cover rounded flex-shrink-0"
+                            className="w-16 h-20 object-cover rounded"
                           />
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-sm md:text-base truncate">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-lg">
                               {item.title}
-                            </h4>
-                            <p className="text-xs md:text-sm text-gray-600 truncate">
-                              by {item.author}
-                            </p>
+                            </h3>
+                            <p className="text-gray-600">by {item.author}</p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <Badge variant="secondary">
+                                {item.condition}
+                              </Badge>
+                              <Badge variant="outline">{item.category}</Badge>
+                            </div>
+                            <div className="flex items-center gap-1 mt-2 text-sm text-gray-500">
+                              <User className="h-3 w-3" />
+                              Sold by {item.seller.name}
+                            </div>
                           </div>
-                          <div className="text-right flex-shrink-0">
-                            <p className="font-semibold text-sm md:text-base">
-                              R{item.price.toFixed(2)}
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-book-600">
+                              R{item.price}
                             </p>
                           </div>
                         </div>
-                      ),
-                    )
-                  ) : book ? (
-                    <div className="flex items-center gap-3 p-3 border rounded-lg">
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Shipping Step */}
+                {currentStep === "shipping" && (
+                  <div className="space-y-6">
+                    <Alert>
+                      <MapPin className="h-4 w-4" />
+                      <AlertDescription>
+                        Provide your shipping address for delivery calculations.
+                      </AlertDescription>
+                    </Alert>
+
+                    {shippingAddress && !isEditingAddress ? (
+                      <Card className="bg-green-50 border-green-200">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="font-semibold text-green-900 mb-2">
+                                Shipping Address
+                              </h3>
+                              <p className="text-green-800">
+                                {shippingAddress.street}
+                                <br />
+                                {shippingAddress.city},{" "}
+                                {shippingAddress.province}
+                                <br />
+                                {shippingAddress.postalCode}
+                                <br />
+                                {shippingAddress.country}
+                              </p>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setIsEditingAddress(true)}
+                              className="border-green-300 text-green-700 hover:bg-green-100"
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Edit
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4">
+                          {shippingAddress
+                            ? "Edit Shipping Address"
+                            : "Add Shipping Address"}
+                        </h3>
+                        <SimpleAddressInput
+                          label="Shipping Address"
+                          required
+                          onAddressSelect={(addressData) => {
+                            setShippingAddress({
+                              street: addressData.street,
+                              city: addressData.city,
+                              province: addressData.province,
+                              postalCode: addressData.postalCode,
+                              country: addressData.country,
+                            });
+                            setIsEditingAddress(false);
+                          }}
+                          defaultValue={shippingAddress || undefined}
+                        />
+                        {isEditingAddress && (
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsEditingAddress(false)}
+                            className="mt-4"
+                          >
+                            Cancel
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Delivery Step */}
+                {currentStep === "delivery" && (
+                  <div className="space-y-6">
+                    <Alert>
+                      <Truck className="h-4 w-4" />
+                      <AlertDescription>
+                        Choose your preferred delivery option and estimated
+                        timeline.
+                      </AlertDescription>
+                    </Alert>
+
+                    {loadingQuotes ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin mr-3 text-book-600" />
+                        <span>Getting delivery quotes...</span>
+                      </div>
+                    ) : deliveryQuotes.length > 0 ? (
+                      <div className="space-y-3">
+                        {deliveryQuotes.map((quote, index) => (
+                          <Card
+                            key={`${quote.courier}-${quote.serviceName}-${index}`}
+                            className={`cursor-pointer transition-all ${
+                              selectedDelivery?.courier === quote.courier &&
+                              selectedDelivery?.serviceName ===
+                                quote.serviceName
+                                ? "border-book-600 bg-book-50"
+                                : "border-gray-200 hover:border-gray-300"
+                            }`}
+                            onClick={() => setSelectedDelivery(quote)}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                  <div
+                                    className={`w-4 h-4 rounded-full border-2 transition-colors ${
+                                      selectedDelivery?.courier ===
+                                        quote.courier &&
+                                      selectedDelivery?.serviceName ===
+                                        quote.serviceName
+                                        ? "border-book-600 bg-book-600"
+                                        : "border-gray-300"
+                                    }`}
+                                  >
+                                    {selectedDelivery?.courier ===
+                                      quote.courier &&
+                                      selectedDelivery?.serviceName ===
+                                        quote.serviceName && (
+                                        <div className="w-full h-full rounded-full bg-white border-2 border-book-600" />
+                                      )}
+                                  </div>
+                                  <div>
+                                    <h3 className="font-semibold">
+                                      {quote.serviceName}
+                                    </h3>
+                                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                                      <Clock className="h-3 w-3" />
+                                      {quote.estimatedDays} days delivery
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-xl font-bold text-book-600">
+                                    R{quote.price.toFixed(2)}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {quote.courier}
+                                  </p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <Card className="border-yellow-200 bg-yellow-50">
+                        <CardContent className="p-6 text-center">
+                          <Truck className="h-12 w-12 text-yellow-600 mx-auto mb-4" />
+                          <h3 className="font-semibold text-yellow-900 mb-2">
+                            No Delivery Options Available
+                          </h3>
+                          <p className="text-yellow-700">
+                            We couldn't find delivery options for your address.
+                            Please check your address or contact support.
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                )}
+
+                {/* Payment Step */}
+                {currentStep === "payment" && (
+                  <div className="space-y-6">
+                    <Alert>
+                      <Shield className="h-4 w-4" />
+                      <AlertDescription>
+                        Your payment is secure and encrypted. You'll be
+                        redirected to Paystack for payment processing.
+                      </AlertDescription>
+                    </Alert>
+
+                    <div className="bg-gray-50 rounded-lg p-6">
+                      <h3 className="font-semibold mb-4">Payment Summary</h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span>
+                            Subtotal ({items.length}{" "}
+                            {items.length === 1 ? "item" : "items"})
+                          </span>
+                          <span>R{subtotal.toFixed(2)}</span>
+                        </div>
+                        {selectedDelivery && (
+                          <div className="flex justify-between">
+                            <span>
+                              Delivery ({selectedDelivery.serviceName})
+                            </span>
+                            <span>R{deliveryFee.toFixed(2)}</span>
+                          </div>
+                        )}
+                        <Separator />
+                        <div className="flex justify-between text-lg font-bold">
+                          <span>Total</span>
+                          <span>R{totalAmount.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {items.length > 0 &&
+                      shippingAddress &&
+                      selectedDelivery && (
+                        <PaystackPaymentButton
+                          amount={Math.round(totalAmount * 100)}
+                          bookIds={items.map((item) => item.id)}
+                          sellerId={items[0].seller.id}
+                          shippingAddress={{
+                            street: shippingAddress.street,
+                            city: shippingAddress.city,
+                            state: shippingAddress.province,
+                            postal_code: shippingAddress.postalCode,
+                            country: shippingAddress.country,
+                          }}
+                          deliveryMethod="delivery"
+                          deliveryFee={deliveryFee}
+                          onSuccess={handlePaymentSuccess}
+                          onError={(error) => {
+                            toast.error(`Payment failed: ${error}`);
+                            setPaymentProcessing(false);
+                          }}
+                          onCancel={() => {
+                            toast.error("Payment was cancelled");
+                            setPaymentProcessing(false);
+                          }}
+                          disabled={paymentProcessing}
+                          className="w-full bg-book-600 hover:bg-book-700 text-lg py-6"
+                        >
+                          {paymentProcessing ? (
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          ) : (
+                            <CreditCard className="mr-2 h-5 w-5" />
+                          )}
+                          {paymentProcessing
+                            ? "Processing..."
+                            : `Pay R${totalAmount.toFixed(2)}`}
+                        </PaystackPaymentButton>
+                      )}
+                  </div>
+                )}
+
+                {/* Confirmation Step */}
+                {currentStep === "confirmation" && (
+                  <div className="text-center py-8">
+                    <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-green-900 mb-2">
+                      Order Confirmed!
+                    </h2>
+                    <p className="text-green-700 mb-6">
+                      Thank you for your purchase. You'll receive a confirmation
+                      email shortly.
+                    </p>
+                    <div className="flex gap-4 justify-center">
+                      <Button
+                        onClick={() => navigate("/profile")}
+                        variant="outline"
+                      >
+                        View Orders
+                      </Button>
+                      <Button onClick={() => navigate("/books")}>
+                        Continue Shopping
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Navigation Buttons */}
+                {currentStep !== "confirmation" && (
+                  <div className="flex justify-between pt-6 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={handlePreviousStep}
+                      disabled={currentStepIndex === 0}
+                    >
+                      <ArrowLeft className="mr-2 h-4 w-4" />
+                      Previous
+                    </Button>
+
+                    {currentStep !== "payment" && (
+                      <Button
+                        onClick={handleNextStep}
+                        disabled={!canProceedToNextStep()}
+                        className="bg-book-600 hover:bg-book-700"
+                      >
+                        Next
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Order Summary Sidebar */}
+          <div className="lg:col-span-1">
+            <Card className="sticky top-8 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5 text-book-600" />
+                  Order Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Items Preview */}
+                <div className="space-y-3">
+                  {items.slice(0, 3).map((item) => (
+                    <div key={item.id} className="flex items-center gap-3">
                       <img
-                        src={book.frontCover || book.imageUrl}
-                        alt={book.title}
-                        className="w-12 h-16 md:w-16 md:h-20 object-cover rounded flex-shrink-0"
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-12 h-16 object-cover rounded"
                       />
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-sm md:text-base truncate">
-                          {book.title}
-                        </h4>
-                        <p className="text-xs md:text-sm text-gray-600 truncate">
-                          by {book.author}
+                        <p className="font-medium text-sm truncate">
+                          {item.title}
                         </p>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="font-semibold text-sm md:text-base">
-                          R{book.price}
+                        <p className="text-xs text-gray-500 truncate">
+                          by {item.author}
+                        </p>
+                        <p className="text-sm font-semibold text-book-600">
+                          R{item.price}
                         </p>
                       </div>
                     </div>
-                  ) : null}
+                  ))}
+                  {items.length > 3 && (
+                    <p className="text-sm text-gray-500 text-center">
+                      and {items.length - 3} more{" "}
+                      {items.length - 3 === 1 ? "item" : "items"}
+                    </p>
+                  )}
                 </div>
 
                 <Separator />
 
+                {/* Totals */}
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Items Subtotal</span>
-                    <span className="text-sm">R{itemsTotal.toFixed(2)}</span>
+                  <div className="flex justify-between text-sm">
+                    <span>Subtotal</span>
+                    <span>R{subtotal.toFixed(2)}</span>
                   </div>
                   {selectedDelivery && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">
-                        Delivery ({selectedDelivery.serviceName})
-                      </span>
-                      <span className="text-sm">
-                        R{selectedDelivery.price.toFixed(2)}
-                      </span>
+                    <div className="flex justify-between text-sm">
+                      <span>Delivery</span>
+                      <span>R{deliveryFee.toFixed(2)}</span>
                     </div>
                   )}
                   <Separator />
-                  <div className="flex justify-between items-center">
-                    <span className="text-base md:text-lg font-bold">
-                      Total
-                    </span>
-                    <span className="text-base md:text-lg font-bold">
-                      R{totalAmount.toFixed(2)}
-                    </span>
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Total</span>
+                    <span>R{totalAmount.toFixed(2)}</span>
                   </div>
                 </div>
 
-                {book && (
-                  <PaystackPaymentButton
-                    amount={Math.round(totalAmount * 100)} // Convert to cents
-                    bookIds={
-                      isCartCheckout
-                        ? cartData.map((item: { id: string }) => item.id)
-                        : book
-                          ? [book.id]
-                          : []
-                    }
-                    sellerId={book.seller?.id || ""}
-                    shippingAddress={{
-                      street: shippingAddress.streetAddress,
-                      city: shippingAddress.city,
-                      state: shippingAddress.province,
-                      postal_code: shippingAddress.postalCode,
-                      country: "South Africa",
-                    }}
-                    deliveryMethod={selectedDelivery ? "delivery" : "pickup"}
-                    deliveryFee={selectedDelivery?.price || 0}
-                    onSuccess={handlePaymentSuccess}
-                    onError={(error) => {
-                      toast.error(`Payment failed: ${error}`);
-                    }}
-                    onCancel={() => {
-                      toast.error("Payment was cancelled");
-                    }}
-                    disabled={!selectedDelivery}
-                    className="w-full bg-book-600 hover:bg-book-700 text-sm md:text-base py-2 md:py-3 min-h-[48px]"
-                  >
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Pay R{totalAmount.toFixed(2)}
-                  </PaystackPaymentButton>
+                {/* Shipping Address Preview */}
+                {shippingAddress && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2 flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        Shipping To
+                      </h4>
+                      <p className="text-xs text-gray-600">
+                        {shippingAddress.street}
+                        <br />
+                        {shippingAddress.city}, {shippingAddress.province}
+                        <br />
+                        {shippingAddress.postalCode}
+                      </p>
+                    </div>
+                  </>
+                )}
+
+                {/* Delivery Preview */}
+                {selectedDelivery && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2 flex items-center gap-1">
+                        <Truck className="h-3 w-3" />
+                        Delivery Method
+                      </h4>
+                      <p className="text-xs text-gray-600">
+                        {selectedDelivery.serviceName}
+                        <br />
+                        Estimated: {selectedDelivery.estimatedDays} days
+                      </p>
+                    </div>
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -922,15 +949,14 @@ const Checkout = () => {
         </div>
       </div>
 
-      {/* Sale Success Popup */}
+      {/* Success Modals */}
       {saleData && (
         <SaleSuccessPopup
           isOpen={showSalePopup}
           onClose={() => {
             setShowSalePopup(false);
             setSaleData(null);
-            // Navigate to shipping page after popup closes
-            navigate("/shipping");
+            navigate("/profile");
           }}
           bookTitle={saleData.bookTitle}
           bookPrice={saleData.bookPrice}
@@ -940,17 +966,12 @@ const Checkout = () => {
         />
       )}
 
-      {/* Commit Reminder Modal for Buyers */}
       <CommitReminderModal
         isOpen={showCommitReminderModal}
         onClose={() => {
           setShowCommitReminderModal(false);
-          // Show the sale success popup after commit reminder
-          if (saleData) {
-            setShowSalePopup(true);
-          }
+          setShowSalePopup(true);
         }}
-        type="buyer"
       />
     </Layout>
   );
