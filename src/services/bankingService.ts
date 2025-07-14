@@ -108,9 +108,22 @@ export class BankingService {
 
       if (error) {
         console.error("Error creating subaccount:", error);
+
+        // Check if it's a missing Edge Function error
+        if (
+          error.message?.includes("not found") ||
+          error.message?.includes("404") ||
+          error.message?.includes("Function not found")
+        ) {
+          console.warn(
+            "🛠️ Edge Function not deployed - using development fallback",
+          );
+          return this.createDevelopmentSubaccount(userId, bankingDetails);
+        }
+
         return {
           success: false,
-          error: "Failed to create banking account. Please try again.",
+          error: `Failed to create banking account: ${error.message || "Please try again."}`,
         };
       }
 
