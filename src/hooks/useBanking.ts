@@ -20,12 +20,23 @@ export const useBanking = () => {
     try {
       setError(null);
       const details = await BankingService.getUserBankingDetails(user.id);
-      setBankingDetails(details);
+      setBankingDetails(details); // null is valid - means no banking setup yet
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Unknown error occurred";
       console.error("Error fetching banking details:", errorMessage, err);
-      setError(`Failed to load banking details: ${errorMessage}`);
+
+      // Only set error for actual failures, not for missing setup
+      if (
+        !errorMessage.includes("development fallback") &&
+        !errorMessage.includes("does not exist")
+      ) {
+        setError(`Failed to load banking details: ${errorMessage}`);
+      } else {
+        // For development fallbacks, just log and continue
+        console.log("ℹ️ No banking setup found - this is normal for new users");
+        setBankingDetails(null);
+      }
     } finally {
       setIsLoading(false);
     }
