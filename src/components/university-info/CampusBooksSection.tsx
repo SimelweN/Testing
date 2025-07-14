@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -31,6 +31,9 @@ import {
   Book,
 } from "lucide-react";
 import { ALL_SOUTH_AFRICAN_UNIVERSITIES } from "@/constants/universities";
+import { getBooks } from "@/services/book/bookQueries";
+import { Book } from "@/types/book";
+import { toast } from "sonner";
 
 const CampusBooksSection = () => {
   const navigate = useNavigate();
@@ -40,67 +43,42 @@ const CampusBooksSection = () => {
   const [selectedUniversity, setSelectedUniversity] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [priceRange, setPriceRange] = useState("all");
+  const [books, setBooks] = useState<Book[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Mock book data - in production this would come from your database
-  const mockBooks = useMemo(
-    () => [
-      {
-        id: "1",
-        title: "Introduction to Computer Science",
-        author: "John Smith",
-        price: 450.0,
-        condition: "excellent",
-        university: "uct",
-        category: "Computer Science",
-        cover_image: "/api/placeholder/200/250",
-        description:
-          "Comprehensive introduction to computer science fundamentals.",
-        faculty: "Science",
-        location: "Cape Town",
-        tags: ["Programming", "Algorithms", "Data Structures"],
-        seller: "Alex K.",
-      },
-      {
-        id: "2",
-        title: "Calculus and Analytical Geometry",
-        author: "Maria Rodriguez",
-        price: 380.0,
-        condition: "good",
-        university: "wits",
-        category: "Mathematics",
-        cover_image: "/api/placeholder/200/250",
-        description: "Advanced calculus textbook with detailed examples.",
-        faculty: "Science",
-        location: "Johannesburg",
-        tags: ["Calculus", "Geometry", "Mathematics"],
-        seller: "Sarah M.",
-      },
-      {
-        id: "3",
-        title: "Organic Chemistry Principles",
-        author: "Dr. James Wilson",
-        price: 520.0,
-        condition: "very good",
-        university: "up",
-        category: "Chemistry",
-        cover_image: "/api/placeholder/200/250",
-        description: "Essential organic chemistry concepts and reactions.",
-        faculty: "Natural Sciences",
-        location: "Pretoria",
-        tags: ["Chemistry", "Organic", "Laboratory"],
-        seller: "Mike T.",
-      },
-    ],
-    [],
-  );
+  const loadBooks = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const filters: {
+        university?: string;
+        search?: string;
+      } = {};
+
+      if (selectedUniversity !== "all") {
+        filters.university = selectedUniversity;
+      }
+
+      if (searchTerm) {
+        filters.search = searchTerm;
+      }
+
+      const loadedBooks = await getBooks(filters);
+      setBooks(Array.isArray(loadedBooks) ? loadedBooks : []);
+    } catch (error) {
+      console.error("Error loading campus books:", error);
+      toast.error("Failed to load books. Please try again.");
+      setBooks([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedUniversity, searchTerm]);
+
+  useEffect(() => {
+    loadBooks();
+  }, [loadBooks]);
 
   const filteredBooks = useMemo(() => {
-    return mockBooks.filter((book) => {
-      const matchesSearch =
-        book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        book.author.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesUniversity =
-        selectedUniversity === "all" || book.university === selectedUniversity;
+    return books.filter((book) => {
       const matchesCategory =
         selectedCategory === "all" || book.category === selectedCategory;
 
@@ -110,11 +88,9 @@ const CampusBooksSection = () => {
         matchesPrice = book.price >= 300 && book.price <= 500;
       else if (priceRange === "over-500") matchesPrice = book.price > 500;
 
-      return (
-        matchesSearch && matchesUniversity && matchesCategory && matchesPrice
-      );
+      return matchesCategory && matchesPrice;
     });
-  }, [mockBooks, searchTerm, selectedUniversity, selectedCategory, priceRange]);
+  }, [books, selectedCategory, priceRange]);
 
   const getConditionColor = (condition: string) => {
     switch (condition.toLowerCase()) {
@@ -131,25 +107,7 @@ const CampusBooksSection = () => {
     }
   };
 
-  const BookCard = ({
-    book,
-  }: {
-    book: {
-      id: string;
-      title: string;
-      author: string;
-      condition: string;
-      price: number;
-      university: string;
-      category: string;
-      cover_image?: string;
-      description: string;
-      faculty: string;
-      location: string;
-      tags: string[];
-      seller: string;
-    };
-  }) => {
+  const BookCard = ({ book }: { book: Book }) => {
     const universityInfo = universities.find(
       (uni) => uni.id === book.university,
     );
@@ -184,35 +142,26 @@ const CampusBooksSection = () => {
                 {universityInfo?.name || book.university}
               </span>
             </div>
-            <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-600">
-              <GraduationCap className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="truncate">{book.faculty}</span>
-            </div>
-            <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-600">
-              <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="truncate">{book.location}</span>
-            </div>
+            {book.universityYear && (
+              <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-600">
+                <GraduationCap className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span className="truncate">{book.universityYear}</span>
+              </div>
+            )}
+            {book.location && (
+              <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-600">
+                <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span className="truncate">{book.location}</span>
+              </div>
+            )}
           </div>
 
           <p className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-2">
             {book.description}
           </p>
 
-          {/* Tags */}
-          <div className="flex flex-wrap gap-1 mb-3 sm:mb-4">
-            {book.tags.slice(0, 3).map((tag: string, index: number) => (
-              <Badge
-                key={index}
-                variant="secondary"
-                className="text-xs bg-gray-100"
-              >
-                {tag}
-              </Badge>
-            ))}
-          </div>
-
           <div className="flex items-center justify-between text-xs text-gray-500 mb-3 sm:mb-4">
-            <span className="truncate">Sold by: {book.seller}</span>
+            <span className="truncate">Sold by: {book.seller.name}</span>
             <div className="flex items-center gap-1 flex-shrink-0">
               <Star className="w-3 h-3 fill-current text-yellow-400" />
               <span>4.5</span>
@@ -223,7 +172,7 @@ const CampusBooksSection = () => {
             <Button
               size="sm"
               className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm"
-              onClick={() => navigate(`/book/${book.id}`)}
+              onClick={() => navigate(`/books/${book.id}`)}
             >
               <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               View Details
@@ -233,7 +182,7 @@ const CampusBooksSection = () => {
               variant="outline"
               size="sm"
               className="w-full sm:w-auto border-green-200 text-green-600 hover:bg-green-50 text-xs sm:text-sm"
-              onClick={() => navigate(`/cart?add=${book.id}`)}
+              onClick={() => navigate(`/books/${book.id}`)}
             >
               <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 mr-2 sm:mr-0" />
               <span className="sm:hidden">Add to Cart</span>
@@ -355,18 +304,45 @@ const CampusBooksSection = () => {
       <div>
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
-            {filteredBooks.length} Books Found
+            {isLoading ? "Loading..." : `${filteredBooks.length} Books Found`}
           </h3>
-          <Button
-            onClick={() => navigate("/create-listing")}
-            className="bg-green-600 hover:bg-green-700 text-white text-sm"
-          >
-            <Book className="w-4 h-4 mr-2" />
-            Sell Books
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => navigate("/books")}
+              variant="outline"
+              className="text-sm"
+            >
+              <BookOpen className="w-4 h-4 mr-2" />
+              View All Books
+            </Button>
+            <Button
+              onClick={() => navigate("/create-listing")}
+              className="bg-green-600 hover:bg-green-700 text-white text-sm"
+            >
+              <Book className="w-4 h-4 mr-2" />
+              Sell Books
+            </Button>
+          </div>
         </div>
 
-        {filteredBooks.length === 0 ? (
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {[...Array(6)].map((_, index) => (
+              <Card key={index} className="animate-pulse">
+                <CardHeader>
+                  <div className="flex gap-3">
+                    <div className="w-16 h-20 bg-gray-200 rounded" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-200 rounded w-3/4" />
+                      <div className="h-3 bg-gray-200 rounded w-1/2" />
+                      <div className="h-4 bg-gray-200 rounded w-1/4" />
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+        ) : filteredBooks.length === 0 ? (
           <Card>
             <CardContent className="text-center py-12">
               <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
@@ -377,17 +353,25 @@ const CampusBooksSection = () => {
                 Try adjusting your search criteria or browse all available
                 books.
               </p>
-              <Button
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedUniversity("all");
-                  setSelectedCategory("all");
-                  setPriceRange("all");
-                }}
-                variant="outline"
-              >
-                Clear Filters
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSelectedUniversity("all");
+                    setSelectedCategory("all");
+                    setPriceRange("all");
+                  }}
+                  variant="outline"
+                >
+                  Clear Filters
+                </Button>
+                <Button
+                  onClick={() => navigate("/books")}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Browse All Books
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ) : (
