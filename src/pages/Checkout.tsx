@@ -887,8 +887,10 @@ const Checkout = () => {
                     amount={Math.round(totalAmount * 100)} // Convert to cents
                     bookIds={
                       isCartCheckout
-                        ? cartData.map((item: any) => item.id)
-                        : [book.id]
+                        ? cartData.map((item: { id: string }) => item.id)
+                        : book
+                          ? [book.id]
+                          : []
                     }
                     sellerId={book.seller?.id || ""}
                     shippingAddress={{
