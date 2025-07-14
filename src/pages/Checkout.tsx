@@ -838,7 +838,8 @@ const Checkout = () => {
 
                     {items.length > 0 &&
                       shippingAddress &&
-                      selectedDelivery && (
+                      selectedDelivery &&
+                      items[0]?.seller?.id && (
                         <PaystackPaymentButton
                           amount={Math.round(totalAmount * 100)}
                           bookIds={items.map((item) => item.id)}
