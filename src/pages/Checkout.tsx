@@ -296,15 +296,12 @@ const Checkout = () => {
       // Show commit reminder modal first
       setShowCommitReminderModal(true);
 
-      // Create automatic shipments for purchased books
+      // Create sale commitments and automatic shipments for purchased books
       const purchasedBooks = isCartCheckout ? cartData : book ? [book] : [];
 
       for (const purchasedBook of purchasedBooks) {
         try {
-          console.log(
-            "Creating automatic shipment for book:",
-            purchasedBook.title,
-          );
+          console.log("Processing purchase for book:", purchasedBook.title);
 
           const bookDetails = {
             id: purchasedBook.id,
@@ -313,6 +310,32 @@ const Checkout = () => {
             price: purchasedBook.price,
             sellerId: purchasedBook.seller?.id || purchasedBook.sellerId,
           };
+
+          // Create sale commitment (48-hour seller commitment system)
+          try {
+            const deliveryFee = selectedQuote?.price || 0;
+            const paymentReference = `PAY_${Date.now()}_${purchasedBook.id.slice(0, 8)}`;
+
+            const commitmentId = await createSaleCommitment(
+              purchasedBook.id,
+              user.id,
+              purchasedBook.price,
+              deliveryFee,
+              paymentReference,
+            );
+
+            console.log("✅ Sale commitment created:", commitmentId);
+            toast.success(
+              `Seller has 48 hours to commit to "${purchasedBook.title}". You'll be refunded if they don't respond.`,
+              { duration: 6000 },
+            );
+          } catch (commitmentError) {
+            console.error(
+              "⚠️ Failed to create sale commitment:",
+              commitmentError,
+            );
+            // Continue with other processing even if commitment creation fails
+          }
 
           // Log purchase activity
           try {
