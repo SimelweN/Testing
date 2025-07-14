@@ -113,13 +113,13 @@ const UserProfileTabs = ({
     <div className="w-full">
       <Tabs defaultValue="listings" className="w-full">
         {/* Clean Tab Navigation */}
-        <div className="mb-6">
-          <TabsList className="w-full bg-white border border-gray-200 rounded-lg p-1">
+        <div className="mb-8">
+          <TabsList className="w-full bg-white border border-gray-200 rounded-lg p-2">
             <div
               className={`w-full ${
                 isMobile
-                  ? "grid grid-cols-2 gap-1"
-                  : "flex justify-center items-center gap-1"
+                  ? "grid grid-cols-2 gap-3"
+                  : "flex justify-start items-center gap-3 overflow-x-auto"
               }`}
             >
               {tabsConfig.map((tab) => {
@@ -130,19 +130,21 @@ const UserProfileTabs = ({
                     key={tab.id}
                     value={tab.id}
                     className={`
-                      ${isMobile ? "flex-col py-3 px-2" : "flex-row py-2 px-4"}
-                      relative rounded-md
+                      ${isMobile ? "flex-col py-4 px-3 min-h-[70px]" : "flex-row py-3 px-5 min-w-[140px]"}
+                      relative rounded-lg
                       data-[state=active]:bg-gray-900 data-[state=active]:text-white
                       hover:bg-gray-50 data-[state=active]:hover:bg-gray-800
                       transition-all duration-200
-                      text-gray-600
+                      text-gray-600 text-center justify-center
+                      border border-transparent data-[state=active]:border-gray-700
+                      flex-shrink-0
                     `}
                   >
                     <div
-                      className={`flex items-center gap-2 ${isMobile ? "flex-col text-center" : ""}`}
+                      className={`flex items-center gap-3 ${isMobile ? "flex-col text-center" : ""}`}
                     >
                       <div className="relative">
-                        <Icon className="h-4 w-4" />
+                        <Icon className="h-5 w-5" />
                         {tab.count !== undefined && tab.count > 0 && (
                           <Badge
                             className="absolute -top-1 -right-1 h-3 w-3 p-0 text-xs bg-gray-900 text-white border border-white"
@@ -153,9 +155,11 @@ const UserProfileTabs = ({
                         )}
                       </div>
                       <div className={isMobile ? "text-center" : ""}>
-                        <div className="font-medium text-sm">{tab.label}</div>
+                        <div className="font-semibold text-sm whitespace-nowrap">
+                          {tab.label}
+                        </div>
                         {!isMobile && (
-                          <div className="text-xs opacity-60">
+                          <div className="text-xs opacity-70 whitespace-nowrap">
                             {tab.description}
                           </div>
                         )}
