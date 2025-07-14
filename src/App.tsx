@@ -77,17 +77,18 @@ const queryClient = new QueryClient({
 // Full app is now restored!
 
 function App() {
-  return (
+    return (
     <ErrorBoundary level="app">
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider attribute="class" defaultTheme="light">
-          <GoogleMapsProvider>
-            <AuthProvider>
-              <CartProvider>
-                <Router>
-                  <AuthErrorHandler />
-                  <ScrollToTop />
-                  <Routes>
+      <NetworkErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider attribute="class" defaultTheme="light">
+            <GoogleMapsProvider>
+              <AuthProvider>
+                <CartProvider>
+                  <Router>
+                    <AuthErrorHandler />
+                    <ScrollToTop />
+                    <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/books" element={<BookListing />} />
                     <Route path="/books/:id" element={<BookDetails />} />
