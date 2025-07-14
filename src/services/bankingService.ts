@@ -25,6 +25,17 @@ export class BankingService {
         .single();
 
       if (error && error.code !== "PGRST116") {
+        // Check if table doesn't exist (development scenario)
+        if (
+          error.code === "42P01" ||
+          error.message?.includes("does not exist")
+        ) {
+          console.warn(
+            "🛠️ Banking table doesn't exist - using development fallback",
+          );
+          return null; // Return null indicating no banking setup yet
+        }
+
         // Not found is ok
         console.error("Database error fetching banking details:", {
           code: error.code,
