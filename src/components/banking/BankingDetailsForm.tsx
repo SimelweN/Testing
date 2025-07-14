@@ -279,16 +279,7 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
       let errorMessage = "There was an error setting up your banking details.";
 
       if (error instanceof Error) {
-        if (
-          error.message.includes("non-2xx") ||
-          error.message.includes("Edge Function")
-        ) {
-          errorMessage =
-            "💡 Development mode: Payment service not fully configured. Your details have been saved for testing.";
-          console.warn(
-            "Edge function not available - this is normal in development",
-          );
-        } else if (error.message.includes("Authentication")) {
+        if (error.message.includes("Authentication")) {
           errorMessage = "Please log in again and try again.";
         } else if (
           error.message.includes("network") ||
