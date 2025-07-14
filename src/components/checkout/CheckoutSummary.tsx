@@ -144,7 +144,9 @@ const CheckoutSummary = ({
 
             <div className="flex justify-between text-base font-bold">
               <span>Total</span>
-              <span className="text-book-600">R{totalAmount.toFixed(2)}</span>
+              <span className="text-book-600">
+                R{(totalAmount || 0).toFixed(2)}
+              </span>
             </div>
           </div>
         </div>
