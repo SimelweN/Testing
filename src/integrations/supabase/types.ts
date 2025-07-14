@@ -234,12 +234,16 @@ export type Database = {
         Row: {
           addresses_same: boolean | null;
           aps_score: number | null;
+          banking_info: Json | null;
+          banking_verified: boolean | null;
+          banking_setup_at: string | null;
           bio: string | null;
           created_at: string;
           email: string | null;
           id: string;
           is_admin: boolean | null;
           name: string | null;
+          paystack_subaccount_code: string | null;
           pickup_address: Json | null;
           profile_picture_url: string | null;
           shipping_address: Json | null;
