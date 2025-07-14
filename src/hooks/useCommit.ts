@@ -100,7 +100,9 @@ export const useCommit = (): UseCommitReturn => {
 
   return {
     isCommitting,
+    isDeclining,
     commitBook,
+    declineBook,
     pendingCommits,
     refreshPendingCommits,
     isLoading,
