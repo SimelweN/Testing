@@ -188,10 +188,19 @@ const MobileShippingDashboard = ({
                   </div>
                 </div>
 
-                <ShipLogicTrackingOnly
-                  placeholder="Enter tracking number"
-                  showBranding={false}
-                />
+                {selectedProvider === "courierGuy" ? (
+                  <CourierGuyTrackingOnly />
+                ) : selectedProvider === "fastway" ? (
+                  <FastwayTrackingOnly
+                    placeholder="Enter Fastway tracking number"
+                    showBranding={false}
+                  />
+                ) : (
+                  <ShipLogicTrackingOnly
+                    placeholder="Enter tracking number"
+                    showBranding={false}
+                  />
+                )}
               </div>
             </TabsContent>
 
