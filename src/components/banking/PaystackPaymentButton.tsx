@@ -129,7 +129,12 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
     }
   };
 
-  const handlePaystackSuccess = async (transaction: any) => {
+  const handlePaystackSuccess = async (transaction: {
+    reference: string;
+    trans: string;
+    message: string;
+    status: string;
+  }) => {
     console.log("Paystack success:", transaction);
     await verifyPayment(transaction.reference);
   };
