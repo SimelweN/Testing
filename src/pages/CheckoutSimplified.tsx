@@ -285,13 +285,7 @@ const CheckoutSimplified = () => {
     } catch (error) {
       handleError(error, "Failed to load delivery options");
     }
-  }, [
-    state.shippingAddress,
-    state.step,
-    state.items,
-    updateState,
-    handleError,
-  ]);
+  }, [state.shippingAddress, state.step, state.items]);
 
   // Load delivery quotes when step changes to delivery
   useEffect(() => {
