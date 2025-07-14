@@ -259,7 +259,12 @@ export class BankingService {
 
     if (error) {
       // Check if table doesn't exist (development scenario)
-      if (error.code === "42P01" || error.message?.includes("does not exist")) {
+      if (
+        error.code === "42P01" ||
+        error.message?.includes("does not exist") ||
+        error.message?.includes("relation") ||
+        error.message?.includes("banking_subaccounts")
+      ) {
         console.warn(
           "🛠️ Banking table doesn't exist - using development fallback for saving",
         );
@@ -268,6 +273,7 @@ export class BankingService {
           business_name: bankingDetails.businessName,
           bank_name: bankingDetails.bankName,
           subaccount_code: bankingDetails.subaccountCode,
+          status: bankingDetails.status,
         });
         return; // Silently succeed in development
       }
