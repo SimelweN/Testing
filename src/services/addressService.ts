@@ -72,6 +72,8 @@ export const getSellerPickupAddress = async (sellerId: string) => {
 
 export const getUserAddresses = async (userId: string) => {
   try {
+    console.log("Fetching addresses for user:", userId);
+
     const { data, error } = await supabase
       .from("profiles")
       .select("pickup_address, shipping_address, addresses_same")
@@ -79,16 +81,47 @@ export const getUserAddresses = async (userId: string) => {
       .single();
 
     if (error) {
-      safeLogError("Error fetching addresses", error);
+      const errorMsg =
+        error.message || error.details || "Unknown database error";
+      console.error("Database error fetching addresses:", {
+        message: errorMsg,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+
+      // Handle specific error cases
+      if (error.code === "PGRST116") {
+        // No row found - this is acceptable, return null
+        console.log("No address data found for user, returning null");
+        return null;
+      }
+
+      throw new Error(`Database error: ${errorMsg}`);
+    }
+
+    console.log("Successfully fetched address data:", data);
+    return data;
+  } catch (error) {
+    console.error("Error in getUserAddresses:", {
+      error,
+      userId,
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+
+    // Handle network errors specifically
+    if (
+      error instanceof TypeError &&
+      error.message.includes("Failed to fetch")
+    ) {
       throw new Error(
-        `Failed to fetch addresses: ${error.message || "Unknown error"}`,
+        "Network connection error. Please check your internet connection and try again.",
       );
     }
 
-    return data;
-  } catch (error) {
-    safeLogError("Error loading addresses", error, { userId });
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to load user addresses: ${errorMessage}`);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    throw new Error(`Failed to load addresses: ${errorMessage}`);
   }
 };
