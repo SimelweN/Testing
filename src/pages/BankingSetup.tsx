@@ -290,21 +290,12 @@ const BankingSetup: React.FC = () => {
               )}
 
               {/* Form */}
-              <BankingSetupForm
+              <BankingDetailsForm
                 onSuccess={handleSetupSuccess}
                 onCancel={
                   existingBanking ? () => setShowForm(false) : undefined
                 }
-                initialData={
-                  existingBanking
-                    ? {
-                        businessName: existingBanking.business_name,
-                        email: existingBanking.email,
-                        bankName: existingBanking.bank_name,
-                        accountNumber: existingBanking.account_number,
-                      }
-                    : undefined
-                }
+                editMode={!!existingBanking}
               />
             </div>
           )}
