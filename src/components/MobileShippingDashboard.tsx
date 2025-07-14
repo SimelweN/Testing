@@ -22,17 +22,34 @@ import ShipLogicTrackingOnly from "@/components/shiplogic/ShipLogicTrackingOnly"
 import ShipLogicRateQuote from "@/components/shiplogic/ShipLogicRateQuote";
 
 interface MobileShippingDashboardProps {
-  defaultProvider?: "shipLogic";
+  defaultProvider?: "courierGuy" | "shipLogic" | "fastway";
 }
 
 const MobileShippingDashboard = ({
-  defaultProvider = "shipLogic",
+  defaultProvider = "courierGuy",
 }: MobileShippingDashboardProps) => {
   const navigate = useNavigate();
-  const [selectedProvider, setSelectedProvider] =
-    useState<"shipLogic">(defaultProvider);
+  const [selectedProvider, setSelectedProvider] = useState<
+    "courierGuy" | "shipLogic" | "fastway"
+  >(defaultProvider);
 
   const providers = [
+    {
+      id: "courierGuy",
+      name: "Courier Guy",
+      logo: "🚚",
+      description: "Local courier service",
+      features: ["Local SA courier", "Reliable tracking", "2-3 business days"],
+      color: "blue",
+    },
+    {
+      id: "fastway",
+      name: "Fastway",
+      logo: "🏃‍♂️",
+      description: "Express courier service",
+      features: ["Express delivery", "Wide coverage", "Competitive rates"],
+      color: "orange",
+    },
     {
       id: "shipLogic",
       name: "ShipLogic",
