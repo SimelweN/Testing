@@ -238,10 +238,10 @@ const BankingSetup: React.FC = () => {
 
                   <div className="mt-6 pt-6 border-t">
                     <Button
-                      onClick={() => navigate("/dashboard")}
+                      onClick={() => navigate("/profile")}
                       className="bg-green-600 hover:bg-green-700"
                     >
-                      Go to Dashboard
+                      Go to Profile
                     </Button>
                   </div>
                 </CardContent>
