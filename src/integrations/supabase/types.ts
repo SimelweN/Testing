@@ -46,8 +46,11 @@ export type Database = {
           id: string;
           image_url: string;
           inside_pages: string | null;
+          paystack_subaccount_code: string | null;
+          pickup_address: Json | null;
           price: number;
           province: string | null;
+          requires_banking_setup: boolean | null;
           seller_id: string;
           sold: boolean;
           title: string;
@@ -65,8 +68,11 @@ export type Database = {
           id?: string;
           image_url: string;
           inside_pages?: string | null;
+          paystack_subaccount_code?: string | null;
+          pickup_address?: Json | null;
           price: number;
           province?: string | null;
+          requires_banking_setup?: boolean | null;
           seller_id: string;
           sold?: boolean;
           title: string;
@@ -84,8 +90,11 @@ export type Database = {
           id?: string;
           image_url?: string;
           inside_pages?: string | null;
+          paystack_subaccount_code?: string | null;
+          pickup_address?: Json | null;
           price?: number;
           province?: string | null;
+          requires_banking_setup?: boolean | null;
           seller_id?: string;
           sold?: boolean;
           title?: string;
@@ -234,12 +243,16 @@ export type Database = {
         Row: {
           addresses_same: boolean | null;
           aps_score: number | null;
+          banking_info: Json | null;
+          banking_verified: boolean | null;
+          banking_setup_at: string | null;
           bio: string | null;
           created_at: string;
           email: string | null;
           id: string;
           is_admin: boolean | null;
           name: string | null;
+          paystack_subaccount_code: string | null;
           pickup_address: Json | null;
           profile_picture_url: string | null;
           shipping_address: Json | null;
@@ -251,12 +264,16 @@ export type Database = {
         Insert: {
           addresses_same?: boolean | null;
           aps_score?: number | null;
+          banking_info?: Json | null;
+          banking_verified?: boolean | null;
+          banking_setup_at?: string | null;
           bio?: string | null;
           created_at?: string;
           email?: string | null;
           id: string;
           is_admin?: boolean | null;
           name?: string | null;
+          paystack_subaccount_code?: string | null;
           pickup_address?: Json | null;
           profile_picture_url?: string | null;
           shipping_address?: Json | null;
@@ -268,12 +285,16 @@ export type Database = {
         Update: {
           addresses_same?: boolean | null;
           aps_score?: number | null;
+          banking_info?: Json | null;
+          banking_verified?: boolean | null;
+          banking_setup_at?: string | null;
           bio?: string | null;
           created_at?: string;
           email?: string | null;
           id?: string;
           is_admin?: boolean | null;
           name?: string | null;
+          paystack_subaccount_code?: string | null;
           pickup_address?: Json | null;
           profile_picture_url?: string | null;
           shipping_address?: Json | null;
@@ -324,6 +345,68 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "reports_book_id_fkey";
+            columns: ["book_id"];
+            isOneToOne: false;
+            referencedRelation: "books";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      sale_commitments: {
+        Row: {
+          id: string;
+          book_id: string;
+          seller_id: string;
+          buyer_id: string;
+          purchase_amount: number;
+          delivery_fee: number;
+          total_amount: number;
+          status: string;
+          committed_at: string | null;
+          expires_at: string;
+          payment_reference: string | null;
+          payment_status: string;
+          delivery_confirmed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          book_id: string;
+          seller_id: string;
+          buyer_id: string;
+          purchase_amount: number;
+          delivery_fee?: number;
+          total_amount: number;
+          status?: string;
+          committed_at?: string | null;
+          expires_at: string;
+          payment_reference?: string | null;
+          payment_status?: string;
+          delivery_confirmed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          book_id?: string;
+          seller_id?: string;
+          buyer_id?: string;
+          purchase_amount?: number;
+          delivery_fee?: number;
+          total_amount?: number;
+          status?: string;
+          committed_at?: string | null;
+          expires_at?: string;
+          payment_reference?: string | null;
+          payment_status?: string;
+          delivery_confirmed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sale_commitments_book_id_fkey";
             columns: ["book_id"];
             isOneToOne: false;
             referencedRelation: "books";

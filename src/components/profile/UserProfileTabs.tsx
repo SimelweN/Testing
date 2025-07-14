@@ -24,12 +24,15 @@ import {
   Shield,
   UserX,
   Pause,
+  CreditCard,
 } from "lucide-react";
 import { Book } from "@/types/book";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
 import AddressEditDialog from "@/components/AddressEditDialog";
 import GoogleMapsAddressDialog from "@/components/GoogleMapsAddressDialog";
 import UnavailableBookCard from "@/components/UnavailableBookCard";
+import BankingProfileTab from "@/components/profile/BankingProfileTab";
+import CommitTab from "@/components/profile/CommitTab";
 import { UserProfile, AddressData, Address } from "@/types/address";
 
 interface UserProfileTabsProps {
@@ -121,6 +124,18 @@ const UserProfileTabs = ({
                 className={`${isMobile ? "h-12 text-xs px-1 flex-col" : "flex-1"} flex items-center justify-center`}
               >
                 <span className={isMobile ? "text-center" : ""}>Addresses</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="banking"
+                className={`${isMobile ? "h-12 text-xs px-1 flex-col" : "flex-1"} flex items-center justify-center`}
+              >
+                <span className={isMobile ? "text-center" : ""}>Banking</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="commit"
+                className={`${isMobile ? "h-12 text-xs px-1 flex-col" : "flex-1"} flex items-center justify-center`}
+              >
+                <span className={isMobile ? "text-center" : ""}>Commit</span>
               </TabsTrigger>
             </>
           )}
@@ -565,6 +580,14 @@ const UserProfileTabs = ({
                   </Button>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="banking" className="space-y-4">
+              <BankingProfileTab />
+            </TabsContent>
+
+            <TabsContent value="commit" className="space-y-4">
+              <CommitTab />
             </TabsContent>
           </>
         )}

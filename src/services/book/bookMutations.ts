@@ -15,24 +15,29 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
       throw new Error("User not authenticated");
     }
 
-    // Fetch province from user's pickup address
+    // Fetch province, pickup address, and banking info from user profile
     let province = null;
+    let pickupAddress = null;
+    let paystackSubaccountCode = null;
+
     try {
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("pickup_address")
+        .select("pickup_address, paystack_subaccount_code, banking_verified")
         .eq("id", user.id)
         .single();
 
       if (profileData?.pickup_address) {
-        // Check if pickup_address has province property
-        const pickupAddress = profileData.pickup_address as any;
-        if (pickupAddress?.province) {
-          province = pickupAddress.province;
-        } else if (typeof pickupAddress === "string") {
+        pickupAddress = profileData.pickup_address;
+
+        // Extract province from pickup address
+        const addressObj = profileData.pickup_address as any;
+        if (addressObj?.province) {
+          province = addressObj.province;
+        } else if (typeof addressObj === "string") {
           // If pickup_address is a string, try to extract province from it
           // This is a fallback for older address formats
-          const addressStr = pickupAddress.toLowerCase();
+          const addressStr = addressObj.toLowerCase();
           if (addressStr.includes("western cape")) province = "Western Cape";
           else if (addressStr.includes("gauteng")) province = "Gauteng";
           else if (addressStr.includes("kwazulu")) province = "KwaZulu-Natal";
@@ -46,13 +51,21 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
           else if (addressStr.includes("north west")) province = "North West";
         }
       }
+
+      // Get Paystack subaccount code if banking is verified
+      if (
+        profileData?.banking_verified &&
+        profileData?.paystack_subaccount_code
+      ) {
+        paystackSubaccountCode = profileData.paystack_subaccount_code;
+      }
     } catch (addressError) {
       console.warn("Could not fetch user address for province:", addressError);
       // Continue without province - it's not critical for book creation
     }
 
-    // Create book data without province first (safer approach)
-    const bookDataWithoutProvince = {
+    // Create book data with all required fields
+    const fullBookData = {
       seller_id: user.id,
       title: bookData.title,
       author: bookData.author,
@@ -66,18 +79,21 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
       inside_pages: bookData.insidePages,
       grade: bookData.grade,
       university_year: bookData.universityYear,
+      province: province,
+      pickup_address: pickupAddress,
+      paystack_subaccount_code: paystackSubaccountCode,
+      requires_banking_setup: false, // Set to false since user passed banking requirements
     };
 
-    // Store province for future use when database schema is updated
-    if (province) {
-      console.log("📍 Province extracted from user address:", province);
-      console.log("💡 Province will be stored once database schema is updated");
-      // TODO: Add province to book data when 'province' column is available in production
-    }
+    console.log("📍 Creating book with address and banking info:", {
+      province,
+      hasPickupAddress: !!pickupAddress,
+      hasSubaccountCode: !!paystackSubaccountCode,
+    });
 
     const { data: book, error } = await supabase
       .from("books")
-      .insert([bookDataWithoutProvince])
+      .insert([fullBookData])
       .select()
       .single();
 

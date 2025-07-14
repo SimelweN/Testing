@@ -48,8 +48,8 @@ import {
   Eye,
   Users,
   Clock,
-  Star,
   X,
+  Star,
   Plus,
   Loader2,
   Info,
@@ -419,6 +419,26 @@ const EnhancedAPSCalculator: React.FC = () => {
           discover which university programs you qualify for across all 26 South
           African universities
         </p>
+        {hasValidProfile && (
+          <div className="flex flex-col items-center gap-2 pt-2">
+            <div className="text-sm text-green-600 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" />
+              Your APS profile is saved and will persist between sessions
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                clearAPSProfile();
+                toast.success("APS Profile cleared. You can start fresh!");
+              }}
+              className="text-gray-600 border-gray-300 hover:bg-gray-50"
+            >
+              <X className="w-4 h-4 mr-2" />
+              Clear APS Profile
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Alerts Section - Compact and Clean */}

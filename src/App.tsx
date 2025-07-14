@@ -49,6 +49,8 @@ import Report from "./pages/Report";
 import UserProfile from "./pages/UserProfile";
 import FAQ from "./pages/FAQ";
 import APSDemo from "./pages/APSDemo";
+import SellerProfile from "./pages/SellerProfile";
+import BankingSetup from "./pages/BankingSetup";
 import "./App.css";
 
 // Create query client
@@ -83,6 +85,10 @@ function App() {
                     <Route path="/books" element={<BookListing />} />
                     <Route path="/books/:id" element={<BookDetails />} />
                     <Route path="/book/:id" element={<BookDetails />} />
+                    <Route
+                      path="/seller/:sellerId"
+                      element={<SellerProfile />}
+                    />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route
@@ -175,6 +181,14 @@ function App() {
                       element={
                         <ProtectedRoute>
                           <Notifications />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/banking-setup"
+                      element={
+                        <ProtectedRoute>
+                          <BankingSetup />
                         </ProtectedRoute>
                       }
                     />

@@ -11,7 +11,8 @@ import { calculateAPS, validateAPSSubjects } from "@/utils/apsCalculation";
 
 /**
  * Enhanced hook for APS-aware course assignment with user state management
- * Uses sessionStorage for temporary storage - data clears on browser refresh
+ * Uses localStorage for persistent storage - data persists across browser sessions
+ * Users can manually clear their APS profile when needed
  */
 
 export interface UserAPSProfile {
@@ -30,14 +31,14 @@ export interface APSAwareState {
   lastSearchResults: CoursesForUniversityResult | null;
 }
 
-// Custom hook for sessionStorage (temporary storage)
-function useSessionStorage<T>(key: string, initialValue: T) {
+// Custom hook for localStorage (persistent storage)
+function useLocalStorage<T>(key: string, initialValue: T) {
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
-      const item = sessionStorage.getItem(key);
+      const item = localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
-      console.warn(`Error reading sessionStorage key "${key}":`, error);
+      console.warn(`Error reading localStorage key "${key}":`, error);
       return initialValue;
     }
   });
@@ -52,10 +53,10 @@ function useSessionStorage<T>(key: string, initialValue: T) {
         if (valueToStore === null || valueToStore === undefined) {
           sessionStorage.removeItem(key);
         } else {
-          sessionStorage.setItem(key, JSON.stringify(valueToStore));
+          localStorage.setItem(key, JSON.stringify(valueToStore));
         }
       } catch (error) {
-        console.warn(`Error setting sessionStorage key "${key}":`, error);
+        console.warn(`Error setting localStorage key "${key}":`, error);
       }
     },
     [key, storedValue],
@@ -66,8 +67,10 @@ function useSessionStorage<T>(key: string, initialValue: T) {
 
 export function useAPSAwareCourseAssignment(universityId?: string) {
   // Temporary user APS profile (session only)
-  const [userProfile, setUserProfile] =
-    useSessionStorage<UserAPSProfile | null>("userAPSProfile", null);
+  const [userProfile, setUserProfile] = useLocalStorage<UserAPSProfile | null>(
+    "reBooked-aps-profile",
+    null,
+  );
 
   // Component state
   const [isLoading, setIsLoading] = useState(false);
@@ -186,11 +189,13 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
    */
   const clearAPSProfile = useCallback(() => {
     try {
-      sessionStorage.removeItem("userAPSProfile");
-      sessionStorage.removeItem("apsSearchResults");
+      localStorage.removeItem("reBooked-aps-profile");
+      localStorage.removeItem("reBooked-aps-search-results");
       setUserProfile(null);
       setLastSearchResults(null);
       setError(null);
+
+      console.log("✅ APS Profile cleared from localStorage");
 
       // Trigger global state reset event
       window.dispatchEvent(new CustomEvent("apsProfileCleared"));
