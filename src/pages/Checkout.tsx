@@ -840,10 +840,12 @@ const Checkout = () => {
                       </div>
                     </div>
 
-                    {items.length > 0 &&
+                    {Array.isArray(items) &&
+                      items.length > 0 &&
                       shippingAddress &&
                       selectedDelivery &&
-                      items[0]?.seller?.id && (
+                      items[0]?.seller?.id &&
+                      totalAmount > 0 && (
                         <PaystackPaymentButton
                           amount={Math.round(totalAmount * 100)}
                           bookIds={items.map((item) => item.id)}
