@@ -358,23 +358,6 @@ export class BankingService {
         .eq("seller_id", userId);
 
       if (error) {
-        // Check if books table doesn't exist (development scenario)
-        if (
-          error.code === "42P01" ||
-          error.message?.includes("does not exist") ||
-          error.message?.includes("relation") ||
-          error.message?.includes("books")
-        ) {
-          console.warn(
-            "🛠️ Books table doesn't exist - using development fallback for linking",
-          );
-          console.log("ℹ️ Books would be linked to subaccount:", {
-            seller_id: userId,
-            subaccount_code: bankingDetails.subaccount_code,
-          });
-          return; // Silently succeed in development
-        }
-
         throw error;
       }
 
