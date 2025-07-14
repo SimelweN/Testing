@@ -149,6 +149,8 @@ export class PaystackSubaccountService {
                     mock: true,
                     created_at: new Date().toISOString(),
                   },
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
                 },
                 {
                   onConflict: "user_id",
