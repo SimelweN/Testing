@@ -8,6 +8,7 @@ import { getUserAddresses } from "@/services/addressService";
 import { getSellerPickupAddress } from "@/services/addressService";
 import { getDeliveryQuotes, DeliveryQuote } from "@/services/deliveryService";
 import { createSaleCommitment } from "@/services/commitmentService";
+import { supabase } from "@/lib/supabase";
 import { Book } from "@/types/book";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
