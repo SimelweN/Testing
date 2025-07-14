@@ -38,6 +38,11 @@ import SaleSuccessPopup from "@/components/SaleSuccessPopup";
 import CommitReminderModal from "@/components/CommitReminderModal";
 import CheckoutSteps from "@/components/checkout/CheckoutSteps";
 import CheckoutSummary from "@/components/checkout/CheckoutSummary";
+import {
+  getUserFriendlyErrorMessage,
+  isNetworkError,
+  logDetailedError,
+} from "@/utils/networkUtils";
 
 interface CheckoutAddress {
   street: string;
