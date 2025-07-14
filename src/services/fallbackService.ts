@@ -72,7 +72,7 @@ class FallbackService {
 
           if (result.success) {
             console.log(
-              `��� ${functionName} succeeded via ${source}${attempt > 0 ? ` (retry ${attempt})` : ""}`,
+              `✅ ${functionName} succeeded via ${source}${attempt > 0 ? ` (retry ${attempt})` : ""}`,
             );
             return { ...result, source, retryCount: attempt };
           }
@@ -194,38 +194,7 @@ class FallbackService {
   }
 
   async commitToSale(data: any): Promise<ServiceResponse> {
-    try {
-      // Handle commit directly via database since commit-to-sale function was removed
-      const { error } = await supabase
-        .from("orders")
-        .update({
-          status: "committed",
-          committed_at: new Date().toISOString(),
-        })
-        .eq("id", data.order_id)
-        .eq("seller_id", data.seller_id)
-        .eq("status", "pending_commit");
-
-      if (error) {
-        return {
-          success: false,
-          error: error.message,
-          source: "supabase",
-        };
-      }
-
-      return {
-        success: true,
-        data: { order_id: data.order_id },
-        source: "supabase",
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        error: error.message,
-        source: "supabase",
-      };
-    }
+    return this.callWithFallback("commit-to-sale", data);
   }
 
   async automateDelivery(data: any): Promise<ServiceResponse> {
