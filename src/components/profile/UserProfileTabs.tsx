@@ -24,6 +24,7 @@ import {
   Shield,
   UserX,
   Pause,
+  CreditCard,
 } from "lucide-react";
 import { Book } from "@/types/book";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
