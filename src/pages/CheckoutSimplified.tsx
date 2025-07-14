@@ -723,7 +723,7 @@ const CheckoutSimplified = () => {
               selectedDelivery={state.selectedDelivery}
               subtotal={subtotal}
               deliveryFee={deliveryFee}
-              total={totalAmount}
+              totalAmount={totalAmount}
             />
           </div>
         </div>
