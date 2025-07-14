@@ -30,7 +30,7 @@ import {
   isValidEmail,
 } from "@/config/paystack";
 import { BankingService } from "@/services/bankingService";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import type { BankingFormData, BankingValidationErrors } from "@/types/banking";
 
 interface BankingSetupFormProps {
