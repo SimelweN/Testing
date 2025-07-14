@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 
 // Import tracking-only components
+import CourierGuyTrackingOnly from "@/components/courier-guy/CourierGuyTrackingOnly";
+import FastwayTrackingOnly from "@/components/fastway/FastwayTrackingOnly";
 import ShipLogicTrackingOnly from "@/components/shiplogic/ShipLogicTrackingOnly";
 import ShipLogicRateQuote from "@/components/shiplogic/ShipLogicRateQuote";
 
