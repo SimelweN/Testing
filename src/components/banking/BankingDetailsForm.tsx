@@ -231,6 +231,9 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Prevent any potential scrolling issues
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
     if (!validateForm()) return;
 
     setIsSubmitting(true);
