@@ -26,13 +26,28 @@ export class BankingService {
 
       if (error && error.code !== "PGRST116") {
         // Not found is ok
-        throw error;
+        console.error("Database error fetching banking details:", {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+        });
+        throw new Error(
+          `Database error: ${error.message || "Failed to fetch banking details"}`,
+        );
       }
 
       return data;
     } catch (error) {
-      console.error("Error fetching banking details:", error);
-      return null;
+      if (error instanceof Error) {
+        console.error("Error fetching banking details:", error.message);
+        throw error;
+      } else {
+        console.error("Unknown error fetching banking details:", error);
+        throw new Error(
+          "An unknown error occurred while fetching banking details",
+        );
+      }
     }
   }
 
