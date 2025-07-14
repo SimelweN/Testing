@@ -622,9 +622,14 @@ const ActivityLog = () => {
                         </h4>
                         <ul className="space-y-1 text-blue-700 text-sm">
                           <li>• Payment securely held in escrow</li>
-                          <li>• Seller has 48 hours to commit</li>
-                          <li>• Full refund if seller doesn't commit</li>
+                          <li>• Seller has exactly 48 hours to commit</li>
+                          <li>
+                            • <strong>Automatic full refund</strong> if seller
+                            doesn't commit
+                          </li>
+                          <li>• Refund processed immediately after 48 hours</li>
                           <li>• Order confirmed once seller commits</li>
+                          <li>• No penalties or fees for failed commits</li>
                         </ul>
                       </div>
                       <div>
