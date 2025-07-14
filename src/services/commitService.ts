@@ -463,3 +463,92 @@ export const handleOverdueCommits = async (): Promise<void> => {
     // Don't throw error for background process
   }
 };
+
+/**
+ * Monitors and enforces the 48-hour commit deadline
+ * This should be called periodically (e.g., via cron job or interval)
+ */
+export const enforceCommitDeadlines = async (): Promise<{
+  processed: number;
+  refunded: number;
+  errors: number;
+}> => {
+  console.log("[CommitService] Starting automated commit deadline enforcement");
+
+  let processed = 0;
+  let refunded = 0;
+  let errors = 0;
+
+  try {
+    // This would typically query a proper orders table with buyer/seller relationships
+    // For now, we'll use the current simplified structure
+
+    const { data: overdueBooks, error } = await supabase
+      .from("books")
+      .select("*")
+      .eq("sold", true)
+      .lt(
+        "created_at",
+        new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+      );
+
+    if (error) {
+      console.error("[CommitService] Error fetching overdue books:", error);
+      return { processed: 0, refunded: 0, errors: 1 };
+    }
+
+    console.log(
+      `[CommitService] Found ${overdueBooks?.length || 0} potentially overdue books`,
+    );
+
+    for (const book of overdueBooks || []) {
+      try {
+        processed++;
+
+        // Check if this book is actually overdue (48+ hours since order)
+        if (checkCommitDeadline(book.created_at)) {
+          // Make book available again
+          const { error: updateError } = await supabase
+            .from("books")
+            .update({ sold: false })
+            .eq("id", book.id);
+
+          if (updateError) {
+            console.error(
+              `[CommitService] Failed to update book ${book.id}:`,
+              updateError,
+            );
+            errors++;
+            continue;
+          }
+
+          // Process refund
+          await processRefund(book.id, "overdue_commit");
+          refunded++;
+
+          console.log(
+            `[CommitService] Processed overdue commit for book: ${book.title} (ID: ${book.id})`,
+          );
+        }
+      } catch (bookError) {
+        console.error(
+          `[CommitService] Error processing book ${book.id}:`,
+          bookError,
+        );
+        errors++;
+      }
+    }
+
+    console.log(
+      `[CommitService] Deadline enforcement completed: ${processed} processed, ${refunded} refunded, ${errors} errors`,
+    );
+
+    return { processed, refunded, errors };
+  } catch (error) {
+    logCommitError("Error in enforceCommitDeadlines", error);
+    return { processed, refunded, errors: errors + 1 };
+  }
+};
+
+// Export for use in background jobs or API endpoints
+export const COMMIT_DEADLINE_HOURS = 48;
