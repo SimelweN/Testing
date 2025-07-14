@@ -94,13 +94,14 @@ export class BankingService {
         "create-paystack-subaccount",
         {
           body: {
-            user_id: userId,
-            business_name: bankingDetails.businessName,
-            bank_code: bankingDetails.bankCode,
-            account_number: bankingDetails.accountNumber,
-            email: bankingDetails.email,
-            percentage_charge: 10, // 10% platform commission
-            primary_contact_email: bankingDetails.email,
+            userId: userId,
+            businessName: bankingDetails.businessName,
+            bankCode: bankingDetails.bankCode,
+            accountNumber: bankingDetails.accountNumber,
+            primaryContactEmail: bankingDetails.email,
+            primaryContactName: bankingDetails.businessName,
+            primaryContactPhone: bankingDetails.phone || undefined,
+            percentageCharge: 10, // 10% platform commission
           },
         },
       );
@@ -145,11 +146,13 @@ export class BankingService {
         "update-paystack-subaccount",
         {
           body: {
-            user_id: userId,
-            business_name: bankingDetails.businessName,
-            bank_code: bankingDetails.bankCode,
-            account_number: bankingDetails.accountNumber,
-            email: bankingDetails.email,
+            userId: userId,
+            businessName: bankingDetails.businessName,
+            bankCode: bankingDetails.bankCode,
+            accountNumber: bankingDetails.accountNumber,
+            primaryContactEmail: bankingDetails.email,
+            primaryContactName: bankingDetails.businessName,
+            primaryContactPhone: bankingDetails.phone || undefined,
           },
         },
       );
@@ -364,7 +367,7 @@ export class BankingService {
       const { data, error } = await supabase.functions.invoke(
         "validate-account-number",
         {
-          body: { account_number: accountNumber, bank_code: bankCode },
+          body: { accountNumber: accountNumber, bankCode: bankCode },
         },
       );
 
