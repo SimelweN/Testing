@@ -37,6 +37,7 @@ import {
   Filter,
   X,
   Loader2,
+  Info,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -458,234 +459,184 @@ const EnhancedUniversityProfile: React.FC = () => {
 
       <CampusNavbar />
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 relative">
-        {/* Enhanced Hero Section */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-book-600 via-book-700 to-emerald-600">
-          <div className="absolute inset-0 bg-black/20 pointer-events-none"></div>
-          <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/30 pointer-events-none"></div>
-
-          {/* Decorative elements */}
-          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-xl"></div>
-            <div className="absolute top-20 -left-10 w-32 h-32 bg-white/5 rounded-full blur-xl"></div>
-            <div className="absolute bottom-10 right-20 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-          </div>
-
-          <div className="relative z-10 container mx-auto px-4 py-6 pb-8 lg:py-16">
+      <div className="min-h-screen bg-white">
+        {/* Modern Hero Section */}
+        <div className="bg-white px-6 py-8">
+          <div className="container mx-auto">
             {/* Back Button */}
-            <div className="mb-6 lg:mb-8">
-              <Button
-                onClick={handleBack}
-                variant="ghost"
-                className="text-white hover:bg-white/20 transition-all duration-200"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Universities
-              </Button>
-            </div>
+            <Button
+              onClick={handleBack}
+              variant="ghost"
+              className="text-gray-600 hover:bg-gray-100 mb-8 p-2"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Universities
+            </Button>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-center">
-              {/* University Info */}
-              <div className="lg:col-span-2 space-y-4 lg:space-y-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-                  <div className="university-logo-container w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl p-3 shadow-lg flex-shrink-0 flex items-center justify-center">
-                    <img
-                      src={
-                        getUniversityLogoPath(university.id) ||
-                        university.logo ||
-                        "/university-logos/default.svg"
-                      }
-                      alt={`${university.name} logo`}
-                      className="w-full h-full object-contain"
-                      onError={createLogoFallbackHandler(
-                        university.id,
-                        university.name,
-                      )}
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                      <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-5xl font-bold text-white leading-tight break-words">
-                        {university.name}
-                      </h1>
-                      <Badge
-                        variant="secondary"
-                        className="bg-white/20 text-white border-white/30 backdrop-blur-sm text-xs sm:text-sm self-start"
-                      >
-                        {university.type || "University"}
-                      </Badge>
+            {/* University Header */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+              {/* Left: University Info */}
+              <div className="lg:col-span-2">
+                <div className="flex items-start gap-6 mb-6">
+                  <div className="relative flex-shrink-0">
+                    <div className="w-20 h-20 bg-white rounded-2xl shadow-lg border-4 border-green-100 p-3 flex items-center justify-center">
+                      <img
+                        src={
+                          getUniversityLogoPath(university.id) ||
+                          university.logo ||
+                          "/university-logos/default.svg"
+                        }
+                        alt={`${university.name} logo`}
+                        className="w-full h-full object-contain"
+                        onError={createLogoFallbackHandler(
+                          university.id,
+                          university.name,
+                        )}
+                      />
                     </div>
-                    <p className="text-lg sm:text-xl text-white/90 font-medium mb-2">
-                      {university.fullName}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-white/80 flex-shrink-0" />
-                      <span className="text-white/80 text-sm sm:text-base">
+                    {/* Award Badge */}
+                    <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                      <Award className="w-3 h-3 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <Badge className="bg-green-100 text-green-700 border-green-200 mb-3">
+                      {university.type || "Traditional University"}
+                    </Badge>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-3">
+                      {university.name}
+                    </h1>
+                    <div className="flex items-center gap-2 mb-4">
+                      <MapPin className="w-5 h-5 text-gray-400" />
+                      <span className="text-lg text-gray-600">
                         {university.location}, {university.province}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <p className="text-base sm:text-lg text-white/90 leading-relaxed">
+                <p className="text-gray-700 max-w-3xl mt-4">
                   {university.overview}
                 </p>
 
-                {/* Enhanced Quick Actions - Mobile Responsive */}
-                <div className="university-actions space-y-3">
-                  {/* Primary action - full width on mobile */}
+                {/* Action Buttons */}
+                <div className="flex gap-4 mt-6">
+                  <Button
+                    onClick={handleViewBooks}
+                    className="bg-green-600 hover:bg-green-700 text-white shadow-lg"
+                  >
+                    <BookOpen className="w-5 h-5 mr-2" />
+                    Find Textbooks
+                  </Button>
+                  <Button
+                    onClick={handleAPSCalculator}
+                    variant="outline"
+                    className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                  >
+                    <Calculator className="w-5 h-5 mr-2" />
+                    APS Calculator
+                  </Button>
                   <Button
                     onClick={handleVisitWebsite}
-                    className="hero-button-mobile bg-white text-book-700 hover:bg-white/90 shadow-lg w-full"
+                    variant="outline"
+                    className="bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
                   >
-                    <Globe className="w-4 h-4 mr-2" />
-                    Visit Website
+                    <Globe className="w-5 h-5 mr-2" />
+                    <span className="hidden sm:inline">Official Website</span>
+                    <span className="sm:hidden">Website</span>
                   </Button>
-
-                  {/* Secondary actions - Stack on mobile for better visibility */}
-                  <div className="space-y-2 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-3">
-                    <button
-                      onClick={handleViewBooks}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
-                    >
-                      <BookOpen className="w-4 h-4 mr-2" />
-                      Find Textbooks
-                    </button>
-                    <button
-                      onClick={handleAPSCalculator}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
-                    >
-                      <Calculator className="w-4 h-4 mr-2" />
-                      APS Calculator
-                    </button>
-                  </div>
                 </div>
               </div>
 
-              {/* Enhanced Stats Cards */}
-              <div className="university-stats space-y-4 mt-6 lg:mt-0">
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-white font-semibold text-sm sm:text-base">
-                      University Stats
-                    </h3>
-                    <Trophy className="w-5 h-5 text-yellow-300" />
+              {/* Right: Stats Card */}
+              <div>
+                <div className="bg-white border border-gray-200 rounded-xl shadow-lg">
+                  <div className="p-6">
+                    <div className="flex items-center mb-6">
+                      <BarChart3 className="w-5 h-5 text-green-500 mr-3" />
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Quick Stats
+                      </h3>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 lg:gap-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-white/80 text-sm">Students</span>
-                      <span className="text-white font-bold text-base sm:text-lg">
-                        {enhancedStats.students}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-white/80 text-sm">Established</span>
-                      <span className="text-white font-bold text-base sm:text-lg">
-                        {enhancedStats.established}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-white/80 text-sm">Faculties</span>
-                      <span className="text-white font-bold text-base sm:text-lg">
-                        {enhancedStats.faculties}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-white/80 text-sm">Programs</span>
-                      <span className="text-white font-bold text-base sm:text-lg">
-                        {enhancedStats.programs}
-                      </span>
-                    </div>
+                  <div className="px-6 pb-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between py-2">
+                        <span className="text-gray-600 font-medium">
+                          Students
+                        </span>
+                        <div className="flex items-center">
+                          <Users className="w-4 h-4 text-green-500 mr-1" />
+                          <span className="text-gray-900 font-bold">
+                            {enhancedStats.students}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between py-2 mt-4">
+                        <span className="text-gray-600 font-medium">
+                          Founded
+                        </span>
+                        <div className="flex items-center">
+                          <Calendar className="w-4 h-4 text-green-500 mr-1" />
+                          <span className="text-gray-900 font-bold">
+                            {enhancedStats.established}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between py-2 mt-4">
+                        <span className="text-gray-600 font-medium">
+                          Faculties
+                        </span>
+                        <div className="flex items-center">
+                          <Building className="w-4 h-4 text-green-500 mr-1" />
+                          <span className="text-gray-900 font-bold">
+                            {enhancedStats.faculties}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between py-2 mt-4">
+                        <span className="text-gray-600 font-medium">
+                          Programs
+                        </span>
+                        <div className="flex items-center">
+                          <GraduationCap className="w-4 h-4 text-green-500 mr-1" />
+                          <span className="text-gray-900 font-bold">
+                            {enhancedStats.programs}
+                          </span>
+                        </div>
+                      </div>
 
-                    {/* APS-aware stats */}
-                    {hasValidProfile && (
-                      <>
-                        <div className="flex justify-between items-center border-t border-white/20 pt-2">
-                          <span className="text-white/80 text-sm">
-                            Eligible
-                          </span>
-                          <span className="text-green-300 font-bold text-base sm:text-lg">
-                            {(enhancedStats as any).eligiblePrograms}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-white/80 text-sm">Avg APS</span>
-                          <span className="text-white font-bold text-base sm:text-lg">
-                            {(enhancedStats as any).averageAPS}
-                          </span>
-                        </div>
-                      </>
-                    )}
+                      {/* APS-aware stats */}
+                      {hasValidProfile && (
+                        <>
+                          <div className="flex items-center justify-between py-2 mt-4 border-t border-gray-200 pt-2">
+                            <span className="text-gray-600 font-medium">
+                              Eligible
+                            </span>
+                            <span className="text-green-600 font-bold">
+                              {(enhancedStats as any).eligiblePrograms}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between py-2">
+                            <span className="text-gray-600 font-medium">
+                              Avg APS
+                            </span>
+                            <span className="text-gray-900 font-bold">
+                              {(enhancedStats as any).averageAPS}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
-
-                {/* APS Profile Card */}
-                {(hasValidProfile || fromAPS) && (
-                  <div className="bg-green-500/20 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-green-300/30">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-white font-semibold text-sm sm:text-base">
-                        {fromAPS
-                          ? "APS-Based Recommendations"
-                          : "Your APS Profile"}
-                      </h3>
-                      <Star className="w-5 h-5 text-yellow-300" />
-                    </div>
-                    <div className="space-y-2">
-                      {fromAPS && apsScore && (
-                        <div className="bg-blue-500/20 p-3 rounded-lg mb-3">
-                          <p className="text-white text-xs">
-                            Viewing programs based on your APS score of{" "}
-                            <strong>{apsScore}</strong>
-                          </p>
-                        </div>
-                      )}
-                      <div className="flex justify-between items-center">
-                        <span className="text-white/80 text-sm">
-                          {fromAPS ? "Your APS Score" : "Your APS"}
-                        </span>
-                        <span className="text-green-300 font-bold text-lg">
-                          {fromAPS ? apsScore : userProfile?.totalAPS}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-white/80 text-sm">
-                          Eligible Rate
-                        </span>
-                        <span className="text-green-300 font-bold text-sm">
-                          {(enhancedStats as any).eligibilityRate}%
-                        </span>
-                      </div>
-                    </div>
-                    {/* Clear APS Profile Button */}
-                    <div className="mt-4 pt-3 border-t border-white/20">
-                      <Button
-                        onClick={() => {
-                          clearAPSProfile();
-                          toast.success("APS profile cleared successfully");
-                          // If viewing from APS context, navigate back to clean university view
-                          if (fromAPS) {
-                            navigate(`/university/${universityId}`, {
-                              replace: true,
-                            });
-                          }
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 text-xs"
-                      >
-                        <X className="w-3 h-3 mr-1" />
-                        Clear APS Profile
-                      </Button>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
         </div>
 
         {/* Enhanced Main Content */}
-        <div className="relative z-20 container mx-auto px-4 mt-4 lg:-mt-8 pb-16 lg:pb-24">
+        <div className="container mx-auto px-6 pb-16">
           {/* Error Alerts */}
           {(error || facultiesData.errors.length > 0) && (
             <div className="mb-6">
@@ -723,43 +674,78 @@ const EnhancedUniversityProfile: React.FC = () => {
             onValueChange={setActiveTab}
             className="university-tabs space-y-6 lg:space-y-8"
           >
-            <div className="bg-white rounded-2xl shadow-xl p-3 relative z-30">
-              <TabsList className="grid w-full grid-cols-2 grid-rows-2 sm:grid-cols-4 sm:grid-rows-1 bg-slate-100 rounded-xl gap-2">
-                <TabsTrigger
-                  value="programs"
-                  className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-xs sm:text-sm px-2 py-3 sm:px-4 flex flex-col sm:flex-row items-center justify-center min-h-[70px] sm:min-h-[40px]"
-                >
-                  <GraduationCap className="w-4 h-4 mb-1 sm:mb-0 sm:mr-2 flex-shrink-0" />
-                  <span className="hidden sm:inline">Programs</span>
-                  <span className="sm:hidden text-center text-xs">
-                    Programs
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="admissions"
-                  className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-xs sm:text-sm px-2 py-3 sm:px-4 flex flex-col sm:flex-row items-center justify-center min-h-[70px] sm:min-h-[40px]"
-                >
-                  <Award className="w-4 h-4 mb-1 sm:mb-0 sm:mr-2 flex-shrink-0" />
-                  <span className="hidden sm:inline">Admissions</span>
-                  <span className="sm:hidden text-center text-xs">Apply</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="student-life"
-                  className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-xs sm:text-sm px-2 py-3 sm:px-4 flex flex-col sm:flex-row items-center justify-center min-h-[70px] sm:min-h-[40px]"
-                >
-                  <Heart className="w-4 h-4 mb-1 sm:mb-0 sm:mr-2 flex-shrink-0" />
-                  <span className="hidden sm:inline">Student Life</span>
-                  <span className="sm:hidden text-center text-xs">Life</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="resources"
-                  className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-xs sm:text-sm px-2 py-3 sm:px-4 flex flex-col sm:flex-row items-center justify-center min-h-[70px] sm:min-h-[40px]"
-                >
-                  <Lightbulb className="w-4 h-4 mb-1 sm:mb-0 sm:mr-2 flex-shrink-0" />
-                  <span className="hidden sm:inline">Resources</span>
-                  <span className="sm:hidden text-center text-xs">Tools</span>
-                </TabsTrigger>
-              </TabsList>
+            <div className="bg-white border border-gray-200 rounded-xl shadow-lg mb-8">
+              {/* Mobile Tab List - Stack vertically */}
+              <div className="block sm:hidden">
+                <div className="flex flex-col p-2 bg-gray-50 rounded-xl">
+                  <TabsTrigger
+                    value="programs"
+                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 flex items-center justify-center w-full"
+                  >
+                    <GraduationCap className="w-5 h-5 mr-3" />
+                    Academic Programs
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="admissions"
+                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 mt-2 flex items-center justify-center w-full"
+                  >
+                    <Calendar className="w-5 h-5 mr-3" />
+                    Admissions
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="student-life"
+                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 mt-2 flex items-center justify-center w-full"
+                  >
+                    <Heart className="w-5 h-5 mr-3" />
+                    Campus Life
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="resources"
+                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 mt-2 flex items-center justify-center w-full"
+                  >
+                    <Info className="w-5 h-5 mr-3" />
+                    Resources
+                  </TabsTrigger>
+                </div>
+              </div>
+
+              {/* Desktop Tab List - Grid layout */}
+              <div className="hidden sm:block">
+                <TabsList className="grid w-full grid-cols-4 bg-gray-50 rounded-xl p-1">
+                  <TabsTrigger
+                    value="programs"
+                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 flex items-center justify-center"
+                  >
+                    <GraduationCap className="w-5 h-5 mr-2" />
+                    <span className="hidden lg:inline">Academic Programs</span>
+                    <span className="lg:hidden">Programs</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="admissions"
+                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 flex items-center justify-center"
+                  >
+                    <Calendar className="w-5 h-5 mr-2" />
+                    <span className="hidden lg:inline">Admissions</span>
+                    <span className="lg:hidden">Apply</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="student-life"
+                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 flex items-center justify-center"
+                  >
+                    <Heart className="w-5 h-5 mr-2" />
+                    <span className="hidden lg:inline">Campus Life</span>
+                    <span className="lg:hidden">Life</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="resources"
+                    className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg text-sm px-4 py-3 flex items-center justify-center"
+                  >
+                    <Info className="w-5 h-5 mr-2" />
+                    <span className="hidden lg:inline">Resources</span>
+                    <span className="lg:hidden">Info</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
             </div>
 
             {/* Enhanced Programs Tab */}
@@ -779,16 +765,16 @@ const EnhancedUniversityProfile: React.FC = () => {
                     </AlertDescription>
                   </Alert>
                 )}
-                <div className="tab-content-mobile bg-white rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 relative z-30">
+
+                <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 relative z-30">
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
                     <div>
                       <h2 className="text-2xl font-bold text-slate-900">
                         Academic Programs
                       </h2>
                       <p className="text-slate-600 mt-1">
-                        {hasValidProfile
-                          ? `Showing programs based on your APS of ${userProfile?.totalAPS}`
-                          : "Add your APS score to see personalized recommendations"}
+                        Explore {enhancedStats.programs} programs across{" "}
+                        {enhancedStats.faculties} faculties
                       </p>
                     </div>
 
@@ -1060,132 +1046,6 @@ const EnhancedUniversityProfile: React.FC = () => {
                                           <p className="text-xs lg:text-sm text-slate-600 mb-3 line-clamp-2">
                                             {degree.description}
                                           </p>
-
-                                          {/* Detailed eligibility information */}
-                                          {(hasValidProfile ||
-                                            (fromAPS && apsScore)) &&
-                                            eligibilityResult && (
-                                              <div
-                                                className={`mb-3 p-3 rounded border ${
-                                                  category === "eligible"
-                                                    ? "bg-green-50 border-green-200"
-                                                    : category ===
-                                                        "almost-eligible"
-                                                      ? "bg-yellow-50 border-yellow-200"
-                                                      : "bg-red-50 border-red-200"
-                                                }`}
-                                              >
-                                                <div
-                                                  className={`text-xs font-medium mb-2 ${
-                                                    category === "eligible"
-                                                      ? "text-green-800"
-                                                      : category ===
-                                                          "almost-eligible"
-                                                        ? "text-yellow-800"
-                                                        : "text-red-800"
-                                                  }`}
-                                                >
-                                                  Eligibility Assessment:
-                                                </div>
-
-                                                <p
-                                                  className={`text-xs mb-2 ${
-                                                    category === "eligible"
-                                                      ? "text-green-700"
-                                                      : category ===
-                                                          "almost-eligible"
-                                                        ? "text-yellow-700"
-                                                        : "text-red-700"
-                                                  }`}
-                                                >
-                                                  {
-                                                    eligibilityResult.overallReason
-                                                  }
-                                                </p>
-
-                                                {/* APS Status */}
-                                                <div className="text-xs space-y-1">
-                                                  <div
-                                                    className={`flex justify-between ${
-                                                      eligibilityResult
-                                                        .apsStatus.meetsAPS
-                                                        ? "text-green-700"
-                                                        : "text-red-700"
-                                                    }`}
-                                                  >
-                                                    <span>APS:</span>
-                                                    <span>
-                                                      {
-                                                        eligibilityResult
-                                                          .apsStatus.userAPS
-                                                      }
-                                                      /
-                                                      {
-                                                        eligibilityResult
-                                                          .apsStatus.requiredAPS
-                                                      }
-                                                    </span>
-                                                  </div>
-
-                                                  {eligibilityResult
-                                                    .subjectStatus
-                                                    .requiredCount > 0 && (
-                                                    <div
-                                                      className={`flex justify-between ${
-                                                        eligibilityResult
-                                                          .subjectStatus
-                                                          .meetsSubjects
-                                                          ? "text-green-700"
-                                                          : "text-red-700"
-                                                      }`}
-                                                    >
-                                                      <span>Subjects:</span>
-                                                      <span>
-                                                        {
-                                                          eligibilityResult
-                                                            .subjectStatus
-                                                            .matchedCount
-                                                        }
-                                                        /
-                                                        {
-                                                          eligibilityResult
-                                                            .subjectStatus
-                                                            .requiredCount
-                                                        }
-                                                      </span>
-                                                    </div>
-                                                  )}
-                                                </div>
-
-                                                {/* Recommendations */}
-                                                {eligibilityResult
-                                                  .recommendations.length >
-                                                  0 && (
-                                                  <div className="mt-2 pt-2 border-t border-current border-opacity-20">
-                                                    <div className="text-xs font-medium mb-1">
-                                                      {category === "eligible"
-                                                        ? "Next Steps:"
-                                                        : "To Qualify:"}
-                                                    </div>
-                                                    <ul className="text-xs space-y-1">
-                                                      {eligibilityResult.recommendations
-                                                        .slice(0, 2)
-                                                        .map((rec, i) => (
-                                                          <li
-                                                            key={i}
-                                                            className="flex items-start gap-1"
-                                                          >
-                                                            <span className="text-xs">
-                                                              •
-                                                            </span>
-                                                            <span>{rec}</span>
-                                                          </li>
-                                                        ))}
-                                                    </ul>
-                                                  </div>
-                                                )}
-                                              </div>
-                                            )}
 
                                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 text-xs text-slate-500">
                                             <div className="flex items-center gap-1">
