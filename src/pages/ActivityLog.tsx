@@ -32,8 +32,14 @@ import {
 const ActivityLog = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const { commitBook, pendingCommits, refreshPendingCommits, isCommitting } =
-    useCommit();
+  const {
+    commitBook,
+    declineBook,
+    pendingCommits,
+    refreshPendingCommits,
+    isCommitting,
+    isDeclining,
+  } = useCommit();
   const [activeTab, setActiveTab] = useState("commits");
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
