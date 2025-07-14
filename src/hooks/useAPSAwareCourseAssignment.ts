@@ -31,14 +31,14 @@ export interface APSAwareState {
   lastSearchResults: CoursesForUniversityResult | null;
 }
 
-// Custom hook for sessionStorage (temporary storage)
-function useSessionStorage<T>(key: string, initialValue: T) {
+// Custom hook for localStorage (persistent storage)
+function useLocalStorage<T>(key: string, initialValue: T) {
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
-      const item = sessionStorage.getItem(key);
+      const item = localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
-      console.warn(`Error reading sessionStorage key "${key}":`, error);
+      console.warn(`Error reading localStorage key "${key}":`, error);
       return initialValue;
     }
   });
