@@ -235,7 +235,6 @@ const CheckoutSimplified = () => {
           name: sellerProfile?.name || "Seller",
           email: sellerProfile?.email || "",
         },
-        seller_subaccount_code: book.subaccount_code, // ← SUBACCOUNT FROM BOOKS TABLE
       };
 
       // 🚚 STEP 8: Get buyer address (if available)
