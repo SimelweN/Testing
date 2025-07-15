@@ -164,7 +164,7 @@ const EnhancedBursaryListing = () => {
         matchesHouseholdIncome
       );
     });
-  }, [searchTerm, filters, activeTab]);
+  }, [searchTerm, filters]);
 
   const updateFilter = (
     key: keyof BursaryFilters,
