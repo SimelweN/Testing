@@ -82,15 +82,7 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
   // Seller subaccount state removed
   const createdOrderRef = useRef<Order | null>(null);
 
-  // Load Paystack script
-  useEffect(() => {
-    if (!window.PaystackPop && PAYSTACK_CONFIG.isConfigured()) {
-      const script = document.createElement("script");
-      script.src = "https://js.paystack.co/v1/inline.js";
-      script.async = true;
-      document.body.appendChild(script);
-    }
-  }, []);
+  // Paystack script loading now handled by PaystackPaymentService
 
   // Seller subaccount initialization removed
 
