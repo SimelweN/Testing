@@ -697,18 +697,28 @@ const BursaryListing = () => {
                       {bursary.provider}
                     </CardDescription>
                   </div>
-                  <Badge
-                    variant={
-                      applicationStatus.status === "open"
-                        ? "default"
-                        : applicationStatus.status === "closing"
-                          ? "destructive"
-                          : "secondary"
-                    }
-                    className="ml-2"
-                  >
-                    {applicationStatus.message}
-                  </Badge>
+                  <div className="flex gap-2">
+                    {((bursary as any).studyLevel?.includes("grade-11") ||
+                      (bursary as any).studyLevel?.includes("matric")) && (
+                      <Badge
+                        variant="outline"
+                        className="bg-blue-100 text-blue-700 border-blue-300"
+                      >
+                        🎓 High School
+                      </Badge>
+                    )}
+                    <Badge
+                      variant={
+                        applicationStatus.status === "open"
+                          ? "default"
+                          : applicationStatus.status === "closing"
+                            ? "destructive"
+                            : "secondary"
+                      }
+                    >
+                      {applicationStatus.message}
+                    </Badge>
+                  </div>
                 </div>
 
                 {/* Amount */}
