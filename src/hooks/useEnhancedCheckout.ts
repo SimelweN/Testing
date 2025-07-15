@@ -424,9 +424,16 @@ export const useEnhancedCheckout = ({
       }
 
       if (checkoutItems.length === 0) {
+        console.warn("⚠️ No items to checkout");
         dispatch({ type: "SET_ERROR", payload: "No items to checkout" });
+        dispatch({
+          type: "SET_LOADING",
+          payload: { key: "checkout", value: false },
+        });
         return;
       }
+
+      console.log("✅ Loaded checkout items:", checkoutItems.length);
 
       // 2. Validate seller has banking + address
       const sellerId = checkoutItems[0].seller.id;
