@@ -171,8 +171,11 @@ export const resetAllBooksToAvailable = async () => {
       .neq("id", "");
 
     if (error) {
-      console.error("Error resetting books:", error);
-      return { success: false, error: error.message };
+      console.error("Error resetting books:", error.message || error);
+      return {
+        success: false,
+        error: error.message || `Database error: ${JSON.stringify(error)}`,
+      };
     }
 
     console.log("✅ All books reset to available");
