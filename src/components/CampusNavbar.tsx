@@ -137,19 +137,6 @@ const CampusNavbar = () => {
               <Lightbulb className="w-4 h-4 mr-2" />
               Study Tips
             </Button>
-
-            <Button
-              variant="ghost"
-              onClick={() => handleNavigation("/add-program")}
-              className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm ${
-                isActive("/add-program")
-                  ? "bg-book-50 text-book-600"
-                  : "text-gray-600 hover:text-book-600 hover:bg-book-50"
-              }`}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Program
-            </Button>
           </div>
 
           {/* Medium Screen Navigation */}
