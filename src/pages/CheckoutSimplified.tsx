@@ -182,12 +182,7 @@ const CheckoutSimplified = () => {
         .eq("id", book.seller_id)
         .single();
 
-      // 💳 STEP 3: Validate seller has subaccount from books table
-      if (!book.subaccount_code) {
-        throw new Error(
-          "Seller payment setup is incomplete. The seller needs to set up their banking details.",
-        );
-      }
+      // 💳 STEP 3: Subaccount validation removed - checkout can proceed without banking setup
 
       // 📍 STEP 4: Get seller pickup address from profile
       const { data: sellerProfileData, error: sellerProfileError } =
