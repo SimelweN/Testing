@@ -127,6 +127,7 @@ export interface Bursary {
   requirements: BursaryRequirements;
   isActive?: boolean;
   priority?: "high" | "medium" | "low";
+  studyLevel?: string; // For high school bursaries: "grade-11,matric"
 }
 
 export interface BursaryFilters {
