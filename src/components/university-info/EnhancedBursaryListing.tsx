@@ -48,7 +48,6 @@ import {
 } from "lucide-react";
 import {
   BURSARIES,
-  HIGH_SCHOOL_BURSARIES,
   BURSARY_FIELDS_OF_STUDY,
 } from "@/constants/enhancedBursaries";
 import { PROVINCES } from "@/constants/bursaries";
