@@ -12,7 +12,7 @@ import {
   CheckCircle,
   AlertTriangle,
 } from "lucide-react";
-import { OrderSummary } from "@/types/checkout";
+import { OrderSummary, OrderConfirmation } from "@/types/checkout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
