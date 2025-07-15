@@ -199,11 +199,140 @@ const BursaryListing = () => {
       {/* Search and Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Find Your Perfect Bursary</CardTitle>
-          <CardDescription>
-            Use the filters below to find bursaries that match your needs and
-            eligibility.
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg">
+                Find Your Perfect Bursary
+              </CardTitle>
+              <CardDescription>
+                Use the filters below to find bursaries that match your needs
+                and eligibility.
+              </CardDescription>
+            </div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Info className="h-4 w-4" />
+                  Info
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>
+                    Understanding Bursaries & Scholarships
+                  </DialogTitle>
+                  <DialogDescription>
+                    Everything you need to know about financial aid for your
+                    education
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 text-sm">
+                  <div>
+                    <h4 className="font-semibold mb-2">What are Bursaries?</h4>
+                    <p>
+                      Bursaries are financial assistance programs that help
+                      students pay for their education. Unlike loans, bursaries
+                      typically don't need to be repaid, making them an
+                      excellent form of financial aid.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">Types of Bursaries:</h4>
+                    <ul className="list-disc ml-4 space-y-1">
+                      <li>
+                        <strong>Government Bursaries:</strong> Funded by
+                        government departments (e.g., NSFAS, Department of
+                        Education)
+                      </li>
+                      <li>
+                        <strong>Corporate Bursaries:</strong> Offered by private
+                        companies, often requiring work-back agreements
+                      </li>
+                      <li>
+                        <strong>Merit-based:</strong> Awarded based on academic
+                        excellence or special talents
+                      </li>
+                      <li>
+                        <strong>Need-based:</strong> Given to students with
+                        demonstrated financial need
+                      </li>
+                      <li>
+                        <strong>Field-specific:</strong> For students pursuing
+                        particular careers (e.g., teaching, engineering)
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">
+                      Public vs Private Bursaries:
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-blue-50 p-3 rounded">
+                        <h5 className="font-medium text-blue-800">
+                          Public Bursaries
+                        </h5>
+                        <ul className="text-blue-700 text-xs mt-1 space-y-1">
+                          <li>• Government-funded (NSFAS, Funza Lushaka)</li>
+                          <li>• Often covers full tuition + living costs</li>
+                          <li>• Based on household income limits</li>
+                          <li>• May require community service</li>
+                        </ul>
+                      </div>
+                      <div className="bg-green-50 p-3 rounded">
+                        <h5 className="font-medium text-green-800">
+                          Private Bursaries
+                        </h5>
+                        <ul className="text-green-700 text-xs mt-1 space-y-1">
+                          <li>• Company/foundation-funded</li>
+                          <li>• Often require work-back periods</li>
+                          <li>• May focus on specific fields</li>
+                          <li>• Competitive selection process</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">Application Tips:</h4>
+                    <ul className="list-disc ml-4 space-y-1">
+                      <li>
+                        Apply early - most bursaries have strict deadlines
+                      </li>
+                      <li>
+                        Read requirements carefully and ensure you qualify
+                      </li>
+                      <li>Prepare all required documents in advance</li>
+                      <li>Write compelling motivation letters</li>
+                      <li>
+                        Apply for multiple bursaries to increase your chances
+                      </li>
+                      <li>
+                        Keep track of application deadlines and requirements
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-yellow-50 p-3 rounded border border-yellow-200">
+                    <h4 className="font-semibold text-yellow-800 mb-2">
+                      Important Note:
+                    </h4>
+                    <p className="text-yellow-700 text-xs">
+                      Always verify bursary information directly with the
+                      provider. Requirements and deadlines may change. Be wary
+                      of scams - legitimate bursaries never ask for upfront
+                      payments.
+                    </p>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Search Bar */}
