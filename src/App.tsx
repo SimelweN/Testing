@@ -136,8 +136,18 @@ function App() {
 
                       {/* Shopping and Cart Routes */}
                       <Route path="/cart" element={<Cart />} />
-                      <Route path="/checkout/:id" element={<Checkout />} />
-                      <Route path="/checkout/cart" element={<Checkout />} />
+                      <Route
+                        path="/checkout/:id"
+                        element={<CheckoutRobust />}
+                      />
+                      <Route
+                        path="/checkout/cart"
+                        element={<CheckoutRobust />}
+                      />
+                      <Route
+                        path="/checkout-original/:id"
+                        element={<Checkout />}
+                      />
                       <Route
                         path="/checkout-simple/:id"
                         element={<CheckoutSimplified />}
