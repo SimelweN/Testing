@@ -771,7 +771,7 @@ const UniversityInfo = () => {
 
             <TabsContent value="bursaries" className="space-y-6">
               <Suspense fallback={<LoadingSection />}>
-                <BursaryExplorerSection />
+                <EnhancedBursaryListing />
               </Suspense>
             </TabsContent>
 
