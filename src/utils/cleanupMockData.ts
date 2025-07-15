@@ -182,6 +182,8 @@ export const resetAllBooksToAvailable = async () => {
     return { success: true, message: "All books reset to available" };
   } catch (error) {
     console.error("Error:", error);
-    return { success: false, error: "Failed to reset books" };
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to reset books";
+    return { success: false, error: errorMessage };
   }
 };
