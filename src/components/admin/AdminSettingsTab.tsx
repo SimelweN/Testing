@@ -21,8 +21,9 @@ import { Badge } from "@/components/ui/badge";
 import { createBroadcast } from "@/services/broadcastService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Settings, MessageSquare, Megaphone } from "lucide-react";
+import { Settings, MessageSquare, Megaphone, Trash2 } from "lucide-react";
 import EdgeFunctionTestButton from "@/components/EdgeFunctionTestButton";
+import { runBankingCleanup } from "@/utils/cleanupDevelopmentBanking";
 
 interface AdminSettingsTabProps {
   broadcastMessage: string;
