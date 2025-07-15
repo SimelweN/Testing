@@ -51,12 +51,23 @@ const Checkout: React.FC = () => {
         throw new Error("Book not found");
       }
 
-      if (bookData.sold) {
+      console.log("Book data loaded:", {
+        id: bookData.id,
+        title: bookData.title,
+        sold: bookData.sold,
+        availability: bookData.availability,
+        seller_id: bookData.seller_id,
+      });
+
+      if (bookData.sold === true) {
         throw new Error("This book has already been sold");
       }
 
-      if (bookData.availability !== "available") {
-        throw new Error("This book is not available for purchase");
+      // More flexible availability check
+      if (bookData.availability && bookData.availability !== "available") {
+        throw new Error(
+          `This book is not available for purchase (status: ${bookData.availability})`,
+        );
       }
 
       // Get seller information separately
