@@ -108,10 +108,16 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
       // Generate payment reference first
       const paymentReference = `RS_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      // Get book data from IDs (simplified query without subaccount)
+      // Get book data from IDs following checkout specifications
       const { data: bookData, error: bookError } = await supabase
         .from("books")
-        .select("*, profiles!books_seller_id_fkey(full_name)")
+        .select(
+          `
+          id, title, author, price, condition, isbn, image_url,
+          seller_id, seller_subaccount_code, seller_city, seller_province,
+          frontCover, backCover, sold, availability
+        `,
+        )
         .in("id", bookIds);
 
       if (bookError || !bookData?.length) {
