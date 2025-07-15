@@ -21,7 +21,7 @@ interface AddressData {
 }
 
 interface SimpleAddressInputProps {
-  onAddressSelect: (addressData: AddressData) => void;
+  onAddressSelect?: (addressData: AddressData) => void;
   label?: string;
   required?: boolean;
   error?: string;
