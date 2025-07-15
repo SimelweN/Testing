@@ -764,7 +764,6 @@ const CheckoutSimplified = () => {
                         bookTitle={state.book.title}
                         onSuccess={handlePaymentSuccess}
                         disabled={state.isProcessing}
-                        subaccountCode={state.book.seller_subaccount_code}
                       />
                     )}
                   </div>
