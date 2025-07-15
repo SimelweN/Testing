@@ -67,18 +67,22 @@ const Checkout: React.FC = () => {
         }
       }
 
-      // Convert to CheckoutBook format
+      // Convert to CheckoutBook format with safe property access
       const checkoutBook: CheckoutBook = {
         id: bookData.id,
-        title: bookData.title,
-        author: bookData.author,
-        price: bookData.price,
-        condition: bookData.condition,
-        isbn: bookData.isbn,
-        image_url: bookData.frontCover || bookData.image_url,
+        title: bookData.title || "Unknown Title",
+        author: bookData.author || "Unknown Author",
+        price: typeof bookData.price === "number" ? bookData.price : 0,
+        condition: bookData.condition || "Unknown",
+        isbn: bookData.isbn || undefined,
+        image_url:
+          bookData.frontCover ||
+          bookData.image_url ||
+          bookData.front_cover ||
+          undefined,
         seller_id: bookData.seller_id,
         seller_name: sellerData?.name || "Anonymous Seller",
-        seller_subaccount_code: bookData.subaccount_code,
+        seller_subaccount_code: bookData.subaccount_code || undefined,
         seller: {
           id: bookData.seller_id,
           name: sellerData?.name || "Anonymous Seller",
@@ -88,6 +92,8 @@ const Checkout: React.FC = () => {
           isReadyForOrders: !!bookData.subaccount_code,
         },
       };
+
+      console.log("Created checkout book:", checkoutBook);
 
       setBook(checkoutBook);
     } catch (err) {
