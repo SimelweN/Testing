@@ -53,6 +53,20 @@ const Checkout: React.FC = () => {
         throw new Error("This book is not available for purchase");
       }
 
+      // Get seller information separately
+      let sellerData = null;
+      if (bookData.seller_id) {
+        const { data: seller, error: sellerError } = await supabase
+          .from("profiles")
+          .select("id, name, email")
+          .eq("id", bookData.seller_id)
+          .single();
+
+        if (!sellerError && seller) {
+          sellerData = seller;
+        }
+      }
+
       // Convert to CheckoutBook format
       const checkoutBook: CheckoutBook = {
         id: bookData.id,
@@ -63,12 +77,12 @@ const Checkout: React.FC = () => {
         isbn: bookData.isbn,
         image_url: bookData.frontCover || bookData.image_url,
         seller_id: bookData.seller_id,
-        seller_name: bookData.profiles?.name || "Anonymous Seller",
+        seller_name: sellerData?.name || "Anonymous Seller",
         seller_subaccount_code: bookData.subaccount_code,
         seller: {
           id: bookData.seller_id,
-          name: bookData.profiles?.name || "Anonymous Seller",
-          email: bookData.profiles?.email || "",
+          name: sellerData?.name || "Anonymous Seller",
+          email: sellerData?.email || "",
           hasAddress: true, // Will be validated in CheckoutFlow
           hasSubaccount: !!bookData.subaccount_code,
           isReadyForOrders: !!bookData.subaccount_code,
