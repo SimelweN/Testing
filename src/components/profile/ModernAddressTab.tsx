@@ -17,7 +17,9 @@ import {
   Loader2,
   Info,
 } from "lucide-react";
-import SimpleAddressInput from "@/components/SimpleAddressInput";
+import GoogleMapsAddressAutocomplete, {
+  AddressData as GoogleAddressData,
+} from "@/components/GoogleMapsAddressAutocomplete";
 import { AddressData, Address } from "@/types/address";
 
 interface ModernAddressTabProps {
@@ -93,7 +95,7 @@ const ModernAddressTab = ({
     }
   };
 
-  const handlePickupAddressChange = (address: any) => {
+  const handlePickupAddressChange = (address: GoogleAddressData) => {
     const formattedAddress: Address = {
       street: address.street,
       city: address.city,
@@ -108,7 +110,7 @@ const ModernAddressTab = ({
     }
   };
 
-  const handleShippingAddressChange = (address: any) => {
+  const handleShippingAddressChange = (address: GoogleAddressData) => {
     const formattedAddress: Address = {
       street: address.street,
       city: address.city,
@@ -211,11 +213,22 @@ const ModernAddressTab = ({
                 </div>
               ) : editMode === "pickup" || editMode === "both" ? (
                 <div className="space-y-4">
-                  <SimpleAddressInput
+                  <GoogleMapsAddressAutocomplete
                     label="Pickup Address"
                     required
                     onAddressSelect={handlePickupAddressChange}
-                    defaultValue={pickupAddress || undefined}
+                    defaultValue={
+                      pickupAddress
+                        ? {
+                            formattedAddress: `${pickupAddress.street}, ${pickupAddress.city}, ${pickupAddress.province}, ${pickupAddress.postalCode}`,
+                            street: pickupAddress.street,
+                            city: pickupAddress.city,
+                            province: pickupAddress.province,
+                            postalCode: pickupAddress.postalCode,
+                            country: pickupAddress.country,
+                          }
+                        : undefined
+                    }
                   />
                 </div>
               ) : (
@@ -318,11 +331,22 @@ const ModernAddressTab = ({
                   </div>
 
                   {!sameAsPickup && (
-                    <SimpleAddressInput
+                    <GoogleMapsAddressAutocomplete
                       label="Shipping Address"
                       required
                       onAddressSelect={handleShippingAddressChange}
-                      defaultValue={shippingAddress || undefined}
+                      defaultValue={
+                        shippingAddress
+                          ? {
+                              formattedAddress: `${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.province}, ${shippingAddress.postalCode}`,
+                              street: shippingAddress.street,
+                              city: shippingAddress.city,
+                              province: shippingAddress.province,
+                              postalCode: shippingAddress.postalCode,
+                              country: shippingAddress.country,
+                            }
+                          : undefined
+                      }
                     />
                   )}
 

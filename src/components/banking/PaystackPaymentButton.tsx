@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { PAYSTACK_CONFIG, calculatePaymentSplit } from "@/config/paystack";
 import { PaymentService } from "@/services/paymentService";
+import { PaystackPaymentService } from "@/services/PaystackPaymentService";
 import { useAuth } from "@/contexts/AuthContext";
 import type { ShippingAddress, Order } from "@/types/banking";
 
@@ -78,27 +79,12 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
     "idle" | "initializing" | "pending" | "verifying" | "completed" | "failed"
   >("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [sellerSubaccount, setSellerSubaccount] = useState<string | null>(null);
+  // Seller subaccount state removed
   const createdOrderRef = useRef<Order | null>(null);
 
-  // Load Paystack script
-  useEffect(() => {
-    if (!window.PaystackPop && PAYSTACK_CONFIG.isConfigured()) {
-      const script = document.createElement("script");
-      script.src = "https://js.paystack.co/v1/inline.js";
-      script.async = true;
-      document.body.appendChild(script);
-    }
-  }, []);
+  // Paystack script loading now handled by PaystackPaymentService
 
-  // Initialize seller subaccount (placeholder for future implementation)
-  useEffect(() => {
-    if (sellerId && sellerId.trim() !== "") {
-      // For now, we'll use a simple subaccount format
-      // In production, this should fetch from SubaccountService
-      setSellerSubaccount(`ACCT_${sellerId.slice(0, 8)}`);
-    }
-  }, [sellerId]);
+  // Seller subaccount initialization removed
 
   // Calculate payment breakdown (convert from cents to rands first)
   const amountInRands = amount / 100;
@@ -122,29 +108,49 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
       // Generate payment reference first
       const paymentReference = `RS_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      // Get book data from IDs
+      // Get book data from IDs following checkout specifications
       const { data: bookData, error: bookError } = await supabase
         .from("books")
-        .select("*, profiles!books_seller_id_fkey(subaccount_code, full_name)")
+        .select(
+          `
+          id, title, author, price, condition, image_url,
+          seller_id, paystack_subaccount_code, province,
+          front_cover, back_cover, sold, created_at
+        `,
+        )
         .in("id", bookIds);
 
       if (bookError || !bookData?.length) {
-        return { success: false, error: "Failed to fetch book data" };
+        console.error("Book fetch error details:", {
+          error: bookError,
+          bookIds,
+          dataLength: bookData?.length,
+          bookData,
+        });
+        return {
+          success: false,
+          error: `Failed to fetch book data: ${bookError?.message || "No books found"}`,
+        };
       }
 
-      // Validate seller subaccount exists
+      // Get seller profile data for the first book
       const firstBook = bookData[0];
-      const sellerSubaccountCode = firstBook.profiles?.subaccount_code;
+      const { data: sellerProfile, error: sellerError } = await supabase
+        .from("profiles")
+        .select("id, name, email, full_name")
+        .eq("id", firstBook.seller_id)
+        .single();
 
-      if (!sellerSubaccountCode) {
-        return { success: false, error: "Seller banking setup incomplete" };
+      if (sellerError) {
+        console.error("Seller fetch error:", sellerError);
+        return { success: false, error: "Failed to fetch seller data" };
       }
 
       // Calculate amounts (convert from cents to rands for calculations)
       const bookPrice = bookData.reduce((sum, book) => sum + book.price, 0);
       const totalPrice = bookPrice + deliveryFee / 100; // deliveryFee comes in cents
 
-      // 🔍 DATABASE INSERT 1: Create order record
+      // �� DATABASE INSERT 1: Create order record
       const { data: createdOrder, error: orderError } = await supabase
         .from("orders")
         .insert({
@@ -162,7 +168,6 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
             price: Math.round(book.price * 100),
             quantity: 1,
             seller_id: book.seller_id,
-            seller_subaccount_code: sellerSubaccountCode,
           })),
 
           // Shipping address as JSONB
@@ -345,54 +350,29 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
         return;
       }
 
-      // Use Paystack popup for production
-      if (window.PaystackPop && paymentInit.reference) {
-        setPaymentStatus("pending");
+      // Use new PaystackPaymentService for popup
+      setPaymentStatus("pending");
 
-        const handler = window.PaystackPop.setup({
-          key: PAYSTACK_CONFIG.getPublicKey(),
-          email: user.email,
-          amount: paymentSplit.totalAmountKobo,
-          currency: "ZAR",
-          ref: paymentInit.reference,
-          subaccount: sellerSubaccount || undefined,
-          transaction_charge: paymentSplit.platformAmountKobo,
-          bearer: "subaccount",
-          metadata: {
-            seller_id: sellerId,
-            delivery_fee: deliveryFee,
-            seller_amount: paymentSplit.sellerAmount,
-            platform_commission: paymentSplit.platformAmount,
-            custom_fields: [
-              {
-                display_name: "Books",
-                variable_name: "books",
-                value: bookIds.join(", "),
-              },
-              {
-                display_name: "Delivery Method",
-                variable_name: "delivery_method",
-                value: deliveryMethod,
-              },
-              {
-                display_name: "Seller ID",
-                variable_name: "seller_id",
-                value: sellerId,
-              },
-            ],
-          },
-          onSuccess: handlePaystackSuccess,
-          onCancel: handlePaystackCancel,
-        });
+      const paymentResponse = await PaystackPaymentService.initializePayment({
+        email: user.email,
+        amount: paymentSplit.totalAmountKobo,
+        reference: paymentInit.reference,
+        metadata: {
+          seller_id: sellerId,
+          delivery_fee: deliveryFee,
+          seller_amount: paymentSplit.sellerAmount,
+          platform_commission: paymentSplit.platformAmount,
+          books: bookIds.join(", "),
+          delivery_method: deliveryMethod,
+        },
+        onSuccess: handlePaystackSuccess,
+        onCancel: handlePaystackCancel,
+      });
 
-        handler.openIframe();
-      } else {
-        // Fallback to redirect if popup not available
-        if (paymentInit.authorization_url) {
-          window.location.href = paymentInit.authorization_url;
-        } else {
-          throw new Error("No payment method available");
-        }
+      if (!paymentResponse.success) {
+        throw new Error(
+          paymentResponse.error || "Failed to initialize payment",
+        );
       }
     } catch (error) {
       console.error("Payment error:", error);

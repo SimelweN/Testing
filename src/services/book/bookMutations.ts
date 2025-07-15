@@ -23,7 +23,7 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
     try {
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("pickup_address, paystack_subaccount_code, banking_verified")
+        .select("pickup_address, subaccount_code, banking_verified")
         .eq("id", user.id)
         .single();
 
@@ -53,11 +53,8 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
       }
 
       // Get Paystack subaccount code if banking is verified
-      if (
-        profileData?.banking_verified &&
-        profileData?.paystack_subaccount_code
-      ) {
-        paystackSubaccountCode = profileData.paystack_subaccount_code;
+      if (profileData?.banking_verified && profileData?.subaccount_code) {
+        paystackSubaccountCode = profileData.subaccount_code;
       }
     } catch (addressError) {
       console.warn("Could not fetch user address for province:", addressError);
@@ -81,7 +78,7 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
       university_year: bookData.universityYear,
       province: province,
       pickup_address: pickupAddress,
-      paystack_subaccount_code: paystackSubaccountCode,
+      seller_subaccount_code: paystackSubaccountCode,
       requires_banking_setup: false, // Set to false since user passed banking requirements
     };
 

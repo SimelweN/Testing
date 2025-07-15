@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import GoogleMapsAddressInput from "@/components/GoogleMapsAddressInput";
+import GoogleMapsAddressAutocomplete, {
+  AddressData as GoogleAddressData,
+} from "@/components/GoogleMapsAddressAutocomplete";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapPin, AlertCircle } from "lucide-react";
 
@@ -52,10 +54,9 @@ const PickupAddressInput = ({
     !!initialAddress?.street,
   );
 
-  const handleGoogleMapsSelect = (addressData: AddressData) => {
+  const handleGoogleMapsSelect = (addressData: GoogleAddressData) => {
     const newAddress: Address = {
-      street:
-        addressData.street || addressData.formattedAddress.split(",")[0] || "",
+      street: addressData.street || "",
       city: addressData.city || "",
       province: addressData.province || "",
       postalCode: addressData.postalCode || "",
@@ -113,12 +114,19 @@ const PickupAddressInput = ({
 
       {/* Google Maps or Manual Entry */}
       {!useManualEntry ? (
-        <GoogleMapsAddressInput
+        <GoogleMapsAddressAutocomplete
           onAddressSelect={handleGoogleMapsSelect}
           placeholder="Enter your pickup address..."
           required
           error={error}
-          defaultValue={formatAddressForDisplay(address)}
+          defaultValue={{
+            formattedAddress: formatAddressForDisplay(address),
+            street: address.street,
+            city: address.city,
+            province: address.province,
+            postalCode: address.postalCode,
+            country: "South Africa",
+          }}
         />
       ) : (
         <div className="space-y-3">

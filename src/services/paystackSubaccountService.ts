@@ -249,13 +249,16 @@ export class PaystackSubaccountService {
       // 📚 UPDATE ALL USER'S BOOKS WITH SUBACCOUNT CODE
       const { data, error } = await supabase
         .from("books")
-        .update({ subaccount_code: subaccountCode })
+        .update({ seller_subaccount_code: subaccountCode })
         .eq("seller_id", userId)
-        .is("subaccount_code", null) // Only update books that don't already have a subaccount_code
+        .is("seller_subaccount_code", null) // Only update books that don't already have a subaccount_code
         .select("id");
 
       if (error) {
-        console.error("Error updating books with subaccount_code:", error);
+        console.error(
+          "Error updating books with seller_subaccount_code:",
+          error,
+        );
         return false;
       }
 
@@ -357,13 +360,16 @@ export class PaystackSubaccountService {
             .single();
 
           if (!profileError && profileData?.subaccount_code) {
+            console.warn(
+              "Found subaccount code in profile table, but no banking details available",
+            );
             return {
               hasSubaccount: true,
               subaccountCode: profileData.subaccount_code,
-              businessName: "Mock Business",
-              bankName: "Development Bank",
-              accountNumber: "***1234",
-              email: "dev@example.com",
+              businessName: "Please complete banking setup",
+              bankName: "Banking details incomplete",
+              accountNumber: "Not available",
+              email: "Please update",
               canEdit: true,
             };
           }

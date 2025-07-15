@@ -29,7 +29,9 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
-import SimpleAddressInput from "@/components/SimpleAddressInput";
+import GoogleMapsAddressAutocomplete, {
+  AddressData,
+} from "@/components/GoogleMapsAddressAutocomplete";
 import PaystackPaymentButton from "@/components/banking/PaystackPaymentButton";
 import SaleSuccessPopup from "@/components/SaleSuccessPopup";
 import CheckoutSteps from "@/components/checkout/CheckoutSteps";
@@ -180,12 +182,7 @@ const CheckoutSimplified = () => {
         .eq("id", book.seller_id)
         .single();
 
-      // 💳 STEP 3: Validate seller has subaccount from books table
-      if (!book.subaccount_code) {
-        throw new Error(
-          "Seller payment setup is incomplete. The seller needs to set up their banking details.",
-        );
-      }
+      // 💳 STEP 3: Subaccount validation removed - checkout can proceed without banking setup
 
       // 📍 STEP 4: Get seller pickup address from profile
       const { data: sellerProfileData, error: sellerProfileError } =
@@ -238,23 +235,22 @@ const CheckoutSimplified = () => {
           name: sellerProfile?.name || "Seller",
           email: sellerProfile?.email || "",
         },
-        seller_subaccount_code: book.subaccount_code, // ← SUBACCOUNT FROM BOOKS TABLE
       };
 
       // 🚚 STEP 8: Get buyer address (if available)
       let buyerAddress: CheckoutAddress | null = null;
       try {
-        const addresses = await getUserAddresses(user.id);
-        setSavedAddresses(addresses || []);
+        const addressData = await getUserAddresses(user.id);
+        setSavedAddresses(addressData ? [addressData] : []);
 
-        if (addresses && addresses.length > 0) {
-          const firstAddress = addresses[0];
+        if (addressData?.shipping_address) {
+          const addr = addressData.shipping_address as any;
           buyerAddress = {
-            street: firstAddress.street,
-            city: firstAddress.city,
-            province: firstAddress.province,
-            postalCode: firstAddress.postal_code,
-            country: firstAddress.country || "South Africa",
+            street: addr.street || "",
+            city: addr.city || "",
+            province: addr.province || "",
+            postalCode: addr.postalCode || "",
+            country: addr.country || "South Africa",
           };
         }
       } catch (addressError) {
@@ -456,14 +452,7 @@ const CheckoutSimplified = () => {
     }
   };
 
-  const handleAddressUpdate = (addressData: {
-    formattedAddress: string;
-    street: string;
-    city: string;
-    province: string;
-    postalCode: string;
-    country: string;
-  }) => {
+  const handleAddressUpdate = (addressData: AddressData) => {
     const address: CheckoutAddress = {
       street: addressData.street,
       city: addressData.city,
@@ -650,7 +639,23 @@ const CheckoutSimplified = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <SimpleAddressInput onAddressSelect={handleAddressUpdate} />
+                  <GoogleMapsAddressAutocomplete
+                    onAddressSelect={handleAddressUpdate}
+                    label="Shipping Address"
+                    required={true}
+                    defaultValue={
+                      state.shippingAddress
+                        ? {
+                            formattedAddress: `${state.shippingAddress.street}, ${state.shippingAddress.city}, ${state.shippingAddress.province}, ${state.shippingAddress.postalCode}`,
+                            street: state.shippingAddress.street,
+                            city: state.shippingAddress.city,
+                            province: state.shippingAddress.province,
+                            postalCode: state.shippingAddress.postalCode,
+                            country: state.shippingAddress.country,
+                          }
+                        : undefined
+                    }
+                  />
                 </CardContent>
               </Card>
             )}
@@ -750,15 +755,25 @@ const CheckoutSimplified = () => {
                       </div>
                     </div>
 
-                    {state.book && (
+                    {state.book && state.shippingAddress && (
                       <PaystackPaymentButton
-                        amount={totalAmount}
-                        email={user.email!}
-                        bookId={state.book.id}
-                        bookTitle={state.book.title}
-                        onSuccess={handlePaymentSuccess}
+                        amount={totalAmount * 100} // Convert to cents
+                        bookIds={[state.book.id]}
+                        sellerId={state.book.seller.id}
+                        shippingAddress={{
+                          fullName: user.name || "Buyer",
+                          street: state.shippingAddress.street,
+                          city: state.shippingAddress.city,
+                          province: state.shippingAddress.province,
+                          postalCode: state.shippingAddress.postalCode,
+                          country: state.shippingAddress.country,
+                        }}
+                        deliveryMethod={"delivery"}
+                        deliveryFee={deliveryFee}
+                        onSuccess={(reference) =>
+                          handlePaymentSuccess({ reference })
+                        }
                         disabled={state.isProcessing}
-                        subaccountCode={state.book.seller_subaccount_code}
                       />
                     )}
                   </div>

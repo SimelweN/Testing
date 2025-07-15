@@ -34,7 +34,7 @@ serve(async (req) => {
       .select(
         `
         *,
-        seller:profiles!books_seller_id_fkey(id, name, email, subaccount_code)
+                        seller:profiles!books_seller_id_fkey(id, name, email, subaccount_code)
       `,
       )
       .eq("id", book_id)

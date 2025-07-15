@@ -40,7 +40,7 @@ serve(async (req) => {
       .select(
         `
         *,
-        seller:profiles!orders_seller_id_fkey(id, name, email, subaccount_code)
+                        seller:profiles!orders_seller_id_fkey(id, name, email, subaccount_code)
       `,
       )
       .eq("id", order_id)
