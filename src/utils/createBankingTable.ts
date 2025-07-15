@@ -106,7 +106,7 @@ export async function testBankingSetup(): Promise<{
     // Test 3: Check profile for subaccount code
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("paystack_subaccount_code, banking_verified")
+      .select("subaccount_code, banking_verified")
       .eq("id", user.id)
       .single();
 
@@ -122,7 +122,7 @@ export async function testBankingSetup(): Promise<{
     const results = {
       userId: user.id,
       existingBanking,
-      profileSubaccountCode: profile?.paystack_subaccount_code,
+      profileSubaccountCode: profile?.subaccount_code,
       bankingVerified: profile?.banking_verified,
       tableExists: true,
     };
@@ -152,12 +152,12 @@ CREATE TABLE IF NOT EXISTS banking_subaccounts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   subaccount_code TEXT UNIQUE NOT NULL,
-  business_name TEXT NOT NULL,
+    business_name TEXT NOT NULL,
   bank_name TEXT NOT NULL,
   account_number TEXT NOT NULL,
   bank_code TEXT NOT NULL,
   email TEXT NOT NULL,
-  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'pending', 'suspended')),
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'failed')),
   paystack_response JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
