@@ -357,7 +357,7 @@ export class BankingService {
       // Update all user's books to include subaccount code
       const { error } = await supabase
         .from("books")
-        .update({ paystack_subaccount_code: bankingDetails.subaccount_code })
+        .update({ seller_subaccount_code: bankingDetails.subaccount_code })
         .eq("seller_id", userId);
 
       if (error) {
