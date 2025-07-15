@@ -122,6 +122,19 @@ const EnhancedCheckout = () => {
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-book-600" />
               <p className="text-gray-600">Loading checkout...</p>
+              <p className="text-xs text-gray-400 mt-2">
+                Debug: bookId={id}, cartItems={cartData.length}, user={user?.id}
+              </p>
+              {/* Fallback link */}
+              <div className="mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate(`/checkout-old/${id}`)}
+                  className="text-xs"
+                >
+                  Use Simple Checkout
+                </Button>
+              </div>
             </div>
           </div>
         </div>
