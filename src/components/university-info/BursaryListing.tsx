@@ -681,8 +681,8 @@ const BursaryListing = () => {
             <Card
               key={bursary.id}
               className={`hover:shadow-lg transition-shadow ${
-                (bursary as any).studyLevel?.includes("grade-11") ||
-                (bursary as any).studyLevel?.includes("matric")
+                bursary.studyLevel?.includes("grade-11") ||
+                bursary.studyLevel?.includes("matric")
                   ? "border-blue-300 bg-blue-50/50"
                   : ""
               }`}
