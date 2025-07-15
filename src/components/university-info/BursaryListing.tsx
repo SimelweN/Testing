@@ -656,7 +656,7 @@ const BursaryListing = () => {
           your criteria
           {(filters.studyLevel === "grade-11" ||
             filters.studyLevel === "matric") &&
-            ` (including ${filteredBursaries.filter((b) => (b as any).studyLevel?.includes("grade-11") || (b as any).studyLevel?.includes("matric")).length} high school bursaries)`}
+            ` (including ${filteredBursaries.filter((b) => b.studyLevel?.includes("grade-11") || b.studyLevel?.includes("matric")).length} high school bursaries)`}
         </span>
         {filteredBursaries.length > 0 && (
           <Badge variant="outline">
