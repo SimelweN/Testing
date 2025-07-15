@@ -31,7 +31,9 @@ const DatabaseCleanup: React.FC = () => {
       if (result.success) {
         toast.success(result.message || "Mock data cleanup completed");
       } else {
-        toast.error(result.error || "Cleanup failed");
+        const errorMsg = result.error || "Cleanup failed";
+        console.error("Admin cleanup failed:", errorMsg);
+        toast.error(errorMsg);
       }
     } catch (error) {
       console.error("Cleanup error:", error);
