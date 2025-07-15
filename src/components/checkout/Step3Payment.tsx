@@ -19,7 +19,7 @@ import { toast } from "sonner";
 interface Step3PaymentProps {
   orderSummary: OrderSummary;
   onBack: () => void;
-  onPaymentSuccess: (orderData: any) => void;
+  onPaymentSuccess: (orderData: OrderConfirmation) => void;
   onPaymentError: (error: string) => void;
   userId: string;
 }
