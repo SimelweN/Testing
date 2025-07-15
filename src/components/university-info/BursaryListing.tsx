@@ -693,13 +693,98 @@ const BursaryListing = () => {
                         <CheckCircle className="h-4 w-4 text-green-600" />
                         Eligibility Criteria:
                       </h4>
+
+                      {/* High School Special Requirements */}
+                      {((bursary as any).studyLevel?.includes("grade-11") ||
+                        (bursary as any).studyLevel?.includes("matric")) && (
+                        <div className="bg-blue-50 p-3 rounded-lg mb-3 border border-blue-200">
+                          <h5 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                            🎓 High School Student Requirements:
+                          </h5>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                            {bursary.requirements?.academicRequirement && (
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-blue-700">
+                                  Academic:
+                                </span>
+                                <span className="text-blue-600">
+                                  {bursary.requirements.academicRequirement}
+                                </span>
+                              </div>
+                            )}
+                            {bursary.eligibilityCriteria.find(
+                              (c) =>
+                                c.toLowerCase().includes("income") ||
+                                c.toLowerCase().includes("r"),
+                            ) && (
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-blue-700">
+                                  Income:
+                                </span>
+                                <span className="text-blue-600">
+                                  {bursary.eligibilityCriteria.find(
+                                    (c) =>
+                                      c.toLowerCase().includes("income") ||
+                                      c.toLowerCase().includes("r"),
+                                  )}
+                                </span>
+                              </div>
+                            )}
+                            {((bursary as any).studyLevel?.includes(
+                              "grade-11",
+                            ) && (
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-blue-700">
+                                  Study Level:
+                                </span>
+                                <span className="text-blue-600">
+                                  Grade 11 Students
+                                </span>
+                              </div>
+                            )) ||
+                              ((bursary as any).studyLevel?.includes(
+                                "matric",
+                              ) && (
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-blue-700">
+                                    Study Level:
+                                  </span>
+                                  <span className="text-blue-600">
+                                    Matric/Grade 12 Students
+                                  </span>
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+
                       <ul className="space-y-1">
                         {bursary.eligibilityCriteria.map((criteria, index) => (
                           <li
                             key={index}
-                            className="text-sm text-gray-600 flex items-start gap-2"
+                            className={`text-sm flex items-start gap-2 ${
+                              criteria.toLowerCase().includes("grade") ||
+                              criteria.toLowerCase().includes("matric") ||
+                              criteria.toLowerCase().includes("%") ||
+                              criteria.toLowerCase().includes("average") ||
+                              criteria.toLowerCase().includes("income")
+                                ? "text-blue-700 font-medium bg-blue-50 p-2 rounded"
+                                : "text-gray-600"
+                            }`}
                           >
-                            <span className="text-green-600 mt-1">•</span>
+                            <span
+                              className={
+                                criteria.toLowerCase().includes("grade") ||
+                                criteria.toLowerCase().includes("matric") ||
+                                criteria.toLowerCase().includes("%") ||
+                                criteria.toLowerCase().includes("average") ||
+                                criteria.toLowerCase().includes("income")
+                                  ? "text-blue-600 mt-1"
+                                  : "text-green-600 mt-1"
+                              }
+                            >
+                              •
+                            </span>
                             {criteria}
                           </li>
                         ))}
