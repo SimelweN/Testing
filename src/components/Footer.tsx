@@ -1,11 +1,5 @@
 import { Link } from "react-router-dom";
-import {
-  Book,
-  MessageCircle,
-  AlertTriangle,
-  Instagram,
-  Facebook,
-} from "lucide-react";
+import { Book, Instagram, Facebook } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
