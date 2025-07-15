@@ -60,7 +60,7 @@ const Navbar = () => {
                   <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
                 <span className="text-lg sm:text-xl font-bold text-book-600 truncate">
-                  ReBooked Solutions
+                  ReBooked Campus
                 </span>
               </Link>
             </div>
@@ -118,8 +118,8 @@ const Navbar = () => {
                 <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <span className="text-lg sm:text-xl font-bold text-book-600 truncate">
-                <span className="hidden sm:inline">ReBooked Solutions</span>
-                <span className="sm:hidden">ReBooked Solutions</span>
+                <span className="hidden sm:inline">ReBooked Campus</span>
+                <span className="sm:hidden">ReBooked Campus</span>
               </span>
             </Link>
           </div>
