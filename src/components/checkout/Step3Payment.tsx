@@ -227,17 +227,26 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       if (paymentError) {
         console.error("Payment initialization error details:", {
-          error: paymentError,
+          error: paymentError.message || paymentError,
+          errorCode: paymentError.code,
+          details: paymentError.details,
+          hint: paymentError.hint,
           request: paymentRequest,
           orderData: orderData,
         });
 
         // Extract more specific error information
-        const errorMessage =
-          paymentError.message ||
-          (typeof paymentError === "string"
-            ? paymentError
-            : "Failed to initialize payment");
+        let errorMessage = "Failed to initialize payment";
+
+        if (paymentError.message) {
+          errorMessage = paymentError.message;
+        } else if (paymentError.details) {
+          errorMessage = paymentError.details;
+        } else if (typeof paymentError === "string") {
+          errorMessage = paymentError;
+        } else {
+          errorMessage = `Payment service error: ${JSON.stringify(paymentError)}`;
+        }
 
         throw new Error(`Payment initialization failed: ${errorMessage}`);
       }
