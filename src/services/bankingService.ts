@@ -119,14 +119,17 @@ export class BankingService {
         "create-paystack-subaccount",
         {
           body: {
-            userId: userId,
-            businessName: bankingDetails.businessName,
-            bankCode: bankingDetails.bankCode,
-            accountNumber: bankingDetails.accountNumber,
-            primaryContactEmail: bankingDetails.email,
-            primaryContactName: bankingDetails.businessName,
-            primaryContactPhone: bankingDetails.phone || undefined,
-            percentageCharge: 10, // 10% platform commission
+            business_name: bankingDetails.businessName,
+            email: bankingDetails.email,
+            bank_name: bankingDetails.bankName,
+            bank_code: bankingDetails.bankCode,
+            account_number: bankingDetails.accountNumber,
+            primary_contact_email: bankingDetails.email,
+            primary_contact_name: bankingDetails.businessName,
+            metadata: {
+              user_id: userId,
+              is_update: false,
+            },
           },
         },
       );
@@ -354,7 +357,7 @@ export class BankingService {
       // Update all user's books to include subaccount code
       const { error } = await supabase
         .from("books")
-        .update({ subaccount_code: bankingDetails.subaccount_code })
+        .update({ paystack_subaccount_code: bankingDetails.subaccount_code })
         .eq("seller_id", userId);
 
       if (error) {
