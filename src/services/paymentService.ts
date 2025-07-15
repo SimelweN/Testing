@@ -73,7 +73,7 @@ export class PaymentService {
         .select(
           `
           *,
-          profiles!books_seller_id_fkey(subaccount_code, full_name)
+          seller_subaccount_code
         `,
         )
         .in("id", paymentData.bookIds);
@@ -136,8 +136,19 @@ export class PaymentService {
         return { success: false, error: orderResult.error };
       }
 
-      // Get subaccount code
-      const subaccountCode = books[0].profiles?.subaccount_code;
+      // Get subaccount code from books table or seller profile
+      let subaccountCode = books[0].seller_subaccount_code;
+
+      // If not found in books table, try to get from seller profile
+      if (!subaccountCode) {
+        const { data: sellerProfile } = await supabase
+          .from("profiles")
+          .select("subaccount_code")
+          .eq("id", paymentData.sellerId)
+          .single();
+
+        subaccountCode = sellerProfile?.subaccount_code;
+      }
 
       if (!subaccountCode && PAYSTACK_CONFIG.isConfigured()) {
         return {
