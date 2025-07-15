@@ -144,7 +144,6 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
             price: Math.round(book.price * 100),
             quantity: 1,
             seller_id: book.seller_id,
-            seller_subaccount_code: sellerSubaccountCode,
           })),
 
           // Shipping address as JSONB
