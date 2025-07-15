@@ -30,6 +30,46 @@ console.error = (...args: any[]) => {
   originalError.apply(console, args);
 };
 
+// Also catch ResizeObserver errors at the window level
+const originalWindowError = window.onerror;
+window.onerror = (message, source, lineno, colno, error) => {
+  if (typeof message === "string" && message.includes("ResizeObserver")) {
+    // Suppress ResizeObserver errors
+    return true;
+  }
+
+  // Call original handler if it exists
+  if (originalWindowError) {
+    return originalWindowError.call(
+      window,
+      message,
+      source,
+      lineno,
+      colno,
+      error,
+    );
+  }
+
+  return false;
+};
+
+// Catch unhandled promise rejections from ResizeObserver
+const originalUnhandledRejection = window.onunhandledrejection;
+window.onunhandledrejection = (event) => {
+  const message = event.reason?.message || event.reason?.toString() || "";
+
+  if (typeof message === "string" && message.includes("ResizeObserver")) {
+    // Suppress ResizeObserver promise rejections
+    event.preventDefault();
+    return;
+  }
+
+  // Call original handler if it exists
+  if (originalUnhandledRejection) {
+    originalUnhandledRejection.call(window, event);
+  }
+};
+
 // Alternative: debounced ResizeObserver
 export const createDebouncedResizeObserver = (
   callback: ResizeObserverCallback,
