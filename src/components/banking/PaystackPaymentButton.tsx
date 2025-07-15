@@ -125,14 +125,24 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
         return { success: false, error: "Failed to fetch book data" };
       }
 
-      // No subaccount validation needed
+      // Get seller profile data for the first book
       const firstBook = bookData[0];
+      const { data: sellerProfile, error: sellerError } = await supabase
+        .from("profiles")
+        .select("id, name, email, full_name")
+        .eq("id", firstBook.seller_id)
+        .single();
+
+      if (sellerError) {
+        console.error("Seller fetch error:", sellerError);
+        return { success: false, error: "Failed to fetch seller data" };
+      }
 
       // Calculate amounts (convert from cents to rands for calculations)
       const bookPrice = bookData.reduce((sum, book) => sum + book.price, 0);
       const totalPrice = bookPrice + deliveryFee / 100; // deliveryFee comes in cents
 
-      // 🔍 DATABASE INSERT 1: Create order record
+      // �� DATABASE INSERT 1: Create order record
       const { data: createdOrder, error: orderError } = await supabase
         .from("orders")
         .insert({
