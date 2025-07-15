@@ -87,6 +87,7 @@ function App() {
                   <Router>
                     <AuthErrorHandler />
                     <ScrollToTop />
+                    <QuickCleanupButton />
                     <Routes>
                       <Route path="/" element={<Index />} />
                       <Route path="/books" element={<BookListing />} />
