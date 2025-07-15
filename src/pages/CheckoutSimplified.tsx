@@ -755,13 +755,24 @@ const CheckoutSimplified = () => {
                       </div>
                     </div>
 
-                    {state.book && (
+                    {state.book && state.shippingAddress && (
                       <PaystackPaymentButton
-                        amount={totalAmount}
-                        email={user.email!}
-                        bookId={state.book.id}
-                        bookTitle={state.book.title}
-                        onSuccess={handlePaymentSuccess}
+                        amount={totalAmount * 100} // Convert to cents
+                        bookIds={[state.book.id]}
+                        sellerId={state.book.seller.id}
+                        shippingAddress={{
+                          fullName: user.name || "Buyer",
+                          street: state.shippingAddress.street,
+                          city: state.shippingAddress.city,
+                          province: state.shippingAddress.province,
+                          postalCode: state.shippingAddress.postalCode,
+                          country: state.shippingAddress.country,
+                        }}
+                        deliveryMethod={"delivery"}
+                        deliveryFee={deliveryFee}
+                        onSuccess={(reference) =>
+                          handlePaymentSuccess({ reference })
+                        }
                         disabled={state.isProcessing}
                       />
                     )}
