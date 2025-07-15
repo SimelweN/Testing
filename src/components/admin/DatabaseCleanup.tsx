@@ -60,7 +60,9 @@ const DatabaseCleanup: React.FC = () => {
       if (result.success) {
         toast.success(result.message || "Books reset successfully");
       } else {
-        toast.error(result.error || "Failed to reset books");
+        const errorMsg = result.error || "Failed to reset books";
+        console.error("Book reset failed:", errorMsg);
+        toast.error(errorMsg);
       }
     } catch (error) {
       console.error("Reset error:", error);
