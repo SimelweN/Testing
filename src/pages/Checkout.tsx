@@ -29,20 +29,16 @@ const Checkout: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Get book data with seller information
+      // Get book data first
       const { data: bookData, error: bookError } = await supabase
         .from("books")
-        .select(
-          `
-          *,
-          profiles!books_seller_id_fkey(id, name, email)
-        `,
-        )
+        .select("*")
         .eq("id", id)
         .single();
 
       if (bookError) {
-        throw new Error("Failed to load book details");
+        console.error("Book query error:", bookError);
+        throw new Error(`Failed to load book details: ${bookError.message}`);
       }
 
       if (!bookData) {
