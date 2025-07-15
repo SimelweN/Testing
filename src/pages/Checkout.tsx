@@ -29,6 +29,12 @@ const Checkout: React.FC = () => {
       setLoading(true);
       setError(null);
 
+      console.log("Loading book data for ID:", id);
+
+      if (!id || id.trim() === "") {
+        throw new Error("Invalid book ID");
+      }
+
       // Get book data first
       const { data: bookData, error: bookError } = await supabase
         .from("books")
