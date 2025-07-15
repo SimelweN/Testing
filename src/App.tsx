@@ -25,10 +25,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import CreateListing from "./pages/CreateListing";
-import GoogleMapsDemo from "./pages/GoogleMapsDemo";
-import MapsTest from "./pages/MapsTest";
-import BasicMapsExample from "./pages/BasicMapsExample";
-import WorkingMapsDemo from "./pages/WorkingMapsDemo";
+
 import Admin from "./pages/Admin";
 import AdminReports from "./pages/AdminReports";
 import UniversityInfo from "./pages/UniversityInfo";
@@ -152,19 +149,6 @@ function App() {
                       <Route path="/policies" element={<Policies />} />
                       <Route path="/privacy" element={<Privacy />} />
                       <Route path="/terms" element={<Terms />} />
-                      <Route
-                        path="/google-maps-demo"
-                        element={<GoogleMapsDemo />}
-                      />
-                      <Route path="/maps-test" element={<MapsTest />} />
-                      <Route
-                        path="/basic-maps"
-                        element={<BasicMapsExample />}
-                      />
-                      <Route
-                        path="/working-maps"
-                        element={<WorkingMapsDemo />}
-                      />
 
                       {/* Protected Routes */}
                       <Route
