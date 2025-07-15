@@ -158,7 +158,22 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         console.log("📎 Raw create-order response:", orderInvokeResult);
       } catch (invokeError) {
         console.error("🚫 Function invoke failed:", invokeError);
-        throw new Error(`Function call failed: ${invokeError.message}`);
+
+        let errorMessage = "Function call failed";
+        if (invokeError.message) {
+          errorMessage = invokeError.message;
+        } else if (typeof invokeError === "string") {
+          errorMessage = invokeError;
+        } else {
+          errorMessage = `Function invoke error: ${JSON.stringify(invokeError)}`;
+        }
+
+        // Check for specific Edge Function errors
+        if (errorMessage.includes("non-2xx status code")) {
+          errorMessage += ". The order service may be temporarily unavailable.";
+        }
+
+        throw new Error(errorMessage);
       }
 
       const { data: orderData, error: orderError } = orderInvokeResult;
