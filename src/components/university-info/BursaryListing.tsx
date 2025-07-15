@@ -260,6 +260,8 @@ const BursaryListing = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="any">Any Level</SelectItem>
+                <SelectItem value="grade-11">Grade 11</SelectItem>
+                <SelectItem value="matric">Matric (Grade 12)</SelectItem>
                 <SelectItem value="undergraduate">Undergraduate</SelectItem>
                 <SelectItem value="postgraduate">Postgraduate</SelectItem>
               </SelectContent>
