@@ -121,8 +121,16 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
         .in("id", bookIds);
 
       if (bookError || !bookData?.length) {
-        console.error("Book fetch error:", bookError);
-        return { success: false, error: "Failed to fetch book data" };
+        console.error("Book fetch error details:", {
+          error: bookError,
+          bookIds,
+          dataLength: bookData?.length,
+          bookData,
+        });
+        return {
+          success: false,
+          error: `Failed to fetch book data: ${bookError?.message || "No books found"}`,
+        };
       }
 
       // Get seller profile data for the first book
