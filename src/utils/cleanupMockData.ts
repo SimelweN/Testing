@@ -94,7 +94,11 @@ export const cleanupMockData = async () => {
         .in("id", mockSellerIds);
 
       if (deleteError) {
-        console.error("Error removing mock profiles:", deleteError);
+        console.error(
+          "Error removing mock profiles:",
+          deleteError.message || deleteError,
+        );
+        // Don't throw here, continue with other cleanup
       } else {
         console.log("✅ Removed mock profiles");
       }
