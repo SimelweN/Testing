@@ -199,7 +199,7 @@ serve(async (req) => {
     const { error: profileError } = await supabase
       .from("profiles")
       .update({
-        paystack_subaccount_code: subaccountCode,
+        subaccount_code: subaccountCode,
         banking_verified: true,
         banking_setup_at: new Date().toISOString(),
       })
@@ -212,9 +212,9 @@ serve(async (req) => {
     // Link all user's books to the subaccount
     const { error: booksError } = await supabase
       .from("books")
-      .update({ paystack_subaccount_code: subaccountCode })
+      .update({ seller_subaccount_code: subaccountCode })
       .eq("seller_id", user.id)
-      .is("paystack_subaccount_code", null);
+      .is("seller_subaccount_code", null);
 
     if (booksError) {
       console.warn("Failed to link books to subaccount:", booksError);
