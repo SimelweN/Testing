@@ -40,7 +40,7 @@ serve(async (req) => {
     const sellerIds = [...new Set(items.map((item: any) => item.seller_id))];
     const { data: sellers, error: sellersError } = await supabase
       .from("profiles")
-      .select("id, paystack_subaccount_code, name")
+      .select("id, subaccount_code, name")
       .in("id", sellerIds);
 
     if (sellersError) {
@@ -62,7 +62,7 @@ serve(async (req) => {
         const sellerAmount = sellerBookTotal * 0.9;
 
         return {
-          subaccount: seller.paystack_subaccount_code,
+          subaccount: seller.subaccount_code,
           share: Math.round(sellerAmount * 100), // Convert to kobo, seller gets 90%
         };
       })
