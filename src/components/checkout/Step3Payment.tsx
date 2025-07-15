@@ -562,11 +562,31 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       }
     } catch (err) {
       console.error("Payment initialization error:", err);
-      const errorMessage =
-        err instanceof Error ? err.message : "Payment failed";
+
+      let errorMessage = "Payment failed";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === "string") {
+        errorMessage = err;
+      } else {
+        errorMessage = `Payment error: ${JSON.stringify(err)}`;
+      }
+
       setError(errorMessage);
       onPaymentError(errorMessage);
-      toast.error("Payment failed: " + errorMessage);
+
+      // Show user-friendly error message
+      if (errorMessage.includes("temporarily unavailable")) {
+        toast.error(
+          "Payment service is temporarily unavailable. Please try again in a moment.",
+        );
+      } else if (errorMessage.includes("Missing required fields")) {
+        toast.error(
+          "Payment setup error. Please refresh the page and try again.",
+        );
+      } else {
+        toast.error("Payment failed: " + errorMessage);
+      }
     } finally {
       setProcessing(false);
     }
