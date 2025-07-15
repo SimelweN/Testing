@@ -229,7 +229,23 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         );
       } catch (invokeError) {
         console.error("🚫 Payment function invoke failed:", invokeError);
-        throw new Error(`Payment function call failed: ${invokeError.message}`);
+
+        let errorMessage = "Payment function call failed";
+        if (invokeError.message) {
+          errorMessage = invokeError.message;
+        } else if (typeof invokeError === "string") {
+          errorMessage = invokeError;
+        } else {
+          errorMessage = `Function invoke error: ${JSON.stringify(invokeError)}`;
+        }
+
+        // Check for specific Edge Function errors
+        if (errorMessage.includes("non-2xx status code")) {
+          errorMessage +=
+            ". The payment service may be temporarily unavailable.";
+        }
+
+        throw new Error(errorMessage);
       }
 
       const { data: paymentData, error: paymentError } = paymentInvokeResult;
