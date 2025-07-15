@@ -102,11 +102,38 @@ const BursaryListing = () => {
           bursary.requirements.minimumMarks <= filters.minMarks);
 
       // Maximum household income filter
-      const matchesHouseholdIncome =
-        !filters.maxHouseholdIncome ||
-        (bursary.requirements.maxHouseholdIncome !== undefined &&
-          bursary.requirements.maxHouseholdIncome >=
-            filters.maxHouseholdIncome);
+      const matchesHouseholdIncome = (() => {
+        if (!filters.maxHouseholdIncome) return true;
+
+        // Check structured requirements first
+        if (bursary.requirements.maxHouseholdIncome !== undefined) {
+          return (
+            bursary.requirements.maxHouseholdIncome >=
+            filters.maxHouseholdIncome
+          );
+        }
+
+        // Parse income from eligibility criteria text
+        const incomeText = bursary.eligibilityCriteria.find(
+          (criteria) =>
+            criteria.toLowerCase().includes("income") ||
+            criteria.toLowerCase().includes("household") ||
+            criteria.toLowerCase().includes("r"),
+        );
+
+        if (incomeText) {
+          // Extract number from text like "Combined household income ≤ R200,000"
+          const incomeMatch = incomeText.match(/R?[\s]*(\d[\d,\s]*)/);
+          if (incomeMatch) {
+            const extractedIncome = parseInt(
+              incomeMatch[1].replace(/[,\s]/g, ""),
+            );
+            return extractedIncome >= filters.maxHouseholdIncome;
+          }
+        }
+
+        return true; // If no income requirement found, don't filter out
+      })();
 
       // Gender filter
       const matchesGender =
