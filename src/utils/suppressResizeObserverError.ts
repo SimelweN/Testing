@@ -80,9 +80,33 @@
     }
   };
 
+  // Wrap the ResizeObserver constructor to prevent errors at source
+  if (typeof window !== "undefined" && window.ResizeObserver) {
+    const OriginalResizeObserver = window.ResizeObserver;
+
+    window.ResizeObserver = class extends OriginalResizeObserver {
+      constructor(callback: ResizeObserverCallback) {
+        // Wrap the callback to catch and suppress errors
+        const wrappedCallback: ResizeObserverCallback = (entries, observer) => {
+          try {
+            callback(entries, observer);
+          } catch (error) {
+            // Silently ignore ResizeObserver errors
+            if (String(error).includes("ResizeObserver")) {
+              return;
+            }
+            throw error;
+          }
+        };
+
+        super(wrappedCallback);
+      }
+    };
+  }
+
   // Console info for debugging (only in dev)
   if (import.meta.env.DEV) {
-    console.log("🔇 ResizeObserver errors suppressed");
+    console.log("🔇 ResizeObserver errors completely suppressed");
   }
 })();
 
