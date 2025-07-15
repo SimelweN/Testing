@@ -78,7 +78,11 @@ export const cleanupMockData = async () => {
         );
 
       if (ordersError) {
-        console.error("Error removing mock orders:", ordersError);
+        console.error(
+          "Error removing mock orders:",
+          ordersError.message || ordersError,
+        );
+        // Don't throw here, continue with other cleanup
       } else {
         console.log("✅ Removed orders from mock users");
       }
