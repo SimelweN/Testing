@@ -125,9 +125,7 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
       // Get book data from IDs
       const { data: bookData, error: bookError } = await supabase
         .from("books")
-        .select(
-          "*, profiles!books_seller_id_fkey(paystack_subaccount_code, full_name)",
-        )
+        .select("*, profiles!books_seller_id_fkey(subaccount_code, full_name)")
         .in("id", bookIds);
 
       if (bookError || !bookData?.length) {
@@ -136,7 +134,7 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
 
       // Validate seller subaccount exists
       const firstBook = bookData[0];
-      const sellerSubaccountCode = firstBook.profiles?.paystack_subaccount_code;
+      const sellerSubaccountCode = firstBook.profiles?.subaccount_code;
 
       if (!sellerSubaccountCode) {
         return { success: false, error: "Seller banking setup incomplete" };
