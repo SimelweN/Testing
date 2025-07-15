@@ -1521,11 +1521,100 @@ import {
   BURSARY_PROVIDERS,
 } from "./validBursaries";
 
+// High School Bursaries for Grade 11 and Matric Students
+export const HIGH_SCHOOL_BURSARIES: Bursary[] = [
+  {
+    id: "anglo-american-high-school-2024",
+    name: "Anglo American High School Bursary",
+    provider: "Anglo American Foundation",
+    description:
+      "Financial support for Grade 11 and Matric students from disadvantaged communities with strong academic performance.",
+    amount: "School fees + stationery + uniform + transport allowance",
+    eligibilityCriteria: [
+      "Grade 11 or Grade 12 student",
+      "Combined household income ≤ R200,000",
+      "Academic average ≥ 70%",
+      "South African citizen",
+      "Plan to study further after matric",
+    ],
+    applicationDeadline: "30 September 2024",
+    applicationProcess: "Apply through school guidance counselor or online",
+    contactInfo: "011 638 9000 | foundation@angloamerican.com",
+    website: "https://www.angloamerican.com/foundation",
+    fieldsOfStudy: ["All fields - preparing for university"],
+    provinces: ["All provinces"],
+    requirements: {
+      academicRequirement: "Minimum 70% average in Grade 10 or Grade 11",
+      financialNeed: true,
+    },
+    isActive: true,
+    priority: "high",
+    studyLevel: "grade-11,matric",
+  },
+  {
+    id: "sasol-high-school-science-2024",
+    name: "Sasol High School Science Excellence Bursary",
+    provider: "Sasol Foundation",
+    description:
+      "Support for Grade 11 and Matric students excelling in mathematics and science subjects.",
+    amount: "School fees + textbooks + science equipment + mentoring",
+    eligibilityCriteria: [
+      "Grade 11 or Grade 12 student",
+      "Studying mathematics and physical science",
+      "Academic average ≥ 75% in math and science",
+      "Combined household income ≤ R300,000",
+      "Intention to pursue STEM at university",
+    ],
+    applicationDeadline: "31 October 2024",
+    applicationProcess: "Apply online at Sasol Foundation website",
+    contactInfo: "011 441 3000 | foundation@sasol.com",
+    website: "https://www.sasol.com/foundation",
+    fieldsOfStudy: ["Mathematics", "Physical Science", "STEM preparation"],
+    provinces: ["All provinces"],
+    requirements: {
+      academicRequirement: "Minimum 75% in mathematics and physical science",
+      financialNeed: true,
+    },
+    isActive: true,
+    priority: "high",
+    studyLevel: "grade-11,matric",
+  },
+  {
+    id: "clicks-high-school-2024",
+    name: "Clicks High School Health Sciences Bursary",
+    provider: "Clicks Foundation",
+    description:
+      "Support for Grade 11 and Matric students interested in health sciences and pharmacy.",
+    amount: "School fees + textbooks + health science materials",
+    eligibilityCriteria: [
+      "Grade 11 or Grade 12 student",
+      "Studying life sciences and mathematics",
+      "Academic average ≥ 70%",
+      "Interest in health sciences career",
+      "Combined household income ≤ R300,000",
+    ],
+    applicationDeadline: "30 September 2024",
+    applicationProcess: "Apply online or through participating schools",
+    contactInfo: "021 460 1911 | foundation@clicks.co.za",
+    website: "https://www.clicks.co.za/foundation",
+    fieldsOfStudy: ["Life Sciences", "Mathematics", "Health Sciences"],
+    provinces: ["All provinces"],
+    requirements: {
+      academicRequirement: "Minimum 70% average with focus on life sciences",
+      financialNeed: true,
+    },
+    isActive: true,
+    priority: "medium",
+    studyLevel: "grade-11,matric",
+  },
+];
+
 // Combine all bursaries
 export const ALL_BURSARIES: Bursary[] = [
   ...ENHANCED_BURSARIES,
   ...ADDITIONAL_BURSARIES,
   ...ADDITIONAL_VALID_BURSARIES,
+  ...HIGH_SCHOOL_BURSARIES,
 ];
 
 // Export as BURSARIES for backward compatibility
