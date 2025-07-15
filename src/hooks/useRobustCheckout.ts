@@ -18,9 +18,8 @@ import type {
   CheckoutDeliveryQuote,
   CheckoutValidation,
   CheckoutOrderSummary,
-  currencyUtils,
-  validationUtils,
 } from "@/types/checkout";
+import { currencyUtils, validationUtils } from "@/types/checkout";
 
 // Action types for reducer
 type CheckoutAction =
