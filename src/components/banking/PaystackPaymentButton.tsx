@@ -78,7 +78,7 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
     "idle" | "initializing" | "pending" | "verifying" | "completed" | "failed"
   >("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [sellerSubaccount, setSellerSubaccount] = useState<string | null>(null);
+  // Seller subaccount state removed
   const createdOrderRef = useRef<Order | null>(null);
 
   // Load Paystack script
