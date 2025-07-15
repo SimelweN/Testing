@@ -15,7 +15,9 @@ const QuickCleanupButton: React.FC = () => {
         toast.success("🎉 Database cleanup completed!");
         toast.info("All books are now available for purchase");
       } else {
-        toast.error("❌ Cleanup failed: " + result.error);
+        const errorMsg = result.error || "Unknown error occurred";
+        console.error("Cleanup failed with error:", errorMsg);
+        toast.error("❌ Cleanup failed: " + errorMsg);
       }
     } catch (error) {
       toast.error(
