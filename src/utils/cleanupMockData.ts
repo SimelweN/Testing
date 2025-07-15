@@ -60,7 +60,11 @@ export const cleanupMockData = async () => {
         .in("seller_id", mockSellerIds);
 
       if (booksError) {
-        console.error("Error removing mock books:", booksError);
+        console.error(
+          "Error removing mock books:",
+          booksError.message || booksError,
+        );
+        // Don't throw here, continue with other cleanup
       } else {
         console.log("✅ Removed books from mock sellers");
       }
