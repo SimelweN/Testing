@@ -60,16 +60,19 @@ const GoogleMapsAddressAutocomplete: React.FC<
     null,
   );
   const [inputValue, setInputValue] = useState("");
+  const [scriptLoaded, setScriptLoaded] = useState(false);
 
-  // Initialize Google Maps
+  // Check if Google Maps is already loaded
+  const checkGoogleMapsLoaded = () => {
+    return window.google?.maps?.places?.Autocomplete;
+  };
+
+  // Initialize autocomplete
   const initializeAutocomplete = () => {
-    if (!window.google?.maps?.places) {
-      setLoadError("Google Maps Places API failed to load");
-      setIsLoading(false);
-      return;
+    if (!checkGoogleMapsLoaded() || !inputRef.current) {
+      console.log("Google Maps not ready yet");
+      return false;
     }
-
-    if (!inputRef.current) return;
 
     try {
       const autocomplete = new window.google.maps.places.Autocomplete(
@@ -142,15 +145,21 @@ const GoogleMapsAddressAutocomplete: React.FC<
 
       setIsLoading(false);
       setLoadError(null);
+      return true;
     } catch (err: any) {
+      console.error("Failed to initialize autocomplete:", err);
       setLoadError(`Failed to initialize: ${err.message}`);
       setIsLoading(false);
+      return false;
     }
   };
 
   // Load Google Maps script
   const loadGoogleMaps = () => {
-    if (window.google?.maps?.places) {
+    // Check if already loaded
+    if (checkGoogleMapsLoaded()) {
+      console.log("Google Maps already loaded, initializing...");
+      setScriptLoaded(true);
       initializeAutocomplete();
       return;
     }
@@ -162,16 +171,57 @@ const GoogleMapsAddressAutocomplete: React.FC<
       return;
     }
 
-    // Create script element
+    // Check if script is already being loaded
+    const existingScript = document.querySelector(
+      'script[src*="maps.googleapis.com"]',
+    );
+    if (existingScript) {
+      console.log(
+        "Google Maps script already exists, waiting for it to load...",
+      );
+
+      // Poll for Google Maps to be ready
+      const pollInterval = setInterval(() => {
+        if (checkGoogleMapsLoaded()) {
+          clearInterval(pollInterval);
+          setScriptLoaded(true);
+          initializeAutocomplete();
+        }
+      }, 100);
+
+      // Stop polling after 10 seconds
+      setTimeout(() => {
+        clearInterval(pollInterval);
+        if (!checkGoogleMapsLoaded()) {
+          setLoadError("Google Maps failed to load within timeout");
+          setIsLoading(false);
+        }
+      }, 10000);
+      return;
+    }
+
+    console.log("Loading Google Maps script...");
+
+    // Create and load script
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMapsAutocomplete`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
     script.async = true;
     script.defer = true;
 
-    // Set up callback
-    (window as any).initGoogleMapsAutocomplete = initializeAutocomplete;
+    script.onload = () => {
+      console.log("Google Maps script loaded successfully");
+      setScriptLoaded(true);
+
+      // Small delay to ensure Places library is ready
+      setTimeout(() => {
+        if (initializeAutocomplete()) {
+          console.log("Autocomplete initialized successfully");
+        }
+      }, 100);
+    };
 
     script.onerror = () => {
+      console.error("Failed to load Google Maps script");
       setLoadError("Failed to load Google Maps script");
       setIsLoading(false);
     };
@@ -185,6 +235,8 @@ const GoogleMapsAddressAutocomplete: React.FC<
     // Set default value if provided
     if (defaultValue?.formattedAddress) {
       setInputValue(defaultValue.formattedAddress);
+      setSelectedAddress(defaultValue as AddressData);
+      setIsLoading(false); // Don't show loading if we have a default value
     }
 
     return () => {
@@ -203,7 +255,10 @@ const GoogleMapsAddressAutocomplete: React.FC<
     loadGoogleMaps();
   };
 
-  if (isLoading) {
+  // Don't show loading state if we have a default value
+  const shouldShowLoading = isLoading && !defaultValue?.formattedAddress;
+
+  if (shouldShowLoading) {
     return (
       <div className={`space-y-4 ${className}`}>
         {label && (
