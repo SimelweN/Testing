@@ -379,7 +379,7 @@ const AdminDashboard = () => {
           </div>
         ) : (
           // Desktop: Proper TabsList with grid styling
-          <TabsList className="grid grid-cols-8 gap-2 p-2 bg-white border border-gray-200 rounded-lg shadow-sm h-auto">
+          <TabsList className="grid grid-cols-9 gap-2 p-2 bg-white border border-gray-200 rounded-lg shadow-sm h-auto">
             {tabConfig.map((tab) => {
               const Icon = tab.icon;
               return (
