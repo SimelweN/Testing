@@ -24,7 +24,6 @@ import {
   Search,
   Filter,
   MapPin,
-  Star,
   Building,
   GraduationCap,
   AlertCircle,
