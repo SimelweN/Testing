@@ -28,6 +28,7 @@ import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
+import DatabaseCleanup from "@/components/admin/DatabaseCleanup";
 import {
   TrendingUp,
   Users,
@@ -37,6 +38,7 @@ import {
   Settings,
   GraduationCap,
   Lightbulb,
+  Trash2,
 } from "lucide-react";
 
 const AdminDashboard = () => {
