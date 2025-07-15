@@ -18,7 +18,10 @@ export const runCleanupNow = async () => {
       .neq("id", "");
 
     if (booksError) {
-      console.error("Error resetting books:", booksError);
+      console.error("Error resetting books:", booksError.message || booksError);
+      throw new Error(
+        `Failed to reset books: ${booksError.message || JSON.stringify(booksError)}`,
+      );
     } else {
       console.log("✅ All books reset to available");
     }
