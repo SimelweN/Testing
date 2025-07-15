@@ -113,9 +113,9 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
         .from("books")
         .select(
           `
-          id, title, author, price, condition, isbn, image_url,
-          seller_id, seller_subaccount_code, seller_city, seller_province,
-          frontCover, backCover, sold, availability
+          id, title, author, price, condition, image_url,
+          seller_id, paystack_subaccount_code, province,
+          front_cover, back_cover, sold, created_at
         `,
         )
         .in("id", bookIds);
