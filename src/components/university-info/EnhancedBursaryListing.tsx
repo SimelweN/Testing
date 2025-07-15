@@ -197,26 +197,6 @@ const EnhancedBursaryListing = () => {
     }
   };
 
-  // High school stats
-  const highSchoolStats = useMemo(() => {
-    const total = HIGH_SCHOOL_BURSARIES.length;
-    const grade11 = HIGH_SCHOOL_BURSARIES.filter((b) =>
-      b.studyLevel?.includes("grade-11"),
-    ).length;
-    const matric = HIGH_SCHOOL_BURSARIES.filter((b) =>
-      b.studyLevel?.includes("matric"),
-    ).length;
-    const totalFunding = HIGH_SCHOOL_BURSARIES.reduce((acc, b) => {
-      const amountMatch = b.amount.match(/R?[\s]*(\d[\d,\s]*)/);
-      return (
-        acc +
-        (amountMatch ? parseInt(amountMatch[1].replace(/[,\s]/g, "")) : 50000)
-      );
-    }, 0);
-
-    return { total, grade11, matric, totalFunding };
-  }, []);
-
   return (
     <div className="space-y-6">
       {/* Hero Section */}
