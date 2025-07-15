@@ -66,7 +66,7 @@ const CampusBooksSection = lazy(
 
 // Preload components for better performance
 const preloadBursarySection = () =>
-  import("@/components/university-info/BursaryExplorerSection");
+  import("@/components/university-info/EnhancedBursaryListing");
 const preloadBooksSection = () =>
   import("@/components/university-info/CampusBooksSection");
 
