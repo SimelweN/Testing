@@ -635,6 +635,40 @@ const BursaryListing = () => {
         </CardContent>
       </Card>
 
+      {/* High School Alert */}
+      {(filters.studyLevel === "grade-11" ||
+        filters.studyLevel === "matric") && (
+        <Alert className="border-blue-200 bg-blue-50">
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <strong>High School Students:</strong> Showing bursaries
+            specifically for Grade 11 and Matric students. Look for highlighted
+            academic requirements and household income limits in the eligibility
+            criteria below.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Results Summary */}
+      <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+        <span className="text-sm text-gray-600">
+          Found <strong>{filteredBursaries.length}</strong> bursaries matching
+          your criteria
+          {(filters.studyLevel === "grade-11" ||
+            filters.studyLevel === "matric") &&
+            ` (including ${filteredBursaries.filter((b) => (b as any).studyLevel?.includes("grade-11") || (b as any).studyLevel?.includes("matric")).length} high school bursaries)`}
+        </span>
+        {filteredBursaries.length > 0 && (
+          <Badge variant="outline">
+            {
+              filteredBursaries.filter((b) => b.requirements?.financialNeed)
+                .length
+            }{" "}
+            need-based
+          </Badge>
+        )}
+      </div>
+
       {/* Bursary Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredBursaries.map((bursary) => {
