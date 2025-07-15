@@ -61,19 +61,7 @@ try {
   };
 }
 
-// Create a simple query client with minimal configuration
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: 1,
-      refetchOnWindowFocus: false, // Reduce unnecessary requests
-    },
-    mutations: {
-      retry: false,
-    },
-  },
-});
+// QueryClient is now created in App.tsx to avoid duplication
 
 // Initialize the React app with enhanced error handling
 const initializeApp = () => {
