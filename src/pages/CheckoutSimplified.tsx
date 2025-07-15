@@ -246,17 +246,17 @@ const CheckoutSimplified = () => {
       // 🚚 STEP 8: Get buyer address (if available)
       let buyerAddress: CheckoutAddress | null = null;
       try {
-        const addresses = await getUserAddresses(user.id);
-        setSavedAddresses(addresses || []);
+        const addressData = await getUserAddresses(user.id);
+        setSavedAddresses(addressData ? [addressData] : []);
 
-        if (addresses && addresses.length > 0) {
-          const firstAddress = addresses[0];
+        if (addressData?.shipping_address) {
+          const addr = addressData.shipping_address as any;
           buyerAddress = {
-            street: firstAddress.street,
-            city: firstAddress.city,
-            province: firstAddress.province,
-            postalCode: firstAddress.postal_code,
-            country: firstAddress.country || "South Africa",
+            street: addr.street || "",
+            city: addr.city || "",
+            province: addr.province || "",
+            postalCode: addr.postalCode || "",
+            country: addr.country || "South Africa",
           };
         }
       } catch (addressError) {
