@@ -60,7 +60,7 @@ const Navbar = () => {
                   <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
                 <span className="text-lg sm:text-xl font-bold text-book-600 truncate">
-                  ReBooked Campus
+                  ReBooked Solutions
                 </span>
               </Link>
             </div>
@@ -118,8 +118,8 @@ const Navbar = () => {
                 <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <span className="text-lg sm:text-xl font-bold text-book-600 truncate">
-                <span className="hidden sm:inline">ReBooked Campus</span>
-                <span className="sm:hidden">ReBooked Campus</span>
+                <span className="hidden sm:inline">ReBooked Solutions</span>
+                <span className="sm:hidden">ReBooked Solutions</span>
               </span>
             </Link>
           </div>
@@ -173,16 +173,6 @@ const Navbar = () => {
                     allowRetry={true}
                     showErrorIndicator={true}
                   />
-                </Link>
-
-                <Link to="/create-listing">
-                  <Button className="bg-book-600 hover:bg-book-700 text-white px-3 lg:px-4 h-10 text-sm">
-                    <Plus className="w-4 h-4" />
-                    <span className="ml-1 lg:ml-2 hidden lg:inline">
-                      Sell Book
-                    </span>
-                    <span className="ml-1 lg:hidden">Sell</span>
-                  </Button>
                 </Link>
 
                 <div className="flex items-center space-x-1 lg:space-x-2">
@@ -297,17 +287,6 @@ const Navbar = () => {
 
               {isAuthenticated ? (
                 <>
-                  <div className="border-t border-gray-100 pt-3 mt-3">
-                    <Link
-                      to="/create-listing"
-                      className="flex items-center px-4 py-3 text-base font-medium text-white bg-book-600 rounded-md min-h-[44px]"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <Plus className="w-5 h-5 mr-2" />
-                      Sell Book
-                    </Link>
-                  </div>
-
                   <Link
                     to="/notifications"
                     className="flex items-center px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-book-600 rounded-md min-h-[44px]"
