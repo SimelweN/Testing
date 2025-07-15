@@ -335,52 +335,29 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
         return;
       }
 
-      // Use Paystack popup for production
-      if (window.PaystackPop && paymentInit.reference) {
-        setPaymentStatus("pending");
+      // Use new PaystackPaymentService for popup
+      setPaymentStatus("pending");
 
-        const handler = window.PaystackPop.setup({
-          key: PAYSTACK_CONFIG.getPublicKey(),
-          email: user.email,
-          amount: paymentSplit.totalAmountKobo,
-          currency: "ZAR",
-          ref: paymentInit.reference,
-          // Subaccount removed - direct payments only
-          metadata: {
-            seller_id: sellerId,
-            delivery_fee: deliveryFee,
-            seller_amount: paymentSplit.sellerAmount,
-            platform_commission: paymentSplit.platformAmount,
-            custom_fields: [
-              {
-                display_name: "Books",
-                variable_name: "books",
-                value: bookIds.join(", "),
-              },
-              {
-                display_name: "Delivery Method",
-                variable_name: "delivery_method",
-                value: deliveryMethod,
-              },
-              {
-                display_name: "Seller ID",
-                variable_name: "seller_id",
-                value: sellerId,
-              },
-            ],
-          },
-          onSuccess: handlePaystackSuccess,
-          onCancel: handlePaystackCancel,
-        });
+      const paymentResponse = await PaystackPaymentService.initializePayment({
+        email: user.email,
+        amount: paymentSplit.totalAmountKobo,
+        reference: paymentInit.reference,
+        metadata: {
+          seller_id: sellerId,
+          delivery_fee: deliveryFee,
+          seller_amount: paymentSplit.sellerAmount,
+          platform_commission: paymentSplit.platformAmount,
+          books: bookIds.join(", "),
+          delivery_method: deliveryMethod,
+        },
+        onSuccess: handlePaystackSuccess,
+        onCancel: handlePaystackCancel,
+      });
 
-        handler.openIframe();
-      } else {
-        // Fallback to redirect if popup not available
-        if (paymentInit.authorization_url) {
-          window.location.href = paymentInit.authorization_url;
-        } else {
-          throw new Error("No payment method available");
-        }
+      if (!paymentResponse.success) {
+        throw new Error(
+          paymentResponse.error || "Failed to initialize payment",
+        );
       }
     } catch (error) {
       console.error("Payment error:", error);
