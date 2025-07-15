@@ -680,7 +680,12 @@ const BursaryListing = () => {
           return (
             <Card
               key={bursary.id}
-              className="hover:shadow-lg transition-shadow"
+              className={`hover:shadow-lg transition-shadow ${
+                (bursary as any).studyLevel?.includes("grade-11") ||
+                (bursary as any).studyLevel?.includes("matric")
+                  ? "border-blue-300 bg-blue-50/50"
+                  : ""
+              }`}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
