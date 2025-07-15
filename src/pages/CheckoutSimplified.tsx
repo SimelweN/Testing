@@ -636,11 +636,7 @@ const CheckoutSimplified = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <SimpleAddressInput
-                    onAddressUpdate={handleAddressUpdate}
-                    savedAddresses={savedAddresses}
-                    initialAddress={state.shippingAddress}
-                  />
+                  <SimpleAddressInput onAddressSelect={handleAddressUpdate} />
                 </CardContent>
               </Card>
             )}
