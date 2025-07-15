@@ -18,6 +18,7 @@ import GoogleMapsProvider from "./contexts/GoogleMapsContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
+import QuickCleanupButton from "./components/QuickCleanupButton";
 import Index from "./pages/Index";
 import BookListing from "./pages/BookListing";
 import BookDetails from "./pages/BookDetails";
