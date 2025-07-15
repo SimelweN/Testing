@@ -71,6 +71,10 @@ const BursaryListing = () => {
       const matchesStudyLevel =
         !filters.studyLevel ||
         filters.studyLevel === "any" ||
+        (filters.studyLevel === "grade-11" &&
+          (bursary as any).studyLevel?.includes("grade-11")) ||
+        (filters.studyLevel === "matric" &&
+          (bursary as any).studyLevel?.includes("matric")) ||
         (filters.studyLevel === "undergraduate" &&
           (bursary.fieldsOfStudy.some((field) =>
             field.toLowerCase().includes("undergraduate"),
