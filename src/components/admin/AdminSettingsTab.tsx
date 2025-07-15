@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,6 +22,7 @@ import { createBroadcast } from "@/services/broadcastService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Settings, MessageSquare, Megaphone } from "lucide-react";
+import EdgeFunctionTestButton from "@/components/EdgeFunctionTestButton";
 
 interface AdminSettingsTabProps {
   broadcastMessage: string;
@@ -120,9 +120,9 @@ const AdminSettingsTab = ({
               <Label htmlFor="broadcast-type">Type</Label>
               <Select
                 value={newBroadcast.type}
-                onValueChange={(value: "info" | "warning" | "success" | "error") =>
-                  setNewBroadcast((prev) => ({ ...prev, type: value }))
-                }
+                onValueChange={(
+                  value: "info" | "warning" | "success" | "error",
+                ) => setNewBroadcast((prev) => ({ ...prev, type: value }))}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -142,9 +142,9 @@ const AdminSettingsTab = ({
               <Label htmlFor="broadcast-priority">Priority</Label>
               <Select
                 value={newBroadcast.priority}
-                onValueChange={(value: "low" | "normal" | "medium" | "high" | "urgent") =>
-                  setNewBroadcast((prev) => ({ ...prev, priority: value }))
-                }
+                onValueChange={(
+                  value: "low" | "normal" | "medium" | "high" | "urgent",
+                ) => setNewBroadcast((prev) => ({ ...prev, priority: value }))}
               >
                 <SelectTrigger>
                   <SelectValue />
