@@ -72,8 +72,9 @@ const SimpleAddressInput = ({
       .filter(Boolean)
       .join(", ");
 
-    // Call parent callback with complete address data
+    // Call parent callback with complete address data (only if function is provided)
     if (
+      typeof onAddressSelect === "function" &&
       newAddress.street &&
       newAddress.city &&
       newAddress.province &&
