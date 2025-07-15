@@ -304,32 +304,6 @@ const CampusNavbar = () => {
                 Campus & Books
               </Button>
 
-              <Button
-                variant="ghost"
-                onClick={() => handleNavigation("/study-tips")}
-                className={`w-full justify-start px-4 py-3 rounded-lg font-medium transition-colors text-sm ${
-                  isActive("/study-tips") || isActive("/study-resources")
-                    ? "bg-book-50 text-book-600"
-                    : "text-gray-600"
-                }`}
-              >
-                <Lightbulb className="w-4 h-4 mr-3" />
-                Study Tips
-              </Button>
-
-              <Button
-                variant="ghost"
-                onClick={() => handleNavigation("/add-program")}
-                className={`w-full justify-start px-4 py-3 rounded-lg font-medium transition-colors text-sm ${
-                  isActive("/add-program")
-                    ? "bg-book-50 text-book-600"
-                    : "text-gray-600"
-                }`}
-              >
-                <Plus className="w-4 h-4 mr-3" />
-                Add Program
-              </Button>
-
               <div className="border-t border-book-200 pt-3 mt-3">
                 <Button
                   onClick={() => handleNavigation("/books")}
