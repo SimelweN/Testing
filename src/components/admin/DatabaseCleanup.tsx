@@ -37,7 +37,8 @@ const DatabaseCleanup: React.FC = () => {
       }
     } catch (error) {
       console.error("Cleanup error:", error);
-      toast.error("Failed to cleanup mock data");
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      toast.error("Failed to cleanup mock data: " + errorMsg);
     } finally {
       setIsCleaningUp(false);
     }
