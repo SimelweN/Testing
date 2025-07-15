@@ -10,12 +10,12 @@ export interface SubaccountData {
 
 export interface SellerSubaccount {
   id: string;
-  seller_id: string;
-  paystack_subaccount_code: string;
+  user_id: string;
+  subaccount_code: string;
   business_name: string;
   account_number: string;
   bank_code: string;
-  is_active: boolean;
+  status: string;
   created_at: string;
   updated_at: string;
 }
@@ -37,16 +37,15 @@ export class SubaccountService {
       // For now, we'll simulate this process and store the data in our database
 
       const { data, error } = await supabase
-        .from("seller_subaccounts")
+        .from("banking_subaccounts")
         .insert({
-          seller_id: sellerId,
-          paystack_subaccount_code: `ACCT_${sellerId}_${Date.now()}`,
+          user_id: sellerId,
+          subaccount_code: `ACCT_${sellerId}_${Date.now()}`,
           business_name: subaccountData.business_name,
           account_number: subaccountData.account_number,
           bank_code: subaccountData.settlement_bank,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          email: "", // Will need to be provided
+          status: "active",
         })
         .select()
         .single();
@@ -66,19 +65,17 @@ export class SubaccountService {
   /**
    * Get seller's active subaccount
    */
-  static async getSellerSubaccount(
-    sellerId: string,
-  ): Promise<{
+  static async getSellerSubaccount(sellerId: string): Promise<{
     success: boolean;
     subaccount?: SellerSubaccount;
     error?: string;
   }> {
     try {
       const { data, error } = await supabase
-        .from("seller_subaccounts")
+        .from("banking_subaccounts")
         .select("*")
-        .eq("seller_id", sellerId)
-        .eq("is_active", true)
+        .eq("user_id", sellerId)
+        .eq("status", "active")
         .single();
 
       if (error) {
@@ -110,10 +107,9 @@ export class SubaccountService {
   }> {
     try {
       const { data, error } = await supabase
-        .from("seller_subaccounts")
+        .from("banking_subaccounts")
         .update({
           ...updates,
-          updated_at: new Date().toISOString(),
         })
         .eq("id", subaccountId)
         .select()
@@ -139,10 +135,9 @@ export class SubaccountService {
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase
-        .from("seller_subaccounts")
+        .from("banking_subaccounts")
         .update({
-          is_active: false,
-          updated_at: new Date().toISOString(),
+          status: "failed",
         })
         .eq("id", subaccountId);
 
