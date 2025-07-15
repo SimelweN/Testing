@@ -47,6 +47,35 @@ const AdminSettingsTab = ({
     expiresAt: "",
   });
   const [isCreating, setIsCreating] = useState(false);
+  const [isCleaningBanking, setIsCleaningBanking] = useState(false);
+
+  const handleBankingCleanup = async () => {
+    if (
+      !confirm(
+        "⚠️ This will remove ALL development/mock banking details from the system. This action cannot be undone. Are you sure?",
+      )
+    ) {
+      return;
+    }
+
+    setIsCleaningBanking(true);
+    try {
+      const result = await runBankingCleanup();
+
+      if (result.success) {
+        toast.success(
+          `Banking cleanup completed! Removed ${result.removedSubaccounts} mock subaccounts and ${result.removedBookSubaccounts} book subaccount codes.`,
+        );
+      } else {
+        toast.error(`Banking cleanup failed: ${result.errors.join(", ")}`);
+      }
+    } catch (error) {
+      console.error("Banking cleanup error:", error);
+      toast.error("Failed to run banking cleanup");
+    } finally {
+      setIsCleaningBanking(false);
+    }
+  };
 
   const handleCreateBroadcast = async () => {
     if (!user || !newBroadcast.title.trim() || !newBroadcast.message.trim()) {
