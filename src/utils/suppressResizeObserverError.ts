@@ -2,6 +2,44 @@
 // This warning occurs when ResizeObserver callbacks trigger layout changes
 // that cause the observed elements to resize again
 
+// Immediate suppression - runs as soon as this file is imported
+(function suppressResizeObserverErrors() {
+  // Store original console methods
+  const originalError = console.error;
+  const originalWarn = console.warn;
+
+  // Override console.error immediately
+  console.error = function (...args: any[]) {
+    const message = args[0];
+    if (typeof message === "string" && message.includes("ResizeObserver")) {
+      return; // Suppress all ResizeObserver errors
+    }
+    return originalError.apply(console, args);
+  };
+
+  // Override console.warn for ResizeObserver warnings
+  console.warn = function (...args: any[]) {
+    const message = args[0];
+    if (typeof message === "string" && message.includes("ResizeObserver")) {
+      return; // Suppress all ResizeObserver warnings
+    }
+    return originalWarn.apply(console, args);
+  };
+
+  // Suppress at window level immediately
+  window.addEventListener(
+    "error",
+    function (event) {
+      if (event.message && event.message.includes("ResizeObserver")) {
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        return false;
+      }
+    },
+    true,
+  );
+})();
+
 const debounce = (fn: Function, delay: number) => {
   let timeoutId: ReturnType<typeof setTimeout>;
   return (...args: any[]) => {
