@@ -210,17 +210,27 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       console.log("Order created successfully:", orderData);
 
-      // Step 2: Initialize payment with the created order_id
+      // Step 2: Initialize payment with the correct parameters for the function
       const paymentRequest = {
-        order_id: orderData.order.id,
+        user_id: userId,
         email: userData.user.email,
-        amount: orderSummary.total_price,
-        currency: "ZAR",
-        callback_url: `${window.location.origin}/checkout/success`,
+        total_amount: orderSummary.total_price * 100, // Convert to kobo
+        items: [
+          {
+            book_id: orderSummary.book.id,
+            title: orderSummary.book.title,
+            price: orderSummary.book_price * 100, // Convert to kobo
+            seller_id: orderSummary.book.seller_id,
+            condition: orderSummary.book.condition,
+          },
+        ],
+        shipping_address: orderSummary.buyer_address,
         metadata: {
+          order_id: orderData.order.id,
           order_data: orderData,
           book_title: orderSummary.book.title,
           delivery_method: orderSummary.delivery.service_name,
+          delivery_price: orderSummary.delivery_price * 100, // Convert to kobo
           buyer_id: userId,
         },
       };
