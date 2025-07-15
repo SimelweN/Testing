@@ -114,12 +114,19 @@ const PickupAddressInput = ({
 
       {/* Google Maps or Manual Entry */}
       {!useManualEntry ? (
-        <GoogleMapsAddressInput
+        <GoogleMapsAddressAutocomplete
           onAddressSelect={handleGoogleMapsSelect}
           placeholder="Enter your pickup address..."
           required
           error={error}
-          defaultValue={formatAddressForDisplay(address)}
+          defaultValue={{
+            formattedAddress: formatAddressForDisplay(address),
+            street: address.street,
+            city: address.city,
+            province: address.province,
+            postalCode: address.postalCode,
+            country: "South Africa",
+          }}
         />
       ) : (
         <div className="space-y-3">
