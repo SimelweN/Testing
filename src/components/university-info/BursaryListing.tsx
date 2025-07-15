@@ -835,9 +835,17 @@ const BursaryListing = () => {
                                 </span>
                               </div>
                             )}
-                            {((bursary as any).studyLevel?.includes(
-                              "grade-11",
-                            ) && (
+                            {bursary.studyLevel?.includes("grade-11") &&
+                            bursary.studyLevel?.includes("matric") ? (
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-blue-700">
+                                  Study Level:
+                                </span>
+                                <span className="text-blue-600">
+                                  Grade 11 & Matric Students
+                                </span>
+                              </div>
+                            ) : bursary.studyLevel?.includes("grade-11") ? (
                               <div className="flex items-center gap-2">
                                 <span className="font-medium text-blue-700">
                                   Study Level:
@@ -846,19 +854,16 @@ const BursaryListing = () => {
                                   Grade 11 Students
                                 </span>
                               </div>
-                            )) ||
-                              ((bursary as any).studyLevel?.includes(
-                                "matric",
-                              ) && (
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium text-blue-700">
-                                    Study Level:
-                                  </span>
-                                  <span className="text-blue-600">
-                                    Matric/Grade 12 Students
-                                  </span>
-                                </div>
-                              ))}
+                            ) : bursary.studyLevel?.includes("matric") ? (
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-blue-700">
+                                  Study Level:
+                                </span>
+                                <span className="text-blue-600">
+                                  Matric/Grade 12 Students
+                                </span>
+                              </div>
+                            ) : null}
                           </div>
                         </div>
                       )}
