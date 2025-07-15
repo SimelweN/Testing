@@ -26,7 +26,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Search,
   ExternalLink,
@@ -57,17 +56,16 @@ const EnhancedBursaryListing = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<BursaryFilters>({});
   const [expandedBursary, setExpandedBursary] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("all");
 
-  // Filter bursaries based on current filters - only university bursaries
+  // Filter university bursaries only
   const filteredBursaries = useMemo(() => {
-    const bursariesToFilter = BURSARIES.filter(
+    const universityBursaries = BURSARIES.filter(
       (b) =>
         !b.studyLevel?.includes("grade-11") &&
         !b.studyLevel?.includes("matric"),
     );
 
-    return bursariesToFilter.filter((bursary) => {
+    return universityBursaries.filter((bursary) => {
       // Search filter
       const matchesSearch =
         !searchTerm ||
@@ -155,13 +153,45 @@ const EnhancedBursaryListing = () => {
         return true;
       })();
 
+      // Gender filter
+      const matchesGender =
+        !filters.genderSpecific ||
+        filters.genderSpecific === "any" ||
+        !bursary.requirements.genderSpecific ||
+        bursary.requirements.genderSpecific === filters.genderSpecific;
+
+      // Race filter
+      const matchesRace =
+        !filters.raceSpecific ||
+        filters.raceSpecific === "any" ||
+        !bursary.requirements.raceSpecific ||
+        bursary.requirements.raceSpecific === filters.raceSpecific;
+
+      // Special criteria filters
+      const matchesDisabilitySupport =
+        !filters.disabilitySupport ||
+        bursary.requirements.disabilitySupport === true;
+
+      const matchesRuralBackground =
+        !filters.ruralBackground ||
+        bursary.requirements.ruralBackground === true;
+
+      const matchesFirstGeneration =
+        !filters.firstGeneration ||
+        bursary.requirements.firstGeneration === true;
+
       return (
         matchesSearch &&
         matchesField &&
         matchesProvince &&
         matchesFinancialNeed &&
         matchesMinMarks &&
-        matchesHouseholdIncome
+        matchesHouseholdIncome &&
+        matchesGender &&
+        matchesRace &&
+        matchesDisabilitySupport &&
+        matchesRuralBackground &&
+        matchesFirstGeneration
       );
     });
   }, [searchTerm, filters]);
@@ -197,6 +227,48 @@ const EnhancedBursaryListing = () => {
     }
   };
 
+  // Helper function to get high school requirements for university bursaries
+  const getHighSchoolRequirements = (bursary: any) => {
+    const requirements = [];
+
+    // Extract academic requirements
+    if (bursary.requirements?.academicRequirement) {
+      const marksMatch =
+        bursary.requirements.academicRequirement.match(/(\d+)%/);
+      if (marksMatch) {
+        requirements.push({
+          type: "academic",
+          grade11: `Aim for ${Math.max(parseInt(marksMatch[1]) - 5, 60)}%+ average in Grade 11`,
+          matric: `Minimum ${marksMatch[1]}% average in Matric`,
+        });
+      }
+    }
+
+    // Extract from eligibility criteria
+    bursary.eligibilityCriteria.forEach((criteria: string) => {
+      const marksMatch = criteria.match(/(\d+)%/);
+      if (marksMatch && criteria.toLowerCase().includes("average")) {
+        requirements.push({
+          type: "academic",
+          grade11: `Target ${Math.max(parseInt(marksMatch[1]) - 5, 60)}%+ in Grade 11`,
+          matric: `Need ${marksMatch[1]}% Matric average`,
+        });
+      }
+
+      if (
+        criteria.toLowerCase().includes("nsc") ||
+        criteria.toLowerCase().includes("matric")
+      ) {
+        requirements.push({
+          type: "nsc",
+          requirement: criteria,
+        });
+      }
+    });
+
+    return requirements;
+  };
+
   return (
     <div className="space-y-6">
       {/* Hero Section */}
@@ -217,14 +289,7 @@ const EnhancedBursaryListing = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 max-w-3xl mx-auto">
           <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
             <div className="text-2xl font-bold">
-              {
-                BURSARIES.filter(
-                  (b) =>
-                    !b.studyLevel?.includes("grade-11") &&
-                    !b.studyLevel?.includes("matric"),
-                ).length
-              }
-              +
+              {filteredBursaries.length}+
             </div>
             <div className="text-sm opacity-90">University Bursaries</div>
           </div>
@@ -239,439 +304,341 @@ const EnhancedBursaryListing = () => {
         </div>
       </div>
 
-      {/* High School Focus Section */}
-      <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+      {/* High School Student Information */}
+      <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
         <CardHeader className="text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="p-3 bg-blue-100 rounded-full">
-              <BookOpen className="h-8 w-8 text-blue-600" />
-            </div>
-            <CardTitle className="text-3xl text-blue-800">
-              High School Student Bursaries
-            </CardTitle>
-          </div>
-          <CardDescription className="text-lg text-blue-700">
-            Dedicated financial support for Grade 11 and Matric students
-            planning their university journey
+          <CardTitle className="text-2xl text-green-800 flex items-center justify-center gap-2">
+            <BookOpen className="h-6 w-6" />
+            For High School Students: Plan Your University Bursary Journey
+          </CardTitle>
+          <CardDescription className="text-lg text-green-700">
+            See what marks you need in Grade 11 and Matric to qualify for
+            university bursaries
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          {/* High School Criteria Highlights */}
-          <div className="grid md:grid-cols-3 gap-6 mb-6">
-            <div className="bg-white p-6 rounded-lg border border-blue-200 shadow-sm">
-              <div className="flex items-center gap-3 mb-4">
-                <Target className="h-8 w-8 text-green-600" />
-                <h3 className="text-xl font-semibold text-gray-800">
-                  Academic Requirements
-                </h3>
-              </div>
-              <ul className="space-y-2 text-gray-700">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>
-                    <strong>70-75%</strong> average minimum
-                  </span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>Strong math & science performance</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>Consistent academic progress</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg border border-blue-200 shadow-sm">
-              <div className="flex items-center gap-3 mb-4">
-                <Banknote className="h-8 w-8 text-blue-600" />
-                <h3 className="text-xl font-semibold text-gray-800">
-                  Income Criteria
-                </h3>
-              </div>
-              <ul className="space-y-2 text-gray-700">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-500" />
-                  <span>
-                    <strong>R200,000 - R300,000</strong> household income
-                  </span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-500" />
-                  <span>Financial need demonstrated</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-500" />
-                  <span>Supporting documentation required</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg border border-blue-200 shadow-sm">
-              <div className="flex items-center gap-3 mb-4">
-                <Award className="h-8 w-8 text-purple-600" />
-                <h3 className="text-xl font-semibold text-gray-800">
-                  Benefits Included
-                </h3>
-              </div>
-              <ul className="space-y-2 text-gray-700">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-purple-500" />
-                  <span>School fees coverage</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-purple-500" />
-                  <span>Textbooks & stationery</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-purple-500" />
-                  <span>Mentorship programs</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Quick Action Buttons */}
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Button
-              onClick={() => setActiveTab("high-school")}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
-            >
-              <GraduationCap className="mr-2 h-5 w-5" />
-              View High School Bursaries
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setFilters({ studyLevel: "grade-11" });
-                setActiveTab("high-school");
-              }}
-              className="border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-3 text-lg"
-            >
-              Grade 11 Only
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setFilters({ studyLevel: "matric" });
-                setActiveTab("high-school");
-              }}
-              className="border-purple-600 text-purple-600 hover:bg-purple-50 px-8 py-3 text-lg"
-            >
-              Matric Only
-            </Button>
-          </div>
-        </CardContent>
       </Card>
 
-      {/* Tabbed Interface */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="all" className="flex items-center gap-2">
-            <Search className="h-4 w-4" />
-            All Bursaries ({BURSARIES.length})
-          </TabsTrigger>
-          <TabsTrigger value="high-school" className="flex items-center gap-2">
-            <GraduationCap className="h-4 w-4" />
-            High School ({HIGH_SCHOOL_BURSARIES.length})
-          </TabsTrigger>
-          <TabsTrigger value="university" className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4" />
-            University ({BURSARIES.length - HIGH_SCHOOL_BURSARIES.length})
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="all" className="space-y-6">
-          {/* Search and Filters for All */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Search className="h-5 w-5" />
+      {/* Search and Filters */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg">
                 Find Your Perfect Bursary
               </CardTitle>
               <CardDescription>
                 Use the filters below to find bursaries that match your needs
                 and eligibility.
               </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Search Bar */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search bursaries by name, provider, or description..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              {/* Filter Controls */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Select
-                  value={filters.fieldOfStudy || "all"}
-                  onValueChange={(value) =>
-                    updateFilter(
-                      "fieldOfStudy",
-                      value === "all" ? undefined : value,
-                    )
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Field of study" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All fields</SelectItem>
-                    {BURSARY_FIELDS_OF_STUDY.map((field) => (
-                      <SelectItem key={field} value={field}>
-                        {field}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={filters.province || "all"}
-                  onValueChange={(value) =>
-                    updateFilter(
-                      "province",
-                      value === "all" ? undefined : value,
-                    )
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Province" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All provinces</SelectItem>
-                    {PROVINCES.map((province) => (
-                      <SelectItem key={province} value={province}>
-                        {province}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Button variant="outline" onClick={clearFilters}>
-                  Clear Filters
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="high-school" className="space-y-6">
-          {/* High School Specific Filters */}
-          <Card className="border-blue-200 bg-blue-50/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-blue-800">
-                <GraduationCap className="h-5 w-5" />
-                High School Bursary Filters
-              </CardTitle>
-              <CardDescription className="text-blue-700">
-                Find the perfect bursary for your Grade 11 or Matric year
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-blue-800">
-                    Grade Level
-                  </label>
-                  <Select
-                    value={filters.studyLevel || "all"}
-                    onValueChange={(value) =>
-                      updateFilter(
-                        "studyLevel",
-                        value === "all" ? undefined : value,
-                      )
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select grade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Grades</SelectItem>
-                      <SelectItem value="grade-11">Grade 11</SelectItem>
-                      <SelectItem value="matric">Matric (Grade 12)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-blue-800">
-                    Min. Academic Average (%)
-                  </label>
-                  <Input
-                    type="number"
-                    placeholder="e.g. 70"
-                    min="0"
-                    max="100"
-                    value={filters.minMarks || ""}
-                    onChange={(e) =>
-                      updateFilter(
-                        "minMarks",
-                        e.target.value ? parseInt(e.target.value) : undefined,
-                      )
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-blue-800">
-                    Max. Household Income (R)
-                  </label>
-                  <Input
-                    type="number"
-                    placeholder="e.g. 200000"
-                    min="0"
-                    value={filters.maxHouseholdIncome || ""}
-                    onChange={(e) =>
-                      updateFilter(
-                        "maxHouseholdIncome",
-                        e.target.value ? parseInt(e.target.value) : undefined,
-                      )
-                    }
-                  />
-                </div>
-
+            </div>
+            <Dialog>
+              <DialogTrigger asChild>
                 <Button
                   variant="outline"
-                  onClick={clearFilters}
-                  className="mt-6"
+                  size="sm"
+                  className="flex items-center gap-2"
                 >
-                  Clear Filters
+                  <Info className="h-4 w-4" />
+                  Info
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>
+                    Understanding Bursaries & Scholarships
+                  </DialogTitle>
+                  <DialogDescription>
+                    Everything you need to know about financial aid for your
+                    education
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 text-sm">
+                  <div>
+                    <h4 className="font-semibold mb-2">What are Bursaries?</h4>
+                    <p>
+                      Bursaries are financial assistance programs that help
+                      students pay for their education. Unlike loans, bursaries
+                      typically don't need to be repaid, making them an
+                      excellent form of financial aid.
+                    </p>
+                  </div>
 
-        <TabsContent value="university" className="space-y-6">
-          {/* University Specific Filters */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                University Bursary Filters
-              </CardTitle>
-              <CardDescription>
-                Find bursaries for undergraduate and postgraduate studies
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Same filters as "all" but focused on university */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search university bursaries..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+                  <div>
+                    <h4 className="font-semibold mb-2">
+                      For High School Students:
+                    </h4>
+                    <p>
+                      Each bursary shows the Grade 11 and Matric marks you need
+                      to achieve. Start preparing early:
+                    </p>
+                    <ul className="list-disc ml-4 space-y-1 mt-2">
+                      <li>
+                        <strong>Grade 11:</strong> Aim for 5-10% higher than the
+                        minimum requirement
+                      </li>
+                      <li>
+                        <strong>Matric:</strong> Must meet or exceed the stated
+                        minimum average
+                      </li>
+                      <li>
+                        <strong>Subject Requirements:</strong> Focus on
+                        mathematics and science if required
+                      </li>
+                      <li>
+                        <strong>NSC Requirements:</strong> Ensure you meet
+                        National Senior Certificate standards
+                      </li>
+                    </ul>
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Select
-                  value={filters.fieldOfStudy || "all"}
-                  onValueChange={(value) =>
-                    updateFilter(
-                      "fieldOfStudy",
-                      value === "all" ? undefined : value,
-                    )
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Field of study" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All fields</SelectItem>
-                    {BURSARY_FIELDS_OF_STUDY.map((field) => (
-                      <SelectItem key={field} value={field}>
-                        {field}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <div className="bg-green-50 p-3 rounded border border-green-200">
+                    <h4 className="font-semibold text-green-800 mb-2">
+                      Application Tips:
+                    </h4>
+                    <ul className="text-green-700 text-xs space-y-1">
+                      <li>
+                        • Apply early - most bursaries have strict deadlines
+                      </li>
+                      <li>• Start preparing documents in Grade 11</li>
+                      <li>• Maintain consistent academic performance</li>
+                      <li>
+                        • Apply for multiple bursaries to increase chances
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search bursaries by name, provider, or description..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
 
-                <Select
-                  value={filters.province || "all"}
-                  onValueChange={(value) =>
-                    updateFilter(
-                      "province",
-                      value === "all" ? undefined : value,
-                    )
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Province" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All provinces</SelectItem>
-                    {PROVINCES.map((province) => (
-                      <SelectItem key={province} value={province}>
-                        {province}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          {/* Filter Controls */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Select
+              value={filters.fieldOfStudy || "all"}
+              onValueChange={(value) =>
+                updateFilter(
+                  "fieldOfStudy",
+                  value === "all" ? undefined : value,
+                )
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Field of study" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All fields</SelectItem>
+                {BURSARY_FIELDS_OF_STUDY.map((field) => (
+                  <SelectItem key={field} value={field}>
+                    {field}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-                <Button variant="outline" onClick={clearFilters}>
-                  Clear Filters
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            <Select
+              value={filters.province || "all"}
+              onValueChange={(value) =>
+                updateFilter("province", value === "all" ? undefined : value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Province" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All provinces</SelectItem>
+                {PROVINCES.map((province) => (
+                  <SelectItem key={province} value={province}>
+                    {province}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Min Academic Marks */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Min. Academic Marks (%)
+              </label>
+              <Input
+                type="number"
+                placeholder="e.g. 65"
+                min="0"
+                max="100"
+                value={filters.minMarks || ""}
+                onChange={(e) =>
+                  updateFilter(
+                    "minMarks",
+                    e.target.value ? parseInt(e.target.value) : undefined,
+                  )
+                }
+              />
+            </div>
+
+            <Button variant="outline" onClick={clearFilters} className="mt-6">
+              Clear Filters
+            </Button>
+          </div>
+
+          {/* Advanced Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Max. Household Income (R)
+              </label>
+              <Input
+                type="number"
+                placeholder="e.g. 350000"
+                min="0"
+                value={filters.maxHouseholdIncome || ""}
+                onChange={(e) =>
+                  updateFilter(
+                    "maxHouseholdIncome",
+                    e.target.value ? parseInt(e.target.value) : undefined,
+                  )
+                }
+              />
+            </div>
+
+            <Select
+              value={filters.genderSpecific || "any"}
+              onValueChange={(value) =>
+                updateFilter(
+                  "genderSpecific",
+                  value === "any" ? undefined : value,
+                )
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Gender" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any Gender</SelectItem>
+                <SelectItem value="female">Female Only</SelectItem>
+                <SelectItem value="male">Male Only</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={filters.raceSpecific || "any"}
+              onValueChange={(value) =>
+                updateFilter(
+                  "raceSpecific",
+                  value === "any" ? undefined : value,
+                )
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Race" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any Race</SelectItem>
+                <SelectItem value="african">African</SelectItem>
+                <SelectItem value="coloured">Coloured</SelectItem>
+                <SelectItem value="indian">Indian</SelectItem>
+                <SelectItem value="white">White</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Special Criteria Checkboxes */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="financial-need"
+                checked={filters.financialNeed || false}
+                onCheckedChange={(checked) =>
+                  updateFilter(
+                    "financialNeed",
+                    checked === true ? true : undefined,
+                  )
+                }
+              />
+              <label htmlFor="financial-need" className="text-sm font-medium">
+                Financial need based
+              </label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="disability-support"
+                checked={filters.disabilitySupport || false}
+                onCheckedChange={(checked) =>
+                  updateFilter(
+                    "disabilitySupport",
+                    checked === true ? true : undefined,
+                  )
+                }
+              />
+              <label
+                htmlFor="disability-support"
+                className="text-sm font-medium"
+              >
+                Disability support
+              </label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="rural-background"
+                checked={filters.ruralBackground || false}
+                onCheckedChange={(checked) =>
+                  updateFilter(
+                    "ruralBackground",
+                    checked === true ? true : undefined,
+                  )
+                }
+              />
+              <label htmlFor="rural-background" className="text-sm font-medium">
+                Rural background
+              </label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="first-generation"
+                checked={filters.firstGeneration || false}
+                onCheckedChange={(checked) =>
+                  updateFilter(
+                    "firstGeneration",
+                    checked === true ? true : undefined,
+                  )
+                }
+              />
+              <label htmlFor="first-generation" className="text-sm font-medium">
+                First-generation student
+              </label>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Results Summary */}
-      <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+      <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
         <span className="text-sm text-gray-600">
-          Found <strong>{filteredBursaries.length}</strong> bursaries
-          {activeTab === "high-school" && (
-            <span className="text-blue-600 font-medium">
-              {" "}
-              for high school students
-            </span>
-          )}
+          Found <strong>{filteredBursaries.length}</strong> university bursaries
         </span>
         {filteredBursaries.length > 0 && (
-          <div className="flex gap-2">
-            <Badge variant="outline">
-              {
-                filteredBursaries.filter((b) => b.requirements?.financialNeed)
-                  .length
-              }{" "}
-              need-based
-            </Badge>
-            {activeTab === "high-school" && (
-              <Badge variant="outline" className="bg-blue-100 text-blue-700">
-                {
-                  filteredBursaries.filter((b) =>
-                    b.studyLevel?.includes("grade-11"),
-                  ).length
-                }{" "}
-                Grade 11
-              </Badge>
-            )}
-          </div>
+          <Badge variant="outline">
+            {
+              filteredBursaries.filter((b) => b.requirements?.financialNeed)
+                .length
+            }{" "}
+            need-based
+          </Badge>
         )}
       </div>
-
-      {/* High School Alert */}
-      {activeTab === "high-school" && (
-        <Alert className="border-blue-200 bg-blue-50">
-          <Info className="h-4 w-4" />
-          <AlertDescription>
-            <strong>High School Students:</strong> These bursaries are
-            specifically designed for Grade 11 and Matric students. Make sure to
-            check the academic requirements and application deadlines carefully.
-            Early applications increase your chances of success!
-          </AlertDescription>
-        </Alert>
-      )}
 
       {/* Bursary Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -680,38 +647,24 @@ const EnhancedBursaryListing = () => {
             bursary.applicationDeadline,
           );
           const isExpanded = expandedBursary === bursary.id;
-          const isHighSchool =
-            bursary.studyLevel?.includes("grade-11") ||
-            bursary.studyLevel?.includes("matric");
+          const highSchoolReqs = getHighSchoolRequirements(bursary);
 
           return (
             <Card
               key={bursary.id}
-              className={`hover:shadow-lg transition-all duration-200 ${
-                isHighSchool
-                  ? "border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-50"
-                  : "hover:shadow-md"
-              }`}
+              className="hover:shadow-lg transition-shadow"
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-lg font-semibold text-book-800 flex items-center gap-2">
-                      {isHighSchool && (
-                        <GraduationCap className="h-5 w-5 text-blue-600" />
-                      )}
+                    <CardTitle className="text-lg font-semibold text-book-800">
                       {bursary.name}
                     </CardTitle>
                     <CardDescription className="text-gray-600 font-medium mt-1">
                       {bursary.provider}
                     </CardDescription>
                   </div>
-                  <div className="flex gap-2 flex-wrap">
-                    {isHighSchool && (
-                      <Badge className="bg-blue-100 text-blue-700 border-blue-300">
-                        🎓 High School
-                      </Badge>
-                    )}
+                  <div className="flex gap-2">
                     <Badge
                       variant={
                         applicationStatus.status === "open"
@@ -736,39 +689,30 @@ const EnhancedBursaryListing = () => {
               <CardContent className="space-y-4">
                 <p className="text-sm text-gray-600">{bursary.description}</p>
 
-                {/* High School Specific Info */}
-                {isHighSchool && (
-                  <div className="bg-blue-100 p-3 rounded-lg border border-blue-200">
-                    <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
-                      🎯 High School Requirements:
+                {/* High School Requirements Preview */}
+                {highSchoolReqs.length > 0 && (
+                  <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                    <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
+                      📚 High School Requirements:
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                      {bursary.requirements?.academicRequirement && (
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-blue-700">
-                            Academic:
-                          </span>
-                          <span className="text-blue-600">
-                            {bursary.requirements.academicRequirement}
-                          </span>
+                    <div className="text-sm text-green-700">
+                      {highSchoolReqs.slice(0, 1).map((req, idx) => (
+                        <div key={idx} className="space-y-1">
+                          {req.grade11 && (
+                            <div>
+                              • <strong>Grade 11:</strong> {req.grade11}
+                            </div>
+                          )}
+                          {req.matric && (
+                            <div>
+                              • <strong>Matric:</strong> {req.matric}
+                            </div>
+                          )}
                         </div>
-                      )}
-                      {bursary.eligibilityCriteria.find(
-                        (c) =>
-                          c.toLowerCase().includes("income") ||
-                          c.toLowerCase().includes("r"),
-                      ) && (
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-blue-700">
-                            Income:
-                          </span>
-                          <span className="text-blue-600">
-                            {bursary.eligibilityCriteria.find(
-                              (c) =>
-                                c.toLowerCase().includes("income") ||
-                                c.toLowerCase().includes("r"),
-                            )}
-                          </span>
+                      ))}
+                      {highSchoolReqs.length > 1 && (
+                        <div className="text-green-600 text-xs mt-2">
+                          View details for complete requirements
                         </div>
                       )}
                     </div>
@@ -836,6 +780,63 @@ const EnhancedBursaryListing = () => {
                 {/* Expanded Details */}
                 {isExpanded && (
                   <div className="space-y-4 pt-4 border-t">
+                    {/* High School Requirements - Detailed */}
+                    {highSchoolReqs.length > 0 && (
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                          🎯 High School Preparation Requirements:
+                        </h4>
+                        <div className="space-y-3">
+                          {highSchoolReqs.map((req, idx) => (
+                            <div
+                              key={idx}
+                              className="bg-white p-3 rounded border border-green-200"
+                            >
+                              {req.type === "academic" && (
+                                <div>
+                                  <h5 className="font-medium text-green-800 mb-2">
+                                    Academic Performance:
+                                  </h5>
+                                  <div className="grid md:grid-cols-2 gap-2 text-sm">
+                                    {req.grade11 && (
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-green-700">
+                                          Grade 11:
+                                        </span>
+                                        <span className="text-green-600">
+                                          {req.grade11}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {req.matric && (
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-green-700">
+                                          Matric NSC:
+                                        </span>
+                                        <span className="text-green-600">
+                                          {req.matric}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                              {req.type === "nsc" && (
+                                <div>
+                                  <h5 className="font-medium text-green-800 mb-2">
+                                    NSC Requirements:
+                                  </h5>
+                                  <p className="text-sm text-green-600">
+                                    {req.requirement}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Eligibility Criteria */}
                     <div>
                       <h4 className="font-medium text-gray-800 mb-2 flex items-center gap-2">
