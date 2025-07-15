@@ -115,21 +115,19 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
       // Generate payment reference first
       const paymentReference = `RS_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      // Get book data from IDs
+      // Get book data from IDs (simplified query without subaccount)
       const { data: bookData, error: bookError } = await supabase
         .from("books")
-        .select("*, profiles!books_seller_id_fkey(subaccount_code, full_name)")
+        .select("*, profiles!books_seller_id_fkey(full_name)")
         .in("id", bookIds);
 
       if (bookError || !bookData?.length) {
+        console.error("Book fetch error:", bookError);
         return { success: false, error: "Failed to fetch book data" };
       }
 
-      // Validate seller subaccount exists
+      // No subaccount validation needed
       const firstBook = bookData[0];
-      const sellerSubaccountCode = firstBook.profiles?.subaccount_code;
-
-      // Subaccount requirement removed - payments can proceed without banking setup
 
       // Calculate amounts (convert from cents to rands for calculations)
       const bookPrice = bookData.reduce((sum, book) => sum + book.price, 0);
