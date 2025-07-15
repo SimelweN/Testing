@@ -29,7 +29,9 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
-import SimpleAddressInput from "@/components/SimpleAddressInput";
+import GoogleMapsAddressAutocomplete, {
+  AddressData,
+} from "@/components/GoogleMapsAddressAutocomplete";
 import PaystackPaymentButton from "@/components/banking/PaystackPaymentButton";
 import SaleSuccessPopup from "@/components/SaleSuccessPopup";
 import CheckoutSteps from "@/components/checkout/CheckoutSteps";
@@ -456,14 +458,7 @@ const CheckoutSimplified = () => {
     }
   };
 
-  const handleAddressUpdate = (addressData: {
-    formattedAddress: string;
-    street: string;
-    city: string;
-    province: string;
-    postalCode: string;
-    country: string;
-  }) => {
+  const handleAddressUpdate = (addressData: AddressData) => {
     const address: CheckoutAddress = {
       street: addressData.street,
       city: addressData.city,
@@ -650,7 +645,23 @@ const CheckoutSimplified = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <SimpleAddressInput onAddressSelect={handleAddressUpdate} />
+                  <GoogleMapsAddressAutocomplete
+                    onAddressSelect={handleAddressUpdate}
+                    label="Shipping Address"
+                    required={true}
+                    defaultValue={
+                      state.shippingAddress
+                        ? {
+                            formattedAddress: `${state.shippingAddress.street}, ${state.shippingAddress.city}, ${state.shippingAddress.province}, ${state.shippingAddress.postalCode}`,
+                            street: state.shippingAddress.street,
+                            city: state.shippingAddress.city,
+                            province: state.shippingAddress.province,
+                            postalCode: state.shippingAddress.postalCode,
+                            country: state.shippingAddress.country,
+                          }
+                        : undefined
+                    }
+                  />
                 </CardContent>
               </Card>
             )}
