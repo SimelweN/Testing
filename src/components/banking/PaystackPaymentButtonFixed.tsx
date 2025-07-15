@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -50,7 +50,7 @@ interface PaystackPaymentButtonProps {
   sellerId: string;
   shippingAddress: ShippingAddress;
   deliveryMethod: "pickup" | "delivery";
-  deliveryFee?: number;
+  deliveryFee?: number; // in cents
   onSuccess?: (reference: string) => void;
   onError?: (error: string) => void;
   onCancel?: () => void;
@@ -59,7 +59,7 @@ interface PaystackPaymentButtonProps {
   children?: React.ReactNode;
 }
 
-const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
+const PaystackPaymentButtonFixed: React.FC<PaystackPaymentButtonProps> = ({
   amount,
   bookIds,
   sellerId,
@@ -79,16 +79,20 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
     "idle" | "initializing" | "pending" | "verifying" | "completed" | "failed"
   >("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
-  // Seller subaccount state removed
   const createdOrderRef = useRef<Order | null>(null);
 
-  // Paystack script loading now handled by PaystackPaymentService
+  // ✅ FIXED: Convert amounts to consistent units (all in cents)
+  const amountInCents = amount; // Already in cents
+  const deliveryFeeInCents = deliveryFee; // Already in cents
+  const totalAmountInCents = amountInCents + deliveryFeeInCents;
 
-  // Seller subaccount initialization removed
-
-  // Calculate payment breakdown (convert from cents to rands first)
-  const amountInRands = amount / 100;
-  const paymentSplit = calculatePaymentSplit(amountInRands, deliveryFee);
+  // ✅ FIXED: Calculate payment breakdown with consistent units
+  const bookPriceInRands = amountInCents / 100;
+  const deliveryFeeInRands = deliveryFeeInCents / 100;
+  const paymentSplit = calculatePaymentSplit(
+    bookPriceInRands,
+    deliveryFeeInRands,
+  );
 
   const initializePayment = async (): Promise<{
     success: boolean;
@@ -102,114 +106,61 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
     }
 
     setPaymentStatus("initializing");
+    setErrorMessage("");
 
     try {
-      // STEP 4A: ORDER CREATION (First Database Write)
-      // Generate payment reference first
+      // ✅ FIXED: Generate payment reference first
       const paymentReference = `RS_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      // Get book data from IDs following checkout specifications
-      const { data: bookData, error: bookError } = await supabase
-        .from("books")
-        .select(
-          `
-          id, title, author, price, condition, image_url,
-          seller_id, seller_subaccount_code, province,
-          front_cover, back_cover, sold, created_at
-        `,
-        )
-        .in("id", bookIds);
-
-      if (bookError || !bookData?.length) {
-        console.error("Book fetch error details:", {
-          error: bookError,
-          bookIds,
-          dataLength: bookData?.length,
-          bookData,
+      // ✅ FIXED: Use database transaction for atomic operations
+      const { data: transactionResult, error: transactionError } =
+        await supabase.rpc("create_order_transaction", {
+          p_buyer_email: user.email,
+          p_seller_id: sellerId,
+          p_book_ids: bookIds,
+          p_amount: totalAmountInCents,
+          p_paystack_ref: paymentReference,
+          p_shipping_address: shippingAddress,
+          p_delivery_method: deliveryMethod,
+          p_delivery_fee: deliveryFeeInCents,
+          p_platform_fee: Math.round(bookPriceInRands * 0.1 * 100),
+          p_seller_amount: Math.round(bookPriceInRands * 0.9 * 100),
         });
+
+      if (transactionError) {
+        console.error("Transaction error:", transactionError);
+        return { success: false, error: transactionError.message };
+      }
+
+      if (!transactionResult?.success) {
         return {
           success: false,
-          error: `Failed to fetch book data: ${bookError?.message || "No books found"}`,
+          error: transactionResult?.error || "Failed to create order",
         };
       }
 
-      // Get seller profile data for the first book
-      const firstBook = bookData[0];
-      const { data: sellerProfile, error: sellerError } = await supabase
-        .from("profiles")
-        .select("id, name, email, full_name")
-        .eq("id", firstBook.seller_id)
-        .single();
+      const createdOrder = transactionResult.order;
+      createdOrderRef.current = createdOrder;
 
-      if (sellerError) {
-        console.error("Seller fetch error:", sellerError);
-        return { success: false, error: "Failed to fetch seller data" };
-      }
-
-      // Calculate amounts (convert from cents to rands for calculations)
-      const bookPrice = bookData.reduce((sum, book) => sum + book.price, 0);
-      const totalPrice = bookPrice + deliveryFee / 100; // deliveryFee comes in cents
-
-      // �� DATABASE INSERT 1: Create order record
-      const { data: createdOrder, error: orderError } = await supabase
-        .from("orders")
-        .insert({
-          buyer_email: user.email,
-          seller_id: sellerId,
-          amount: Math.round(totalPrice * 100), // In kobo
-          status: "pending",
-          paystack_ref: paymentReference,
-
-          // Order items as JSONB array
-          items: bookData.map((book) => ({
-            type: "book",
-            book_id: book.id,
-            book_title: book.title,
-            price: Math.round(book.price * 100),
-            quantity: 1,
-            seller_id: book.seller_id,
-          })),
-
-          // Shipping address as JSONB
-          shipping_address: shippingAddress,
-
-          // Delivery data as JSONB
-          delivery_data: {
-            delivery_method: deliveryMethod,
-            delivery_price: Math.round((deliveryFee / 100) * 100), // Convert to kobo
-            estimated_days: 3, // Default estimate
-            pickup_address: null, // Will be filled by seller
-          },
-
-          // Additional metadata
-          metadata: {
-            buyer_id: user.id,
-            platform_fee: Math.round(bookPrice * 0.1 * 100),
-            seller_amount: Math.round(bookPrice * 0.9 * 100),
-          },
-        })
-        .select()
-        .single();
-
-      if (orderError) {
-        console.error("Order creation error:", orderError);
-        return { success: false, error: "Failed to create order" };
-      }
-
-      // STEP 4B: PAYSTACK PAYMENT - Initialize payment
+      // ✅ FIXED: Only proceed with payment if order creation succeeded
+      // Initialize payment via PaymentService
       const result = await PaymentService.initializePayment({
         email: user.email,
-        amount: paymentSplit.totalAmount,
+        amount: totalAmountInCents,
         bookIds,
         sellerId,
         shipping_address: shippingAddress,
         delivery_method: deliveryMethod,
-        delivery_fee: deliveryFee,
+        delivery_fee: deliveryFeeInCents,
       });
 
       if (!result.success) {
-        // Cleanup order if payment initialization fails
-        await supabase.from("orders").delete().eq("id", createdOrder.id);
+        // ✅ FIXED: Cleanup order if payment initialization fails (using transaction)
+        await supabase.rpc("cleanup_failed_order", {
+          p_order_id: createdOrder.id,
+          p_paystack_ref: paymentReference,
+        });
+
         return {
           success: false,
           error: result.error || "Failed to initialize payment",
@@ -224,7 +175,14 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
       };
     } catch (error) {
       console.error("Payment initialization error:", error);
-      return { success: false, error: "An unexpected error occurred" };
+      setPaymentStatus("failed");
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
+      };
     }
   };
 
@@ -238,42 +196,22 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
       const result = await PaymentService.verifyPayment(reference);
 
       if (result.success && result.verification?.status === "success") {
-        // STEP 5: PAYMENT SUCCESS PROCESSING
-
-        // STEP 5A: UPDATE ORDER STATUS
-        const { error: updateError } = await supabase
-          .from("orders")
-          .update({
-            status: "paid",
-            paid_at: new Date().toISOString(),
-            metadata: {
-              ...createdOrder?.metadata,
-              paystack_data: result.verification,
-            },
-          })
-          .eq("paystack_ref", reference);
+        // ✅ FIXED: Use atomic update for payment success
+        const { error: updateError } = await supabase.rpc(
+          "complete_payment_transaction",
+          {
+            p_paystack_ref: reference,
+            p_book_ids: bookIds,
+            p_verification_data: result.verification,
+          },
+        );
 
         if (updateError) {
-          console.error("Error updating order status:", updateError);
+          console.error("Error completing payment:", updateError);
           setPaymentStatus("failed");
           setErrorMessage("Payment successful but order update failed");
           onError?.("Payment successful but order update failed");
           return false;
-        }
-
-        // STEP 5B: MARK BOOK AS SOLD
-        const { error: bookError } = await supabase
-          .from("books")
-          .update({
-            sold: true,
-            availability: "sold",
-            sold_at: new Date().toISOString(),
-          })
-          .in("id", bookIds);
-
-        if (bookError) {
-          console.error("Error marking books as sold:", bookError);
-          // Don't fail the payment for this - it's a secondary action
         }
 
         setPaymentStatus("completed");
@@ -301,7 +239,6 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
     status: string;
   }) => {
     console.log("Paystack success:", transaction);
-    // Pass the created order data to verification
     await verifyPayment(transaction.reference, createdOrderRef.current);
   };
 
@@ -333,7 +270,7 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
       }
 
       // Store created order for verification step
-      createdOrderRef.current = paymentInit.createdOrder;
+      createdOrderRef.current = paymentInit.createdOrder || null;
 
       // Check if Paystack is configured for production
       if (!PAYSTACK_CONFIG.isConfigured()) {
@@ -350,7 +287,7 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
         return;
       }
 
-      // Use new PaystackPaymentService for popup
+      // Use PaystackPaymentService for popup
       setPaymentStatus("pending");
 
       const paymentResponse = await PaystackPaymentService.initializePayment({
@@ -359,7 +296,7 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
         reference: paymentInit.reference,
         metadata: {
           seller_id: sellerId,
-          delivery_fee: deliveryFee,
+          delivery_fee: deliveryFeeInCents,
           seller_amount: paymentSplit.sellerAmount,
           platform_commission: paymentSplit.platformAmount,
           books: bookIds.join(", "),
@@ -397,9 +334,7 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
       case "failed":
         return "Payment failed - Retry";
       default:
-        return (
-          children || `Pay R${(paymentSplit.totalAmount / 100).toFixed(2)}`
-        );
+        return children || `Pay R${(totalAmountInCents / 100).toFixed(2)}`;
     }
   };
 
@@ -436,17 +371,17 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
       <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
         <div className="flex justify-between">
           <span>Subtotal:</span>
-          <span>R{(amount / 100).toFixed(2)}</span>
+          <span>R{(amountInCents / 100).toFixed(2)}</span>
         </div>
-        {deliveryFee > 0 && (
+        {deliveryFeeInCents > 0 && (
           <div className="flex justify-between">
             <span>Delivery fee:</span>
-            <span>R{(deliveryFee / 100).toFixed(2)}</span>
+            <span>R{(deliveryFeeInCents / 100).toFixed(2)}</span>
           </div>
         )}
         <div className="flex justify-between font-semibold text-base border-t pt-2">
           <span>Total:</span>
-          <span>R{(paymentSplit.totalAmount / 100).toFixed(2)}</span>
+          <span>R{(totalAmountInCents / 100).toFixed(2)}</span>
         </div>
       </div>
 
@@ -484,15 +419,4 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
   );
 };
 
-// Extend window object for Paystack
-declare global {
-  interface Window {
-    PaystackPop: {
-      setup: (options: Record<string, unknown>) => {
-        openIframe: () => void;
-      };
-    };
-  }
-}
-
-export default PaystackPaymentButton;
+export default PaystackPaymentButtonFixed;

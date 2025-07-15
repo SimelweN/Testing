@@ -87,7 +87,7 @@ export const createPaystackSubaccount = async (
     const { error } = await supabase
       .from("profiles")
       .update({
-        paystack_subaccount_code: mockSubaccountCode,
+        subaccount_code: mockSubaccountCode,
         banking_verified: true, // Mark as verified for demo purposes
       })
       .eq("id", sellerId);
@@ -321,7 +321,7 @@ export const setupSellerBanking = async (
         banking_info: bankingInfo,
         banking_verified: true,
         banking_setup_at: new Date().toISOString(),
-        paystack_subaccount_code: subaccountCode,
+        subaccount_code: subaccountCode,
       })
       .eq("id", sellerId);
 
