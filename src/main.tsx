@@ -156,9 +156,7 @@ const initializeApp = () => {
   root.render(
     <React.StrictMode>
       <ErrorBoundary level="app">
-        <QueryClientProvider client={queryClient}>
-          <App />
-        </QueryClientProvider>
+        <App />
       </ErrorBoundary>
     </React.StrictMode>,
   );
