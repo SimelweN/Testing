@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import GoogleMapsAddressInput from "@/components/GoogleMapsAddressInput";
+import GoogleMapsAddressAutocomplete, {
+  AddressData as GoogleAddressData,
+} from "@/components/GoogleMapsAddressAutocomplete";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapPin, AlertCircle } from "lucide-react";
 
@@ -52,10 +54,9 @@ const PickupAddressInput = ({
     !!initialAddress?.street,
   );
 
-  const handleGoogleMapsSelect = (addressData: AddressData) => {
+  const handleGoogleMapsSelect = (addressData: GoogleAddressData) => {
     const newAddress: Address = {
-      street:
-        addressData.street || addressData.formattedAddress.split(",")[0] || "",
+      street: addressData.street || "",
       city: addressData.city || "",
       province: addressData.province || "",
       postalCode: addressData.postalCode || "",
