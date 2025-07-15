@@ -136,15 +136,15 @@ function App() {
                       <Route path="/cart" element={<Cart />} />
                       <Route
                         path="/checkout/:id"
-                        element={<EnhancedCheckout />}
+                        element={<CheckoutSimplified />}
                       />
                       <Route
                         path="/checkout/cart"
-                        element={<EnhancedCheckout />}
+                        element={<CheckoutSimplified />}
                       />
                       <Route
-                        path="/checkout-old/:id"
-                        element={<CheckoutSimplified />}
+                        path="/checkout-enhanced/:id"
+                        element={<EnhancedCheckout />}
                       />
                       <Route path="/shipping" element={<Shipping />} />
 
