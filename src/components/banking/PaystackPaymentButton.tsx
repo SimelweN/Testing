@@ -136,9 +136,7 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
       const firstBook = bookData[0];
       const sellerSubaccountCode = firstBook.profiles?.subaccount_code;
 
-      if (!sellerSubaccountCode) {
-        return { success: false, error: "Seller banking setup incomplete" };
-      }
+      // Subaccount requirement removed - payments can proceed without banking setup
 
       // Calculate amounts (convert from cents to rands for calculations)
       const bookPrice = bookData.reduce((sum, book) => sum + book.price, 0);
