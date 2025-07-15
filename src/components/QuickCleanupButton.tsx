@@ -20,10 +20,9 @@ const QuickCleanupButton: React.FC = () => {
         toast.error("❌ Cleanup failed: " + errorMsg);
       }
     } catch (error) {
-      toast.error(
-        "❌ Cleanup error: " +
-          (error instanceof Error ? error.message : "Unknown error"),
-      );
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error("Cleanup button error:", error);
+      toast.error("❌ Cleanup error: " + errorMsg);
     } finally {
       setIsRunning(false);
     }
