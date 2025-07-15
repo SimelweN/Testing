@@ -175,6 +175,32 @@ const ContactUs = () => {
                 </div>
               </div>
 
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Follow Us
+                </h3>
+                <div className="flex space-x-4">
+                  <a
+                    href="https://www.instagram.com/rebooked.solutions?igsh=M2ZsNjd2aTNmZmRh"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 bg-book-100 hover:bg-book-200 text-book-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    <Instagram className="h-5 w-5" />
+                    <span>Instagram</span>
+                  </a>
+                  <a
+                    href="https://www.facebook.com/share/16ngKMps6U/?mibextid=wwXIfr"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 bg-book-100 hover:bg-book-200 text-book-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    <Facebook className="h-5 w-5" />
+                    <span>Facebook</span>
+                  </a>
+                </div>
+              </div>
+
               <div className="mt-8 bg-gray-50 p-6 rounded-lg">
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
                   ReBooked Solutions Support Team
