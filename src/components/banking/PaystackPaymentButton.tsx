@@ -91,14 +91,7 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
     }
   }, []);
 
-  // Initialize seller subaccount (placeholder for future implementation)
-  useEffect(() => {
-    if (sellerId && sellerId.trim() !== "") {
-      // For now, we'll use a simple subaccount format
-      // In production, this should fetch from SubaccountService
-      setSellerSubaccount(`ACCT_${sellerId.slice(0, 8)}`);
-    }
-  }, [sellerId]);
+  // Seller subaccount initialization removed
 
   // Calculate payment breakdown (convert from cents to rands first)
   const amountInRands = amount / 100;
