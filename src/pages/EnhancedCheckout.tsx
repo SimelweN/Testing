@@ -74,6 +74,31 @@ const EnhancedCheckout = () => {
   const [showCommitReminderModal, setShowCommitReminderModal] =
     React.useState(false);
   const [saleData, setSaleData] = React.useState<any>(null);
+  const [loadingTimeout, setLoadingTimeout] = React.useState(false);
+
+  // Add timeout for loading state
+  React.useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    if (loading.checkout) {
+      timeoutId = setTimeout(() => {
+        setLoadingTimeout(true);
+        console.error(
+          "🚨 Checkout loading timeout - redirecting to simple checkout",
+        );
+      }, 10000); // 10 second timeout
+    }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [loading.checkout]);
+
+  // Auto-redirect on timeout
+  React.useEffect(() => {
+    if (loadingTimeout) {
+      toast.error("Checkout is taking too long, switching to simple checkout");
+      navigate(`/checkout-old/${id}`);
+    }
+  }, [loadingTimeout, navigate, id]);
 
   const steps = [
     { id: "items", label: "Review Items", icon: Package },
