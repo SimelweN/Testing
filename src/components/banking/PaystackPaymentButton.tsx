@@ -353,9 +353,7 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
           amount: paymentSplit.totalAmountKobo,
           currency: "ZAR",
           ref: paymentInit.reference,
-          subaccount: sellerSubaccount || undefined,
-          transaction_charge: paymentSplit.platformAmountKobo,
-          bearer: "subaccount",
+          // Subaccount removed - direct payments only
           metadata: {
             seller_id: sellerId,
             delivery_fee: deliveryFee,
