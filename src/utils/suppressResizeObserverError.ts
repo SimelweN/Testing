@@ -2,31 +2,40 @@
 // This warning occurs when ResizeObserver callbacks trigger layout changes
 // that cause the observed elements to resize again
 
-// Immediate suppression - runs as soon as this file is imported
+// Immediate and comprehensive suppression - runs as soon as this file is imported
 (function suppressResizeObserverErrors() {
   // Store original console methods
   const originalError = console.error;
   const originalWarn = console.warn;
+  const originalLog = console.log;
 
-  // Override console.error immediately
+  // Comprehensive console suppression
   console.error = function (...args: any[]) {
-    const message = args[0];
-    if (typeof message === "string" && message.includes("ResizeObserver")) {
+    const message = String(args[0] || "");
+    if (message.includes("ResizeObserver")) {
       return; // Suppress all ResizeObserver errors
     }
     return originalError.apply(console, args);
   };
 
-  // Override console.warn for ResizeObserver warnings
   console.warn = function (...args: any[]) {
-    const message = args[0];
-    if (typeof message === "string" && message.includes("ResizeObserver")) {
+    const message = String(args[0] || "");
+    if (message.includes("ResizeObserver")) {
       return; // Suppress all ResizeObserver warnings
     }
     return originalWarn.apply(console, args);
   };
 
-  // Suppress at window level immediately
+  // Even suppress logs mentioning ResizeObserver
+  console.log = function (...args: any[]) {
+    const message = String(args[0] || "");
+    if (message.includes("ResizeObserver loop completed")) {
+      return; // Suppress ResizeObserver logs
+    }
+    return originalLog.apply(console, args);
+  };
+
+  // Suppress at window level with multiple event listeners
   window.addEventListener(
     "error",
     function (event) {
@@ -38,8 +47,46 @@
     },
     true,
   );
+
+  // Additional window error handler
+  const originalWindowError = window.onerror;
+  window.onerror = function (message, source, lineno, colno, error) {
+    if (typeof message === "string" && message.includes("ResizeObserver")) {
+      return true; // Prevent default error handling
+    }
+    if (originalWindowError) {
+      return originalWindowError.call(
+        window,
+        message,
+        source,
+        lineno,
+        colno,
+        error,
+      );
+    }
+    return false;
+  };
+
+  // Handle unhandled promise rejections
+  const originalUnhandledRejection = window.onunhandledrejection;
+  window.onunhandledrejection = function (event) {
+    const message = String(event.reason?.message || event.reason || "");
+    if (message.includes("ResizeObserver")) {
+      event.preventDefault();
+      return;
+    }
+    if (originalUnhandledRejection) {
+      originalUnhandledRejection.call(window, event);
+    }
+  };
+
+  // Console info for debugging (only in dev)
+  if (import.meta.env.DEV) {
+    console.log("🔇 ResizeObserver errors suppressed");
+  }
 })();
 
+// Utility functions
 const debounce = (fn: Function, delay: number) => {
   let timeoutId: ReturnType<typeof setTimeout>;
   return (...args: any[]) => {
@@ -48,67 +95,7 @@ const debounce = (fn: Function, delay: number) => {
   };
 };
 
-// Override console.error to filter out ResizeObserver warnings
-const originalError = console.error;
-console.error = (...args: any[]) => {
-  const message = args[0];
-  if (typeof message === "string") {
-    // Check for various ResizeObserver error messages
-    const resizeObserverErrors = [
-      "ResizeObserver loop completed with undelivered notifications",
-      "ResizeObserver loop limit exceeded",
-      'Script error for "ResizeObserver"',
-    ];
-
-    if (resizeObserverErrors.some((error) => message.includes(error))) {
-      // Suppress these ResizeObserver warnings as they're harmless
-      return;
-    }
-  }
-  originalError.apply(console, args);
-};
-
-// Also catch ResizeObserver errors at the window level
-const originalWindowError = window.onerror;
-window.onerror = (message, source, lineno, colno, error) => {
-  if (typeof message === "string" && message.includes("ResizeObserver")) {
-    // Suppress ResizeObserver errors
-    return true;
-  }
-
-  // Call original handler if it exists
-  if (originalWindowError) {
-    return originalWindowError.call(
-      window,
-      message,
-      source,
-      lineno,
-      colno,
-      error,
-    );
-  }
-
-  return false;
-};
-
-// Catch unhandled promise rejections from ResizeObserver
-const originalUnhandledRejection = window.onunhandledrejection;
-window.onunhandledrejection = (event) => {
-  const message = event.reason?.message || event.reason?.toString() || "";
-
-  if (typeof message === "string" && message.includes("ResizeObserver")) {
-    // Suppress ResizeObserver promise rejections
-    event.preventDefault();
-    return;
-  }
-
-  // Call original handler if it exists
-  if (originalUnhandledRejection) {
-    originalUnhandledRejection.call(window, event);
-  }
-};
-
-// Alternative: debounced ResizeObserver
+// Alternative: debounced ResizeObserver for components that need it
 export const createDebouncedResizeObserver = (
   callback: ResizeObserverCallback,
   delay: number = 16,
@@ -117,11 +104,7 @@ export const createDebouncedResizeObserver = (
   try {
     return new ResizeObserver(debouncedCallback);
   } catch (error) {
-    console.warn(
-      "ResizeObserver constructor failed, falling back to noop observer:",
-      error,
-    );
-    // Return a noop observer if ResizeObserver fails
+    // Fallback to noop observer if ResizeObserver fails
     return {
       observe: () => {},
       unobserve: () => {},
