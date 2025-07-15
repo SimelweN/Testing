@@ -96,10 +96,39 @@ const BursaryListing = () => {
           ));
 
       // Minimum marks filter
-      const matchesMinMarks =
-        !filters.minMarks ||
-        (bursary.requirements.minimumMarks !== undefined &&
-          bursary.requirements.minimumMarks <= filters.minMarks);
+      const matchesMinMarks = (() => {
+        if (!filters.minMarks) return true;
+
+        // Check structured requirements first
+        if (bursary.requirements.minimumMarks !== undefined) {
+          return bursary.requirements.minimumMarks <= filters.minMarks;
+        }
+
+        // Parse marks from eligibility criteria text and academic requirements
+        const academicTexts = [
+          ...(bursary.requirements?.academicRequirement
+            ? [bursary.requirements.academicRequirement]
+            : []),
+          ...bursary.eligibilityCriteria.filter(
+            (criteria) =>
+              criteria.toLowerCase().includes("%") ||
+              criteria.toLowerCase().includes("average") ||
+              criteria.toLowerCase().includes("minimum") ||
+              criteria.toLowerCase().includes("academic"),
+          ),
+        ];
+
+        for (const text of academicTexts) {
+          // Extract percentage like "Minimum 70% average" or "Academic average ≥ 75%"
+          const marksMatch = text.match(/(\d+)%/);
+          if (marksMatch) {
+            const extractedMarks = parseInt(marksMatch[1]);
+            return extractedMarks <= filters.minMarks;
+          }
+        }
+
+        return true; // If no marks requirement found, don't filter out
+      })();
 
       // Maximum household income filter
       const matchesHouseholdIncome = (() => {
