@@ -115,7 +115,11 @@ export const cleanupMockData = async () => {
       .eq("sold", true);
 
     if (resetBooksError) {
-      console.error("Error resetting book availability:", resetBooksError);
+      console.error(
+        "Error resetting book availability:",
+        resetBooksError.message || resetBooksError,
+      );
+      // Don't throw here, continue with other cleanup
     } else {
       console.log("✅ Reset book availability");
     }
