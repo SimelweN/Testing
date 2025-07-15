@@ -111,9 +111,9 @@ export async function cleanupDevelopmentBanking(): Promise<CleanupResult> {
       try {
         const { data: booksData, error: bookUpdateError } = await supabase
           .from("books")
-          .update({ paystack_subaccount_code: null })
-          .like("paystack_subaccount_code", pattern)
-          .select("id, title, paystack_subaccount_code");
+          .update({ seller_subaccount_code: null })
+          .like("seller_subaccount_code", pattern)
+          .select("id, title, seller_subaccount_code");
 
         if (bookUpdateError) {
           result.errors.push(
