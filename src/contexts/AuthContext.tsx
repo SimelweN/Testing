@@ -189,53 +189,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               );
             });
 
-          // Add login notification for new sign-ins only (prevent duplicates)
-          if (event === "SIGNED_IN" && !isInitializing) {
+          // Add welcome notification for NEW sign-ups only (not existing logins)
+          if (event === "SIGNED_UP" && !isInitializing) {
             try {
-              const sessionKey = `loginNotification_${session.user.id}`;
-              const localStorageKey = `lastLoginNotif_${session.user.id}`;
-              const lastNotificationTime = sessionStorage.getItem(sessionKey);
-              const lastLocalNotificationTime =
-                localStorage.getItem(localStorageKey);
-              const now = Date.now();
+              const welcomeKey = `firstTimeWelcome_${session.user.id}`;
+              const hasReceivedWelcome = localStorage.getItem(welcomeKey);
 
-              // Enhanced duplicate prevention:
-              // 1. Check session storage for this browser session
-              // 2. Check local storage for persistent checking across sessions
-              // 3. Require at least 30 minutes between notifications
-              const shouldSendNotification =
-                !lastNotificationTime &&
-                (!lastLocalNotificationTime ||
-                  now - parseInt(lastLocalNotificationTime) > 1800000); // 30 minutes
-
-              if (shouldSendNotification) {
-                // Prevent race conditions by setting both timestamps immediately
-                sessionStorage.setItem(sessionKey, now.toString());
-                localStorage.setItem(localStorageKey, now.toString());
+              // Only send welcome notification for first-time users who haven't received it before
+              if (!hasReceivedWelcome) {
+                localStorage.setItem(welcomeKey, Date.now().toString());
 
                 addNotification({
                   userId: session.user.id,
-                  title: "Welcome back!",
-                  message: `Successfully logged in at ${new Date().toLocaleString()}`,
+                  title: "Welcome to ReBooked Solutions!",
+                  message: `Thanks for joining us! Explore books, campus resources, and connect with students.`,
                   type: "success",
                   read: false,
                 }).catch((notifError) => {
                   console.warn(
-                    "[AuthContext] Login notification failed:",
+                    "[AuthContext] Welcome notification failed:",
                     notifError,
                   );
-                  // Remove the timestamps if notification failed
-                  sessionStorage.removeItem(sessionKey);
-                  localStorage.removeItem(localStorageKey);
+                  // Remove the flag if notification failed
+                  localStorage.removeItem(welcomeKey);
                 });
-              } else {
-                console.log(
-                  "[AuthContext] Skipping duplicate login notification - recent notification exists",
-                );
               }
             } catch (notifError) {
               console.warn(
-                "[AuthContext] Login notification setup failed:",
+                "[AuthContext] Welcome notification setup failed:",
                 notifError,
               );
             }

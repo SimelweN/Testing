@@ -19,6 +19,14 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   Search,
   ExternalLink,
   Calendar,
@@ -71,6 +79,10 @@ const BursaryListing = () => {
       const matchesStudyLevel =
         !filters.studyLevel ||
         filters.studyLevel === "any" ||
+        (filters.studyLevel === "grade-11" &&
+          bursary.studyLevel?.includes("grade-11")) ||
+        (filters.studyLevel === "matric" &&
+          bursary.studyLevel?.includes("matric")) ||
         (filters.studyLevel === "undergraduate" &&
           (bursary.fieldsOfStudy.some((field) =>
             field.toLowerCase().includes("undergraduate"),
@@ -84,17 +96,73 @@ const BursaryListing = () => {
           ));
 
       // Minimum marks filter
-      const matchesMinMarks =
-        !filters.minMarks ||
-        (bursary.requirements.minimumMarks !== undefined &&
-          bursary.requirements.minimumMarks <= filters.minMarks);
+      const matchesMinMarks = (() => {
+        if (!filters.minMarks) return true;
+
+        // Check structured requirements first
+        if (bursary.requirements.minimumMarks !== undefined) {
+          return bursary.requirements.minimumMarks <= filters.minMarks;
+        }
+
+        // Parse marks from eligibility criteria text and academic requirements
+        const academicTexts = [
+          ...(bursary.requirements?.academicRequirement
+            ? [bursary.requirements.academicRequirement]
+            : []),
+          ...bursary.eligibilityCriteria.filter(
+            (criteria) =>
+              criteria.toLowerCase().includes("%") ||
+              criteria.toLowerCase().includes("average") ||
+              criteria.toLowerCase().includes("minimum") ||
+              criteria.toLowerCase().includes("academic"),
+          ),
+        ];
+
+        for (const text of academicTexts) {
+          // Extract percentage like "Minimum 70% average" or "Academic average ≥ 75%"
+          const marksMatch = text.match(/(\d+)%/);
+          if (marksMatch) {
+            const extractedMarks = parseInt(marksMatch[1]);
+            return extractedMarks <= filters.minMarks;
+          }
+        }
+
+        return true; // If no marks requirement found, don't filter out
+      })();
 
       // Maximum household income filter
-      const matchesHouseholdIncome =
-        !filters.maxHouseholdIncome ||
-        (bursary.requirements.maxHouseholdIncome !== undefined &&
-          bursary.requirements.maxHouseholdIncome >=
-            filters.maxHouseholdIncome);
+      const matchesHouseholdIncome = (() => {
+        if (!filters.maxHouseholdIncome) return true;
+
+        // Check structured requirements first
+        if (bursary.requirements.maxHouseholdIncome !== undefined) {
+          return (
+            bursary.requirements.maxHouseholdIncome >=
+            filters.maxHouseholdIncome
+          );
+        }
+
+        // Parse income from eligibility criteria text
+        const incomeText = bursary.eligibilityCriteria.find(
+          (criteria) =>
+            criteria.toLowerCase().includes("income") ||
+            criteria.toLowerCase().includes("household") ||
+            criteria.toLowerCase().includes("r"),
+        );
+
+        if (incomeText) {
+          // Extract number from text like "Combined household income ≤ R200,000"
+          const incomeMatch = incomeText.match(/R?[\s]*(\d[\d,\s]*)/);
+          if (incomeMatch) {
+            const extractedIncome = parseInt(
+              incomeMatch[1].replace(/[,\s]/g, ""),
+            );
+            return extractedIncome >= filters.maxHouseholdIncome;
+          }
+        }
+
+        return true; // If no income requirement found, don't filter out
+      })();
 
       // Gender filter
       const matchesGender =
@@ -187,11 +255,140 @@ const BursaryListing = () => {
       {/* Search and Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Find Your Perfect Bursary</CardTitle>
-          <CardDescription>
-            Use the filters below to find bursaries that match your needs and
-            eligibility.
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg">
+                Find Your Perfect Bursary
+              </CardTitle>
+              <CardDescription>
+                Use the filters below to find bursaries that match your needs
+                and eligibility.
+              </CardDescription>
+            </div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Info className="h-4 w-4" />
+                  Info
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>
+                    Understanding Bursaries & Scholarships
+                  </DialogTitle>
+                  <DialogDescription>
+                    Everything you need to know about financial aid for your
+                    education
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 text-sm">
+                  <div>
+                    <h4 className="font-semibold mb-2">What are Bursaries?</h4>
+                    <p>
+                      Bursaries are financial assistance programs that help
+                      students pay for their education. Unlike loans, bursaries
+                      typically don't need to be repaid, making them an
+                      excellent form of financial aid.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">Types of Bursaries:</h4>
+                    <ul className="list-disc ml-4 space-y-1">
+                      <li>
+                        <strong>Government Bursaries:</strong> Funded by
+                        government departments (e.g., NSFAS, Department of
+                        Education)
+                      </li>
+                      <li>
+                        <strong>Corporate Bursaries:</strong> Offered by private
+                        companies, often requiring work-back agreements
+                      </li>
+                      <li>
+                        <strong>Merit-based:</strong> Awarded based on academic
+                        excellence or special talents
+                      </li>
+                      <li>
+                        <strong>Need-based:</strong> Given to students with
+                        demonstrated financial need
+                      </li>
+                      <li>
+                        <strong>Field-specific:</strong> For students pursuing
+                        particular careers (e.g., teaching, engineering)
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">
+                      Public vs Private Bursaries:
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-blue-50 p-3 rounded">
+                        <h5 className="font-medium text-blue-800">
+                          Public Bursaries
+                        </h5>
+                        <ul className="text-blue-700 text-xs mt-1 space-y-1">
+                          <li>• Government-funded (NSFAS, Funza Lushaka)</li>
+                          <li>• Often covers full tuition + living costs</li>
+                          <li>• Based on household income limits</li>
+                          <li>• May require community service</li>
+                        </ul>
+                      </div>
+                      <div className="bg-green-50 p-3 rounded">
+                        <h5 className="font-medium text-green-800">
+                          Private Bursaries
+                        </h5>
+                        <ul className="text-green-700 text-xs mt-1 space-y-1">
+                          <li>• Company/foundation-funded</li>
+                          <li>• Often require work-back periods</li>
+                          <li>• May focus on specific fields</li>
+                          <li>• Competitive selection process</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">Application Tips:</h4>
+                    <ul className="list-disc ml-4 space-y-1">
+                      <li>
+                        Apply early - most bursaries have strict deadlines
+                      </li>
+                      <li>
+                        Read requirements carefully and ensure you qualify
+                      </li>
+                      <li>Prepare all required documents in advance</li>
+                      <li>Write compelling motivation letters</li>
+                      <li>
+                        Apply for multiple bursaries to increase your chances
+                      </li>
+                      <li>
+                        Keep track of application deadlines and requirements
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-yellow-50 p-3 rounded border border-yellow-200">
+                    <h4 className="font-semibold text-yellow-800 mb-2">
+                      Important Note:
+                    </h4>
+                    <p className="text-yellow-700 text-xs">
+                      Always verify bursary information directly with the
+                      provider. Requirements and deadlines may change. Be wary
+                      of scams - legitimate bursaries never ask for upfront
+                      payments.
+                    </p>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Search Bar */}
@@ -260,6 +457,8 @@ const BursaryListing = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="any">Any Level</SelectItem>
+                <SelectItem value="grade-11">Grade 11</SelectItem>
+                <SelectItem value="matric">Matric (Grade 12)</SelectItem>
                 <SelectItem value="undergraduate">Undergraduate</SelectItem>
                 <SelectItem value="postgraduate">Postgraduate</SelectItem>
               </SelectContent>
@@ -436,6 +635,40 @@ const BursaryListing = () => {
         </CardContent>
       </Card>
 
+      {/* High School Alert */}
+      {(filters.studyLevel === "grade-11" ||
+        filters.studyLevel === "matric") && (
+        <Alert className="border-blue-200 bg-blue-50">
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <strong>High School Students:</strong> Showing bursaries
+            specifically for Grade 11 and Matric students. Look for highlighted
+            academic requirements and household income limits in the eligibility
+            criteria below.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Results Summary */}
+      <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+        <span className="text-sm text-gray-600">
+          Found <strong>{filteredBursaries.length}</strong> bursaries matching
+          your criteria
+          {(filters.studyLevel === "grade-11" ||
+            filters.studyLevel === "matric") &&
+            ` (including ${filteredBursaries.filter((b) => b.studyLevel?.includes("grade-11") || b.studyLevel?.includes("matric")).length} high school bursaries)`}
+        </span>
+        {filteredBursaries.length > 0 && (
+          <Badge variant="outline">
+            {
+              filteredBursaries.filter((b) => b.requirements?.financialNeed)
+                .length
+            }{" "}
+            need-based
+          </Badge>
+        )}
+      </div>
+
       {/* Bursary Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredBursaries.map((bursary) => {
@@ -447,7 +680,12 @@ const BursaryListing = () => {
           return (
             <Card
               key={bursary.id}
-              className="hover:shadow-lg transition-shadow"
+              className={`hover:shadow-lg transition-shadow ${
+                bursary.studyLevel?.includes("grade-11") ||
+                bursary.studyLevel?.includes("matric")
+                  ? "border-blue-300 bg-blue-50/50"
+                  : ""
+              }`}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
@@ -459,18 +697,28 @@ const BursaryListing = () => {
                       {bursary.provider}
                     </CardDescription>
                   </div>
-                  <Badge
-                    variant={
-                      applicationStatus.status === "open"
-                        ? "default"
-                        : applicationStatus.status === "closing"
-                          ? "destructive"
-                          : "secondary"
-                    }
-                    className="ml-2"
-                  >
-                    {applicationStatus.message}
-                  </Badge>
+                  <div className="flex gap-2">
+                    {(bursary.studyLevel?.includes("grade-11") ||
+                      bursary.studyLevel?.includes("matric")) && (
+                      <Badge
+                        variant="outline"
+                        className="bg-blue-100 text-blue-700 border-blue-300"
+                      >
+                        🎓 High School
+                      </Badge>
+                    )}
+                    <Badge
+                      variant={
+                        applicationStatus.status === "open"
+                          ? "default"
+                          : applicationStatus.status === "closing"
+                            ? "destructive"
+                            : "secondary"
+                      }
+                    >
+                      {applicationStatus.message}
+                    </Badge>
+                  </div>
                 </div>
 
                 {/* Amount */}
@@ -550,13 +798,103 @@ const BursaryListing = () => {
                         <CheckCircle className="h-4 w-4 text-green-600" />
                         Eligibility Criteria:
                       </h4>
+
+                      {/* High School Special Requirements */}
+                      {(bursary.studyLevel?.includes("grade-11") ||
+                        bursary.studyLevel?.includes("matric")) && (
+                        <div className="bg-blue-50 p-3 rounded-lg mb-3 border border-blue-200">
+                          <h5 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                            🎓 High School Student Requirements:
+                          </h5>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                            {bursary.requirements?.academicRequirement && (
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-blue-700">
+                                  Academic:
+                                </span>
+                                <span className="text-blue-600">
+                                  {bursary.requirements.academicRequirement}
+                                </span>
+                              </div>
+                            )}
+                            {bursary.eligibilityCriteria.find(
+                              (c) =>
+                                c.toLowerCase().includes("income") ||
+                                c.toLowerCase().includes("r"),
+                            ) && (
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-blue-700">
+                                  Income:
+                                </span>
+                                <span className="text-blue-600">
+                                  {bursary.eligibilityCriteria.find(
+                                    (c) =>
+                                      c.toLowerCase().includes("income") ||
+                                      c.toLowerCase().includes("r"),
+                                  )}
+                                </span>
+                              </div>
+                            )}
+                            {bursary.studyLevel?.includes("grade-11") &&
+                            bursary.studyLevel?.includes("matric") ? (
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-blue-700">
+                                  Study Level:
+                                </span>
+                                <span className="text-blue-600">
+                                  Grade 11 & Matric Students
+                                </span>
+                              </div>
+                            ) : bursary.studyLevel?.includes("grade-11") ? (
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-blue-700">
+                                  Study Level:
+                                </span>
+                                <span className="text-blue-600">
+                                  Grade 11 Students
+                                </span>
+                              </div>
+                            ) : bursary.studyLevel?.includes("matric") ? (
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-blue-700">
+                                  Study Level:
+                                </span>
+                                <span className="text-blue-600">
+                                  Matric/Grade 12 Students
+                                </span>
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      )}
+
                       <ul className="space-y-1">
                         {bursary.eligibilityCriteria.map((criteria, index) => (
                           <li
                             key={index}
-                            className="text-sm text-gray-600 flex items-start gap-2"
+                            className={`text-sm flex items-start gap-2 ${
+                              criteria.toLowerCase().includes("grade") ||
+                              criteria.toLowerCase().includes("matric") ||
+                              criteria.toLowerCase().includes("%") ||
+                              criteria.toLowerCase().includes("average") ||
+                              criteria.toLowerCase().includes("income")
+                                ? "text-blue-700 font-medium bg-blue-50 p-2 rounded"
+                                : "text-gray-600"
+                            }`}
                           >
-                            <span className="text-green-600 mt-1">•</span>
+                            <span
+                              className={
+                                criteria.toLowerCase().includes("grade") ||
+                                criteria.toLowerCase().includes("matric") ||
+                                criteria.toLowerCase().includes("%") ||
+                                criteria.toLowerCase().includes("average") ||
+                                criteria.toLowerCase().includes("income")
+                                  ? "text-blue-600 mt-1"
+                                  : "text-green-600 mt-1"
+                              }
+                            >
+                              •
+                            </span>
                             {criteria}
                           </li>
                         ))}

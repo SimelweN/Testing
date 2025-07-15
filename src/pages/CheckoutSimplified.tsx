@@ -456,7 +456,21 @@ const CheckoutSimplified = () => {
     }
   };
 
-  const handleAddressUpdate = (address: CheckoutAddress) => {
+  const handleAddressUpdate = (addressData: {
+    formattedAddress: string;
+    street: string;
+    city: string;
+    province: string;
+    postalCode: string;
+    country: string;
+  }) => {
+    const address: CheckoutAddress = {
+      street: addressData.street,
+      city: addressData.city,
+      province: addressData.province,
+      postalCode: addressData.postalCode,
+      country: addressData.country,
+    };
     updateState({ shippingAddress: address });
   };
 
@@ -636,11 +650,7 @@ const CheckoutSimplified = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <SimpleAddressInput
-                    onAddressUpdate={handleAddressUpdate}
-                    savedAddresses={savedAddresses}
-                    initialAddress={state.shippingAddress}
-                  />
+                  <SimpleAddressInput onAddressSelect={handleAddressUpdate} />
                 </CardContent>
               </Card>
             )}

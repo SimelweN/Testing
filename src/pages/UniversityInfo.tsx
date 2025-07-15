@@ -57,8 +57,8 @@ import { toast } from "sonner";
 import APSCalculatorSection from "@/components/university-info/APSCalculatorSection";
 
 // Keep lazy loading for other components
-const BursaryExplorerSection = lazy(
-  () => import("@/components/university-info/BursaryExplorerSection"),
+const EnhancedBursaryListing = lazy(
+  () => import("@/components/university-info/EnhancedBursaryListing"),
 );
 const CampusBooksSection = lazy(
   () => import("@/components/university-info/CampusBooksSection"),
@@ -66,7 +66,7 @@ const CampusBooksSection = lazy(
 
 // Preload components for better performance
 const preloadBursarySection = () =>
-  import("@/components/university-info/BursaryExplorerSection");
+  import("@/components/university-info/EnhancedBursaryListing");
 const preloadBooksSection = () =>
   import("@/components/university-info/CampusBooksSection");
 
@@ -771,7 +771,7 @@ const UniversityInfo = () => {
 
             <TabsContent value="bursaries" className="space-y-6">
               <Suspense fallback={<LoadingSection />}>
-                <BursaryExplorerSection />
+                <EnhancedBursaryListing />
               </Suspense>
             </TabsContent>
 

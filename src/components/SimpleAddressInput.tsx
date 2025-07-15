@@ -21,7 +21,7 @@ interface AddressData {
 }
 
 interface SimpleAddressInputProps {
-  onAddressSelect: (addressData: AddressData) => void;
+  onAddressSelect?: (addressData: AddressData) => void;
   label?: string;
   required?: boolean;
   error?: string;
@@ -72,8 +72,9 @@ const SimpleAddressInput = ({
       .filter(Boolean)
       .join(", ");
 
-    // Call parent callback with complete address data
+    // Call parent callback with complete address data (only if function is provided)
     if (
+      typeof onAddressSelect === "function" &&
       newAddress.street &&
       newAddress.city &&
       newAddress.province &&

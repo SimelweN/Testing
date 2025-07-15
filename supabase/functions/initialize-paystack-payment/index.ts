@@ -47,20 +47,23 @@ serve(async (req) => {
       throw new Error(`Failed to fetch sellers: ${sellersError.message}`);
     }
 
-    // Calculate split payments
+    // Calculate split payments for sellers (90% of book prices)
     const splitPayments = sellers
       ?.map((seller) => {
         const sellerItems = items.filter(
           (item: any) => item.seller_id === seller.id,
         );
-        const sellerTotal = sellerItems.reduce(
+        const sellerBookTotal = sellerItems.reduce(
           (sum: number, item: any) => sum + item.price,
           0,
         );
 
+        // Seller gets 90% of their book prices (not including delivery)
+        const sellerAmount = sellerBookTotal * 0.9;
+
         return {
           subaccount: seller.subaccount_code,
-          share: sellerTotal * 100, // Convert to kobo
+          share: Math.round(sellerAmount * 100), // Convert to kobo, seller gets 90%
         };
       })
       .filter((split) => split.subaccount);

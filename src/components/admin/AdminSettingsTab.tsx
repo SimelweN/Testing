@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,7 +21,9 @@ import { Badge } from "@/components/ui/badge";
 import { createBroadcast } from "@/services/broadcastService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Settings, MessageSquare, Megaphone } from "lucide-react";
+import { Settings, MessageSquare, Megaphone, Trash2 } from "lucide-react";
+import EdgeFunctionTestButton from "@/components/EdgeFunctionTestButton";
+import { runBankingCleanup } from "@/utils/cleanupDevelopmentBanking";
 
 interface AdminSettingsTabProps {
   broadcastMessage: string;
@@ -46,6 +47,35 @@ const AdminSettingsTab = ({
     expiresAt: "",
   });
   const [isCreating, setIsCreating] = useState(false);
+  const [isCleaningBanking, setIsCleaningBanking] = useState(false);
+
+  const handleBankingCleanup = async () => {
+    if (
+      !confirm(
+        "⚠️ This will remove ALL development/mock banking details from the system. This action cannot be undone. Are you sure?",
+      )
+    ) {
+      return;
+    }
+
+    setIsCleaningBanking(true);
+    try {
+      const result = await runBankingCleanup();
+
+      if (result.success) {
+        toast.success(
+          `Banking cleanup completed! Removed ${result.removedSubaccounts} mock subaccounts and ${result.removedBookSubaccounts} book subaccount codes.`,
+        );
+      } else {
+        toast.error(`Banking cleanup failed: ${result.errors.join(", ")}`);
+      }
+    } catch (error) {
+      console.error("Banking cleanup error:", error);
+      toast.error("Failed to run banking cleanup");
+    } finally {
+      setIsCleaningBanking(false);
+    }
+  };
 
   const handleCreateBroadcast = async () => {
     if (!user || !newBroadcast.title.trim() || !newBroadcast.message.trim()) {
@@ -120,9 +150,9 @@ const AdminSettingsTab = ({
               <Label htmlFor="broadcast-type">Type</Label>
               <Select
                 value={newBroadcast.type}
-                onValueChange={(value: "info" | "warning" | "success" | "error") =>
-                  setNewBroadcast((prev) => ({ ...prev, type: value }))
-                }
+                onValueChange={(
+                  value: "info" | "warning" | "success" | "error",
+                ) => setNewBroadcast((prev) => ({ ...prev, type: value }))}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -142,9 +172,9 @@ const AdminSettingsTab = ({
               <Label htmlFor="broadcast-priority">Priority</Label>
               <Select
                 value={newBroadcast.priority}
-                onValueChange={(value: "low" | "normal" | "medium" | "high" | "urgent") =>
-                  setNewBroadcast((prev) => ({ ...prev, priority: value }))
-                }
+                onValueChange={(
+                  value: "low" | "normal" | "medium" | "high" | "urgent",
+                ) => setNewBroadcast((prev) => ({ ...prev, priority: value }))}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -299,6 +329,54 @@ const AdminSettingsTab = ({
               </Button>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <EdgeFunctionTestButton />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trash2 className="h-5 w-5 text-red-600" />
+            Banking Cleanup
+          </CardTitle>
+          <CardDescription>
+            Remove all development/mock banking details from the system
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h4 className="font-semibold text-yellow-800 mb-2">⚠️ Warning</h4>
+            <p className="text-sm text-yellow-700">
+              This will permanently remove all mock/development banking details
+              including:
+            </p>
+            <ul className="text-sm text-yellow-700 mt-2 ml-4 list-disc">
+              <li>Mock subaccount codes (ACCT_mock_*, ACCT_dev_*)</li>
+              <li>Fallback subaccount codes from development mode</li>
+              <li>Banking subaccounts marked as mock</li>
+              <li>Book subaccount associations with development codes</li>
+            </ul>
+          </div>
+
+          <Button
+            onClick={handleBankingCleanup}
+            disabled={isCleaningBanking}
+            variant="destructive"
+            className="w-full"
+          >
+            {isCleaningBanking ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Cleaning Banking Data...
+              </>
+            ) : (
+              <>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clean Development Banking Data
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
     </div>

@@ -24,7 +24,6 @@ import {
   Search,
   Filter,
   MapPin,
-  Star,
   Building,
   GraduationCap,
   AlertCircle,
@@ -176,12 +175,8 @@ const CampusBooksSection = () => {
               <span className="text-gray-500 text-xs">{book.category}</span>
             </div>
 
-            <div className="mt-3 text-xs text-gray-500 flex items-center justify-between">
+            <div className="mt-3 text-xs text-gray-500">
               <span className="truncate">Sold by: {book.seller.name}</span>
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <Star className="w-3 h-3 fill-current text-yellow-400" />
-                <span>4.5</span>
-              </div>
             </div>
           </div>
         </div>

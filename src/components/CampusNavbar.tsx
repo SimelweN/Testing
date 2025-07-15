@@ -137,19 +137,6 @@ const CampusNavbar = () => {
               <Lightbulb className="w-4 h-4 mr-2" />
               Study Tips
             </Button>
-
-            <Button
-              variant="ghost"
-              onClick={() => handleNavigation("/add-program")}
-              className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm ${
-                isActive("/add-program")
-                  ? "bg-book-50 text-book-600"
-                  : "text-gray-600 hover:text-book-600 hover:bg-book-50"
-              }`}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Program
-            </Button>
           </div>
 
           {/* Medium Screen Navigation */}
@@ -302,32 +289,6 @@ const CampusNavbar = () => {
               >
                 <BookOpen className="w-4 h-4 mr-3" />
                 Campus & Books
-              </Button>
-
-              <Button
-                variant="ghost"
-                onClick={() => handleNavigation("/study-tips")}
-                className={`w-full justify-start px-4 py-3 rounded-lg font-medium transition-colors text-sm ${
-                  isActive("/study-tips") || isActive("/study-resources")
-                    ? "bg-book-50 text-book-600"
-                    : "text-gray-600"
-                }`}
-              >
-                <Lightbulb className="w-4 h-4 mr-3" />
-                Study Tips
-              </Button>
-
-              <Button
-                variant="ghost"
-                onClick={() => handleNavigation("/add-program")}
-                className={`w-full justify-start px-4 py-3 rounded-lg font-medium transition-colors text-sm ${
-                  isActive("/add-program")
-                    ? "bg-book-50 text-book-600"
-                    : "text-gray-600"
-                }`}
-              >
-                <Plus className="w-4 h-4 mr-3" />
-                Add Program
               </Button>
 
               <div className="border-t border-book-200 pt-3 mt-3">

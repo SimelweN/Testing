@@ -1,24 +1,23 @@
-
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Layout from '@/components/Layout';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
-import { ArrowLeft, Mail, Send } from 'lucide-react';
-import { submitContactMessage } from '@/services/contactService';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Layout from "@/components/Layout";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { ArrowLeft, Mail, Send, Instagram, Facebook } from "lucide-react";
+import { submitContactMessage } from "@/services/contactService";
 
 const ContactUs = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
 
-  const [name, setName] = useState(profile?.name || '');
-  const [email, setEmail] = useState(profile?.email || '');
-  const [subject, setSubject] = useState('');
-  const [message, setMessage] = useState('');
+  const [name, setName] = useState(profile?.name || "");
+  const [email, setEmail] = useState(profile?.email || "");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,15 +29,15 @@ const ContactUs = () => {
         name,
         email,
         subject,
-        message
+        message,
       });
-      
-      toast.success('Your message has been sent! We\'ll get back to you soon.');
-      setSubject('');
-      setMessage('');
+
+      toast.success("Your message has been sent! We'll get back to you soon.");
+      setSubject("");
+      setMessage("");
     } catch (error) {
-      console.error('Failed to send message:', error);
-      toast.error('Failed to send message. Please try again later.');
+      console.error("Failed to send message:", error);
+      toast.error("Failed to send message. Please try again later.");
     } finally {
       setIsSubmitting(false);
     }
@@ -47,16 +46,23 @@ const ContactUs = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6 text-book-600">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="mb-6 text-book-600"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
-            <h1 className="text-3xl font-bold text-book-800 mb-6">Contact Us</h1>
-            
+            <h1 className="text-3xl font-bold text-book-800 mb-6">
+              Contact Us
+            </h1>
+
             <p className="text-gray-600 mb-6">
-              We'd love to hear from you! Fill out the form below and we'll get back to you as soon as possible.
+              We'd love to hear from you! Fill out the form below and we'll get
+              back to you as soon as possible.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -113,9 +119,25 @@ const ContactUs = () => {
               >
                 {isSubmitting ? (
                   <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Sending...
                   </span>
@@ -130,8 +152,10 @@ const ContactUs = () => {
           </div>
 
           <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
-            <h2 className="text-2xl font-bold text-book-800 mb-6">Get in Touch</h2>
-            
+            <h2 className="text-2xl font-bold text-book-800 mb-6">
+              Get in Touch
+            </h2>
+
             <div className="space-y-6">
               <div className="flex items-start">
                 <div className="bg-book-100 p-3 rounded-full mr-4">
@@ -139,17 +163,52 @@ const ContactUs = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800">Email</h3>
-                  <p className="text-gray-600 mt-1">support@rebookedsolutions.co.za</p>
-                  <a href="mailto:rebooked.solutions@gmail.com" className="text-book-600 hover:text-book-800 mt-1 inline-block">
+                  <p className="text-gray-600 mt-1">
+                    support@rebookedsolutions.co.za
+                  </p>
+                  <a
+                    href="mailto:rebooked.solutions@gmail.com"
+                    className="text-book-600 hover:text-book-800 mt-1 inline-block"
+                  >
                     Send us an email
                   </a>
                 </div>
               </div>
 
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Follow Us
+                </h3>
+                <div className="flex space-x-4">
+                  <a
+                    href="https://www.instagram.com/rebooked.solutions?igsh=M2ZsNjd2aTNmZmRh"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 bg-book-100 hover:bg-book-200 text-book-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    <Instagram className="h-5 w-5" />
+                    <span>Instagram</span>
+                  </a>
+                  <a
+                    href="https://www.facebook.com/share/16ngKMps6U/?mibextid=wwXIfr"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 bg-book-100 hover:bg-book-200 text-book-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    <Facebook className="h-5 w-5" />
+                    <span>Facebook</span>
+                  </a>
+                </div>
+              </div>
+
               <div className="mt-8 bg-gray-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">ReBooked Solutions Support Team</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  ReBooked Solutions Support Team
+                </h3>
                 <p className="text-gray-600">
-                  Our dedicated support team is here to help with any questions you may have about using our platform, book transactions, or account issues.
+                  Our dedicated support team is here to help with any questions
+                  you may have about using our platform, book transactions, or
+                  account issues.
                 </p>
                 <p className="text-gray-600 mt-2">
                   We typically respond within 24-48 hours.

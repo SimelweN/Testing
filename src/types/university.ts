@@ -127,6 +127,7 @@ export interface Bursary {
   requirements: BursaryRequirements;
   isActive?: boolean;
   priority?: "high" | "medium" | "low";
+  studyLevel?: string; // For high school bursaries: "grade-11,matric"
 }
 
 export interface BursaryFilters {
@@ -141,7 +142,7 @@ export interface BursaryFilters {
   maxHouseholdIncome?: number; // Maximum household income
   genderSpecific?: string; // "male" | "female" | "any"
   raceSpecific?: string; // "african" | "coloured" | "indian" | "white" | "any"
-  studyLevel?: string; // "undergraduate" | "postgraduate" | "any"
+  studyLevel?: string; // "grade-11" | "matric" | "undergraduate" | "postgraduate" | "any"
   disabilitySupport?: boolean; // For students with disabilities
   ruralBackground?: boolean; // For students from rural areas
   firstGeneration?: boolean; // First-generation university students

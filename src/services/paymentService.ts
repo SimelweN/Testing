@@ -155,16 +155,24 @@ export class PaymentService {
         {
           body: {
             email: paymentData.email,
-            amount: split.totalAmountKobo, // in kobo
+            amount: split.totalAmountKobo, // total amount in kobo (books + delivery)
             reference,
             subaccount: subaccountCode,
-            transaction_charge: split.platformAmountKobo,
+            transaction_charge: split.platformAmountKobo, // 10% of book price to platform
             bearer: "subaccount",
             metadata: {
               order_id: orderResult.order!.id,
               seller_id: paymentData.sellerId,
               subaccount_code: subaccountCode,
               books: metadata.books,
+              payment_split: {
+                seller_amount: split.sellerAmountKobo, // 90% of book price
+                platform_amount: split.platformAmountKobo, // 10% of book price
+                delivery_amount: split.deliveryAmountKobo, // 100% of delivery fee
+                total_amount: split.totalAmountKobo,
+              },
+              delivery_fee: deliveryFee,
+              book_total: booksTotal,
             },
           },
         },

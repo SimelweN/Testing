@@ -84,16 +84,18 @@ export const calculatePaymentSplit = (
   deliveryFee: number = 0,
 ) => {
   const totalAmount = bookPrice + deliveryFee;
-  const platformAmount = Math.round(bookPrice * PLATFORM_COMMISSION_RATE);
-  const sellerAmount = bookPrice - platformAmount;
+  const platformAmount = Math.round(bookPrice * PLATFORM_COMMISSION_RATE); // 10% of book price to platform
+  const sellerAmount = bookPrice - platformAmount; // 90% of book price to seller
+  const courierAmount = deliveryFee; // 100% of delivery fee to courier
 
   return {
     totalAmount,
-    sellerAmount, // 90% to seller
-    platformAmount, // 10% to platform
-    deliveryAmount: deliveryFee, // 100% to courier
+    sellerAmount, // 90% of book price to seller
+    platformAmount, // 10% of book price to platform
+    deliveryAmount: courierAmount, // 100% of delivery fee to courier
     sellerAmountKobo: toKobo(sellerAmount),
     platformAmountKobo: toKobo(platformAmount),
+    deliveryAmountKobo: toKobo(courierAmount),
     totalAmountKobo: toKobo(totalAmount),
   };
 };
