@@ -92,6 +92,9 @@ const Checkout: React.FC = () => {
       setBook(checkoutBook);
     } catch (err) {
       console.error("Error loading book data:", err);
+      console.error("Book ID:", id);
+      console.error("Full error:", err);
+
       const errorMessage =
         err instanceof Error ? err.message : "Failed to load book";
       setError(errorMessage);
