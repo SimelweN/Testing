@@ -37,6 +37,7 @@ import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 import Cart from "./pages/Cart";
 import CheckoutSimplified from "./pages/CheckoutSimplified";
+import EnhancedCheckout from "./pages/EnhancedCheckout";
 import NotificationsOld from "./pages/Notifications";
 import Notifications from "./pages/NotificationsNew";
 import Shipping from "./pages/Shipping";
@@ -135,10 +136,14 @@ function App() {
                       <Route path="/cart" element={<Cart />} />
                       <Route
                         path="/checkout/:id"
-                        element={<CheckoutSimplified />}
+                        element={<EnhancedCheckout />}
                       />
                       <Route
                         path="/checkout/cart"
+                        element={<EnhancedCheckout />}
+                      />
+                      <Route
+                        path="/checkout-old/:id"
                         element={<CheckoutSimplified />}
                       />
                       <Route path="/shipping" element={<Shipping />} />
