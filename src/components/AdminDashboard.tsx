@@ -28,6 +28,7 @@ import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
+import DatabaseCleanup from "@/components/admin/DatabaseCleanup";
 import {
   TrendingUp,
   Users,
@@ -37,6 +38,7 @@ import {
   Settings,
   GraduationCap,
   Lightbulb,
+  Trash2,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -329,6 +331,13 @@ const AdminDashboard = () => {
       color: "text-gray-600",
       description: "System configuration",
     },
+    {
+      value: "cleanup",
+      label: "Cleanup",
+      icon: Trash2,
+      color: "text-red-600",
+      description: "Remove mock data",
+    },
   ];
 
   return (
@@ -370,7 +379,7 @@ const AdminDashboard = () => {
           </div>
         ) : (
           // Desktop: Proper TabsList with grid styling
-          <TabsList className="grid grid-cols-8 gap-2 p-2 bg-white border border-gray-200 rounded-lg shadow-sm h-auto">
+          <TabsList className="grid grid-cols-9 gap-2 p-2 bg-white border border-gray-200 rounded-lg shadow-sm h-auto">
             {tabConfig.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -449,6 +458,12 @@ const AdminDashboard = () => {
                 setBroadcastMessage={setBroadcastMessage}
                 onSendBroadcast={handleSendBroadcast}
               />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="cleanup" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+              <DatabaseCleanup />
             </div>
           </TabsContent>
         </div>

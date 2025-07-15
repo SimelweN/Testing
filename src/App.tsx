@@ -18,6 +18,7 @@ import GoogleMapsProvider from "./contexts/GoogleMapsContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
+import QuickCleanupButton from "./components/QuickCleanupButton";
 import Index from "./pages/Index";
 import BookListing from "./pages/BookListing";
 import BookDetails from "./pages/BookDetails";
@@ -36,10 +37,8 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 import Cart from "./pages/Cart";
-import CheckoutSimplified from "./pages/CheckoutSimplified";
 import Checkout from "./pages/Checkout";
-import CheckoutRobust from "./pages/CheckoutRobust";
-import EnhancedCheckout from "./pages/EnhancedCheckout";
+
 import NotificationsOld from "./pages/Notifications";
 import Notifications from "./pages/NotificationsNew";
 import Shipping from "./pages/Shipping";
@@ -88,6 +87,7 @@ function App() {
                   <Router>
                     <AuthErrorHandler />
                     <ScrollToTop />
+                    <QuickCleanupButton />
                     <Routes>
                       <Route path="/" element={<Index />} />
                       <Route path="/books" element={<BookListing />} />
@@ -136,26 +136,8 @@ function App() {
 
                       {/* Shopping and Cart Routes */}
                       <Route path="/cart" element={<Cart />} />
-                      <Route
-                        path="/checkout/:id"
-                        element={<CheckoutRobust />}
-                      />
-                      <Route
-                        path="/checkout/cart"
-                        element={<CheckoutRobust />}
-                      />
-                      <Route
-                        path="/checkout-original/:id"
-                        element={<Checkout />}
-                      />
-                      <Route
-                        path="/checkout-simple/:id"
-                        element={<CheckoutSimplified />}
-                      />
-                      <Route
-                        path="/checkout-enhanced/:id"
-                        element={<EnhancedCheckout />}
-                      />
+                      <Route path="/checkout/:id" element={<Checkout />} />
+
                       <Route path="/shipping" element={<Shipping />} />
 
                       {/* Support and Info Pages */}

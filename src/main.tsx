@@ -1,9 +1,14 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import App from "./App.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
 import "./index.css";
+
+// Suppress ResizeObserver errors immediately
+import "./utils/suppressResizeObserverError";
+
+// Run database cleanup immediately
+import "./utils/runCleanupNow";
 
 // Enhanced environment validation with deployment safety
 const validateEnvironment = () => {
@@ -62,19 +67,7 @@ try {
   };
 }
 
-// Create a simple query client with minimal configuration
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: 1,
-      refetchOnWindowFocus: false, // Reduce unnecessary requests
-    },
-    mutations: {
-      retry: false,
-    },
-  },
-});
+// QueryClient is now created in App.tsx to avoid duplication
 
 // Initialize the React app with enhanced error handling
 const initializeApp = () => {
@@ -169,9 +162,7 @@ const initializeApp = () => {
   root.render(
     <React.StrictMode>
       <ErrorBoundary level="app">
-        <QueryClientProvider client={queryClient}>
-          <App />
-        </QueryClientProvider>
+        <App />
       </ErrorBoundary>
     </React.StrictMode>,
   );

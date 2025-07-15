@@ -28,7 +28,7 @@ const suppressedErrorPatterns = [
 
 // Check if error should be suppressed
 const shouldSuppressError = (message: string): boolean => {
-  if (process.env.NODE_ENV === "production") {
+  if (import.meta.env.PROD) {
     // In production, only suppress known third-party errors
     return (
       suppressedErrorPatterns.some(
@@ -56,7 +56,7 @@ console.error = (...args: any[]) => {
   const message = args[0];
   if (typeof message === "string" && shouldSuppressError(message)) {
     // Log to a separate namespace for debugging if needed
-    if (process.env.NODE_ENV === "development") {
+    if (import.meta.env.DEV) {
       console.debug("[Suppressed Network Error]:", message);
     }
     return;
@@ -71,7 +71,7 @@ window.onunhandledrejection = (event: PromiseRejectionEvent) => {
   if (shouldSuppressError(message)) {
     // Suppress the error
     event.preventDefault();
-    if (process.env.NODE_ENV === "development") {
+    if (import.meta.env.DEV) {
       console.debug("[Suppressed Network Rejection]:", message);
     }
     return;
@@ -98,7 +98,7 @@ window.addEventListener(
       shouldSuppressError(message)
     ) {
       event.preventDefault();
-      if (process.env.NODE_ENV === "development") {
+      if (import.meta.env.DEV) {
         console.debug("[Suppressed Script Error]:", { message, source });
       }
       return;
@@ -150,34 +150,12 @@ window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
   }
 };
 
-// Add specific handler for Vite HMR ping errors
-if (process.env.NODE_ENV === "development") {
-  // Wrap WebSocket constructor to handle HMR connection errors
-  const OriginalWebSocket = window.WebSocket;
-  window.WebSocket = class extends OriginalWebSocket {
-    constructor(url: string | URL, protocols?: string | string[]) {
-      super(url, protocols);
-
-      this.addEventListener("error", (event) => {
-        const urlString = url.toString();
-        if (urlString.includes("vite") || urlString.includes("8080")) {
-          console.debug("[Vite HMR WebSocket error suppressed]:", event);
-          event.stopPropagation();
-        }
-      });
-
-      this.addEventListener("close", (event) => {
-        const urlString = url.toString();
-        if (urlString.includes("vite") || urlString.includes("8080")) {
-          console.debug(
-            "[Vite HMR WebSocket closed]:",
-            event.code,
-            event.reason,
-          );
-        }
-      });
-    }
-  };
+// Add specific handler for Vite HMR ping errors (removed WebSocket override to prevent constructor issues)
+if (import.meta.env.DEV) {
+  // Simply suppress WebSocket errors in development instead of overriding the constructor
+  console.debug(
+    "[Dev Mode] WebSocket errors will be handled by existing error suppression",
+  );
 }
 
 export default {};

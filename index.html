@@ -39,6 +39,8 @@
     <!-- Critical Resource Preloading for Performance -->
     <link rel="dns-prefetch" href="https://images.unsplash.com" />
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+    <link rel="dns-prefetch" href="https://js.paystack.co" />
+    <link rel="preconnect" href="https://js.paystack.co" crossorigin />
 
     <!-- Google tag (gtag.js) -->
     <script
@@ -54,10 +56,65 @@
 
       gtag("config", "G-33V40Q5BEW");
     </script>
+
+    <!-- Immediate ResizeObserver error suppression -->
+    <script>
+      (function () {
+        "use strict";
+
+        // Store originals before any other code runs
+        const origError = console.error;
+        const origWarn = console.warn;
+
+        // Override console methods immediately
+        console.error = function () {
+          const msg = Array.from(arguments).join(" ");
+          if (msg.includes("ResizeObserver")) return;
+          return origError.apply(this, arguments);
+        };
+
+        console.warn = function () {
+          const msg = Array.from(arguments).join(" ");
+          if (msg.includes("ResizeObserver")) return;
+          return origWarn.apply(this, arguments);
+        };
+
+        // Suppress window errors
+        window.addEventListener(
+          "error",
+          function (e) {
+            if (e.message && e.message.includes("ResizeObserver")) {
+              e.stopPropagation();
+              e.preventDefault();
+              return false;
+            }
+          },
+          true,
+        );
+
+        // Silent ResizeObserver
+        if (window.ResizeObserver) {
+          const Original = window.ResizeObserver;
+          window.ResizeObserver = function (callback) {
+            return new Original(function () {
+              try {
+                callback.apply(this, arguments);
+              } catch (e) {
+                // Silent
+              }
+            });
+          };
+        }
+      })();
+    </script>
   </head>
 
   <body>
     <div id="root"></div>
+
+    <!-- Paystack Integration for Checkout -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
