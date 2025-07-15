@@ -4,6 +4,9 @@ import App from "./App.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
 import "./index.css";
 
+// Suppress ResizeObserver errors immediately
+import "./utils/suppressResizeObserverError";
+
 // Enhanced environment validation with deployment safety
 const validateEnvironment = () => {
   try {
@@ -24,7 +27,7 @@ const validateEnvironment = () => {
     // In development, we're more lenient
     if (import.meta.env.DEV && missing.length > 0) {
       console.warn(
-        "⚠️ Missing Supabase configuration (DEV MODE):",
+        "���️ Missing Supabase configuration (DEV MODE):",
         missing.join(", "),
       );
       console.warn("⚠️ App will run with limited functionality");
