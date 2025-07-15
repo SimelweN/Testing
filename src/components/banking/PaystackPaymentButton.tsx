@@ -114,7 +114,7 @@ const PaystackPaymentButton: React.FC<PaystackPaymentButtonProps> = ({
         .select(
           `
           id, title, author, price, condition, image_url,
-          seller_id, paystack_subaccount_code, province,
+          seller_id, seller_subaccount_code, province,
           front_cover, back_cover, sold, created_at
         `,
         )
