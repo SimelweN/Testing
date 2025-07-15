@@ -331,6 +331,13 @@ const AdminDashboard = () => {
       color: "text-gray-600",
       description: "System configuration",
     },
+    {
+      value: "cleanup",
+      label: "Cleanup",
+      icon: Trash2,
+      color: "text-red-600",
+      description: "Remove mock data",
+    },
   ];
 
   return (
