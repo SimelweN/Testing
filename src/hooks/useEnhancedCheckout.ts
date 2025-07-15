@@ -324,10 +324,21 @@ export const useEnhancedCheckout = ({
 
   // Initialize checkout following the data flow strategy
   const initializeCheckout = useCallback(async () => {
+    console.log("🔄 Initializing checkout...", {
+      userId: user?.id,
+      bookId,
+      isCartCheckout,
+      cartItemsLength: cartItems.length,
+    });
+
     if (!user?.id) {
       dispatch({
         type: "SET_ERROR",
         payload: "Please log in to complete your purchase",
+      });
+      dispatch({
+        type: "SET_LOADING",
+        payload: { key: "checkout", value: false },
       });
       return;
     }
@@ -343,11 +354,28 @@ export const useEnhancedCheckout = ({
 
       // 1. Load book data from URL or cart
       if (isCartCheckout && cartItems.length > 0) {
+        console.log("📦 Processing cart items...");
         // Process cart items with enhanced seller data
         const cartPromises = cartItems.map(async (item: any) => {
-          const bookData = await loadBookData(item.id);
-          return (
-            bookData || {
+          try {
+            const bookData = await loadBookData(item.id);
+            return (
+              bookData || {
+                id: item.id,
+                title: item.title,
+                author: item.author,
+                price: item.price,
+                condition: item.condition || "Good",
+                category: item.category || "Unknown",
+                imageUrl:
+                  item.frontCover || item.imageUrl || "/placeholder.svg",
+                seller: item.seller || { id: "", name: "Unknown", email: "" },
+              }
+            );
+          } catch (error) {
+            console.error("Error processing cart item:", error);
+            // Return fallback item data
+            return {
               id: item.id,
               title: item.title,
               author: item.author,
@@ -356,24 +384,43 @@ export const useEnhancedCheckout = ({
               category: item.category || "Unknown",
               imageUrl: item.frontCover || item.imageUrl || "/placeholder.svg",
               seller: item.seller || { id: "", name: "Unknown", email: "" },
-            }
-          );
+            };
+          }
         });
         checkoutItems = await Promise.all(cartPromises);
       } else if (bookId) {
-        const book = await loadBookData(bookId);
-        if (!book) {
-          dispatch({ type: "SET_ERROR", payload: "Book not found" });
-          return;
-        }
-        if (book.seller?.id === user.id) {
+        console.log("📖 Loading single book data...", bookId);
+        try {
+          const book = await loadBookData(bookId);
+          if (!book) {
+            dispatch({ type: "SET_ERROR", payload: "Book not found" });
+            dispatch({
+              type: "SET_LOADING",
+              payload: { key: "checkout", value: false },
+            });
+            return;
+          }
+          if (book.seller?.id === user.id) {
+            dispatch({
+              type: "SET_ERROR",
+              payload: "You cannot purchase your own book",
+            });
+            dispatch({
+              type: "SET_LOADING",
+              payload: { key: "checkout", value: false },
+            });
+            return;
+          }
+          checkoutItems = [book];
+        } catch (error) {
+          console.error("Error loading book data:", error);
+          dispatch({ type: "SET_ERROR", payload: "Failed to load book data" });
           dispatch({
-            type: "SET_ERROR",
-            payload: "You cannot purchase your own book",
+            type: "SET_LOADING",
+            payload: { key: "checkout", value: false },
           });
           return;
         }
-        checkoutItems = [book];
       }
 
       if (checkoutItems.length === 0) {
