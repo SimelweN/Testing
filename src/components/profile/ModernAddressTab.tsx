@@ -17,7 +17,9 @@ import {
   Loader2,
   Info,
 } from "lucide-react";
-import SimpleAddressInput from "@/components/SimpleAddressInput";
+import GoogleMapsAddressAutocomplete, {
+  AddressData as GoogleAddressData,
+} from "@/components/GoogleMapsAddressAutocomplete";
 import { AddressData, Address } from "@/types/address";
 
 interface ModernAddressTabProps {
@@ -93,7 +95,7 @@ const ModernAddressTab = ({
     }
   };
 
-  const handlePickupAddressChange = (address: any) => {
+  const handlePickupAddressChange = (address: GoogleAddressData) => {
     const formattedAddress: Address = {
       street: address.street,
       city: address.city,
@@ -108,7 +110,7 @@ const ModernAddressTab = ({
     }
   };
 
-  const handleShippingAddressChange = (address: any) => {
+  const handleShippingAddressChange = (address: GoogleAddressData) => {
     const formattedAddress: Address = {
       street: address.street,
       city: address.city,
