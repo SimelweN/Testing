@@ -73,7 +73,7 @@ export class PaymentService {
         .select(
           `
           *,
-          profiles!books_seller_id_fkey(paystack_subaccount_code, full_name)
+          profiles!books_seller_id_fkey(subaccount_code, full_name)
         `,
         )
         .in("id", paymentData.bookIds);
@@ -137,7 +137,7 @@ export class PaymentService {
       }
 
       // Get subaccount code
-      const subaccountCode = books[0].profiles?.paystack_subaccount_code;
+      const subaccountCode = books[0].profiles?.subaccount_code;
 
       if (!subaccountCode && PAYSTACK_CONFIG.isConfigured()) {
         return {
