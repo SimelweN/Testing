@@ -222,7 +222,7 @@ export class PaystackSubaccountService {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ subaccount_code: subaccountCode })
+        .update({ paystack_subaccount_code: subaccountCode })
         .eq("id", userId);
 
       if (error) {
@@ -249,13 +249,16 @@ export class PaystackSubaccountService {
       // 📚 UPDATE ALL USER'S BOOKS WITH SUBACCOUNT CODE
       const { data, error } = await supabase
         .from("books")
-        .update({ subaccount_code: subaccountCode })
+        .update({ paystack_subaccount_code: subaccountCode })
         .eq("seller_id", userId)
-        .is("subaccount_code", null) // Only update books that don't already have a subaccount_code
+        .is("paystack_subaccount_code", null) // Only update books that don't already have a subaccount_code
         .select("id");
 
       if (error) {
-        console.error("Error updating books with subaccount_code:", error);
+        console.error(
+          "Error updating books with paystack_subaccount_code:",
+          error,
+        );
         return false;
       }
 
@@ -298,12 +301,12 @@ export class PaystackSubaccountService {
       // Fallback to profile table
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("subaccount_code")
+        .select("paystack_subaccount_code")
         .eq("id", userId)
         .single();
 
-      if (!profileError && profileData?.subaccount_code) {
-        return profileData.subaccount_code;
+      if (!profileError && profileData?.paystack_subaccount_code) {
+        return profileData.paystack_subaccount_code;
       }
 
       return null;
@@ -352,18 +355,21 @@ export class PaystackSubaccountService {
         try {
           const { data: profileData, error: profileError } = await supabase
             .from("profiles")
-            .select("subaccount_code")
+            .select("paystack_subaccount_code")
             .eq("id", userId)
             .single();
 
-          if (!profileError && profileData?.subaccount_code) {
+          if (!profileError && profileData?.paystack_subaccount_code) {
+            console.warn(
+              "Found subaccount code in profile table, but no banking details available",
+            );
             return {
               hasSubaccount: true,
-              subaccountCode: profileData.subaccount_code,
-              businessName: "Mock Business",
-              bankName: "Development Bank",
-              accountNumber: "***1234",
-              email: "dev@example.com",
+              subaccountCode: profileData.paystack_subaccount_code,
+              businessName: "Please complete banking setup",
+              bankName: "Banking details incomplete",
+              accountNumber: "Not available",
+              email: "Please update",
               canEdit: true,
             };
           }
