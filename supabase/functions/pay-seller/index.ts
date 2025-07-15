@@ -40,7 +40,7 @@ serve(async (req) => {
       .select(
         `
         *,
-        seller:profiles!orders_seller_id_fkey(id, name, email, subaccount_code)
+                seller:profiles!orders_seller_id_fkey(id, name, email, paystack_subaccount_code)
       `,
       )
       .eq("id", order_id)
@@ -76,7 +76,7 @@ serve(async (req) => {
     }
 
     const seller = order.seller;
-    if (!seller?.subaccount_code) {
+    if (!seller?.paystack_subaccount_code) {
       throw new Error("Seller subaccount not found. Banking details required.");
     }
 
@@ -89,7 +89,7 @@ serve(async (req) => {
     const transferData = {
       source: "balance",
       amount: Math.round(sellerAmount * 100), // Convert to kobo
-      recipient: seller.subaccount_code,
+      recipient: seller.paystack_subaccount_code,
       reason: `Payout for order ${order_id}`,
       reference: `payout_${order_id}_${Date.now()}`,
       currency: "ZAR",
