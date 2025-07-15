@@ -14,14 +14,18 @@ const debounce = (fn: Function, delay: number) => {
 const originalError = console.error;
 console.error = (...args: any[]) => {
   const message = args[0];
-  if (
-    typeof message === "string" &&
-    message.includes(
+  if (typeof message === "string") {
+    // Check for various ResizeObserver error messages
+    const resizeObserverErrors = [
       "ResizeObserver loop completed with undelivered notifications",
-    )
-  ) {
-    // Suppress this specific warning as it's harmless
-    return;
+      "ResizeObserver loop limit exceeded",
+      'Script error for "ResizeObserver"',
+    ];
+
+    if (resizeObserverErrors.some((error) => message.includes(error))) {
+      // Suppress these ResizeObserver warnings as they're harmless
+      return;
+    }
   }
   originalError.apply(console, args);
 };
