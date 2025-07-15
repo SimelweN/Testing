@@ -38,6 +38,7 @@ import NotFound from "./pages/NotFound";
 import Cart from "./pages/Cart";
 import CheckoutSimplified from "./pages/CheckoutSimplified";
 import Checkout from "./pages/Checkout";
+import CheckoutRobust from "./pages/CheckoutRobust";
 import EnhancedCheckout from "./pages/EnhancedCheckout";
 import NotificationsOld from "./pages/Notifications";
 import Notifications from "./pages/NotificationsNew";
