@@ -32,7 +32,20 @@ export const createDebouncedResizeObserver = (
   delay: number = 16,
 ) => {
   const debouncedCallback = debounce(callback, delay);
-  return new ResizeObserver(debouncedCallback);
+  try {
+    return new ResizeObserver(debouncedCallback);
+  } catch (error) {
+    console.warn(
+      "ResizeObserver constructor failed, falling back to noop observer:",
+      error,
+    );
+    // Return a noop observer if ResizeObserver fails
+    return {
+      observe: () => {},
+      unobserve: () => {},
+      disconnect: () => {},
+    } as ResizeObserver;
+  }
 };
 
 export default {};
