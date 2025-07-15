@@ -66,7 +66,8 @@ const DatabaseCleanup: React.FC = () => {
       }
     } catch (error) {
       console.error("Reset error:", error);
-      toast.error("Failed to reset books");
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      toast.error("Failed to reset books: " + errorMsg);
     } finally {
       setIsResettingBooks(false);
     }
