@@ -800,8 +800,8 @@ const BursaryListing = () => {
                       </h4>
 
                       {/* High School Special Requirements */}
-                      {((bursary as any).studyLevel?.includes("grade-11") ||
-                        (bursary as any).studyLevel?.includes("matric")) && (
+                      {(bursary.studyLevel?.includes("grade-11") ||
+                        bursary.studyLevel?.includes("matric")) && (
                         <div className="bg-blue-50 p-3 rounded-lg mb-3 border border-blue-200">
                           <h5 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
                             🎓 High School Student Requirements:
