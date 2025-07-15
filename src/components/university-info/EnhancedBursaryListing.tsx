@@ -200,36 +200,41 @@ const EnhancedBursaryListing = () => {
   return (
     <div className="space-y-6">
       {/* Hero Section */}
-      <div className="text-center space-y-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white p-8 rounded-xl">
+      <div className="text-center space-y-4 bg-gradient-to-r from-green-600 via-book-600 to-emerald-600 text-white p-8 rounded-xl">
         <div className="flex items-center justify-center gap-3 mb-4">
           <GraduationCap className="h-12 w-12" />
-          <h1 className="text-4xl font-bold">Bursary Opportunities</h1>
+          <h1 className="text-4xl font-bold">
+            University Bursary Opportunities
+          </h1>
         </div>
         <p className="text-xl max-w-3xl mx-auto opacity-90">
-          Unlock your educational dreams with comprehensive funding
-          opportunities. From high school to university, find the perfect
-          bursary for your journey.
+          Unlock your educational dreams with comprehensive university funding
+          opportunities. Find the perfect bursary for your degree and career
+          aspirations.
         </p>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 max-w-4xl mx-auto">
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
-            <div className="text-2xl font-bold">{BURSARIES.length}+</div>
-            <div className="text-sm opacity-90">Total Bursaries</div>
-          </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
-            <div className="text-2xl font-bold">{highSchoolStats.total}</div>
-            <div className="text-sm opacity-90">High School</div>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 max-w-3xl mx-auto">
           <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
             <div className="text-2xl font-bold">
-              R{(highSchoolStats.totalFunding / 1000000).toFixed(0)}M+
+              {
+                BURSARIES.filter(
+                  (b) =>
+                    !b.studyLevel?.includes("grade-11") &&
+                    !b.studyLevel?.includes("matric"),
+                ).length
+              }
+              +
             </div>
+            <div className="text-sm opacity-90">University Bursaries</div>
+          </div>
+          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+            <div className="text-2xl font-bold">R2B+</div>
             <div className="text-sm opacity-90">Available Funding</div>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
-            <div className="text-2xl font-bold">100%</div>
-            <div className="text-sm opacity-90">Success Rate</div>
+            <div className="text-2xl font-bold">All Fields</div>
+            <div className="text-sm opacity-90">Study Areas</div>
           </div>
         </div>
       </div>
