@@ -319,16 +319,17 @@ const EnhancedBursaryListing = () => {
       </Card>
 
       {/* Search and Filters */}
-      <Card>
-        <CardHeader>
+      <Card className="shadow-sm">
+        <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg">
+              <CardTitle className="text-xl font-semibold text-green-800 flex items-center gap-2">
+                <Search className="h-5 w-5" />
                 Find Your Perfect Bursary
               </CardTitle>
-              <CardDescription>
-                Use the filters below to find bursaries that match your needs
-                and eligibility.
+              <CardDescription className="text-gray-600 mt-1">
+                Use the filters below to discover bursaries that match your
+                academic goals and financial needs
               </CardDescription>
             </div>
             <Dialog>
@@ -336,20 +337,20 @@ const EnhancedBursaryListing = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 border-green-200 text-green-700 hover:bg-green-50"
                 >
                   <Info className="h-4 w-4" />
-                  Info
+                  Help
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>
-                    Understanding Bursaries & Scholarships
+                    Understanding Bursaries & Requirements
                   </DialogTitle>
                   <DialogDescription>
-                    Everything you need to know about financial aid for your
-                    education
+                    Your guide to university bursary applications and high
+                    school preparation
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 text-sm">
@@ -411,214 +412,284 @@ const EnhancedBursaryListing = () => {
             </Dialog>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Search Bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search bursaries by name, provider, or description..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
 
-          {/* Filter Controls */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Select
-              value={filters.fieldOfStudy || "all"}
-              onValueChange={(value) =>
-                updateFilter(
-                  "fieldOfStudy",
-                  value === "all" ? undefined : value,
-                )
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Field of study" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All fields</SelectItem>
-                {BURSARY_FIELDS_OF_STUDY.map((field) => (
-                  <SelectItem key={field} value={field}>
-                    {field}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={filters.province || "all"}
-              onValueChange={(value) =>
-                updateFilter("province", value === "all" ? undefined : value)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Province" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All provinces</SelectItem>
-                {PROVINCES.map((province) => (
-                  <SelectItem key={province} value={province}>
-                    {province}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Min Academic Marks */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Min. Academic Marks (%)
-              </label>
+        <CardContent className="space-y-6">
+          {/* Search Bar Section */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Search Bursaries
+            </label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                type="number"
-                placeholder="e.g. 65"
-                min="0"
-                max="100"
-                value={filters.minMarks || ""}
-                onChange={(e) =>
-                  updateFilter(
-                    "minMarks",
-                    e.target.value ? parseInt(e.target.value) : undefined,
-                  )
-                }
+                placeholder="Search by name, provider, or field of study..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 h-11 border-gray-200 focus:border-green-400 focus:ring-green-400"
               />
             </div>
+          </div>
 
-            <Button variant="outline" onClick={clearFilters} className="mt-6">
-              Clear Filters
+          {/* Main Filters Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2">
+              Primary Filters
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Field of Study
+                </label>
+                <Select
+                  value={filters.fieldOfStudy || "all"}
+                  onValueChange={(value) =>
+                    updateFilter(
+                      "fieldOfStudy",
+                      value === "all" ? undefined : value,
+                    )
+                  }
+                >
+                  <SelectTrigger className="h-11 border-gray-200 focus:border-green-400">
+                    <SelectValue placeholder="Select field of study" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All fields</SelectItem>
+                    {BURSARY_FIELDS_OF_STUDY.map((field) => (
+                      <SelectItem key={field} value={field}>
+                        {field}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Province
+                </label>
+                <Select
+                  value={filters.province || "all"}
+                  onValueChange={(value) =>
+                    updateFilter(
+                      "province",
+                      value === "all" ? undefined : value,
+                    )
+                  }
+                >
+                  <SelectTrigger className="h-11 border-gray-200 focus:border-green-400">
+                    <SelectValue placeholder="Select province" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All provinces</SelectItem>
+                    {PROVINCES.map((province) => (
+                      <SelectItem key={province} value={province}>
+                        {province}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Min. Academic Average (%)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="e.g. 65"
+                  min="0"
+                  max="100"
+                  value={filters.minMarks || ""}
+                  onChange={(e) =>
+                    updateFilter(
+                      "minMarks",
+                      e.target.value ? parseInt(e.target.value) : undefined,
+                    )
+                  }
+                  className="h-11 border-gray-200 focus:border-green-400 focus:ring-green-400"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Financial & Demographics Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2">
+              Financial & Demographics
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Max. Household Income (R)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="e.g. 350,000"
+                  min="0"
+                  value={filters.maxHouseholdIncome || ""}
+                  onChange={(e) =>
+                    updateFilter(
+                      "maxHouseholdIncome",
+                      e.target.value ? parseInt(e.target.value) : undefined,
+                    )
+                  }
+                  className="h-11 border-gray-200 focus:border-green-400 focus:ring-green-400"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Gender Requirements
+                </label>
+                <Select
+                  value={filters.genderSpecific || "any"}
+                  onValueChange={(value) =>
+                    updateFilter(
+                      "genderSpecific",
+                      value === "any" ? undefined : value,
+                    )
+                  }
+                >
+                  <SelectTrigger className="h-11 border-gray-200 focus:border-green-400">
+                    <SelectValue placeholder="Any gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any Gender</SelectItem>
+                    <SelectItem value="female">Female Only</SelectItem>
+                    <SelectItem value="male">Male Only</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Race Requirements
+                </label>
+                <Select
+                  value={filters.raceSpecific || "any"}
+                  onValueChange={(value) =>
+                    updateFilter(
+                      "raceSpecific",
+                      value === "any" ? undefined : value,
+                    )
+                  }
+                >
+                  <SelectTrigger className="h-11 border-gray-200 focus:border-green-400">
+                    <SelectValue placeholder="Any race" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any Race</SelectItem>
+                    <SelectItem value="african">African</SelectItem>
+                    <SelectItem value="coloured">Coloured</SelectItem>
+                    <SelectItem value="indian">Indian</SelectItem>
+                    <SelectItem value="white">White</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          {/* Special Criteria Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2">
+              Special Criteria
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <Checkbox
+                  id="financial-need"
+                  checked={filters.financialNeed || false}
+                  onCheckedChange={(checked) =>
+                    updateFilter(
+                      "financialNeed",
+                      checked === true ? true : undefined,
+                    )
+                  }
+                  className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                />
+                <label
+                  htmlFor="financial-need"
+                  className="text-sm font-medium text-gray-700 cursor-pointer"
+                >
+                  Financial Need Based
+                </label>
+              </div>
+
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <Checkbox
+                  id="disability-support"
+                  checked={filters.disabilitySupport || false}
+                  onCheckedChange={(checked) =>
+                    updateFilter(
+                      "disabilitySupport",
+                      checked === true ? true : undefined,
+                    )
+                  }
+                  className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                />
+                <label
+                  htmlFor="disability-support"
+                  className="text-sm font-medium text-gray-700 cursor-pointer"
+                >
+                  Disability Support
+                </label>
+              </div>
+
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <Checkbox
+                  id="rural-background"
+                  checked={filters.ruralBackground || false}
+                  onCheckedChange={(checked) =>
+                    updateFilter(
+                      "ruralBackground",
+                      checked === true ? true : undefined,
+                    )
+                  }
+                  className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                />
+                <label
+                  htmlFor="rural-background"
+                  className="text-sm font-medium text-gray-700 cursor-pointer"
+                >
+                  Rural Background
+                </label>
+              </div>
+
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <Checkbox
+                  id="first-generation"
+                  checked={filters.firstGeneration || false}
+                  onCheckedChange={(checked) =>
+                    updateFilter(
+                      "firstGeneration",
+                      checked === true ? true : undefined,
+                    )
+                  }
+                  className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                />
+                <label
+                  htmlFor="first-generation"
+                  className="text-sm font-medium text-gray-700 cursor-pointer"
+                >
+                  First-Generation Student
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-4 border-t border-gray-200">
+            <Button
+              variant="outline"
+              onClick={clearFilters}
+              className="flex items-center gap-2 border-gray-300 hover:bg-gray-50"
+            >
+              <AlertCircle className="h-4 w-4" />
+              Clear All Filters
             </Button>
-          </div>
-
-          {/* Advanced Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Max. Household Income (R)
-              </label>
-              <Input
-                type="number"
-                placeholder="e.g. 350000"
-                min="0"
-                value={filters.maxHouseholdIncome || ""}
-                onChange={(e) =>
-                  updateFilter(
-                    "maxHouseholdIncome",
-                    e.target.value ? parseInt(e.target.value) : undefined,
-                  )
-                }
-              />
-            </div>
-
-            <Select
-              value={filters.genderSpecific || "any"}
-              onValueChange={(value) =>
-                updateFilter(
-                  "genderSpecific",
-                  value === "any" ? undefined : value,
-                )
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Gender" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="any">Any Gender</SelectItem>
-                <SelectItem value="female">Female Only</SelectItem>
-                <SelectItem value="male">Male Only</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={filters.raceSpecific || "any"}
-              onValueChange={(value) =>
-                updateFilter(
-                  "raceSpecific",
-                  value === "any" ? undefined : value,
-                )
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Race" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="any">Any Race</SelectItem>
-                <SelectItem value="african">African</SelectItem>
-                <SelectItem value="coloured">Coloured</SelectItem>
-                <SelectItem value="indian">Indian</SelectItem>
-                <SelectItem value="white">White</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Special Criteria Checkboxes */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="financial-need"
-                checked={filters.financialNeed || false}
-                onCheckedChange={(checked) =>
-                  updateFilter(
-                    "financialNeed",
-                    checked === true ? true : undefined,
-                  )
-                }
-              />
-              <label htmlFor="financial-need" className="text-sm font-medium">
-                Financial need based
-              </label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="disability-support"
-                checked={filters.disabilitySupport || false}
-                onCheckedChange={(checked) =>
-                  updateFilter(
-                    "disabilitySupport",
-                    checked === true ? true : undefined,
-                  )
-                }
-              />
-              <label
-                htmlFor="disability-support"
-                className="text-sm font-medium"
-              >
-                Disability support
-              </label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="rural-background"
-                checked={filters.ruralBackground || false}
-                onCheckedChange={(checked) =>
-                  updateFilter(
-                    "ruralBackground",
-                    checked === true ? true : undefined,
-                  )
-                }
-              />
-              <label htmlFor="rural-background" className="text-sm font-medium">
-                Rural background
-              </label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="first-generation"
-                checked={filters.firstGeneration || false}
-                onCheckedChange={(checked) =>
-                  updateFilter(
-                    "firstGeneration",
-                    checked === true ? true : undefined,
-                  )
-                }
-              />
-              <label htmlFor="first-generation" className="text-sm font-medium">
-                First-generation student
-              </label>
+            <div className="text-sm text-gray-500 flex items-center">
+              Use filters to narrow down {filteredBursaries.length} available
+              bursaries
             </div>
           </div>
         </CardContent>
