@@ -131,7 +131,11 @@ export const cleanupMockData = async () => {
       .or("status.eq.test,status.eq.mock");
 
     if (transactionsError) {
-      console.error("Error cleaning transactions:", transactionsError);
+      console.error(
+        "Error cleaning transactions:",
+        transactionsError.message || transactionsError,
+      );
+      // Don't throw here, continue with other cleanup
     } else {
       console.log("✅ Cleaned up test transactions");
     }
