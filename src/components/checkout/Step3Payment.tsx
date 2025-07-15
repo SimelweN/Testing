@@ -165,17 +165,26 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       if (orderError) {
         console.error("Order creation error details:", {
-          error: orderError,
+          error: orderError.message || orderError,
+          errorCode: orderError.code,
+          details: orderError.details,
+          hint: orderError.hint,
           request: createOrderRequest,
           userId: userId,
         });
 
         // Extract more specific error information
-        const errorMessage =
-          orderError.message ||
-          (typeof orderError === "string"
-            ? orderError
-            : "Failed to create order");
+        let errorMessage = "Failed to create order";
+
+        if (orderError.message) {
+          errorMessage = orderError.message;
+        } else if (orderError.details) {
+          errorMessage = orderError.details;
+        } else if (typeof orderError === "string") {
+          errorMessage = orderError;
+        } else {
+          errorMessage = `Order service error: ${JSON.stringify(orderError)}`;
+        }
 
         throw new Error(`Order creation failed: ${errorMessage}`);
       }
