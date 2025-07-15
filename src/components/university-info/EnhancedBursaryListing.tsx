@@ -59,19 +59,13 @@ const EnhancedBursaryListing = () => {
   const [expandedBursary, setExpandedBursary] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
 
-  // Filter bursaries based on current filters and tab
+  // Filter bursaries based on current filters - only university bursaries
   const filteredBursaries = useMemo(() => {
-    let bursariesToFilter = BURSARIES;
-
-    if (activeTab === "high-school") {
-      bursariesToFilter = HIGH_SCHOOL_BURSARIES;
-    } else if (activeTab === "university") {
-      bursariesToFilter = BURSARIES.filter(
-        (b) =>
-          !b.studyLevel?.includes("grade-11") &&
-          !b.studyLevel?.includes("matric"),
-      );
-    }
+    const bursariesToFilter = BURSARIES.filter(
+      (b) =>
+        !b.studyLevel?.includes("grade-11") &&
+        !b.studyLevel?.includes("matric"),
+    );
 
     return bursariesToFilter.filter((bursary) => {
       // Search filter
