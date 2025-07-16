@@ -351,6 +351,13 @@ const AdminDashboard = () => {
       description: "Test Supabase functions",
     },
     {
+      value: "emails",
+      label: "Emails",
+      icon: Mail,
+      color: "text-indigo-600",
+      description: "Test email templates",
+    },
+    {
       value: "cleanup",
       label: "Cleanup",
       icon: Trash2,
