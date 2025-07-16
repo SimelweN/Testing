@@ -434,11 +434,31 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
                       businessName: e.target.value,
                     }))
                   }
-                  className="pl-10 h-11 rounded-lg border-2 focus:border-book-600 focus:ring-book-600"
+                  className={`pl-10 h-11 rounded-lg border-2 focus:border-book-600 focus:ring-book-600 ${
+                    formData.businessName.trim().length > 0 &&
+                    formData.businessName.trim().length < 2
+                      ? "border-red-300 focus:border-red-500"
+                      : formData.businessName.trim().length >= 2
+                        ? "border-green-300 focus:border-green-500"
+                        : ""
+                  }`}
                   placeholder="Your business or trading name"
                   required
+                  minLength={2}
+                  maxLength={100}
                 />
+                {formData.businessName.trim().length >= 2 && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  </div>
+                )}
               </div>
+              {formData.businessName.trim().length > 0 &&
+                formData.businessName.trim().length < 2 && (
+                  <p className="text-xs text-red-600">
+                    Business name must be at least 2 characters
+                  </p>
+                )}
             </div>
 
             {/* Email */}
