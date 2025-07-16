@@ -350,8 +350,16 @@ export class PaystackSubaccountService {
       const subaccountCode = profileData?.subaccount_code;
 
       if (!subaccountCode) {
+        console.log(
+          "❌ getUserSubaccountStatus: No subaccount code found in profile",
+        );
         return { hasSubaccount: false, canEdit: false };
       }
+
+      console.log(
+        "✅ getUserSubaccountStatus: Found subaccount code:",
+        subaccountCode,
+      );
 
       // If we have a subaccount code, try to get banking details from banking_subaccounts table
       const { data: subaccountData, error: subaccountError } = await supabase
