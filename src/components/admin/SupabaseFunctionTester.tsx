@@ -292,16 +292,19 @@ const SupabaseFunctionTester: React.FC = () => {
         },
       ],
       examplePayload: {
-        from_address: {
-          street: "123 Seller Street",
+        fromAddress: {
+          suburb: "Gardens",
           city: "Cape Town",
           postal_code: "8001",
+          province: "Western Cape",
         },
-        to_address: {
-          street: "456 Buyer Avenue",
+        toAddress: {
+          suburb: "Sandton",
           city: "Johannesburg",
           postal_code: "2001",
+          province: "Gauteng",
         },
+        weight: 1.5,
       },
     },
     {
