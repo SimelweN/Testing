@@ -159,9 +159,12 @@ export const cleanupMockData = async () => {
  */
 export const resetAllBooksToAvailable = async () => {
   try {
-    const { error } = await supabase.from("books").update({
-      sold: false,
-    });
+    const { error } = await supabase
+      .from("books")
+      .update({
+        sold: false,
+      })
+      .not("id", "is", null);
 
     if (error) {
       console.error("Error resetting books:", error.message || error);
