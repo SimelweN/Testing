@@ -513,8 +513,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [handleError]);
 
   useEffect(() => {
+    console.log("🔄 [AuthContext] Auth initialization useEffect triggered");
+
+    // Force completion of auth initialization after a timeout to prevent infinite loading
+    const forceCompleteTimer = setTimeout(() => {
+      if (isLoading) {
+        console.warn(
+          "⚠️ [AuthContext] Forcing auth initialization completion due to timeout",
+        );
+        setIsLoading(false);
+        setAuthInitialized(true);
+      }
+    }, 10000); // 10 second timeout
+
     initializeAuth();
-  }, [initializeAuth]);
+
+    return () => {
+      clearTimeout(forceCompleteTimer);
+    };
+  }, [initializeAuth, isLoading]);
 
   // Separate effect for loading timeout to prevent infinite re-renders
   useEffect(() => {
