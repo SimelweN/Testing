@@ -1,16 +1,35 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
-
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+import {
+  createSupabaseClient,
+  createErrorResponse,
+  createSuccessResponse,
+  handleCORSPreflight,
+  validateRequiredFields,
+  parseRequestBody,
+  handleSupabaseError,
+  logFunction,
+} from "../_shared/utils.ts";
+import { validateSupabaseConfig } from "../_shared/config.ts";
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  // Handle CORS preflight requests
+  const corsResponse = handleCORSPreflight(req);
+  if (corsResponse) return corsResponse;
 
   try {
+    logFunction("create-order", "Starting order creation");
+
+    // Validate configuration
+    validateSupabaseConfig();
+
+    const requestData = await parseRequestBody(req);
+    validateRequiredFields(requestData, [
+      "user_id",
+      "items",
+      "total_amount",
+      "payment_reference",
+    ]);
+
     const {
       user_id,
       items,
@@ -18,22 +37,14 @@ serve(async (req) => {
       shipping_address,
       payment_reference,
       payment_data,
-    } = await req.json();
+    } = requestData;
 
-    if (!user_id || !items || !total_amount || !payment_reference) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Missing required fields",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
+    logFunction("create-order", "Creating order for user", {
+      user_id,
+      itemCount: items.length,
+    });
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const supabase = createSupabaseClient();
 
     // Get buyer information
     const { data: buyer, error: buyerError } = await supabase
