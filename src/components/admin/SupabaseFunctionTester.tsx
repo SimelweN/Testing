@@ -34,6 +34,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import RLSPolicyTester from "./RLSPolicyTester";
+import FunctionTestingGuide from "./FunctionTestingGuide";
 
 interface FunctionTest {
   name: string;
@@ -650,6 +651,7 @@ const SupabaseFunctionTester = () => {
           <TabsTrigger value="rls">RLS Policies</TabsTrigger>
           <TabsTrigger value="custom">Custom Test</TabsTrigger>
           <TabsTrigger value="results">Results History</TabsTrigger>
+          <TabsTrigger value="guide">Testing Guide</TabsTrigger>
         </TabsList>
 
         <TabsContent value="functions" className="space-y-4">
@@ -877,6 +879,10 @@ const SupabaseFunctionTester = () => {
               </ScrollArea>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="guide" className="space-y-4">
+          <FunctionTestingGuide />
         </TabsContent>
       </Tabs>
     </div>
