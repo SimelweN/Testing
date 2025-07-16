@@ -25,6 +25,7 @@ import AdminContactTab from "@/components/admin/AdminContactTab";
 import AdminResourcesTab from "@/components/admin/AdminResourcesTab";
 import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
 import AdminUsageExamples from "@/components/admin/AdminUsageExamples";
+import SupabaseFunctionTester from "@/components/admin/SupabaseFunctionTester";
 
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -41,6 +42,7 @@ import {
   Lightbulb,
   Trash2,
   Code,
+  TestTube,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -338,6 +340,13 @@ const AdminDashboard = () => {
       label: "Examples",
       icon: Code,
       color: "text-teal-600",
+      description: "Code examples",
+    },
+    {
+      value: "functions",
+      label: "Functions",
+      icon: TestTube,
+      color: "text-blue-600",
       description: "Test Supabase functions",
     },
     {
@@ -388,7 +397,7 @@ const AdminDashboard = () => {
           </div>
         ) : (
           // Desktop: Proper TabsList with grid styling
-          <TabsList className="grid grid-cols-10 gap-2 p-2 bg-white border border-gray-200 rounded-lg shadow-sm h-auto">
+          <TabsList className="grid grid-cols-11 gap-2 p-2 bg-white border border-gray-200 rounded-lg shadow-sm h-auto">
             {tabConfig.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -473,6 +482,12 @@ const AdminDashboard = () => {
           <TabsContent value="examples" className="space-y-4 mt-0">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
               <AdminUsageExamples />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="functions" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+              <SupabaseFunctionTester />
             </div>
           </TabsContent>
 
