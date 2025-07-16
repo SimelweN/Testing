@@ -389,7 +389,7 @@ const UniversityProfile: React.FC = () => {
         <div className="container mx-auto px-6 py-8">
           <Tabs
             value={activeTab}
-            onValueChange={setActiveTab}
+            onValueChange={handleTabChange}
             className="w-full"
           >
             {/* Modern Tab Navigation - Mobile Optimized */}
