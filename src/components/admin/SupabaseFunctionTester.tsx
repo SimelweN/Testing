@@ -373,14 +373,35 @@ const SupabaseFunctionTester: React.FC = () => {
       category: "Orders",
       parameters: [
         {
-          name: "order_id",
+          name: "user_id",
           type: "string",
           required: true,
-          description: "Order ID to process",
+          description: "Buyer user ID",
+        },
+        {
+          name: "book_id",
+          type: "string",
+          required: true,
+          description: "Book ID to purchase",
+        },
+        {
+          name: "email",
+          type: "string",
+          required: true,
+          description: "Buyer email",
         },
       ],
       examplePayload: {
-        order_id: "order-id-here",
+        user_id: "00000000-0000-0000-0000-000000000001",
+        book_id: "00000000-0000-0000-0000-000000000003",
+        email: "buyer@example.com",
+        shipping_address: {
+          street: "123 Test Street",
+          city: "Cape Town",
+          province: "Western Cape",
+          postal_code: "8001",
+          country: "South Africa",
+        },
       },
     },
     {
