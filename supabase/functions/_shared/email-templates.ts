@@ -41,6 +41,18 @@ export function renderTemplate(
     case EMAIL_TEMPLATES.COMMIT_CONFIRMATION_BASIC:
       return renderCommitConfirmationBasicTemplate(data);
 
+    case EMAIL_TEMPLATES.ORDER_COMMITTED_BUYER:
+      return renderOrderCommittedBuyerTemplate(data);
+
+    case EMAIL_TEMPLATES.ORDER_COMMITTED_SELLER:
+      return renderOrderCommittedSellerTemplate(data);
+
+    case EMAIL_TEMPLATES.SELLER_NEW_ORDER:
+      return renderSellerNewOrderTemplate(data);
+
+    case EMAIL_TEMPLATES.BUYER_ORDER_PENDING:
+      return renderBuyerOrderPendingTemplate(data);
+
     default:
       throw new Error(`Template not found: ${templateName}`);
   }
