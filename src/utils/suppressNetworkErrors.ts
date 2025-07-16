@@ -24,6 +24,11 @@ const suppressedErrorPatterns = [
   "at window\\.fetch.*eval.*messageHandler", // Eval-related fetch errors
   "https://.*\\.fly\\.dev.*reload=", // Fly.io dev server reloads
   "waitForSuccessfulPing", // Exact Vite ping function
+  "@vite/client", // Vite client errors
+  "eval at messageHandler", // Eval-based errors
+  "window.fetch (eval at messageHandler", // Specific pattern from stack trace
+  "at ping \\(https://.*/@vite/client", // Vite ping function
+  "WebSocket\\.<anonymous>.*/@vite/client", // Vite WebSocket errors
 ];
 
 // Check if error should be suppressed
