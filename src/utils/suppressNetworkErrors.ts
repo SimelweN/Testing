@@ -30,11 +30,12 @@ const suppressedErrorPatterns = [
 const shouldSuppressError = (message: string): boolean => {
   if (import.meta.env.PROD) {
     // In production, only suppress known third-party errors
-    return (
-      suppressedErrorPatterns.some(
-        (pattern) => pattern.includes("fullstory") || pattern.includes("fs.js"),
-      ) && message.includes(pattern)
-    );
+    return suppressedErrorPatterns.some((pattern) => {
+      if (pattern.includes("fullstory") || pattern.includes("fs.js")) {
+        return message.toLowerCase().includes(pattern.toLowerCase());
+      }
+      return false;
+    });
   }
 
   // In development, suppress more network-related errors
