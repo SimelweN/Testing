@@ -1,37 +1,46 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import {
+  createErrorResponse,
+  createSuccessResponse,
+  handleCORSPreflight,
+  validateRequiredFields,
+  parseRequestBody,
+  logFunction,
+} from "../_shared/utils.ts";
+import { isDevelopmentMode, createMockResponse } from "../_shared/dev-mode.ts";
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  // Handle CORS preflight requests
+  const corsResponse = handleCORSPreflight(req);
+  if (corsResponse) return corsResponse;
 
   try {
+    logFunction("fastway-quote", "Processing quote request");
+
+    const requestData = await parseRequestBody(req);
+    validateRequiredFields(requestData, ["fromAddress", "toAddress"]);
+
     const {
       fromAddress,
       toAddress,
-      weight,
+      weight = 1, // Default weight for testing
       dimensions,
       serviceType = "standard",
-    } = await req.json();
-
-    if (!fromAddress || !toAddress || !weight) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Missing required fields: fromAddress, toAddress, weight",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
+    } = requestData;
 
     // Fastway API integration
     const FASTWAY_API_KEY = Deno.env.get("FASTWAY_API_KEY");
+
+    // Return mock response in development mode if API key is not configured
     if (!FASTWAY_API_KEY) {
-      throw new Error("Fastway API key not configured");
+      if (isDevelopmentMode()) {
+        logFunction("fastway-quote", "Using mock response (no API key)");
+        const mockResponse = createMockResponse("fastway", "quote");
+        return createSuccessResponse(mockResponse);
+      } else {
+        return createErrorResponse("Fastway API key not configured", 500);
+      }
     }
 
     const quoteRequest = {
