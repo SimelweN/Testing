@@ -259,6 +259,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const initializeAuth = useCallback(async () => {
     if (authInitialized) return;
 
+    const loadingId = loadingStateManager.startLoading(
+      "auth-init",
+      "AuthContext",
+      10000,
+    );
+
     try {
       setIsLoading(true);
       setInitError(null);
