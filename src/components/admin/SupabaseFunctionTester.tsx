@@ -60,6 +60,12 @@ const SupabaseFunctionTester: React.FC = () => {
   const [parameterValues, setParameterValues] = useState<
     Record<string, string>
   >({});
+  const [isTestingAll, setIsTestingAll] = useState(false);
+  const [testAllProgress, setTestAllProgress] = useState<{
+    current: number;
+    total: number;
+    currentFunction: string;
+  } | null>(null);
 
   // Define all available Supabase functions
   const functions: FunctionDefinition[] = [
@@ -355,6 +361,208 @@ const SupabaseFunctionTester: React.FC = () => {
       parameters: [],
       examplePayload: {},
     },
+    {
+      name: "process-book-purchase",
+      description: "Processes a book purchase transaction",
+      category: "Orders",
+      parameters: [
+        {
+          name: "order_id",
+          type: "string",
+          required: true,
+          description: "Order ID to process",
+        },
+      ],
+      examplePayload: {
+        order_id: "order-id-here",
+      },
+    },
+    {
+      name: "process-multi-seller-purchase",
+      description: "Processes purchases from multiple sellers",
+      category: "Orders",
+      parameters: [
+        {
+          name: "order_ids",
+          type: "array",
+          required: true,
+          description: "Array of order IDs",
+        },
+      ],
+      examplePayload: {
+        order_ids: ["order-1", "order-2"],
+      },
+    },
+    {
+      name: "process-order-reminders",
+      description: "Sends reminder emails for pending orders",
+      category: "Maintenance",
+      parameters: [],
+      examplePayload: {},
+    },
+    {
+      name: "send-email",
+      description: "Sends emails using templates",
+      category: "Communications",
+      parameters: [
+        {
+          name: "to",
+          type: "string",
+          required: true,
+          description: "Recipient email address",
+        },
+        {
+          name: "template",
+          type: "string",
+          required: true,
+          description: "Email template name",
+        },
+        {
+          name: "data",
+          type: "object",
+          required: false,
+          description: "Template data",
+        },
+      ],
+      examplePayload: {
+        to: "test@example.com",
+        template: "test-template",
+        data: { name: "Test User" },
+      },
+    },
+    {
+      name: "paystack-webhook",
+      description: "Handles Paystack webhook events",
+      category: "Payments",
+      parameters: [
+        {
+          name: "event",
+          type: "string",
+          required: true,
+          description: "Webhook event type",
+        },
+        {
+          name: "data",
+          type: "object",
+          required: true,
+          description: "Webhook data",
+        },
+      ],
+      examplePayload: {
+        event: "charge.success",
+        data: { reference: "test-ref", amount: 1000 },
+      },
+    },
+    {
+      name: "courier-guy-shipment",
+      description: "Creates a shipment with Courier Guy",
+      category: "Delivery",
+      parameters: [
+        {
+          name: "order_id",
+          type: "string",
+          required: true,
+          description: "Order ID for shipment",
+        },
+      ],
+      examplePayload: {
+        order_id: "order-id-here",
+      },
+    },
+    {
+      name: "courier-guy-track",
+      description: "Tracks a Courier Guy shipment",
+      category: "Delivery",
+      parameters: [
+        {
+          name: "tracking_number",
+          type: "string",
+          required: true,
+          description: "Tracking number",
+        },
+      ],
+      examplePayload: {
+        tracking_number: "TRK123456789",
+      },
+    },
+    {
+      name: "fastway-quote",
+      description: "Gets delivery quote from Fastway",
+      category: "Delivery",
+      parameters: [
+        {
+          name: "from_address",
+          type: "object",
+          required: true,
+          description: "Pickup address",
+        },
+        {
+          name: "to_address",
+          type: "object",
+          required: true,
+          description: "Delivery address",
+        },
+      ],
+      examplePayload: {
+        from_address: { city: "Cape Town", postal_code: "8001" },
+        to_address: { city: "Johannesburg", postal_code: "2001" },
+      },
+    },
+    {
+      name: "fastway-shipment",
+      description: "Creates a shipment with Fastway",
+      category: "Delivery",
+      parameters: [
+        {
+          name: "order_id",
+          type: "string",
+          required: true,
+          description: "Order ID for shipment",
+        },
+      ],
+      examplePayload: {
+        order_id: "order-id-here",
+      },
+    },
+    {
+      name: "fastway-track",
+      description: "Tracks a Fastway shipment",
+      category: "Delivery",
+      parameters: [
+        {
+          name: "tracking_number",
+          type: "string",
+          required: true,
+          description: "Tracking number",
+        },
+      ],
+      examplePayload: {
+        tracking_number: "FW123456789",
+      },
+    },
+    {
+      name: "get-delivery-quotes",
+      description: "Gets delivery quotes from all providers",
+      category: "Delivery",
+      parameters: [
+        {
+          name: "from_address",
+          type: "object",
+          required: true,
+          description: "Pickup address",
+        },
+        {
+          name: "to_address",
+          type: "object",
+          required: true,
+          description: "Delivery address",
+        },
+      ],
+      examplePayload: {
+        from_address: { city: "Cape Town", postal_code: "8001" },
+        to_address: { city: "Johannesburg", postal_code: "2001" },
+      },
+    },
   ];
 
   const selectedFunctionDef = functions.find(
@@ -474,6 +682,99 @@ const SupabaseFunctionTester: React.FC = () => {
   const clearResults = () => {
     setResults([]);
     toast.success("Results cleared");
+  };
+
+  const testAllFunctions = async () => {
+    if (isTestingAll) return;
+
+    setIsTestingAll(true);
+    setResults([]);
+
+    // Get all functions that have example payloads or no required parameters
+    const testableFunctions = functions.filter(
+      (func) =>
+        func.examplePayload && Object.keys(func.examplePayload).length >= 0,
+    );
+
+    setTestAllProgress({
+      current: 0,
+      total: testableFunctions.length,
+      currentFunction: testableFunctions[0]?.name || "",
+    });
+
+    toast.info(`Testing ${testableFunctions.length} edge functions...`);
+
+    const allResults: TestResult[] = [];
+
+    for (let i = 0; i < testableFunctions.length; i++) {
+      const func = testableFunctions[i];
+
+      setTestAllProgress({
+        current: i + 1,
+        total: testableFunctions.length,
+        currentFunction: func.name,
+      });
+
+      const startTime = Date.now();
+
+      try {
+        console.log(
+          `Testing function ${func.name} with payload:`,
+          func.examplePayload,
+        );
+
+        const { data, error } = await supabase.functions.invoke(func.name, {
+          body: func.examplePayload,
+        });
+
+        const duration = Date.now() - startTime;
+
+        const result: TestResult = {
+          success: !error,
+          data: data,
+          error:
+            error?.message ||
+            (data?.error ? JSON.stringify(data.error) : undefined),
+          duration,
+          function_name: func.name,
+          timestamp: new Date().toISOString(),
+        };
+
+        allResults.push(result);
+
+        // Add some delay between tests to avoid overwhelming the server
+        if (i < testableFunctions.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+      } catch (error) {
+        const duration = Date.now() - startTime;
+        const result: TestResult = {
+          success: false,
+          error:
+            error instanceof Error ? error.message : "Unknown error occurred",
+          duration,
+          function_name: func.name,
+          timestamp: new Date().toISOString(),
+        };
+
+        allResults.push(result);
+      }
+    }
+
+    setResults(allResults);
+    setTestAllProgress(null);
+    setIsTestingAll(false);
+
+    const successCount = allResults.filter((r) => r.success).length;
+    const failureCount = allResults.length - successCount;
+
+    if (successCount === allResults.length) {
+      toast.success(`All ${allResults.length} functions tested successfully!`);
+    } else {
+      toast.warning(
+        `Testing completed: ${successCount} passed, ${failureCount} failed`,
+      );
+    }
   };
 
   const categories = [...new Set(functions.map((f) => f.category))];
@@ -646,25 +947,82 @@ const SupabaseFunctionTester: React.FC = () => {
             </p>
           </div>
 
-          {/* Test Button */}
-          <Button
-            onClick={testFunction}
-            disabled={isLoading || !selectedFunction}
-            className="w-full"
-            size="lg"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Testing {selectedFunction}...
-              </>
-            ) : (
-              <>
-                <Zap className="h-4 w-4 mr-2" />
-                Test Function
-              </>
+          {/* Test Buttons */}
+          <div className="space-y-3">
+            <Button
+              onClick={testFunction}
+              disabled={isLoading || !selectedFunction || isTestingAll}
+              className="w-full"
+              size="lg"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Testing {selectedFunction}...
+                </>
+              ) : (
+                <>
+                  <Zap className="h-4 w-4 mr-2" />
+                  Test Function
+                </>
+              )}
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-muted-foreground">OR</span>
+              </div>
+            </div>
+
+            <Button
+              onClick={testAllFunctions}
+              disabled={isTestingAll || isLoading}
+              variant="secondary"
+              className="w-full"
+              size="lg"
+            >
+              {isTestingAll ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {testAllProgress ? (
+                    <>
+                      Testing {testAllProgress.currentFunction} (
+                      {testAllProgress.current}/{testAllProgress.total})...
+                    </>
+                  ) : (
+                    "Preparing tests..."
+                  )}
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Test All Edge Functions (
+                  {
+                    functions.filter(
+                      (f) =>
+                        f.examplePayload &&
+                        Object.keys(f.examplePayload).length >= 0,
+                    ).length
+                  }{" "}
+                  functions)
+                </>
+              )}
+            </Button>
+
+            {testAllProgress && (
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${(testAllProgress.current / testAllProgress.total) * 100}%`,
+                  }}
+                />
+              </div>
             )}
-          </Button>
+          </div>
         </CardContent>
       </Card>
 
