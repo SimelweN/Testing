@@ -798,12 +798,22 @@ const SupabaseFunctionTester: React.FC = () => {
 
         const duration = Date.now() - startTime;
 
+        // Check if the function returned an error response but still has data
+        const hasError = error || (data && data.success === false);
+
         const result: TestResult = {
-          success: !error,
+          success: !hasError,
           data: data,
           error:
             error?.message ||
-            (data?.error ? JSON.stringify(data.error) : undefined),
+            (data?.error
+              ? typeof data.error === "string"
+                ? data.error
+                : JSON.stringify(data.error)
+              : undefined) ||
+            (data && data.success === false
+              ? "Function returned success: false"
+              : undefined),
           duration,
           function_name: func.name,
           timestamp: new Date().toISOString(),
