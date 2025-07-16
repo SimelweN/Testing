@@ -1,39 +1,56 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
-
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+import {
+  createSupabaseClient,
+  createErrorResponse,
+  createSuccessResponse,
+  handleCORSPreflight,
+  validateRequiredFields,
+  parseRequestBody,
+  logFunction,
+} from "../_shared/utils.ts";
+import { validateSupabaseConfig } from "../_shared/config.ts";
+import { isDevelopmentMode, createMockResponse } from "../_shared/dev-mode.ts";
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  // Handle CORS preflight requests
+  const corsResponse = handleCORSPreflight(req);
+  if (corsResponse) return corsResponse;
 
   try {
+    logFunction("automate-delivery", "Starting delivery automation");
+
+    validateSupabaseConfig();
+
+    const requestData = await parseRequestBody(req);
+    validateRequiredFields(requestData, ["order_id"]);
+
     const {
       order_id,
       seller_address,
       buyer_address,
-      weight,
+      weight = 1.5,
       preferred_courier = "courier-guy",
-    } = await req.json();
+    } = requestData;
 
-    if (!order_id || !seller_address || !buyer_address) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error:
-            "Missing required fields: order_id, seller_address, buyer_address",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+    // In development mode, return mock response
+    if (isDevelopmentMode()) {
+      logFunction(
+        "automate-delivery",
+        "Using mock response (development mode)",
       );
+      const mockResponse = {
+        success: true,
+        delivery_automated: true,
+        tracking_number: "TRK" + Date.now(),
+        estimated_delivery: new Date(
+          Date.now() + 2 * 24 * 60 * 60 * 1000,
+        ).toISOString(),
+        courier: preferred_courier,
+      };
+      return createSuccessResponse(mockResponse);
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const supabase = createSupabaseClient();
 
     // Get order details
     const { data: order, error: orderError } = await supabase
