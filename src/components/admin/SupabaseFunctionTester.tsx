@@ -1,15 +1,5 @@
-import React, { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -18,733 +8,883 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  AlertCircle,
-  CheckCircle,
-  Loader2,
-  Zap,
-  Copy,
-  RefreshCw,
-} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  Play,
+  PlayCircle,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Clock,
+  Database,
+  DollarSign,
+  Truck,
+  Mail,
+  RefreshCw,
+  Zap,
+  Shield,
+  TestTube,
+  Download,
+} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import RLSPolicyTester from "./RLSPolicyTester";
+import FunctionTestingGuide from "./FunctionTestingGuide";
+
+interface FunctionTest {
+  name: string;
+  category:
+    | "orders"
+    | "payments"
+    | "shipping"
+    | "communication"
+    | "database"
+    | "system";
+  description: string;
+  endpoint: string;
+  method: "POST" | "GET";
+  requiresAuth: boolean;
+  requiresAdmin: boolean;
+  testPayload?: Record<string, any>;
+  expectedStatus: number;
+  icon: React.ComponentType<any>;
+}
 
 interface TestResult {
-  success: boolean;
-  data?: any;
-  error?: string;
-  duration?: number;
-  function_name?: string;
-  timestamp?: string;
-}
-
-interface FunctionDefinition {
   name: string;
-  description: string;
-  category: string;
-  parameters: Array<{
-    name: string;
-    type: string;
-    required: boolean;
-    description: string;
-    default?: string;
-  }>;
-  examplePayload?: object;
+  status: "pending" | "success" | "error" | "warning";
+  statusCode?: number;
+  responseTime?: number;
+  error?: string;
+  response?: any;
+  timestamp: Date;
 }
 
-const SupabaseFunctionTester: React.FC = () => {
-  const [selectedFunction, setSelectedFunction] = useState<string>("");
-  const [customPayload, setCustomPayload] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState<TestResult[]>([]);
-  const [parameterValues, setParameterValues] = useState<
-    Record<string, string>
-  >({});
+const SUPABASE_FUNCTIONS: FunctionTest[] = [
+  // Order & Commerce Management
+  {
+    name: "auto-expire-commits",
+    category: "orders",
+    description: "Auto-expires orders pending seller commitment after 48 hours",
+    endpoint: "auto-expire-commits",
+    method: "POST",
+    requiresAuth: false,
+    requiresAdmin: true,
+    expectedStatus: 200,
+    icon: Clock,
+  },
+  {
+    name: "check-expired-orders",
+    category: "orders",
+    description: "Comprehensive expiry checking for all order types",
+    endpoint: "check-expired-orders",
+    method: "POST",
+    requiresAuth: false,
+    requiresAdmin: true,
+    expectedStatus: 200,
+    icon: AlertTriangle,
+  },
+  {
+    name: "commit-to-sale",
+    category: "orders",
+    description: "Seller commits to fulfill an order",
+    endpoint: "commit-to-sale",
+    method: "POST",
+    requiresAuth: true,
+    requiresAdmin: false,
+    testPayload: { commitmentId: "test-commit-id" },
+    expectedStatus: 200,
+    icon: CheckCircle,
+  },
+  {
+    name: "decline-commit",
+    category: "orders",
+    description: "Seller declines order, triggers refund",
+    endpoint: "decline-commit",
+    method: "POST",
+    requiresAuth: true,
+    requiresAdmin: false,
+    testPayload: { commitmentId: "test-commit-id", reason: "Test decline" },
+    expectedStatus: 200,
+    icon: XCircle,
+  },
+  {
+    name: "create-order",
+    category: "orders",
+    description: "Creates orders from successful payments",
+    endpoint: "create-order",
+    method: "POST",
+    requiresAuth: true,
+    requiresAdmin: false,
+    testPayload: { paymentReference: "test-ref" },
+    expectedStatus: 200,
+    icon: Database,
+  },
+  {
+    name: "mark-collected",
+    category: "orders",
+    description: "Updates order status when courier collects",
+    endpoint: "mark-collected",
+    method: "POST",
+    requiresAuth: true,
+    requiresAdmin: false,
+    testPayload: { orderId: "test-order-id" },
+    expectedStatus: 200,
+    icon: Truck,
+  },
 
-  // Define all available Supabase functions
-  const functions: FunctionDefinition[] = [
-    {
-      name: "create-order",
-      description: "Creates a new order from cart items",
-      category: "Orders",
-      parameters: [
-        {
-          name: "buyer_id",
-          type: "string",
-          required: true,
-          description: "User ID of the buyer",
-        },
-        {
-          name: "delivery_address",
-          type: "object",
-          required: true,
-          description: "Delivery address object",
-        },
-        {
-          name: "books",
-          type: "array",
-          required: true,
-          description: "Array of book objects to order",
-        },
-      ],
-      examplePayload: {
-        buyer_id: "user-id-here",
-        delivery_address: {
-          street: "123 Test Street",
-          city: "Cape Town",
-          province: "Western Cape",
-          postal_code: "8001",
-          country: "South Africa",
-        },
-        books: [
-          {
-            book_id: "book-id-here",
-            seller_id: "seller-id-here",
-            quantity: 1,
-            price: 250.0,
-          },
-        ],
-      },
+  // Payment Processing
+  {
+    name: "initialize-paystack-payment",
+    category: "payments",
+    description: "Initialize Paystack payments with splits",
+    endpoint: "initialize-paystack-payment",
+    method: "POST",
+    requiresAuth: true,
+    requiresAdmin: false,
+    testPayload: {
+      items: [{ bookId: "test-book", sellerId: "test-seller", amount: 100 }],
+      shippingFee: 50,
     },
-    {
-      name: "commit-to-sale",
-      description: "Commits a seller to a sale order",
-      category: "Orders",
-      parameters: [
-        {
-          name: "order_id",
-          type: "string",
-          required: true,
-          description: "Order ID to commit to",
-        },
-        {
-          name: "seller_id",
-          type: "string",
-          required: true,
-          description: "Seller ID committing to sale",
-        },
-      ],
-      examplePayload: {
-        order_id: "order-id-here",
-        seller_id: "seller-id-here",
-      },
+    expectedStatus: 200,
+    icon: DollarSign,
+  },
+  {
+    name: "verify-paystack-payment",
+    category: "payments",
+    description: "Verify payment status and create orders",
+    endpoint: "verify-paystack-payment",
+    method: "POST",
+    requiresAuth: true,
+    requiresAdmin: false,
+    testPayload: { reference: "test-payment-ref" },
+    expectedStatus: 200,
+    icon: Shield,
+  },
+  {
+    name: "paystack-webhook",
+    category: "payments",
+    description: "Handle Paystack webhooks",
+    endpoint: "paystack-webhook",
+    method: "POST",
+    requiresAuth: false,
+    requiresAdmin: false,
+    testPayload: { event: "charge.success", data: { reference: "test" } },
+    expectedStatus: 200,
+    icon: Zap,
+  },
+  {
+    name: "pay-seller",
+    category: "payments",
+    description: "Process seller payouts",
+    endpoint: "pay-seller",
+    method: "POST",
+    requiresAuth: false,
+    requiresAdmin: true,
+    testPayload: { sellerId: "test-seller", amount: 100 },
+    expectedStatus: 200,
+    icon: DollarSign,
+  },
+  {
+    name: "create-paystack-subaccount",
+    category: "payments",
+    description: "Create/update seller banking subaccounts",
+    endpoint: "create-paystack-subaccount",
+    method: "POST",
+    requiresAuth: true,
+    requiresAdmin: false,
+    testPayload: {
+      business_name: "Test Business",
+      bank_code: "044",
+      account_number: "0123456789",
     },
-    {
-      name: "decline-commit",
-      description: "Declines a commit request",
-      category: "Orders",
-      parameters: [
-        {
-          name: "order_id",
-          type: "string",
-          required: true,
-          description: "Order ID to decline",
-        },
-        {
-          name: "seller_id",
-          type: "string",
-          required: true,
-          description: "Seller ID declining",
-        },
-        {
-          name: "reason",
-          type: "string",
-          required: false,
-          description: "Reason for declining",
-        },
-      ],
-      examplePayload: {
-        order_id: "order-id-here",
-        seller_id: "seller-id-here",
-        reason: "Book no longer available",
-      },
-    },
-    {
-      name: "initialize-paystack-payment",
-      description: "Initializes a Paystack payment",
-      category: "Payments",
-      parameters: [
-        {
-          name: "order_id",
-          type: "string",
-          required: true,
-          description: "Order ID for payment",
-        },
-        {
-          name: "amount",
-          type: "number",
-          required: true,
-          description: "Amount in cents (ZAR)",
-        },
-        {
-          name: "email",
-          type: "string",
-          required: true,
-          description: "Customer email",
-        },
-      ],
-      examplePayload: {
-        order_id: "order-id-here",
-        amount: 25000,
-        email: "customer@example.com",
-      },
-    },
-    {
-      name: "verify-paystack-payment",
-      description: "Verifies a Paystack payment",
-      category: "Payments",
-      parameters: [
-        {
-          name: "reference",
-          type: "string",
-          required: true,
-          description: "Payment reference from Paystack",
-        },
-      ],
-      examplePayload: {
-        reference: "paystack-reference-here",
-      },
-    },
-    {
-      name: "create-paystack-subaccount",
-      description: "Creates a Paystack subaccount for seller",
-      category: "Banking",
-      parameters: [
-        {
-          name: "business_name",
-          type: "string",
-          required: true,
-          description: "Business name for subaccount",
-        },
-        {
-          name: "settlement_bank",
-          type: "string",
-          required: true,
-          description: "Bank code for settlement",
-        },
-        {
-          name: "account_number",
-          type: "string",
-          required: true,
-          description: "Account number",
-        },
-        {
-          name: "user_id",
-          type: "string",
-          required: true,
-          description: "User ID for the subaccount",
-        },
-      ],
-      examplePayload: {
-        business_name: "Test Business",
-        settlement_bank: "011",
-        account_number: "0123456789",
-        user_id: "user-id-here",
-      },
-    },
-    {
-      name: "automate-delivery",
-      description: "Automates delivery scheduling and tracking",
-      category: "Delivery",
-      parameters: [
-        {
-          name: "order_id",
-          type: "string",
-          required: true,
-          description: "Order ID for delivery automation",
-        },
-      ],
-      examplePayload: {
-        order_id: "order-id-here",
-      },
-    },
-    {
-      name: "courier-guy-quote",
-      description: "Gets delivery quote from Courier Guy",
-      category: "Delivery",
-      parameters: [
-        {
-          name: "from_address",
-          type: "object",
-          required: true,
-          description: "Pickup address",
-        },
-        {
-          name: "to_address",
-          type: "object",
-          required: true,
-          description: "Delivery address",
-        },
-        {
-          name: "parcel_dimensions",
-          type: "object",
-          required: false,
-          description: "Package dimensions",
-        },
-      ],
-      examplePayload: {
-        from_address: {
-          street: "123 Seller Street",
-          city: "Cape Town",
-          postal_code: "8001",
-        },
-        to_address: {
-          street: "456 Buyer Avenue",
-          city: "Johannesburg",
-          postal_code: "2001",
-        },
-      },
-    },
-    {
-      name: "mark-collected",
-      description: "Marks an order as collected",
-      category: "Orders",
-      parameters: [
-        {
-          name: "order_id",
-          type: "string",
-          required: true,
-          description: "Order ID to mark as collected",
-        },
-        {
-          name: "tracking_number",
-          type: "string",
-          required: false,
-          description: "Courier tracking number",
-        },
-      ],
-      examplePayload: {
-        order_id: "order-id-here",
-        tracking_number: "TRK123456789",
-      },
-    },
-    {
-      name: "pay-seller",
-      description: "Processes payment to seller",
-      category: "Payments",
-      parameters: [
-        {
-          name: "order_id",
-          type: "string",
-          required: true,
-          description: "Order ID for seller payment",
-        },
-        {
-          name: "amount",
-          type: "number",
-          required: true,
-          description: "Amount to pay seller",
-        },
-      ],
-      examplePayload: {
-        order_id: "order-id-here",
-        amount: 20000,
-      },
-    },
-    {
-      name: "auto-expire-commits",
-      description: "Auto-expires old commit requests",
-      category: "Maintenance",
-      parameters: [],
-      examplePayload: {},
-    },
-    {
-      name: "check-expired-orders",
-      description: "Checks and handles expired orders",
-      category: "Maintenance",
-      parameters: [],
-      examplePayload: {},
-    },
-  ];
+    expectedStatus: 200,
+    icon: Database,
+  },
 
-  const selectedFunctionDef = functions.find(
-    (f) => f.name === selectedFunction,
+  // Shipping & Delivery
+  {
+    name: "get-delivery-quotes",
+    category: "shipping",
+    description: "Get unified delivery quotes",
+    endpoint: "get-delivery-quotes",
+    method: "POST",
+    requiresAuth: true,
+    requiresAdmin: false,
+    testPayload: {
+      fromAddress: { city: "Cape Town", province: "Western Cape" },
+      toAddress: { city: "Johannesburg", province: "Gauteng" },
+      parcelDetails: { weight: 1, length: 20, width: 15, height: 5 },
+    },
+    expectedStatus: 200,
+    icon: Truck,
+  },
+  {
+    name: "courier-guy-quote",
+    category: "shipping",
+    description: "Get Courier Guy shipping quotes",
+    endpoint: "courier-guy-quote",
+    method: "POST",
+    requiresAuth: true,
+    requiresAdmin: false,
+    testPayload: {
+      fromAddress: { city: "Cape Town" },
+      toAddress: { city: "Johannesburg" },
+      parcelDetails: { weight: 1 },
+    },
+    expectedStatus: 200,
+    icon: Truck,
+  },
+  {
+    name: "fastway-quote",
+    category: "shipping",
+    description: "Get Fastway shipping quotes",
+    endpoint: "fastway-quote",
+    method: "POST",
+    requiresAuth: true,
+    requiresAdmin: false,
+    testPayload: {
+      fromAddress: { suburb: "Cape Town" },
+      toAddress: { suburb: "Johannesburg" },
+      parcelDetails: { weight: 1 },
+    },
+    expectedStatus: 200,
+    icon: Truck,
+  },
+
+  // Communication
+  {
+    name: "send-email",
+    category: "communication",
+    description: "Send emails using Brevo SMTP",
+    endpoint: "send-email",
+    method: "POST",
+    requiresAuth: false,
+    requiresAdmin: false,
+    testPayload: {
+      to: "test@example.com",
+      subject: "Test Email",
+      templateName: "test",
+      templateData: { name: "Test User" },
+    },
+    expectedStatus: 200,
+    icon: Mail,
+  },
+  {
+    name: "process-order-reminders",
+    category: "communication",
+    description: "Send automated reminder emails",
+    endpoint: "process-order-reminders",
+    method: "POST",
+    requiresAuth: false,
+    requiresAdmin: true,
+    expectedStatus: 200,
+    icon: RefreshCw,
+  },
+
+  // Database Functions
+  {
+    name: "is_admin",
+    category: "database",
+    description: "Check if user has admin privileges",
+    endpoint: "",
+    method: "POST",
+    requiresAuth: true,
+    requiresAdmin: false,
+    expectedStatus: 200,
+    icon: Shield,
+  },
+  {
+    name: "generate_api_key",
+    category: "database",
+    description: "Generate API key for user",
+    endpoint: "",
+    method: "POST",
+    requiresAuth: true,
+    requiresAdmin: false,
+    expectedStatus: 200,
+    icon: Database,
+  },
+];
+
+const categoryIcons = {
+  orders: Database,
+  payments: DollarSign,
+  shipping: Truck,
+  communication: Mail,
+  database: Database,
+  system: Zap,
+};
+
+const categoryColors = {
+  orders: "bg-blue-100 text-blue-800",
+  payments: "bg-green-100 text-green-800",
+  shipping: "bg-orange-100 text-orange-800",
+  communication: "bg-purple-100 text-purple-800",
+  database: "bg-gray-100 text-gray-800",
+  system: "bg-red-100 text-red-800",
+};
+
+const SupabaseFunctionTester = () => {
+  const { user, isAdmin } = useAuth();
+  const [testResults, setTestResults] = useState<Record<string, TestResult>>(
+    {},
   );
+  const [isTestingAll, setIsTestingAll] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [customPayload, setCustomPayload] = useState<string>("{}");
+  const [testingFunction, setTestingFunction] = useState<string | null>(null);
 
-  const testFunction = async () => {
-    if (!selectedFunction) {
-      toast.error("Please select a function to test");
-      return;
+  const getSupabaseUrl = useCallback(() => {
+    const url = import.meta.env.VITE_SUPABASE_URL;
+    if (!url) {
+      throw new Error("VITE_SUPABASE_URL not configured");
     }
+    return url.replace(/\/$/, ""); // Remove trailing slash
+  }, []);
 
-    setIsLoading(true);
-    const startTime = Date.now();
+  const testFunction = useCallback(
+    async (func: FunctionTest, customData?: any) => {
+      if (!user && func.requiresAuth) {
+        toast.error("Authentication required for this function");
+        return;
+      }
 
-    try {
-      let payload: any = {};
+      if (func.requiresAdmin && !isAdmin) {
+        toast.error("Admin privileges required for this function");
+        return;
+      }
 
-      // Use custom payload if provided, otherwise use parameter values
-      if (customPayload.trim()) {
-        try {
-          payload = JSON.parse(customPayload);
-        } catch (e) {
-          throw new Error("Invalid JSON in custom payload");
-        }
-      } else if (selectedFunctionDef) {
-        // Build payload from parameter values
-        selectedFunctionDef.parameters.forEach((param) => {
-          const value = parameterValues[param.name];
-          if (value) {
-            if (param.type === "object" || param.type === "array") {
-              try {
-                payload[param.name] = JSON.parse(value);
-              } catch (e) {
-                payload[param.name] = value;
-              }
-            } else if (param.type === "number") {
-              payload[param.name] = Number(value);
-            } else {
-              payload[param.name] = value;
+      setTestingFunction(func.name);
+
+      const startTime = Date.now();
+
+      // Initialize result as pending
+      setTestResults((prev) => ({
+        ...prev,
+        [func.name]: {
+          name: func.name,
+          status: "pending",
+          timestamp: new Date(),
+        },
+      }));
+
+      try {
+        let response;
+        const payload = customData || func.testPayload || {};
+
+        if (func.category === "database") {
+          // Test database functions via RPC
+          if (func.name === "is_admin") {
+            response = await supabase.rpc("is_admin", { user_id: user?.id });
+          } else if (func.name === "generate_api_key") {
+            response = await supabase.rpc("generate_api_key", {
+              user_id: user?.id,
+            });
+          } else {
+            throw new Error(
+              `Database function ${func.name} not implemented in tester`,
+            );
+          }
+
+          const responseTime = Date.now() - startTime;
+
+          setTestResults((prev) => ({
+            ...prev,
+            [func.name]: {
+              name: func.name,
+              status: response.error ? "error" : "success",
+              statusCode: response.error ? 400 : 200,
+              responseTime,
+              error: response.error?.message,
+              response: response.data,
+              timestamp: new Date(),
+            },
+          }));
+        } else {
+          // Test edge functions
+          const url = `${getSupabaseUrl()}/functions/v1/${func.endpoint}`;
+          const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+          };
+
+          if (func.requiresAuth && user) {
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+            if (session?.access_token) {
+              headers["Authorization"] = `Bearer ${session.access_token}`;
             }
           }
-        });
+
+          const fetchResponse = await fetch(url, {
+            method: func.method,
+            headers,
+            body: func.method === "POST" ? JSON.stringify(payload) : undefined,
+          });
+
+          const responseTime = Date.now() - startTime;
+          let responseData;
+
+          try {
+            responseData = await fetchResponse.json();
+          } catch {
+            responseData = await fetchResponse.text();
+          }
+
+          const status = fetchResponse.ok
+            ? "success"
+            : fetchResponse.status >= 400 && fetchResponse.status < 500
+              ? "warning"
+              : "error";
+
+          setTestResults((prev) => ({
+            ...prev,
+            [func.name]: {
+              name: func.name,
+              status,
+              statusCode: fetchResponse.status,
+              responseTime,
+              error: !fetchResponse.ok
+                ? `HTTP ${fetchResponse.status}: ${JSON.stringify(responseData)}`
+                : undefined,
+              response: responseData,
+              timestamp: new Date(),
+            },
+          }));
+        }
+      } catch (error) {
+        const responseTime = Date.now() - startTime;
+
+        setTestResults((prev) => ({
+          ...prev,
+          [func.name]: {
+            name: func.name,
+            status: "error",
+            responseTime,
+            error: error instanceof Error ? error.message : String(error),
+            timestamp: new Date(),
+          },
+        }));
+      } finally {
+        setTestingFunction(null);
       }
+    },
+    [user, isAdmin, getSupabaseUrl],
+  );
 
-      console.log(
-        `Testing function ${selectedFunction} with payload:`,
-        payload,
-      );
+  const testAllFunctions = useCallback(async () => {
+    setIsTestingAll(true);
+    toast.info("Starting comprehensive function tests...");
 
-      const { data, error } = await supabase.functions.invoke(
-        selectedFunction,
-        {
-          body: payload,
-        },
-      );
+    const functionsToTest =
+      selectedCategory === "all"
+        ? SUPABASE_FUNCTIONS
+        : SUPABASE_FUNCTIONS.filter((f) => f.category === selectedCategory);
 
-      const duration = Date.now() - startTime;
+    for (const func of functionsToTest) {
+      await testFunction(func);
+      // Small delay between tests to prevent overwhelming the server
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
 
-      const result: TestResult = {
-        success: !error,
-        data: data,
-        error:
-          error?.message ||
-          (data?.error ? JSON.stringify(data.error) : undefined),
-        duration,
-        function_name: selectedFunction,
-        timestamp: new Date().toISOString(),
-      };
+    setIsTestingAll(false);
+    toast.success(`Completed testing ${functionsToTest.length} functions`);
+  }, [selectedCategory, testFunction]);
 
-      setResults((prev) => [result, ...prev.slice(0, 9)]); // Keep last 10 results
+  const exportResults = useCallback(() => {
+    const results = Object.values(testResults);
+    const summary = {
+      timestamp: new Date().toISOString(),
+      totalTests: results.length,
+      successful: results.filter((r) => r.status === "success").length,
+      failed: results.filter((r) => r.status === "error").length,
+      warnings: results.filter((r) => r.status === "warning").length,
+      averageResponseTime:
+        results.reduce((acc, r) => acc + (r.responseTime || 0), 0) /
+        results.length,
+      results: results,
+    };
 
-      if (result.success) {
-        toast.success(`Function ${selectedFunction} executed successfully!`, {
-          description: `Completed in ${duration}ms`,
-        });
-      } else {
-        toast.error(`Function ${selectedFunction} failed`, {
-          description: result.error,
-        });
-      }
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      const result: TestResult = {
-        success: false,
-        error:
-          error instanceof Error ? error.message : "Unknown error occurred",
-        duration,
-        function_name: selectedFunction,
-        timestamp: new Date().toISOString(),
-      };
+    const blob = new Blob([JSON.stringify(summary, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `supabase-function-test-results-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [testResults]);
 
-      setResults((prev) => [result, ...prev.slice(0, 9)]);
-
-      toast.error("Test failed", {
-        description: result.error,
-      });
-    } finally {
-      setIsLoading(false);
+  const getStatusIcon = (status: TestResult["status"]) => {
+    switch (status) {
+      case "success":
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case "error":
+        return <XCircle className="h-4 w-4 text-red-600" />;
+      case "warning":
+        return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+      case "pending":
+        return <RefreshCw className="h-4 w-4 text-blue-600 animate-spin" />;
+      default:
+        return <Clock className="h-4 w-4 text-gray-400" />;
     }
   };
 
-  const loadExamplePayload = () => {
-    if (selectedFunctionDef?.examplePayload) {
-      setCustomPayload(
-        JSON.stringify(selectedFunctionDef.examplePayload, null, 2),
-      );
-    }
-  };
+  const filteredFunctions =
+    selectedCategory === "all"
+      ? SUPABASE_FUNCTIONS
+      : SUPABASE_FUNCTIONS.filter((f) => f.category === selectedCategory);
 
-  const copyResult = (result: TestResult) => {
-    const resultText = JSON.stringify(result, null, 2);
-    navigator.clipboard.writeText(resultText);
-    toast.success("Result copied to clipboard");
-  };
-
-  const clearResults = () => {
-    setResults([]);
-    toast.success("Results cleared");
-  };
-
-  const categories = [...new Set(functions.map((f) => f.category))];
+  const categories = Array.from(
+    new Set(SUPABASE_FUNCTIONS.map((f) => f.category)),
+  );
+  const results = Object.values(testResults);
+  const successCount = results.filter((r) => r.status === "success").length;
+  const errorCount = results.filter((r) => r.status === "error").length;
+  const warningCount = results.filter((r) => r.status === "warning").length;
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-blue-500" />
-            Supabase Edge Functions Tester
-          </CardTitle>
-          <CardDescription>
-            Test and debug all Supabase Edge Functions from the admin dashboard
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Function Selection */}
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="function-select">Select Function</Label>
-              <Select
-                value={selectedFunction}
-                onValueChange={setSelectedFunction}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a function to test..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <div key={category}>
-                      <div className="px-2 py-1 text-sm font-semibold text-gray-500">
-                        {category}
-                      </div>
-                      {functions
-                        .filter((f) => f.category === category)
-                        .map((func) => (
-                          <SelectItem key={func.name} value={func.name}>
-                            <div className="flex flex-col">
-                              <span>{func.name}</span>
-                              <span className="text-xs text-gray-500">
-                                {func.description}
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                    </div>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <TestTube className="h-6 w-6 text-blue-600" />
+          <h2 className="text-2xl font-bold">Supabase Function Tester</h2>
+        </div>
 
-            {selectedFunctionDef && (
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <h4 className="font-semibold text-blue-800 mb-2">
-                  {selectedFunctionDef.name}
-                </h4>
-                <p className="text-sm text-blue-700 mb-3">
-                  {selectedFunctionDef.description}
-                </p>
-
-                {selectedFunctionDef.parameters.length > 0 && (
-                  <div>
-                    <h5 className="font-medium text-blue-800 mb-2">
-                      Parameters:
-                    </h5>
-                    <div className="space-y-2">
-                      {selectedFunctionDef.parameters.map((param) => (
-                        <div
-                          key={param.name}
-                          className="flex items-center gap-2 text-sm"
-                        >
-                          <Badge
-                            variant={
-                              param.required ? "destructive" : "secondary"
-                            }
-                          >
-                            {param.type}
-                          </Badge>
-                          <span className="font-medium">{param.name}</span>
-                          {param.required && (
-                            <span className="text-red-500">*</span>
-                          )}
-                          <span className="text-gray-600">
-                            - {param.description}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+        <div className="flex items-center space-x-2">
+          {results.length > 0 && (
+            <Button variant="outline" onClick={exportResults} size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export Results
+            </Button>
+          )}
+          <Button onClick={testAllFunctions} disabled={isTestingAll} size="sm">
+            {isTestingAll ? (
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <PlayCircle className="h-4 w-4 mr-2" />
             )}
+            Test All Functions
+          </Button>
+        </div>
+      </div>
+
+      {/* Test Summary */}
+      {results.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Successful</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {successCount}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Warnings</p>
+                  <p className="text-2xl font-bold text-yellow-600">
+                    {warningCount}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <XCircle className="h-5 w-5 text-red-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Failed</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    {errorCount}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Clock className="h-5 w-5 text-blue-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Avg Response</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {results.length > 0
+                      ? Math.round(
+                          results.reduce(
+                            (acc, r) => acc + (r.responseTime || 0),
+                            0,
+                          ) / results.length,
+                        )
+                      : 0}
+                    ms
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <Tabs defaultValue="functions" className="w-full">
+        <TabsList>
+          <TabsTrigger value="functions">Function Tests</TabsTrigger>
+          <TabsTrigger value="rls">RLS Policies</TabsTrigger>
+          <TabsTrigger value="custom">Custom Test</TabsTrigger>
+          <TabsTrigger value="results">Results History</TabsTrigger>
+          <TabsTrigger value="guide">Testing Guide</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="functions" className="space-y-4">
+          {/* Category Filter */}
+          <div className="flex flex-wrap gap-2 items-center">
+            <Label>Filter by category:</Label>
+            <Button
+              variant={selectedCategory === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedCategory("all")}
+            >
+              All ({SUPABASE_FUNCTIONS.length})
+            </Button>
+            {categories.map((category) => {
+              const count = SUPABASE_FUNCTIONS.filter(
+                (f) => f.category === category,
+              ).length;
+              const CategoryIcon =
+                categoryIcons[category as keyof typeof categoryIcons];
+              return (
+                <Button
+                  key={category}
+                  variant={
+                    selectedCategory === category ? "default" : "outline"
+                  }
+                  size="sm"
+                  onClick={() => setSelectedCategory(category)}
+                  className="capitalize"
+                >
+                  <CategoryIcon className="h-3 w-3 mr-1" />
+                  {category} ({count})
+                </Button>
+              );
+            })}
           </div>
 
-          {/* Parameter Inputs */}
-          {selectedFunctionDef && selectedFunctionDef.parameters.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label>Function Parameters</Label>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={loadExamplePayload}
-                  disabled={!selectedFunctionDef.examplePayload}
+          {/* Function Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {filteredFunctions.map((func) => {
+              const result = testResults[func.name];
+              const Icon = func.icon;
+              const isCurrentlyTesting = testingFunction === func.name;
+
+              return (
+                <Card
+                  key={func.name}
+                  className="hover:shadow-lg transition-shadow"
                 >
-                  Load Example
-                </Button>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Icon className="h-5 w-5 text-blue-600" />
+                        <CardTitle className="text-lg">{func.name}</CardTitle>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge
+                          className={categoryColors[func.category]}
+                          variant="secondary"
+                        >
+                          {func.category}
+                        </Badge>
+                        {result && getStatusIcon(result.status)}
+                      </div>
+                    </div>
+                    <CardDescription className="text-sm">
+                      {func.description}
+                    </CardDescription>
+                  </CardHeader>
+
+                  <CardContent className="space-y-3">
+                    <div className="flex flex-wrap gap-2 text-xs">
+                      <Badge variant="outline">{func.method}</Badge>
+                      {func.requiresAuth && (
+                        <Badge variant="outline">Auth Required</Badge>
+                      )}
+                      {func.requiresAdmin && (
+                        <Badge variant="outline">Admin Only</Badge>
+                      )}
+                    </div>
+
+                    {result && (
+                      <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Status: {result.statusCode}</span>
+                          <span>Time: {result.responseTime}ms</span>
+                        </div>
+
+                        {result.error && (
+                          <div className="text-red-600 text-xs font-mono bg-red-50 p-2 rounded">
+                            {result.error}
+                          </div>
+                        )}
+
+                        {result.response && (
+                          <div className="text-green-600 text-xs font-mono bg-green-50 p-2 rounded max-h-20 overflow-y-auto">
+                            {typeof result.response === "object"
+                              ? JSON.stringify(result.response, null, 2)
+                              : String(result.response)}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <Button
+                      onClick={() => testFunction(func)}
+                      disabled={isCurrentlyTesting || isTestingAll}
+                      size="sm"
+                      className="w-full"
+                    >
+                      {isCurrentlyTesting ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Play className="h-4 w-4 mr-2" />
+                      )}
+                      Test Function
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="rls" className="space-y-4">
+          <RLSPolicyTester />
+        </TabsContent>
+
+        <TabsContent value="custom" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Custom Function Test</CardTitle>
+              <CardDescription>
+                Test any function with custom payload data
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="customPayload">Custom Payload (JSON)</Label>
+                <Textarea
+                  id="customPayload"
+                  value={customPayload}
+                  onChange={(e) => setCustomPayload(e.target.value)}
+                  placeholder='{"key": "value"}'
+                  className="font-mono"
+                />
               </div>
 
-              <div className="grid gap-4">
-                {selectedFunctionDef.parameters.map((param) => (
-                  <div key={param.name} className="space-y-2">
-                    <Label htmlFor={param.name}>
-                      {param.name}
-                      {param.required && (
-                        <span className="text-red-500 ml-1">*</span>
-                      )}
-                      <span className="text-sm text-gray-500 ml-2">
-                        ({param.type})
-                      </span>
-                    </Label>
-                    {param.type === "object" || param.type === "array" ? (
-                      <Textarea
-                        id={param.name}
-                        placeholder={`JSON for ${param.name}`}
-                        value={parameterValues[param.name] || ""}
-                        onChange={(e) =>
-                          setParameterValues((prev) => ({
-                            ...prev,
-                            [param.name]: e.target.value,
-                          }))
-                        }
-                        className="font-mono text-sm"
-                      />
-                    ) : (
-                      <Input
-                        id={param.name}
-                        type={param.type === "number" ? "number" : "text"}
-                        placeholder={param.description}
-                        value={parameterValues[param.name] || ""}
-                        onChange={(e) =>
-                          setParameterValues((prev) => ({
-                            ...prev,
-                            [param.name]: e.target.value,
-                          }))
-                        }
-                      />
-                    )}
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {SUPABASE_FUNCTIONS.map((func) => (
+                  <Button
+                    key={func.name}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      try {
+                        const payload = JSON.parse(customPayload);
+                        testFunction(func, payload);
+                      } catch (error) {
+                        toast.error("Invalid JSON payload");
+                      }
+                    }}
+                    disabled={testingFunction === func.name}
+                  >
+                    <func.icon className="h-3 w-3 mr-1" />
+                    {func.name}
+                  </Button>
                 ))}
               </div>
-            </div>
-          )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-          {/* Custom Payload */}
-          <div className="space-y-2">
-            <Label htmlFor="custom-payload">
-              Custom JSON Payload (Optional)
-            </Label>
-            <Textarea
-              id="custom-payload"
-              placeholder="Enter custom JSON payload to override parameter inputs..."
-              className="min-h-[120px] font-mono text-sm"
-              value={customPayload}
-              onChange={(e) => setCustomPayload(e.target.value)}
-            />
-            <p className="text-xs text-gray-500">
-              If provided, this will override the parameter inputs above
-            </p>
-          </div>
-
-          {/* Test Button */}
-          <Button
-            onClick={testFunction}
-            disabled={isLoading || !selectedFunction}
-            className="w-full"
-            size="lg"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Testing {selectedFunction}...
-              </>
-            ) : (
-              <>
-                <Zap className="h-4 w-4 mr-2" />
-                Test Function
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Results */}
-      {results.length > 0 && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                Test Results
-                <Badge variant="secondary">{results.length}</Badge>
-              </CardTitle>
-              <Button variant="outline" size="sm" onClick={clearResults}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Clear Results
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {results.map((result, index) => (
-              <div
-                key={index}
-                className={`border rounded-lg p-4 ${
-                  result.success
-                    ? "border-green-200 bg-green-50"
-                    : "border-red-200 bg-red-50"
-                }`}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    {result.success ? (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <AlertCircle className="h-5 w-5 text-red-500" />
-                    )}
-                    <span className="font-medium">{result.function_name}</span>
-                    <Badge variant={result.success ? "default" : "destructive"}>
-                      {result.duration}ms
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">
-                      {new Date(result.timestamp!).toLocaleTimeString()}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyResult(result)}
+        <TabsContent value="results" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Test Results History</CardTitle>
+              <CardDescription>
+                Detailed results from all function tests
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-96">
+                <div className="space-y-3">
+                  {results.map((result) => (
+                    <div
+                      key={`${result.name}-${result.timestamp.getTime()}`}
+                      className="border rounded-lg p-3"
                     >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          {getStatusIcon(result.status)}
+                          <span className="font-medium">{result.name}</span>
+                          {result.statusCode && (
+                            <Badge variant="outline">{result.statusCode}</Badge>
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-500">
+                          {result.timestamp.toLocaleTimeString()}
+                        </span>
+                      </div>
+
+                      {result.error && (
+                        <div className="text-red-600 text-sm bg-red-50 p-2 rounded mb-2">
+                          {result.error}
+                        </div>
+                      )}
+
+                      {result.response && (
+                        <div className="text-green-600 text-sm bg-green-50 p-2 rounded font-mono">
+                          {typeof result.response === "object"
+                            ? JSON.stringify(result.response, null, 2)
+                            : String(result.response)}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {results.length === 0 && (
+                    <div className="text-center text-gray-500 py-8">
+                      No test results yet. Run some function tests to see
+                      results here.
+                    </div>
+                  )}
                 </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-                {result.success && result.data && (
-                  <div className="bg-white rounded border p-3">
-                    <h4 className="font-semibold text-sm mb-2 text-green-800">
-                      Response Data:
-                    </h4>
-                    <pre className="text-xs overflow-x-auto text-gray-700 bg-gray-50 p-2 rounded">
-                      {JSON.stringify(result.data, null, 2)}
-                    </pre>
-                  </div>
-                )}
-
-                {!result.success && result.error && (
-                  <div className="bg-white rounded border border-red-200 p-3">
-                    <h4 className="font-semibold text-sm mb-2 text-red-800">
-                      Error Details:
-                    </h4>
-                    <p className="text-sm text-red-600 bg-red-50 p-2 rounded">
-                      {result.error}
-                    </p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+        <TabsContent value="guide" className="space-y-4">
+          <FunctionTestingGuide />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
