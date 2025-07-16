@@ -587,13 +587,13 @@ const AdminDashboard = () => {
                   For a better email testing experience, visit the dedicated
                   email testing page.
                 </p>
-                <a
-                  href="/admin/email-testing"
+                <button
+                  onClick={() => window.open("/admin/email-testing", "_blank")}
                   className="inline-flex items-center px-4 py-2 bg-book-600 hover:bg-book-700 text-white rounded-lg transition-colors"
                 >
                   <Mail className="h-4 w-4 mr-2" />
                   Open Email Testing Dashboard
-                </a>
+                </button>
               </div>
             </div>
           </TabsContent>
