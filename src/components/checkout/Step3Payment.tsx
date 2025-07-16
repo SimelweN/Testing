@@ -15,6 +15,7 @@ import {
 import { OrderSummary, OrderConfirmation } from "@/types/checkout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import PaystackPopup, { formatAmount } from "@/components/PaystackPopup";
 
 interface Step3PaymentProps {
   orderSummary: OrderSummary;
@@ -33,13 +34,101 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 }) => {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string>("");
+
+  // Fetch user email on component mount
+  React.useEffect(() => {
+    const fetchUserEmail = async () => {
+      try {
+        const email = await getUserEmail();
+        setUserEmail(email);
+      } catch (err) {
+        console.error("Failed to fetch user email:", err);
+      }
+    };
+    fetchUserEmail();
+  }, []);
+
+  const handlePaystackSuccess = async (paystackResponse: {
+    reference: string;
+    status: string;
+    trans: string;
+    transaction: string;
+    trxref: string;
+    redirecturl: string;
+  }) => {
+    setProcessing(true);
+    try {
+      console.log("Paystack payment successful:", paystackResponse);
+
+      // Call the process-book-purchase function to finalize the order
+      const { data, error } = await supabase.functions.invoke(
+        "process-book-purchase",
+        {
+          body: {
+            paystack_reference: paystackResponse.reference,
+            order_details: {
+              book_id: orderSummary.book.id,
+              seller_id: orderSummary.book.seller_id,
+              buyer_id: userId,
+              book_price: orderSummary.book_price,
+              delivery_price: orderSummary.delivery_price,
+              total_amount: orderSummary.total_price,
+              delivery_method: orderSummary.delivery.service_name,
+              delivery_courier: orderSummary.delivery.courier,
+              buyer_address: orderSummary.buyer_address,
+              seller_address: orderSummary.seller_address,
+              estimated_delivery_days: orderSummary.delivery.estimated_days,
+            },
+          },
+        },
+      );
+
+      if (error) {
+        throw new Error(error.message || "Failed to process purchase");
+      }
+
+      // Success - proceed to confirmation
+      onPaymentSuccess({
+        order_id: data.order_id,
+        reference: paystackResponse.reference,
+        amount: orderSummary.total_price,
+        status: "completed",
+      });
+    } catch (error) {
+      console.error("Payment processing error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Payment processing failed";
+      setError(errorMessage);
+      onPaymentError(errorMessage);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handlePaystackError = (error: string) => {
+    setError(error);
+    onPaymentError(error);
+  };
+
+  const handlePaystackClose = () => {
+    console.log("Payment popup closed");
+  };
+
+  // Get user email for payment
+  const getUserEmail = async () => {
+    const { data: userData, error } = await supabase.auth.getUser();
+    if (error || !userData.user?.email) {
+      throw new Error("User authentication error");
+    }
+    return userData.user.email;
+  };
 
   /**
-   * 💳 API Equivalent: POST /api/payment/initiate
-   * Includes buyer ID, book info, delivery cost, seller's subaccount code
-   * Calculates total and sends to Paystack with subaccount field
+   * Legacy payment initialization method - keeping for reference
+   * Now using PaystackPopup component for better UX
    */
-  const initiatePayment = async () => {
+  const initiatePaymentLegacy = async () => {
     setProcessing(true);
     setError(null);
 
@@ -731,24 +820,37 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           Back
         </Button>
 
-        <Button
-          onClick={initiatePayment}
+        <PaystackPopup
+          email={userEmail}
+          amount={orderSummary.total_price}
+          subaccountCode={orderSummary.book.seller_subaccount_code}
+          orderReference={`ORDER-${Date.now()}-${userId}`}
+          metadata={{
+            book_id: orderSummary.book.id,
+            book_title: orderSummary.book.title,
+            seller_id: orderSummary.book.seller_id,
+            buyer_id: userId,
+            delivery_method: orderSummary.delivery.service_name,
+            custom_fields: [
+              {
+                display_name: "Book Title",
+                variable_name: "book_title",
+                value: orderSummary.book.title,
+              },
+              {
+                display_name: "Delivery Method",
+                variable_name: "delivery_method",
+                value: orderSummary.delivery.service_name,
+              },
+            ],
+          }}
+          onSuccess={handlePaystackSuccess}
+          onError={handlePaystackError}
+          onClose={handlePaystackClose}
           disabled={processing}
           className="px-8 py-3 text-lg"
-          size="lg"
-        >
-          {processing ? (
-            <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              <CreditCard className="w-5 h-5 mr-2" />
-              Pay Now - R{orderSummary.total_price.toFixed(2)}
-            </>
-          )}
-        </Button>
+          buttonText={`Pay Now - ${formatAmount(orderSummary.total_price)}`}
+        />
       </div>
     </div>
   );
