@@ -34,15 +34,11 @@ serve(async (req) => {
     const COURIER_GUY_API_URL =
       Deno.env.get("COURIER_GUY_API_URL") || "https://api.courierguy.co.za";
 
-    // Return mock response in development mode if API key is not configured
     if (!COURIER_GUY_API_KEY) {
-      if (isDevelopmentMode()) {
-        logFunction("courier-guy-quote", "Using mock response (no API key)");
-        const mockResponse = createMockResponse("courier", "quote");
-        return createSuccessResponse(mockResponse);
-      } else {
-        return createErrorResponse("Courier Guy API key not configured", 500);
-      }
+      return createErrorResponse(
+        "Courier Guy API key not configured. Please set COURIER_GUY_API_KEY environment variable.",
+        500,
+      );
     }
 
     const quoteRequest = {
