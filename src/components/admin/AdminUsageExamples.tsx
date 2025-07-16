@@ -21,6 +21,7 @@ import {
 import PaystackPopup, { usePaystackPopup } from "@/components/PaystackPopup";
 import OrderCommitButton from "@/components/orders/OrderCommitButton";
 import OrderDeclineButton from "@/components/orders/OrderDeclineButton";
+import SupabaseFunctionTester from "@/components/admin/SupabaseFunctionTester";
 import { toast } from "sonner";
 
 const AdminUsageExamples: React.FC = () => {
@@ -253,19 +254,7 @@ const AdminUsageExamples: React.FC = () => {
               </ul>
             </div>
 
-            <div className="text-center p-6 border-2 border-dashed border-gray-300 rounded-lg">
-              <Zap className="h-12 w-12 text-purple-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-gray-800 mb-2">
-                Function Tester Available
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                The Supabase Functions Tester is now available in the Settings
-                tab
-              </p>
-              <Badge variant="outline">
-                Navigate to Settings → Supabase Edge Functions Tester
-              </Badge>
-            </div>
+            <SupabaseFunctionTester />
           </div>
         );
 
