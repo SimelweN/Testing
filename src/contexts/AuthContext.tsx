@@ -74,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+      const [isLoading, setIsLoading] = useState(true);
 
   // Debug logging
   console.log("🔍 [AuthContext] Current loading state:", isLoading);
@@ -259,28 +259,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     [createFallbackProfile, upgradeProfileIfNeeded, isInitializing],
   );
 
-  const initializeAuth = useCallback(async () => {
+    const initializeAuth = useCallback(async () => {
     if (authInitialized) return;
 
-    const loadingId = loadingStateManager.startLoading(
-      "auth-init",
-      "AuthContext",
-      10000,
-    );
+    console.log("🔄 [AuthContext] Initializing auth...");
 
     try {
       setIsLoading(true);
       setInitError(null);
       setIsInitializing(true);
 
-      console.log("🔄 [AuthContext] Initializing auth...");
+      // Simplified auth initialization - just get the current session
+      const { data: { session }, error } = await supabase.auth.getSession();
 
-      // Check if there are auth code parameters in the URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const hasAuthCode = urlParams.has("code");
-      const hasError = urlParams.has("error");
+      if (error && !error.message.includes("code verifier")) {
+        throw new Error(`Auth initialization failed: ${error.message}`);
+      }
 
-      if (hasAuthCode) {
+      if (session) {
+        await handleAuthStateChange(session, "SESSION_RESTORED");
+      } else {
+        // No session found - user is not authenticated
+        setUser(null);
+        setProfile(null);
+        setSession(null);
+        setIsLoading(false);
+      }
         console.log(
           "🔗 [AuthContext] Auth code detected in URL, attempting code exchange...",
         );
@@ -512,15 +516,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [handleError]);
 
-  useEffect(() => {
+    useEffect(() => {
     console.log("🔄 [AuthContext] Auth initialization useEffect triggered");
 
     // Force completion of auth initialization after a timeout to prevent infinite loading
     const forceCompleteTimer = setTimeout(() => {
       if (isLoading) {
-        console.warn(
-          "⚠️ [AuthContext] Forcing auth initialization completion due to timeout",
-        );
+        console.warn("⚠️ [AuthContext] Forcing auth initialization completion due to timeout");
         setIsLoading(false);
         setAuthInitialized(true);
       }
