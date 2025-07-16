@@ -685,7 +685,7 @@ const UniversityInfo = () => {
               <div className="grid md:grid-cols-2 gap-6">
                 <Card
                   className="hover:shadow-lg transition-shadow cursor-pointer border-0 shadow-sm hover:border-book-200"
-                  onClick={() => handleTabChange("aps-calculator")}
+                  onClick={() => throttledTabChange("aps-calculator")}
                 >
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -709,7 +709,7 @@ const UniversityInfo = () => {
 
                 <Card
                   className="hover:shadow-lg transition-shadow cursor-pointer border-0 shadow-sm hover:border-book-200"
-                  onClick={() => handleTabChange("bursaries")}
+                  onClick={() => throttledTabChange("bursaries")}
                 >
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
