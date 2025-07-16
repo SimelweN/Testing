@@ -15,6 +15,7 @@ import {
 import { OrderSummary, OrderConfirmation } from "@/types/checkout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import PaystackPopup, { formatAmount } from "@/components/PaystackPopup";
 
 interface Step3PaymentProps {
   orderSummary: OrderSummary;
@@ -34,12 +35,79 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const handlePaystackSuccess = async (paystackResponse: any) => {
+    setProcessing(true);
+    try {
+      console.log("Paystack payment successful:", paystackResponse);
+
+      // Call the process-book-purchase function to finalize the order
+      const { data, error } = await supabase.functions.invoke(
+        "process-book-purchase",
+        {
+          body: {
+            paystack_reference: paystackResponse.reference,
+            order_details: {
+              book_id: orderSummary.book.id,
+              seller_id: orderSummary.book.seller_id,
+              buyer_id: userId,
+              book_price: orderSummary.book_price,
+              delivery_price: orderSummary.delivery_price,
+              total_amount: orderSummary.total_price,
+              delivery_method: orderSummary.delivery.service_name,
+              delivery_courier: orderSummary.delivery.courier,
+              buyer_address: orderSummary.buyer_address,
+              seller_address: orderSummary.seller_address,
+              estimated_delivery_days: orderSummary.delivery.estimated_days,
+            },
+          },
+        },
+      );
+
+      if (error) {
+        throw new Error(error.message || "Failed to process purchase");
+      }
+
+      // Success - proceed to confirmation
+      onPaymentSuccess({
+        order_id: data.order_id,
+        reference: paystackResponse.reference,
+        amount: orderSummary.total_price,
+        status: "completed",
+      });
+    } catch (error) {
+      console.error("Payment processing error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Payment processing failed";
+      setError(errorMessage);
+      onPaymentError(errorMessage);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handlePaystackError = (error: string) => {
+    setError(error);
+    onPaymentError(error);
+  };
+
+  const handlePaystackClose = () => {
+    console.log("Payment popup closed");
+  };
+
+  // Get user email for payment
+  const getUserEmail = async () => {
+    const { data: userData, error } = await supabase.auth.getUser();
+    if (error || !userData.user?.email) {
+      throw new Error("User authentication error");
+    }
+    return userData.user.email;
+  };
+
   /**
-   * 💳 API Equivalent: POST /api/payment/initiate
-   * Includes buyer ID, book info, delivery cost, seller's subaccount code
-   * Calculates total and sends to Paystack with subaccount field
+   * Legacy payment initialization method - keeping for reference
+   * Now using PaystackPopup component for better UX
    */
-  const initiatePayment = async () => {
+  const initiatePaymentLegacy = async () => {
     setProcessing(true);
     setError(null);
 
