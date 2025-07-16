@@ -50,6 +50,10 @@ export const EMAIL_TEMPLATES = {
   SELLER_PICKUP_NOTIFICATION: "seller-pickup-notification",
   BUYER_ORDER_CONFIRMED: "buyer-order-confirmed",
   COMMIT_CONFIRMATION_BASIC: "commit-confirmation-basic",
+  ORDER_COMMITTED_BUYER: "order-committed-buyer",
+  ORDER_COMMITTED_SELLER: "order-committed-seller",
+  SELLER_NEW_ORDER: "seller-new-order",
+  BUYER_ORDER_PENDING: "buyer-order-pending",
 } as const;
 
 export type EmailTemplateName =
