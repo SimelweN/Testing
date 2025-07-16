@@ -327,6 +327,7 @@ export class PaystackSubaccountService {
       }
 
       // First, check the profile table for subaccount_code
+      console.log("📋 getUserSubaccountStatus: Checking profile table...");
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("subaccount_code, preferences")
@@ -334,9 +335,17 @@ export class PaystackSubaccountService {
         .single();
 
       if (profileError) {
-        console.warn("Error checking profile:", profileError);
+        console.warn(
+          "❌ getUserSubaccountStatus: Error checking profile:",
+          profileError,
+        );
         return { hasSubaccount: false, canEdit: false };
       }
+
+      console.log("✅ getUserSubaccountStatus: Profile data:", {
+        subaccountCode: profileData?.subaccount_code,
+        hasPreferences: !!profileData?.preferences,
+      });
 
       const subaccountCode = profileData?.subaccount_code;
 
