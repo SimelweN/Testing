@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   useParams,
   Navigate,
@@ -45,6 +45,12 @@ const UniversityProfile: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("programs");
+
+  // Optimized tab change handler
+  const handleTabChange = useCallback((value: string) => {
+    // Immediate state update for instant visual feedback
+    setActiveTab(value);
+  }, []);
   const [selectedProgram, setSelectedProgram] = useState<Degree | null>(null);
   const [isProgramModalOpen, setIsProgramModalOpen] = useState(false);
   const [showEligibleOnly, setShowEligibleOnly] = useState(false);
@@ -383,7 +389,7 @@ const UniversityProfile: React.FC = () => {
         <div className="container mx-auto px-6 py-8">
           <Tabs
             value={activeTab}
-            onValueChange={setActiveTab}
+            onValueChange={handleTabChange}
             className="w-full"
           >
             {/* Modern Tab Navigation - Mobile Optimized */}

@@ -52,6 +52,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationRequestService } from "@/services/notificationRequestService";
 import { toast } from "sonner";
+import { useThrottleCallback } from "@/hooks/useDebounceCallback";
 
 // Direct import for APS calculator to fix loading issues
 import APSCalculatorSection from "@/components/university-info/APSCalculatorSection";
@@ -139,13 +140,18 @@ const UniversityInfo = () => {
 
   const handleTabChange = useCallback(
     (value: string) => {
-      // Immediate state update for instant visual feedback
-      const newParams = new URLSearchParams();
-      newParams.set("tool", value);
-      setSearchParams(newParams);
+      // Use requestAnimationFrame for smoother transitions
+      requestAnimationFrame(() => {
+        const newParams = new URLSearchParams();
+        newParams.set("tool", value);
+        setSearchParams(newParams, { replace: true });
+      });
     },
     [setSearchParams],
   );
+
+  // Throttled handlers for better performance
+  const throttledTabChange = useThrottleCallback(handleTabChange, 100);
 
   // Memoized statistics calculation for better performance
   const stats = useMemo(() => {
@@ -336,14 +342,14 @@ const UniversityInfo = () => {
           {/* Call to Action */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto">
             <Button
-              onClick={() => handleTabChange("aps-calculator")}
+              onClick={() => throttledTabChange("aps-calculator")}
               className="w-full sm:w-auto bg-book-600 hover:bg-book-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
             >
               <Calculator className="w-4 h-4 mr-2" />
               Calculate APS Score
             </Button>
             <Button
-              onClick={() => handleTabChange("bursaries")}
+              onClick={() => throttledTabChange("bursaries")}
               variant="outline"
               className="w-full sm:w-auto border-book-300 text-book-700 hover:bg-book-50 px-6 py-3 rounded-lg font-semibold transition-colors"
             >
@@ -621,7 +627,7 @@ const UniversityInfo = () => {
         <div className="container mx-auto px-4 py-6">
           <Tabs
             value={currentTool}
-            onValueChange={handleTabChange}
+            onValueChange={throttledTabChange}
             className="w-full"
           >
             <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 mb-8 h-auto bg-gray-200 p-1">
@@ -679,7 +685,7 @@ const UniversityInfo = () => {
               <div className="grid md:grid-cols-2 gap-6">
                 <Card
                   className="hover:shadow-lg transition-shadow cursor-pointer border-0 shadow-sm hover:border-book-200"
-                  onClick={() => handleTabChange("aps-calculator")}
+                  onClick={() => throttledTabChange("aps-calculator")}
                 >
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -703,7 +709,7 @@ const UniversityInfo = () => {
 
                 <Card
                   className="hover:shadow-lg transition-shadow cursor-pointer border-0 shadow-sm hover:border-book-200"
-                  onClick={() => handleTabChange("bursaries")}
+                  onClick={() => throttledTabChange("bursaries")}
                 >
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">

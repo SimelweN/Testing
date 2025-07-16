@@ -18,10 +18,6 @@ export const validateCheckoutStart = async (bookId: string, userId: string) => {
       throw new Error("Book is already sold");
     }
 
-    if (book.availability !== "available") {
-      throw new Error("Book is not available");
-    }
-
     // Validate user is not the seller
     if (book.seller_id === userId) {
       throw new Error("You cannot purchase your own book");

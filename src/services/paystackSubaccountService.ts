@@ -135,27 +135,20 @@ export class PaystackSubaccountService {
 
             const { error: dbError } = await supabase
               .from("banking_subaccounts")
-              .upsert(
-                {
-                  user_id: userId,
-                  business_name: details.business_name,
-                  email: details.email,
-                  bank_name: details.bank_name,
-                  bank_code: details.bank_code,
-                  account_number: details.account_number,
-                  subaccount_code: mockSubaccountCode,
-                  status: "active",
-                  paystack_response: {
-                    mock: true,
-                    created_at: new Date().toISOString(),
-                  },
+              .insert({
+                business_name: details.business_name,
+                email: details.email,
+                bank_name: details.bank_name,
+                bank_code: details.bank_code,
+                account_number: details.account_number,
+                subaccount_code: mockSubaccountCode,
+                status: "active",
+                paystack_response: {
+                  mock: true,
                   created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString(),
+                  user_id: userId, // Store in metadata since no user_id column
                 },
-                {
-                  onConflict: "user_id",
-                },
-              );
+              });
 
             if (dbError) {
               console.error(
@@ -285,20 +278,7 @@ export class PaystackSubaccountService {
         userId = user.id;
       }
 
-      // First try banking_subaccounts table
-      const { data: subaccountData, error } = await supabase
-        .from("banking_subaccounts")
-        .select("subaccount_code")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (!error && subaccountData?.subaccount_code) {
-        return subaccountData.subaccount_code;
-      }
-
-      // Fallback to profile table
+      // Check profile table for subaccount code
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("subaccount_code")
@@ -327,63 +307,109 @@ export class PaystackSubaccountService {
     email?: string;
   }> {
     try {
+      console.log("🔍 getUserSubaccountStatus: Starting check...", { userId });
+
       if (!userId) {
+        console.log(
+          "📝 getUserSubaccountStatus: No userId provided, getting from auth...",
+        );
         const {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user) {
+          console.log(
+            "❌ getUserSubaccountStatus: No authenticated user found",
+          );
           return { hasSubaccount: false, canEdit: false };
         }
         userId = user.id;
+        console.log("✅ getUserSubaccountStatus: Got user from auth:", userId);
       }
 
-      const { data: subaccountData, error } = await supabase
+      // First, check the profile table for subaccount_code
+      console.log("📋 getUserSubaccountStatus: Checking profile table...");
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("subaccount_code, preferences")
+        .eq("id", userId)
+        .single();
+
+      if (profileError) {
+        console.warn(
+          "❌ getUserSubaccountStatus: Error checking profile:",
+          profileError,
+        );
+        return { hasSubaccount: false, canEdit: false };
+      }
+
+      console.log("✅ getUserSubaccountStatus: Profile data:", {
+        subaccountCode: profileData?.subaccount_code,
+        hasPreferences: !!profileData?.preferences,
+      });
+
+      const subaccountCode = profileData?.subaccount_code;
+
+      if (!subaccountCode) {
+        console.log(
+          "❌ getUserSubaccountStatus: No subaccount code found in profile",
+        );
+        return { hasSubaccount: false, canEdit: false };
+      }
+
+      console.log(
+        "✅ getUserSubaccountStatus: Found subaccount code:",
+        subaccountCode,
+      );
+
+      // If we have a subaccount code, try to get banking details from banking_subaccounts table
+      const { data: subaccountData, error: subaccountError } = await supabase
         .from("banking_subaccounts")
         .select("*")
-        .eq("user_id", userId)
+        .eq("subaccount_code", subaccountCode)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      if (error) {
+      if (subaccountError) {
         console.warn(
-          "Error checking subaccount status (table may not exist):",
-          error,
+          "Error fetching banking details (table may not exist):",
+          subaccountError,
         );
 
-        // Fallback to checking profile table only
-        try {
-          const { data: profileData, error: profileError } = await supabase
-            .from("profiles")
-            .select("subaccount_code")
-            .eq("id", userId)
-            .single();
-
-          if (!profileError && profileData?.subaccount_code) {
-            console.warn(
-              "Found subaccount code in profile table, but no banking details available",
-            );
-            return {
-              hasSubaccount: true,
-              subaccountCode: profileData.subaccount_code,
-              businessName: "Please complete banking setup",
-              bankName: "Banking details incomplete",
-              accountNumber: "Not available",
-              email: "Please update",
-              canEdit: true,
-            };
-          }
-        } catch (profileError) {
-          console.warn("Profile table check also failed:", profileError);
-        }
-
-        return { hasSubaccount: false, canEdit: false };
+        // Fallback - we have subaccount code but no detailed banking info
+        const preferences = profileData?.preferences || {};
+        return {
+          hasSubaccount: true,
+          subaccountCode: subaccountCode,
+          businessName:
+            preferences.business_name || "Please complete banking setup",
+          bankName:
+            preferences.bank_details?.bank_name || "Banking details incomplete",
+          accountNumber:
+            preferences.bank_details?.account_number || "Not available",
+          email: profileData?.email || "Please update",
+          canEdit: true,
+        };
       }
 
-      if (!subaccountData || !subaccountData.subaccount_code) {
-        return { hasSubaccount: false, canEdit: false };
+      if (!subaccountData) {
+        // We have subaccount code but no banking details record
+        const preferences = profileData?.preferences || {};
+        return {
+          hasSubaccount: true,
+          subaccountCode: subaccountCode,
+          businessName:
+            preferences.business_name || "Please complete banking setup",
+          bankName:
+            preferences.bank_details?.bank_name || "Banking details incomplete",
+          accountNumber:
+            preferences.bank_details?.account_number || "Not available",
+          email: profileData?.email || "Please update",
+          canEdit: true,
+        };
       }
 
+      // We have both subaccount code and banking details
       return {
         hasSubaccount: true,
         subaccountCode: subaccountData.subaccount_code,

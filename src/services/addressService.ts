@@ -161,3 +161,45 @@ export const getUserAddresses = async (userId: string) => {
     throw new Error(`Failed to load addresses: ${errorMessage}`);
   }
 };
+
+// Update all user's book listings with new pickup address
+export const updateBooksPickupAddress = async (
+  userId: string,
+  newPickupAddress: any,
+): Promise<{ success: boolean; updatedCount: number; error?: string }> => {
+  try {
+    console.log("Updating pickup address for all books of user:", userId);
+
+    const { data, error } = await supabase
+      .from("books")
+      .update({ pickup_address: newPickupAddress })
+      .eq("seller_id", userId)
+      .select("id");
+
+    if (error) {
+      console.error("Error updating books pickup address:", error);
+      return {
+        success: false,
+        updatedCount: 0,
+        error: error.message || "Failed to update book listings",
+      };
+    }
+
+    const updatedCount = data?.length || 0;
+    console.log(
+      `Successfully updated pickup address for ${updatedCount} book listings`,
+    );
+
+    return {
+      success: true,
+      updatedCount,
+    };
+  } catch (error) {
+    console.error("Error in updateBooksPickupAddress:", error);
+    return {
+      success: false,
+      updatedCount: 0,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+};

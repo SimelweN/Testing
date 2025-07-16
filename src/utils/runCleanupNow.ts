@@ -12,10 +12,8 @@ export const runCleanupNow = async () => {
       .from("books")
       .update({
         sold: false,
-        availability: "available",
-        sold_at: null,
       })
-      .neq("id", "");
+      .not("id", "is", null);
 
     if (booksError) {
       console.error("Error resetting books:", booksError.message || booksError);

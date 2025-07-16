@@ -23,7 +23,7 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
     try {
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("pickup_address, subaccount_code, banking_verified")
+        .select("pickup_address, subaccount_code")
         .eq("id", user.id)
         .single();
 
@@ -52,8 +52,8 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
         }
       }
 
-      // Get Paystack subaccount code if banking is verified
-      if (profileData?.banking_verified && profileData?.subaccount_code) {
+      // Get Paystack subaccount code if available
+      if (profileData?.subaccount_code) {
         paystackSubaccountCode = profileData.subaccount_code;
       }
     } catch (addressError) {

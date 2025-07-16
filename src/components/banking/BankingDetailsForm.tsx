@@ -197,31 +197,42 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
   };
 
   const handleAccountNumberChange = (value: string) => {
-    const digitsOnly = value.replace(/\D/g, "");
+    // Only allow digits, limit to 12 characters
+    const digitsOnly = value.replace(/\D/g, "").slice(0, 12);
     setFormData((prev) => ({ ...prev, accountNumber: digitsOnly }));
   };
 
   const validateForm = () => {
-    if (!formData.businessName.trim()) {
-      toast.error("Business name is required");
+    // Clean and validate business name
+    const businessName = formData.businessName?.trim();
+    if (!businessName || businessName.length < 2) {
+      toast.error("Business name must be at least 2 characters long");
       return false;
     }
 
-    if (!formData.email.includes("@")) {
+    // Validate email format more thoroughly
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email || !emailRegex.test(formData.email.trim())) {
       toast.error("Please enter a valid email address");
       return false;
     }
 
-    if (!formData.bankName) {
+    // Validate bank selection
+    if (!formData.bankName || formData.bankName.trim() === "") {
       toast.error("Please select a bank");
       return false;
     }
 
-    if (
-      formData.accountNumber.length < 9 ||
-      formData.accountNumber.length > 11
-    ) {
-      toast.error("Account number must be between 9-11 digits");
+    // Validate account number (South African banks typically use 9-11 digits)
+    const accountNumber = formData.accountNumber.replace(/\D/g, "");
+    if (accountNumber.length < 8 || accountNumber.length > 12) {
+      toast.error("Account number must be between 8-12 digits");
+      return false;
+    }
+
+    // Validate branch code
+    if (!branchCode || branchCode.trim() === "") {
+      toast.error("Bank branch code is missing. Please reselect your bank.");
       return false;
     }
 
@@ -239,13 +250,34 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
     setIsSubmitting(true);
 
     try {
+      // Clean and prepare data
       const subaccountDetails = {
-        business_name: formData.businessName,
-        email: formData.email,
-        bank_name: formData.bankName,
-        bank_code: branchCode,
-        account_number: formData.accountNumber,
+        business_name: formData.businessName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        bank_name: formData.bankName.trim(),
+        bank_code: branchCode.trim(),
+        account_number: formData.accountNumber.replace(/\D/g, ""), // Remove all non-digits
       };
+
+      // Additional client-side validation
+      if (
+        !subaccountDetails.business_name ||
+        subaccountDetails.business_name.length < 2
+      ) {
+        throw new Error("Business name is too short");
+      }
+
+      if (
+        !subaccountDetails.account_number ||
+        subaccountDetails.account_number.length < 8
+      ) {
+        throw new Error("Account number is invalid");
+      }
+
+      console.log("Submitting banking details:", {
+        ...subaccountDetails,
+        account_number: "***" + subaccountDetails.account_number.slice(-4),
+      });
 
       // 📡 CREATE SUBACCOUNT VIA SERVICE
       const result = await PaystackSubaccountService.createOrUpdateSubaccount(
@@ -256,24 +288,39 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
       if (result.success) {
         setIsSuccess(true);
 
-        toast.success(
-          `Banking details ${editMode ? "updated" : "added"} successfully!`,
-        );
+        const successMessage = editMode
+          ? "Banking details updated successfully!"
+          : "Banking setup completed successfully! You can now start selling books.";
+
+        toast.success(successMessage);
 
         // 🔗 AUTOMATICALLY LINK ALL USER'S BOOKS TO NEW SUBACCOUNT
         if (result.subaccount_code) {
-          await PaystackSubaccountService.linkBooksToSubaccount(
-            result.subaccount_code,
-          );
+          try {
+            console.log("Linking books to subaccount:", result.subaccount_code);
+            const linkSuccess =
+              await PaystackSubaccountService.linkBooksToSubaccount(
+                result.subaccount_code,
+              );
+
+            if (linkSuccess) {
+              toast.info(
+                "All your book listings have been updated with your payment details.",
+              );
+            }
+          } catch (linkError) {
+            console.error("Error linking books to subaccount:", linkError);
+            // Don't fail the whole process for this
+          }
         }
 
         setTimeout(() => {
           onSuccess?.();
-        }, 1500);
+        }, 2000);
       } else {
         throw new Error(
           result.error ||
-            `Failed to ${editMode ? "update" : "create"} subaccount`,
+            `Failed to ${editMode ? "update" : "create"} your banking account`,
         );
       }
     } catch (error) {
@@ -282,20 +329,35 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
       let errorMessage = "There was an error setting up your banking details.";
 
       if (error instanceof Error) {
-        if (error.message.includes("Authentication")) {
-          errorMessage = "Please log in again and try again.";
+        const msg = error.message.toLowerCase();
+
+        if (msg.includes("authentication") || msg.includes("unauthorized")) {
+          errorMessage =
+            "Your session has expired. Please log in again and try again.";
         } else if (
-          error.message.includes("network") ||
-          error.message.includes("fetch")
+          msg.includes("network") ||
+          msg.includes("fetch") ||
+          msg.includes("connection")
         ) {
           errorMessage =
-            "Network error. Please check your connection and try again.";
-        } else {
+            "Network error. Please check your internet connection and try again.";
+        } else if (msg.includes("validation") || msg.includes("invalid")) {
+          errorMessage =
+            "Please check your details and try again. " + error.message;
+        } else if (msg.includes("account number")) {
+          errorMessage =
+            "Invalid account number. Please check your account number and try again.";
+        } else if (msg.includes("bank")) {
+          errorMessage =
+            "Bank information error. Please reselect your bank and try again.";
+        } else if (error.message && error.message.length > 0) {
           errorMessage = error.message;
         }
       }
 
-      toast.error(errorMessage);
+      toast.error(errorMessage, {
+        duration: 5000, // Show error longer
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -372,11 +434,31 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
                       businessName: e.target.value,
                     }))
                   }
-                  className="pl-10 h-11 rounded-lg border-2 focus:border-book-600 focus:ring-book-600"
+                  className={`pl-10 h-11 rounded-lg border-2 focus:border-book-600 focus:ring-book-600 ${
+                    formData.businessName.trim().length > 0 &&
+                    formData.businessName.trim().length < 2
+                      ? "border-red-300 focus:border-red-500"
+                      : formData.businessName.trim().length >= 2
+                        ? "border-green-300 focus:border-green-500"
+                        : ""
+                  }`}
                   placeholder="Your business or trading name"
                   required
+                  minLength={2}
+                  maxLength={100}
                 />
+                {formData.businessName.trim().length >= 2 && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  </div>
+                )}
               </div>
+              {formData.businessName.trim().length > 0 &&
+                formData.businessName.trim().length < 2 && (
+                  <p className="text-xs text-red-600">
+                    Business name must be at least 2 characters
+                  </p>
+                )}
             </div>
 
             {/* Email */}
@@ -396,11 +478,33 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, email: e.target.value }))
                   }
-                  className="pl-10 h-11 rounded-lg border-2 focus:border-book-600 focus:ring-book-600"
+                  className={`pl-10 h-11 rounded-lg border-2 focus:border-book-600 focus:ring-book-600 ${
+                    formData.email &&
+                    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())
+                      ? "border-red-300 focus:border-red-500"
+                      : formData.email &&
+                          /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+                            formData.email.trim(),
+                          )
+                        ? "border-green-300 focus:border-green-500"
+                        : ""
+                  }`}
                   placeholder="your@email.com"
                   required
                 />
+                {formData.email &&
+                  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim()) && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    </div>
+                  )}
               </div>
+              {formData.email &&
+                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim()) && (
+                  <p className="text-xs text-red-600">
+                    Please enter a valid email address
+                  </p>
+                )}
             </div>
 
             {/* Bank Selection */}
@@ -447,19 +551,144 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
                   type="text"
                   value={formData.accountNumber}
                   onChange={(e) => handleAccountNumberChange(e.target.value)}
-                  className="pl-10 h-11 rounded-lg border-2 focus:border-book-600 focus:ring-book-600"
-                  placeholder="Enter account number (9-11 digits)"
-                  maxLength={15}
+                  className={`pl-10 h-11 rounded-lg border-2 focus:border-book-600 focus:ring-book-600 ${
+                    formData.accountNumber &&
+                    (formData.accountNumber.length < 8 ||
+                      formData.accountNumber.length > 12)
+                      ? "border-red-300 focus:border-red-500"
+                      : formData.accountNumber &&
+                          formData.accountNumber.length >= 8 &&
+                          formData.accountNumber.length <= 12
+                        ? "border-green-300 focus:border-green-500"
+                        : ""
+                  }`}
+                  placeholder="Enter account number (8-12 digits)"
+                  maxLength={12}
                   required
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                 />
+                {formData.accountNumber &&
+                  formData.accountNumber.length >= 8 &&
+                  formData.accountNumber.length <= 12 && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    </div>
+                  )}
+              </div>
+              <div className="flex justify-between items-center">
+                {formData.accountNumber &&
+                  (formData.accountNumber.length < 8 ||
+                    formData.accountNumber.length > 12) && (
+                    <p className="text-xs text-red-600">
+                      Account number must be 8-12 digits
+                    </p>
+                  )}
+                <p className="text-xs text-gray-500 ml-auto">
+                  {formData.accountNumber.length}/12 digits
+                </p>
+              </div>
+            </div>
+
+            {/* Validation Summary */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-gray-900 mb-2">
+                Form Status:
+              </h4>
+              <div className="space-y-1 text-xs">
+                <div
+                  className={`flex items-center gap-2 ${
+                    formData.businessName.trim().length >= 2
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }`}
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      formData.businessName.trim().length >= 2
+                        ? "bg-green-500"
+                        : "bg-red-500"
+                    }`}
+                  ></div>
+                  Business Name{" "}
+                  {formData.businessName.trim().length >= 2
+                    ? "✓"
+                    : "(required, min 2 characters)"}
+                </div>
+                <div
+                  className={`flex items-center gap-2 ${
+                    formData.email &&
+                    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }`}
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      formData.email &&
+                      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())
+                        ? "bg-green-500"
+                        : "bg-red-500"
+                    }`}
+                  ></div>
+                  Email Address{" "}
+                  {formData.email &&
+                  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())
+                    ? "✓"
+                    : "(required, valid format)"}
+                </div>
+                <div
+                  className={`flex items-center gap-2 ${
+                    formData.bankName ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      formData.bankName ? "bg-green-500" : "bg-red-500"
+                    }`}
+                  ></div>
+                  Bank Selection {formData.bankName ? "✓" : "(required)"}
+                </div>
+                <div
+                  className={`flex items-center gap-2 ${
+                    formData.accountNumber &&
+                    formData.accountNumber.length >= 8 &&
+                    formData.accountNumber.length <= 12
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }`}
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      formData.accountNumber &&
+                      formData.accountNumber.length >= 8 &&
+                      formData.accountNumber.length <= 12
+                        ? "bg-green-500"
+                        : "bg-red-500"
+                    }`}
+                  ></div>
+                  Account Number{" "}
+                  {formData.accountNumber &&
+                  formData.accountNumber.length >= 8 &&
+                  formData.accountNumber.length <= 12
+                    ? "✓"
+                    : "(required, 8-12 digits)"}
+                </div>
               </div>
             </div>
 
             {/* Submit Button */}
             <Button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full h-12 bg-book-600 hover:bg-book-700 text-white font-semibold rounded-lg"
+              disabled={
+                isSubmitting ||
+                !formData.businessName.trim() ||
+                !formData.email ||
+                !formData.bankName ||
+                !formData.accountNumber ||
+                formData.accountNumber.length < 8
+              }
+              className="w-full h-12 bg-book-600 hover:bg-book-700 text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>

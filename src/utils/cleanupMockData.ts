@@ -109,8 +109,6 @@ export const cleanupMockData = async () => {
       .from("books")
       .update({
         sold: false,
-        availability: "available",
-        sold_at: null,
       })
       .eq("sold", true);
 
@@ -165,10 +163,8 @@ export const resetAllBooksToAvailable = async () => {
       .from("books")
       .update({
         sold: false,
-        availability: "available",
-        sold_at: null,
       })
-      .neq("id", "");
+      .not("id", "is", null);
 
     if (error) {
       console.error("Error resetting books:", error.message || error);

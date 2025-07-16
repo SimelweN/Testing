@@ -85,7 +85,6 @@ export interface CheckoutSeller {
   name: string;
   email: string;
   subaccount_code?: string;
-  banking_verified?: boolean;
   pickup_address?: CheckoutAddress;
 }
 
