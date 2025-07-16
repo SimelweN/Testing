@@ -82,31 +82,6 @@ const queryClient = new QueryClient({
 // Full app is now restored!
 
 function App() {
-  const [isAppReady, setIsAppReady] = useState(false);
-
-  useEffect(() => {
-    // Minimum loading time to prevent flash of blank content
-    const timer = setTimeout(() => {
-      setIsAppReady(true);
-    }, 300); // 300ms minimum loading time
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (!isAppReady) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-book-50 to-book-100">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-book-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-          <h2 className="text-xl font-semibold text-book-800 mb-2">
-            ReBooked Solutions
-          </h2>
-          <p className="text-book-600">Loading your academic marketplace...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <ErrorBoundary level="app">
       <NetworkErrorBoundary>
