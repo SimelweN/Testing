@@ -29,7 +29,7 @@ BEGIN
   -- Start transaction (implicit in function)
   
   -- 1. Validate seller exists and has proper setup
-  SELECT id, name, email, subaccount_code, banking_verified
+    SELECT id, name, email, subaccount_code
   INTO v_seller_record
   FROM profiles 
   WHERE id = p_seller_id;
