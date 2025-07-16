@@ -88,7 +88,6 @@ export const createPaystackSubaccount = async (
       .from("profiles")
       .update({
         subaccount_code: mockSubaccountCode,
-        banking_verified: true, // Mark as verified for demo purposes
       })
       .eq("id", sellerId);
 
@@ -319,7 +318,6 @@ export const setupSellerBanking = async (
       .from("profiles")
       .update({
         banking_info: bankingInfo,
-        banking_verified: true,
         banking_setup_at: new Date().toISOString(),
         subaccount_code: subaccountCode,
       })
