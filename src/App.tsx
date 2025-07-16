@@ -82,6 +82,28 @@ const queryClient = new QueryClient({
 // Full app is now restored!
 
 function App() {
+  const [isAppReady, setIsAppReady] = useState(false);
+
+  useEffect(() => {
+    // Minimum loading time to prevent flash of blank content
+    const timer = setTimeout(() => {
+      setIsAppReady(true);
+    }, 300); // 300ms minimum loading time
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!isAppReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-book-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading ReBooked Solutions...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <ErrorBoundary level="app">
       <NetworkErrorBoundary>
