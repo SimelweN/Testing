@@ -197,7 +197,8 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
   };
 
   const handleAccountNumberChange = (value: string) => {
-    const digitsOnly = value.replace(/\D/g, "");
+    // Only allow digits, limit to 12 characters
+    const digitsOnly = value.replace(/\D/g, "").slice(0, 12);
     setFormData((prev) => ({ ...prev, accountNumber: digitsOnly }));
   };
 
