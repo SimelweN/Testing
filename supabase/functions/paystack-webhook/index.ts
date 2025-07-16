@@ -1,54 +1,58 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders } from "../_shared/cors.ts";
+import {
+  createSupabaseClient,
+  createErrorResponse,
+  createSuccessResponse,
+  handleCORSPreflight,
+  createHmacSignature,
+  logFunction,
+} from "../_shared/utils.ts";
+import {
+  ENV,
+  validatePaystackConfig,
+  validateSupabaseConfig,
+} from "../_shared/config.ts";
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResponse = handleCORSPreflight(req);
+  if (corsResponse) return corsResponse;
 
   try {
-    console.log("=== Paystack Webhook Received ===");
+    logFunction("paystack-webhook", "Webhook received");
+
+    // Validate configuration
+    validatePaystackConfig();
+    validateSupabaseConfig();
 
     const body = await req.text();
     const signature = req.headers.get("x-paystack-signature");
 
-    console.log("Webhook signature:", signature);
-    console.log("Webhook body length:", body.length);
-
-    // Verify webhook signature
-    const paystackSecretKey = Deno.env.get("PAYSTACK_SECRET_KEY");
-    if (!paystackSecretKey) {
-      console.error("PAYSTACK_SECRET_KEY not configured");
-      return new Response("Configuration error", { status: 500 });
+    if (!signature) {
+      return createErrorResponse("Missing webhook signature", 400);
     }
 
-    // Create hash to verify signature
-    const crypto = await import("node:crypto");
-    const hash = crypto
-      .createHmac("sha512", paystackSecretKey)
-      .update(body)
-      .digest("hex");
+    logFunction("paystack-webhook", "Verifying signature", {
+      bodyLength: body.length,
+    });
+
+    // Create hash to verify signature using Deno crypto
+    const hash = await createHmacSignature(body, ENV.PAYSTACK_SECRET_KEY!);
 
     if (hash !== signature) {
-      console.error("Invalid webhook signature");
-      return new Response("Invalid signature", { status: 400 });
+      logFunction("paystack-webhook", "Invalid signature");
+      return createErrorResponse("Invalid webhook signature", 400);
     }
 
     const event = JSON.parse(body);
-    console.log("Webhook event:", event.event, event.data?.reference);
+    logFunction("paystack-webhook", "Processing event", {
+      event: event.event,
+      reference: event.data?.reference,
+    });
 
     // Initialize Supabase client
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    );
+    const supabase = createSupabaseClient();
 
     // Handle different event types
     switch (event.event) {
@@ -76,16 +80,12 @@ serve(async (req) => {
         console.log("Unhandled webhook event:", event.event);
     }
 
-    return new Response("OK", {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "text/plain" },
-    });
+    return createSuccessResponse({ message: "Webhook processed successfully" });
   } catch (error) {
-    console.error("Webhook processing error:", error);
-    return new Response("Internal server error", {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "text/plain" },
+    logFunction("paystack-webhook", "Error processing webhook", {
+      error: error.message,
     });
+    return createErrorResponse(error.message || "Internal server error", 500);
   }
 });
 
