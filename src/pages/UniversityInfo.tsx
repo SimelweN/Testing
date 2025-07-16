@@ -539,7 +539,7 @@ const UniversityInfo = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold mb-2">
-              🇿🇦 South African Public Universities – 2025 Application Info
+              🇿���� South African Public Universities – 2025 Application Info
             </h2>
             <p className="text-gray-600">
               Complete application information for all{" "}
@@ -627,7 +627,7 @@ const UniversityInfo = () => {
         <div className="container mx-auto px-4 py-6">
           <Tabs
             value={currentTool}
-            onValueChange={handleTabChange}
+            onValueChange={throttledTabChange}
             className="w-full"
           >
             <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 mb-8 h-auto bg-gray-200 p-1">
