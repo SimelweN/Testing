@@ -231,6 +231,14 @@ function App() {
                           </AdminProtectedRoute>
                         }
                       />
+                      <Route
+                        path="/admin/function-testing"
+                        element={
+                          <AdminProtectedRoute>
+                            <FunctionTesting />
+                          </AdminProtectedRoute>
+                        }
+                      />
 
                       <Route path="*" element={<NotFound />} />
                     </Routes>
