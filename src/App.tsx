@@ -7,6 +7,10 @@ import { Analytics } from "@vercel/analytics/react";
 import "./utils/suppressResizeObserverError";
 // Suppress harmless network and third-party script errors
 import "./utils/suppressNetworkErrors";
+// Network debugging utility for development
+import "./utils/networkDebugger";
+// Loading state manager to prevent white screens
+import "./utils/loadingStateManager";
 
 import { ThemeProvider } from "next-themes";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -57,6 +61,8 @@ import FAQ from "./pages/FAQ";
 import APSDemo from "./pages/APSDemo";
 import SellerProfile from "./pages/SellerProfile";
 import BankingSetup from "./pages/BankingSetup";
+import FunctionTesting from "./pages/FunctionTesting";
+import EmailTesting from "./pages/EmailTesting";
 import "./App.css";
 
 // Create query client
@@ -227,6 +233,22 @@ function App() {
                         element={
                           <AdminProtectedRoute>
                             <AdminReports />
+                          </AdminProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/function-testing"
+                        element={
+                          <AdminProtectedRoute>
+                            <FunctionTesting />
+                          </AdminProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/email-testing"
+                        element={
+                          <AdminProtectedRoute>
+                            <EmailTesting />
                           </AdminProtectedRoute>
                         }
                       />

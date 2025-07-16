@@ -88,11 +88,19 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         throw new Error(error.message || "Failed to process purchase");
       }
 
-      // Success - proceed to confirmation
+      // Success - proceed to confirmation with complete order data
       onPaymentSuccess({
         order_id: data.order_id,
-        reference: paystackResponse.reference,
-        amount: orderSummary.total_price,
+        payment_reference: paystackResponse.reference,
+        book_id: orderSummary.book.id,
+        seller_id: orderSummary.book.seller_id,
+        buyer_id: userId,
+        book_title: orderSummary.book.title,
+        book_price: orderSummary.book_price,
+        delivery_method: orderSummary.delivery.service_name,
+        delivery_price: orderSummary.delivery_price,
+        total_paid: orderSummary.total_price,
+        created_at: new Date().toISOString(),
         status: "completed",
       });
     } catch (error) {

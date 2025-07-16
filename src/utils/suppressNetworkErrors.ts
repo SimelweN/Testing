@@ -24,17 +24,23 @@ const suppressedErrorPatterns = [
   "at window\\.fetch.*eval.*messageHandler", // Eval-related fetch errors
   "https://.*\\.fly\\.dev.*reload=", // Fly.io dev server reloads
   "waitForSuccessfulPing", // Exact Vite ping function
+  "@vite/client", // Vite client errors
+  "eval at messageHandler", // Eval-based errors
+  "window.fetch (eval at messageHandler", // Specific pattern from stack trace
+  "at ping \\(https://.*/@vite/client", // Vite ping function
+  "WebSocket\\.<anonymous>.*/@vite/client", // Vite WebSocket errors
 ];
 
 // Check if error should be suppressed
 const shouldSuppressError = (message: string): boolean => {
   if (import.meta.env.PROD) {
     // In production, only suppress known third-party errors
-    return (
-      suppressedErrorPatterns.some(
-        (pattern) => pattern.includes("fullstory") || pattern.includes("fs.js"),
-      ) && message.includes(pattern)
-    );
+    return suppressedErrorPatterns.some((pattern) => {
+      if (pattern.includes("fullstory") || pattern.includes("fs.js")) {
+        return message.toLowerCase().includes(pattern.toLowerCase());
+      }
+      return false;
+    });
   }
 
   // In development, suppress more network-related errors
@@ -67,12 +73,16 @@ console.error = (...args: any[]) => {
 // Handle unhandled promise rejections from network errors
 window.onunhandledrejection = (event: PromiseRejectionEvent) => {
   const message = event.reason?.message || event.reason?.toString() || "";
+  const stack = event.reason?.stack || "";
 
-  if (shouldSuppressError(message)) {
+  if (shouldSuppressError(message) || shouldSuppressError(stack)) {
     // Suppress the error
     event.preventDefault();
     if (import.meta.env.DEV) {
-      console.debug("[Suppressed Network Rejection]:", message);
+      console.debug("[Suppressed Network Rejection]:", {
+        message,
+        stack: stack.substring(0, 200),
+      });
     }
     return;
   }
@@ -89,13 +99,17 @@ window.addEventListener(
   (event) => {
     const message = event.message || event.error?.message || "";
     const source = event.filename || "";
+    const stack = event.error?.stack || "";
 
-    // Suppress third-party script errors
+    // Suppress third-party script errors and development server errors
     if (
       source.includes("fullstory.com") ||
       source.includes("fs.js") ||
       source.includes("googletagmanager.com") ||
-      shouldSuppressError(message)
+      source.includes("@vite/client") ||
+      source.includes(".fly.dev") ||
+      shouldSuppressError(message) ||
+      shouldSuppressError(stack)
     ) {
       event.preventDefault();
       if (import.meta.env.DEV) {
@@ -118,15 +132,19 @@ window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
     if (
       urlString.includes("fullstory.com") ||
       urlString.includes("googletagmanager.com") ||
-      urlString.includes("analytics.google.com")
+      urlString.includes("analytics.google.com") ||
+      (import.meta.env.DEV && urlString.includes("@vite/client"))
     ) {
       try {
         return await originalFetch.apply(window, args);
       } catch (error) {
-        console.debug("[Third-party fetch failed silently]:", urlString);
+        console.debug(
+          "[Third-party/Dev server fetch failed silently]:",
+          urlString,
+        );
         return new Response(null, {
           status: 204,
-          statusText: "Third-party service unavailable",
+          statusText: "Service unavailable",
         });
       }
     }
@@ -134,9 +152,10 @@ window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
     return await originalFetch.apply(window, args);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack : "";
 
-    // If it's a network error from third-party services, handle gracefully
-    if (shouldSuppressError(message)) {
+    // If it's a network error from third-party services or dev server, handle gracefully
+    if (shouldSuppressError(message) || shouldSuppressError(stack || "")) {
       console.debug("[Network Error Handled]:", message);
       // Return a failed response instead of throwing
       return new Response(null, {
@@ -150,12 +169,49 @@ window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
   }
 };
 
-// Add specific handler for Vite HMR ping errors (removed WebSocket override to prevent constructor issues)
+// Add specific handler for Vite HMR ping errors and development server connection issues
 if (import.meta.env.DEV) {
-  // Simply suppress WebSocket errors in development instead of overriding the constructor
+  // Handle Vite HMR connection issues gracefully
   console.debug(
-    "[Dev Mode] WebSocket errors will be handled by existing error suppression",
+    "[Dev Mode] Enhanced error suppression active for development server",
   );
+
+  // Add window-level error listener specifically for development
+  window.addEventListener("error", (event) => {
+    const error = event.error;
+    if (error && error.stack) {
+      // Check for specific Vite HMR patterns in the stack trace
+      if (
+        error.stack.includes("@vite/client") ||
+        error.stack.includes("ping") ||
+        error.stack.includes("waitForSuccessfulPing") ||
+        error.stack.includes("WebSocket") ||
+        error.stack.includes(".fly.dev")
+      ) {
+        event.preventDefault();
+        console.debug("[Dev Server Error Suppressed]:", error.message);
+        return false;
+      }
+    }
+  });
+
+  // Suppress WebSocket connection errors in development
+  const originalWebSocket = window.WebSocket;
+  window.WebSocket = class extends originalWebSocket {
+    constructor(url: string | URL, protocols?: string | string[]) {
+      super(url, protocols);
+
+      this.addEventListener("error", (event) => {
+        console.debug("[WebSocket Error Suppressed in Dev]:", event);
+      });
+
+      this.addEventListener("close", (event) => {
+        if (event.code !== 1000) {
+          console.debug("[WebSocket Closed in Dev]:", event.code, event.reason);
+        }
+      });
+    }
+  };
 }
 
 export default {};

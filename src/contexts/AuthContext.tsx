@@ -20,6 +20,7 @@ import {
 } from "@/services/authOperations";
 import { addNotification } from "@/services/notificationService";
 import { logError, getErrorMessage } from "@/utils/errorUtils";
+import loadingStateManager from "@/utils/loadingStateManager";
 
 // Simple logging for development
 const devLog = (message: string, data?: unknown) => {
@@ -258,6 +259,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const initializeAuth = useCallback(async () => {
     if (authInitialized) return;
 
+    const loadingId = loadingStateManager.startLoading(
+      "auth-init",
+      "AuthContext",
+      10000,
+    );
+
     try {
       setIsLoading(true);
       setInitError(null);
@@ -443,6 +450,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsLoading(false);
     } finally {
       setIsInitializing(false);
+      loadingStateManager.clearLoading(loadingId);
     }
   }, [authInitialized, handleAuthStateChange]);
 
