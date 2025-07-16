@@ -249,13 +249,34 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
     setIsSubmitting(true);
 
     try {
+      // Clean and prepare data
       const subaccountDetails = {
-        business_name: formData.businessName,
-        email: formData.email,
-        bank_name: formData.bankName,
-        bank_code: branchCode,
-        account_number: formData.accountNumber,
+        business_name: formData.businessName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        bank_name: formData.bankName.trim(),
+        bank_code: branchCode.trim(),
+        account_number: formData.accountNumber.replace(/\D/g, ""), // Remove all non-digits
       };
+
+      // Additional client-side validation
+      if (
+        !subaccountDetails.business_name ||
+        subaccountDetails.business_name.length < 2
+      ) {
+        throw new Error("Business name is too short");
+      }
+
+      if (
+        !subaccountDetails.account_number ||
+        subaccountDetails.account_number.length < 8
+      ) {
+        throw new Error("Account number is invalid");
+      }
+
+      console.log("Submitting banking details:", {
+        ...subaccountDetails,
+        account_number: "***" + subaccountDetails.account_number.slice(-4),
+      });
 
       // 📡 CREATE SUBACCOUNT VIA SERVICE
       const result = await PaystackSubaccountService.createOrUpdateSubaccount(
@@ -266,24 +287,39 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
       if (result.success) {
         setIsSuccess(true);
 
-        toast.success(
-          `Banking details ${editMode ? "updated" : "added"} successfully!`,
-        );
+        const successMessage = editMode
+          ? "Banking details updated successfully!"
+          : "Banking setup completed successfully! You can now start selling books.";
+
+        toast.success(successMessage);
 
         // 🔗 AUTOMATICALLY LINK ALL USER'S BOOKS TO NEW SUBACCOUNT
         if (result.subaccount_code) {
-          await PaystackSubaccountService.linkBooksToSubaccount(
-            result.subaccount_code,
-          );
+          try {
+            console.log("Linking books to subaccount:", result.subaccount_code);
+            const linkSuccess =
+              await PaystackSubaccountService.linkBooksToSubaccount(
+                result.subaccount_code,
+              );
+
+            if (linkSuccess) {
+              toast.info(
+                "All your book listings have been updated with your payment details.",
+              );
+            }
+          } catch (linkError) {
+            console.error("Error linking books to subaccount:", linkError);
+            // Don't fail the whole process for this
+          }
         }
 
         setTimeout(() => {
           onSuccess?.();
-        }, 1500);
+        }, 2000);
       } else {
         throw new Error(
           result.error ||
-            `Failed to ${editMode ? "update" : "create"} subaccount`,
+            `Failed to ${editMode ? "update" : "create"} your banking account`,
         );
       }
     } catch (error) {
@@ -292,20 +328,35 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
       let errorMessage = "There was an error setting up your banking details.";
 
       if (error instanceof Error) {
-        if (error.message.includes("Authentication")) {
-          errorMessage = "Please log in again and try again.";
+        const msg = error.message.toLowerCase();
+
+        if (msg.includes("authentication") || msg.includes("unauthorized")) {
+          errorMessage =
+            "Your session has expired. Please log in again and try again.";
         } else if (
-          error.message.includes("network") ||
-          error.message.includes("fetch")
+          msg.includes("network") ||
+          msg.includes("fetch") ||
+          msg.includes("connection")
         ) {
           errorMessage =
-            "Network error. Please check your connection and try again.";
-        } else {
+            "Network error. Please check your internet connection and try again.";
+        } else if (msg.includes("validation") || msg.includes("invalid")) {
+          errorMessage =
+            "Please check your details and try again. " + error.message;
+        } else if (msg.includes("account number")) {
+          errorMessage =
+            "Invalid account number. Please check your account number and try again.";
+        } else if (msg.includes("bank")) {
+          errorMessage =
+            "Bank information error. Please reselect your bank and try again.";
+        } else if (error.message && error.message.length > 0) {
           errorMessage = error.message;
         }
       }
 
-      toast.error(errorMessage);
+      toast.error(errorMessage, {
+        duration: 5000, // Show error longer
+      });
     } finally {
       setIsSubmitting(false);
     }
