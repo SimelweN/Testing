@@ -1,32 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import {
-  createSupabaseClient,
-  createErrorResponse,
-  createSuccessResponse,
-  handleCORSPreflight,
-  validateRequiredFields,
-  parseRequestBody,
-  logFunction,
-  handleSupabaseError,
-} from "../_shared/utils.ts";
+import { createSupabaseClient } from "../_shared/utils.ts";
 import { validateSupabaseConfig } from "../_shared/config.ts";
+import {
+  withErrorHandling,
+  createSuccessResponse,
+  createNotFoundError,
+  createValidationError,
+  parseAndValidateRequest,
+  logFunctionActivity
+} from "../_shared/response-utils.ts";
 
-serve(async (req) => {
-  // Handle CORS preflight requests
-  const corsResponse = handleCORSPreflight(req);
-  if (corsResponse) return corsResponse;
+const handler = async (req: Request): Promise<Response> => {
+  logFunctionActivity("decline-commit", "Processing decline request");
 
-  try {
-    logFunction("decline-commit", "Processing decline request");
+  validateSupabaseConfig();
 
-    validateSupabaseConfig();
+  const { order_id, seller_id, reason } = await parseAndValidateRequest(req, ["order_id", "seller_id"]);
 
-    const requestData = await parseRequestBody(req);
-    validateRequiredFields(requestData, ["order_id", "seller_id"]);
-
-    const { order_id, seller_id, reason } = requestData;
-
-    const supabase = createSupabaseClient();
+  const supabase = createSupabaseClient();
 
     // Get order details first
     const { data: order, error: orderError } = await supabase
