@@ -1,32 +1,32 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
-
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+import {
+  createSupabaseClient,
+  createErrorResponse,
+  createSuccessResponse,
+  handleCORSPreflight,
+  validateRequiredFields,
+  parseRequestBody,
+  logFunction,
+  handleSupabaseError,
+} from "../_shared/utils.ts";
+import { validateSupabaseConfig } from "../_shared/config.ts";
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  // Handle CORS preflight requests
+  const corsResponse = handleCORSPreflight(req);
+  if (corsResponse) return corsResponse;
 
   try {
-    const { order_id, seller_id, reason } = await req.json();
+    logFunction("decline-commit", "Processing decline request");
 
-    if (!order_id || !seller_id) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Missing required fields: order_id, seller_id",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
+    validateSupabaseConfig();
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const requestData = await parseRequestBody(req);
+    validateRequiredFields(requestData, ["order_id", "seller_id"]);
+
+    const { order_id, seller_id, reason } = requestData;
+
+    const supabase = createSupabaseClient();
 
     // Get order details first
     const { data: order, error: orderError } = await supabase
