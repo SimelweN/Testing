@@ -24,6 +24,7 @@ import AdminSettingsTab from "@/components/admin/AdminSettingsTab";
 import AdminContactTab from "@/components/admin/AdminContactTab";
 import AdminResourcesTab from "@/components/admin/AdminResourcesTab";
 import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
+import AdminUsageExamples from "@/components/admin/AdminUsageExamples";
 
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -39,6 +40,7 @@ import {
   GraduationCap,
   Lightbulb,
   Trash2,
+  Code,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -332,6 +334,13 @@ const AdminDashboard = () => {
       description: "System configuration",
     },
     {
+      value: "examples",
+      label: "Examples",
+      icon: Code,
+      color: "text-teal-600",
+      description: "Test new features",
+    },
+    {
       value: "cleanup",
       label: "Cleanup",
       icon: Trash2,
@@ -379,7 +388,7 @@ const AdminDashboard = () => {
           </div>
         ) : (
           // Desktop: Proper TabsList with grid styling
-          <TabsList className="grid grid-cols-9 gap-2 p-2 bg-white border border-gray-200 rounded-lg shadow-sm h-auto">
+          <TabsList className="grid grid-cols-10 gap-2 p-2 bg-white border border-gray-200 rounded-lg shadow-sm h-auto">
             {tabConfig.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -458,6 +467,12 @@ const AdminDashboard = () => {
                 setBroadcastMessage={setBroadcastMessage}
                 onSendBroadcast={handleSendBroadcast}
               />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="examples" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+              <AdminUsageExamples />
             </div>
           </TabsContent>
 
