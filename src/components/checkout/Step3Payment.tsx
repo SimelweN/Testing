@@ -34,6 +34,20 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 }) => {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string>("");
+
+  // Fetch user email on component mount
+  React.useEffect(() => {
+    const fetchUserEmail = async () => {
+      try {
+        const email = await getUserEmail();
+        setUserEmail(email);
+      } catch (err) {
+        console.error("Failed to fetch user email:", err);
+      }
+    };
+    fetchUserEmail();
+  }, []);
 
   const handlePaystackSuccess = async (paystackResponse: any) => {
     setProcessing(true);
@@ -800,7 +814,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         </Button>
 
         <PaystackPopup
-          email={""} // Will be fetched inside the component
+          email={userEmail}
           amount={orderSummary.total_price}
           subaccountCode={orderSummary.book.seller_subaccount_code}
           orderReference={`ORDER-${Date.now()}-${userId}`}
