@@ -60,6 +60,7 @@ import APSDemo from "./pages/APSDemo";
 import SellerProfile from "./pages/SellerProfile";
 import BankingSetup from "./pages/BankingSetup";
 import FunctionTesting from "./pages/FunctionTesting";
+import EmailTesting from "./pages/EmailTesting";
 import "./App.css";
 
 // Create query client
