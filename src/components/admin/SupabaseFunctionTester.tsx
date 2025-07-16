@@ -94,22 +94,25 @@ const SupabaseFunctionTester: React.FC = () => {
         },
       ],
       examplePayload: {
-        buyer_id: "user-id-here",
-        delivery_address: {
+        user_id: "00000000-0000-0000-0000-000000000000",
+        items: [
+          {
+            book_id: "00000000-0000-0000-0000-000000000001",
+            seller_id: "00000000-0000-0000-0000-000000000002",
+            quantity: 1,
+            price: 250.0,
+            title: "Test Book",
+          },
+        ],
+        total_amount: 250.0,
+        shipping_address: {
           street: "123 Test Street",
           city: "Cape Town",
           province: "Western Cape",
           postal_code: "8001",
           country: "South Africa",
         },
-        books: [
-          {
-            book_id: "book-id-here",
-            seller_id: "seller-id-here",
-            quantity: 1,
-            price: 250.0,
-          },
-        ],
+        payment_reference: "TEST_REF_" + Date.now(),
       },
     },
     {
