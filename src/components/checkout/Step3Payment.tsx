@@ -799,24 +799,37 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           Back
         </Button>
 
-        <Button
-          onClick={initiatePayment}
+        <PaystackPopup
+          email={""} // Will be fetched inside the component
+          amount={orderSummary.total_price}
+          subaccountCode={orderSummary.book.seller_subaccount_code}
+          orderReference={`ORDER-${Date.now()}-${userId}`}
+          metadata={{
+            book_id: orderSummary.book.id,
+            book_title: orderSummary.book.title,
+            seller_id: orderSummary.book.seller_id,
+            buyer_id: userId,
+            delivery_method: orderSummary.delivery.service_name,
+            custom_fields: [
+              {
+                display_name: "Book Title",
+                variable_name: "book_title",
+                value: orderSummary.book.title,
+              },
+              {
+                display_name: "Delivery Method",
+                variable_name: "delivery_method",
+                value: orderSummary.delivery.service_name,
+              },
+            ],
+          }}
+          onSuccess={handlePaystackSuccess}
+          onError={handlePaystackError}
+          onClose={handlePaystackClose}
           disabled={processing}
           className="px-8 py-3 text-lg"
-          size="lg"
-        >
-          {processing ? (
-            <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              <CreditCard className="w-5 h-5 mr-2" />
-              Pay Now - R{orderSummary.total_price.toFixed(2)}
-            </>
-          )}
-        </Button>
+          buttonText={`Pay Now - ${formatAmount(orderSummary.total_price)}`}
+        />
       </div>
     </div>
   );
