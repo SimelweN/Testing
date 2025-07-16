@@ -234,21 +234,23 @@ const NotificationsNew = () => {
     <Layout>
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
           <div className="flex items-center gap-3">
-            <Bell className="h-8 w-8 text-blue-600" />
+            <Bell className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                 Notifications
               </h1>
-              <p className="text-gray-500">
+              <p className="text-sm sm:text-base text-gray-500">
                 Stay updated with your ReBooked activity
               </p>
             </div>
-            {unreadCount > 0 && (
-              <Badge className="bg-red-500 text-white">{unreadCount} new</Badge>
-            )}
           </div>
+          {unreadCount > 0 && (
+            <Badge className="bg-red-500 text-white self-start sm:self-auto">
+              {unreadCount} new
+            </Badge>
+          )}
         </div>
 
         {/* Welcome Message for First-Time Users */}
