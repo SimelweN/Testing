@@ -369,8 +369,12 @@ const UniversityProfile: React.FC = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => {
-                          // Clear APS by removing URL parameters and reloading
-                          window.location.href = `/university/${id}`;
+                          // Clear APS by removing URL parameters without hard reload
+                          const url = new URL(window.location.href);
+                          const baseUrl = `${url.origin}/university/${id}`;
+                          navigate(baseUrl.replace(url.origin, ""), {
+                            replace: true,
+                          });
                         }}
                         className="border-gray-300 text-gray-600 hover:bg-gray-50"
                       >
