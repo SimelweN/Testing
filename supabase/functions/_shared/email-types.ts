@@ -38,6 +38,7 @@ export interface EmailConfig {
     pass: string;
   };
   defaultFrom: string;
+  mock?: boolean;
 }
 
 export const EMAIL_TEMPLATES = {
