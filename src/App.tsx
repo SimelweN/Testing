@@ -82,6 +82,8 @@ const queryClient = new QueryClient({
 // Full app is now restored!
 
 function App() {
+  console.log("🚀 App component rendering...");
+
   return (
     <ErrorBoundary level="app">
       <NetworkErrorBoundary>
