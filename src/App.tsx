@@ -9,6 +9,8 @@ import "./utils/suppressResizeObserverError";
 import "./utils/suppressNetworkErrors";
 // Network debugging utility for development
 import "./utils/networkDebugger";
+// Loading state manager to prevent white screens
+import "./utils/loadingStateManager";
 
 import { ThemeProvider } from "next-themes";
 import ErrorBoundary from "./components/ErrorBoundary";
