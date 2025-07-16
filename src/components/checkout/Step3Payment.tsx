@@ -49,7 +49,14 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
     fetchUserEmail();
   }, []);
 
-  const handlePaystackSuccess = async (paystackResponse: any) => {
+  const handlePaystackSuccess = async (paystackResponse: {
+    reference: string;
+    status: string;
+    trans: string;
+    transaction: string;
+    trxref: string;
+    redirecturl: string;
+  }) => {
     setProcessing(true);
     try {
       console.log("Paystack payment successful:", paystackResponse);
