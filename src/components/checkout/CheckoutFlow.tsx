@@ -237,7 +237,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handleViewOrders = () => {
-    navigate("/orders");
+    navigate("/activity");
   };
 
   const handleContinueShopping = () => {
