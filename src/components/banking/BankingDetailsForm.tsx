@@ -590,11 +590,105 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
               </div>
             </div>
 
+            {/* Validation Summary */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-gray-900 mb-2">
+                Form Status:
+              </h4>
+              <div className="space-y-1 text-xs">
+                <div
+                  className={`flex items-center gap-2 ${
+                    formData.businessName.trim().length >= 2
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }`}
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      formData.businessName.trim().length >= 2
+                        ? "bg-green-500"
+                        : "bg-red-500"
+                    }`}
+                  ></div>
+                  Business Name{" "}
+                  {formData.businessName.trim().length >= 2
+                    ? "✓"
+                    : "(required, min 2 characters)"}
+                </div>
+                <div
+                  className={`flex items-center gap-2 ${
+                    formData.email &&
+                    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }`}
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      formData.email &&
+                      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())
+                        ? "bg-green-500"
+                        : "bg-red-500"
+                    }`}
+                  ></div>
+                  Email Address{" "}
+                  {formData.email &&
+                  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())
+                    ? "✓"
+                    : "(required, valid format)"}
+                </div>
+                <div
+                  className={`flex items-center gap-2 ${
+                    formData.bankName ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      formData.bankName ? "bg-green-500" : "bg-red-500"
+                    }`}
+                  ></div>
+                  Bank Selection {formData.bankName ? "✓" : "(required)"}
+                </div>
+                <div
+                  className={`flex items-center gap-2 ${
+                    formData.accountNumber &&
+                    formData.accountNumber.length >= 8 &&
+                    formData.accountNumber.length <= 12
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }`}
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      formData.accountNumber &&
+                      formData.accountNumber.length >= 8 &&
+                      formData.accountNumber.length <= 12
+                        ? "bg-green-500"
+                        : "bg-red-500"
+                    }`}
+                  ></div>
+                  Account Number{" "}
+                  {formData.accountNumber &&
+                  formData.accountNumber.length >= 8 &&
+                  formData.accountNumber.length <= 12
+                    ? "✓"
+                    : "(required, 8-12 digits)"}
+                </div>
+              </div>
+            </div>
+
             {/* Submit Button */}
             <Button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full h-12 bg-book-600 hover:bg-book-700 text-white font-semibold rounded-lg"
+              disabled={
+                isSubmitting ||
+                !formData.businessName.trim() ||
+                !formData.email ||
+                !formData.bankName ||
+                !formData.accountNumber ||
+                formData.accountNumber.length < 8
+              }
+              className="w-full h-12 bg-book-600 hover:bg-book-700 text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>
