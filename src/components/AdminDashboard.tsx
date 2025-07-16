@@ -590,7 +590,7 @@ const AdminDashboard = () => {
                   email testing page.
                 </p>
                 <button
-                  onClick={() => window.open("/admin/email-testing", "_blank")}
+                  onClick={() => navigate("/admin/email-testing")}
                   className="inline-flex items-center px-4 py-2 bg-book-600 hover:bg-book-700 text-white rounded-lg transition-colors"
                 >
                   <Mail className="h-4 w-4 mr-2" />
