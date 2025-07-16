@@ -95,13 +95,17 @@ window.addEventListener(
   (event) => {
     const message = event.message || event.error?.message || "";
     const source = event.filename || "";
+    const stack = event.error?.stack || "";
 
-    // Suppress third-party script errors
+    // Suppress third-party script errors and development server errors
     if (
       source.includes("fullstory.com") ||
       source.includes("fs.js") ||
       source.includes("googletagmanager.com") ||
-      shouldSuppressError(message)
+      source.includes("@vite/client") ||
+      source.includes(".fly.dev") ||
+      shouldSuppressError(message) ||
+      shouldSuppressError(stack)
     ) {
       event.preventDefault();
       if (import.meta.env.DEV) {
