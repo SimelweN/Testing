@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import RLSPolicyTester from "./RLSPolicyTester";
 
 interface FunctionTest {
   name: string;
@@ -646,6 +647,7 @@ const SupabaseFunctionTester = () => {
       <Tabs defaultValue="functions" className="w-full">
         <TabsList>
           <TabsTrigger value="functions">Function Tests</TabsTrigger>
+          <TabsTrigger value="rls">RLS Policies</TabsTrigger>
           <TabsTrigger value="custom">Custom Test</TabsTrigger>
           <TabsTrigger value="results">Results History</TabsTrigger>
         </TabsList>
@@ -769,6 +771,10 @@ const SupabaseFunctionTester = () => {
               );
             })}
           </div>
+        </TabsContent>
+
+        <TabsContent value="rls" className="space-y-4">
+          <RLSPolicyTester />
         </TabsContent>
 
         <TabsContent value="custom" className="space-y-4">
