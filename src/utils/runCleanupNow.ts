@@ -8,34 +8,12 @@ export const runCleanupNow = async () => {
 
   try {
     // 1. Reset all books to available
-    // First try with sold_at column, fallback if it doesn't exist
-    let booksError;
-
-    try {
-      const { error } = await supabase
-        .from("books")
-        .update({
-          sold: false,
-          availability: "available",
-          sold_at: null,
-        })
-        .neq("id", "");
-      booksError = error;
-    } catch (error: any) {
-      // If sold_at column doesn't exist, try without it
-      if (error?.message?.includes("sold_at")) {
-        const { error } = await supabase
-          .from("books")
-          .update({
-            sold: false,
-            availability: "available",
-          })
-          .neq("id", "");
-        booksError = error;
-      } else {
-        throw error;
-      }
-    }
+    const { error: booksError } = await supabase
+      .from("books")
+      .update({
+        sold: false,
+      })
+      .neq("id", "");
 
     if (booksError) {
       console.error("Error resetting books:", booksError.message || booksError);
