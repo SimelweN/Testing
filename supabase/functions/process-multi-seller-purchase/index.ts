@@ -152,8 +152,8 @@ serve(async (req) => {
 
     // Temporarily reserve all books (prevents multiple purchases)
     const reservationExpiry = new Date(
-      Date.now() + 15 * 60 * 1000,
-    ).toISOString(); // 15 minutes
+      Date.now() + 30 * 60 * 1000,
+    ).toISOString(); // 30 minutes
     await supabase
       .from("books")
       .update({
