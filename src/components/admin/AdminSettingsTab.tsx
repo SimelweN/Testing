@@ -335,6 +335,8 @@ const AdminSettingsTab = ({
 
       <EdgeFunctionTestButton />
 
+      <EmailTestingComponent />
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
