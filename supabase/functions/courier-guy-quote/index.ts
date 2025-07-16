@@ -1,40 +1,48 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import {
+  createErrorResponse,
+  createSuccessResponse,
+  handleCORSPreflight,
+  validateRequiredFields,
+  parseRequestBody,
+  logFunction,
+} from "../_shared/utils.ts";
+import { isDevelopmentMode, createMockResponse } from "../_shared/dev-mode.ts";
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  // Handle CORS preflight requests
+  const corsResponse = handleCORSPreflight(req);
+  if (corsResponse) return corsResponse;
 
   try {
+    logFunction("courier-guy-quote", "Processing quote request");
+
+    const requestData = await parseRequestBody(req);
+    validateRequiredFields(requestData, ["fromAddress", "toAddress"]);
+
     const {
       fromAddress,
       toAddress,
-      weight,
+      weight = 1, // Default weight for testing
       dimensions,
       serviceType = "standard",
-    } = await req.json();
-
-    if (!fromAddress || !toAddress || !weight) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Missing required fields: fromAddress, toAddress, weight",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
+    } = requestData;
 
     // Courier Guy API integration
     const COURIER_GUY_API_KEY = Deno.env.get("COURIER_GUY_API_KEY");
     const COURIER_GUY_API_URL =
       Deno.env.get("COURIER_GUY_API_URL") || "https://api.courierguy.co.za";
 
+    // Return mock response in development mode if API key is not configured
     if (!COURIER_GUY_API_KEY) {
-      throw new Error("Courier Guy API key not configured");
+      if (isDevelopmentMode()) {
+        logFunction("courier-guy-quote", "Using mock response (no API key)");
+        const mockResponse = createMockResponse("courier", "quote");
+        return createSuccessResponse(mockResponse);
+      } else {
+        return createErrorResponse("Courier Guy API key not configured", 500);
+      }
     }
 
     const quoteRequest = {
