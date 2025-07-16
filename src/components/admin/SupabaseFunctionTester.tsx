@@ -1026,6 +1026,56 @@ const SupabaseFunctionTester: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Results Summary (for Test All Functions) */}
+      {results.length > 5 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              Test Summary
+              <Badge variant="secondary">
+                {results.length} functions tested
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                <div className="text-2xl font-bold text-green-600">
+                  {results.filter((r) => r.success).length}
+                </div>
+                <div className="text-sm text-green-700">Passed</div>
+              </div>
+              <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
+                <div className="text-2xl font-bold text-red-600">
+                  {results.filter((r) => !r.success).length}
+                </div>
+                <div className="text-sm text-red-700">Failed</div>
+              </div>
+              <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="text-2xl font-bold text-blue-600">
+                  {Math.round(
+                    results.reduce((sum, r) => sum + (r.duration || 0), 0) /
+                      results.length,
+                  )}
+                  ms
+                </div>
+                <div className="text-sm text-blue-700">Avg Time</div>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
+                <div className="text-2xl font-bold text-purple-600">
+                  {Math.round(
+                    (results.filter((r) => r.success).length / results.length) *
+                      100,
+                  )}
+                  %
+                </div>
+                <div className="text-sm text-purple-700">Success Rate</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Results */}
       {results.length > 0 && (
         <Card>
