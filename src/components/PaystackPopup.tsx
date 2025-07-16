@@ -28,7 +28,7 @@ interface PaystackConfig {
       variable_name: string;
       value: string;
     }>;
-    [key: string]: any;
+    [key: string]: unknown;
   };
   callback: (response: PaystackResponse) => void;
   onClose: () => void;
@@ -48,7 +48,7 @@ interface PaystackPopupProps {
   amount: number; // Amount in Rands (will be converted to kobo)
   subaccountCode?: string;
   orderReference?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   onSuccess: (response: PaystackResponse) => void;
   onClose?: () => void;
   onError?: (error: string) => void;
