@@ -1,38 +1,38 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
-
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+import {
+  createSupabaseClient,
+  createErrorResponse,
+  createSuccessResponse,
+  handleCORSPreflight,
+  validateRequiredFields,
+  parseRequestBody,
+  logFunction,
+  handleSupabaseError,
+} from "../_shared/utils.ts";
+import { validateSupabaseConfig } from "../_shared/config.ts";
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  // Handle CORS preflight requests
+  const corsResponse = handleCORSPreflight(req);
+  if (corsResponse) return corsResponse;
 
   try {
+    logFunction("mark-collected", "Processing collection notification");
+
+    validateSupabaseConfig();
+
+    const requestData = await parseRequestBody(req);
+    validateRequiredFields(requestData, ["order_id"]);
+
     const {
       order_id,
       collected_by = "courier",
       collection_notes = "",
       tracking_reference = "",
       collected_at = new Date().toISOString(),
-    } = await req.json();
+    } = requestData;
 
-    if (!order_id) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Missing required field: order_id",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const supabase = createSupabaseClient();
 
     // Get order details with buyer and seller info
     const { data: order, error: orderError } = await supabase
