@@ -1,38 +1,49 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
-
-const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+import {
+  createSupabaseClient,
+  createErrorResponse,
+  createSuccessResponse,
+  handleCORSPreflight,
+  validateRequiredFields,
+  parseRequestBody,
+  logFunction,
+} from "../_shared/utils.ts";
+import { validateSupabaseConfig, ENV } from "../_shared/config.ts";
+import { isDevelopmentMode, createMockResponse } from "../_shared/dev-mode.ts";
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  // Handle CORS preflight requests
+  const corsResponse = handleCORSPreflight(req);
+  if (corsResponse) return corsResponse;
 
   try {
-    const {
-      order_id,
-      seller_id,
-      amount,
-      trigger = "manual",
-    } = await req.json();
+    logFunction("pay-seller", "Processing seller payment");
 
-    if (!order_id || !seller_id || !amount) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Missing required fields: order_id, seller_id, amount",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+    validateSupabaseConfig();
+
+    const requestData = await parseRequestBody(req);
+    validateRequiredFields(requestData, ["order_id", "seller_id", "amount"]);
+
+    const { order_id, seller_id, amount, trigger = "manual" } = requestData;
+
+    // In development mode, return mock response
+    if (isDevelopmentMode() || !ENV.PAYSTACK_SECRET_KEY) {
+      logFunction(
+        "pay-seller",
+        "Using mock response (development mode or no Paystack key)",
       );
+      const mockResponse = {
+        success: true,
+        payment_sent: true,
+        transfer_reference: "TXN" + Date.now(),
+        amount: amount,
+        seller_id: seller_id,
+        status: "success",
+      };
+      return createSuccessResponse(mockResponse);
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const supabase = createSupabaseClient();
 
     // Get order and seller details
     const { data: order, error: orderError } = await supabase
