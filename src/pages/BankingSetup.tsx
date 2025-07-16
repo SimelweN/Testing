@@ -30,17 +30,27 @@ const BankingSetup: React.FC = () => {
 
   useEffect(() => {
     const checkExistingBanking = async () => {
+      console.log("🔍 Banking setup: Checking existing banking...", {
+        user: user?.id,
+      });
+
       if (!user) {
+        console.log("❌ Banking setup: No user found");
         setIsLoading(false);
         return;
       }
 
       try {
+        console.log("📞 Banking setup: Calling getUserSubaccountStatus...");
         const status = await PaystackSubaccountService.getUserSubaccountStatus(
           user.id,
         );
+        console.log("✅ Banking setup: Got status result:", status);
 
         if (status.hasSubaccount) {
+          console.log(
+            "💳 Banking setup: User has existing subaccount, setting up existing banking",
+          );
           setExistingBanking({
             business_name: status.businessName,
             bank_name: status.bankName,
@@ -49,11 +59,18 @@ const BankingSetup: React.FC = () => {
             status: "active",
           });
         } else {
+          console.log("📝 Banking setup: No subaccount found, showing form");
           setShowForm(true);
         }
       } catch (error) {
-        console.error("Error checking banking details:", error);
+        console.error(
+          "❌ Banking setup: Error checking banking details:",
+          error,
+        );
+        // Show form as fallback in case of error
+        setShowForm(true);
       } finally {
+        console.log("🏁 Banking setup: Setting loading to false");
         setIsLoading(false);
       }
     };
