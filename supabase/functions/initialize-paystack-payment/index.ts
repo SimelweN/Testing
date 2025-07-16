@@ -26,18 +26,11 @@ serve(async (req) => {
       "Starting payment initialization",
     );
 
-    // Check credentials and return mock response if in development mode
     if (!ENV.PAYSTACK_SECRET_KEY) {
-      if (isDevelopmentMode()) {
-        logFunction(
-          "initialize-paystack-payment",
-          "Using mock response (no Paystack key)",
-        );
-        const mockResponse = createMockResponse("paystack", "payment");
-        return createSuccessResponse(mockResponse);
-      } else {
-        return createErrorResponse("Paystack credentials not configured", 500);
-      }
+      return createErrorResponse(
+        "Paystack credentials not configured. Please set PAYSTACK_SECRET_KEY environment variable.",
+        500,
+      );
     }
 
     validateSupabaseConfig();
