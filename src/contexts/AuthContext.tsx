@@ -450,6 +450,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsLoading(false);
     } finally {
       setIsInitializing(false);
+      loadingStateManager.clearLoading(loadingId);
     }
   }, [authInitialized, handleAuthStateChange]);
 
