@@ -124,15 +124,19 @@ window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
     if (
       urlString.includes("fullstory.com") ||
       urlString.includes("googletagmanager.com") ||
-      urlString.includes("analytics.google.com")
+      urlString.includes("analytics.google.com") ||
+      (import.meta.env.DEV && urlString.includes("@vite/client"))
     ) {
       try {
         return await originalFetch.apply(window, args);
       } catch (error) {
-        console.debug("[Third-party fetch failed silently]:", urlString);
+        console.debug(
+          "[Third-party/Dev server fetch failed silently]:",
+          urlString,
+        );
         return new Response(null, {
           status: 204,
-          statusText: "Third-party service unavailable",
+          statusText: "Service unavailable",
         });
       }
     }
@@ -140,9 +144,10 @@ window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
     return await originalFetch.apply(window, args);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack : "";
 
-    // If it's a network error from third-party services, handle gracefully
-    if (shouldSuppressError(message)) {
+    // If it's a network error from third-party services or dev server, handle gracefully
+    if (shouldSuppressError(message) || shouldSuppressError(stack || "")) {
       console.debug("[Network Error Handled]:", message);
       // Return a failed response instead of throwing
       return new Response(null, {
