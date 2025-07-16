@@ -408,6 +408,59 @@ const FUNCTIONS: FunctionConfig[] = [
     adminOnly: true,
     samplePayload: {},
   },
+
+  // Missing Functions
+  {
+    name: "get-delivery-quotes",
+    endpoint: "/functions/v1/get-delivery-quotes",
+    method: "POST",
+    category: "delivery",
+    description: "Get delivery quotes from multiple providers",
+    requiredFields: ["fromAddress", "toAddress", "items"],
+    requiresAuth: true,
+    samplePayload: {
+      fromAddress: {
+        streetAddress: "123 Seller St",
+        suburb: "Gardens",
+        city: "Cape Town",
+        province: "Western Cape",
+        postalCode: "8001",
+        country: "South Africa",
+      },
+      toAddress: {
+        streetAddress: "456 Buyer Ave",
+        suburb: "Sandton",
+        city: "Johannesburg",
+        province: "Gauteng",
+        postalCode: "2000",
+        country: "South Africa",
+      },
+      items: [
+        {
+          weight: 0.5,
+          length: 20,
+          width: 15,
+          height: 3,
+          value: 100,
+        },
+      ],
+      deliveryType: "standard",
+    },
+  },
+
+  {
+    name: "automate-delivery",
+    endpoint: "/functions/v1/automate-delivery",
+    method: "POST",
+    category: "delivery",
+    description: "Automatically create delivery for committed orders",
+    requiredFields: ["orderId"],
+    requiresAuth: true,
+    samplePayload: {
+      orderId: "ORD_test123",
+      provider: "courier-guy",
+    },
+  },
 ];
 
 export default function FunctionTesting() {
