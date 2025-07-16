@@ -48,6 +48,7 @@ import {
 } from "lucide-react";
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { handleError } = useErrorHandler();
   const { user } = useAuth();
