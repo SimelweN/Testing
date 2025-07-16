@@ -338,7 +338,7 @@ const AdminDashboard = () => {
       label: "Examples",
       icon: Code,
       color: "text-teal-600",
-      description: "Test new features",
+      description: "Test Supabase functions",
     },
     {
       value: "cleanup",
