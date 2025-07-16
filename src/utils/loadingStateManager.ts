@@ -72,7 +72,17 @@ class LoadingStateManager {
       }),
     );
 
-    // If still stuck after a delay, do a soft navigation refresh
+    // For auth-related components, just clear the loading state without navigation refresh
+    // to prevent blank screen flashing
+    if (component === "AuthContext") {
+      console.warn(
+        "[LoadingStateManager] Auth stuck state detected, clearing without navigation refresh",
+      );
+      this.clearAllStates();
+      return;
+    }
+
+    // For other components, still allow soft navigation refresh but with longer delay
     setTimeout(() => {
       if (this.hasStuckStates()) {
         console.warn(
@@ -89,7 +99,7 @@ class LoadingStateManager {
           window.dispatchEvent(new PopStateEvent("popstate"));
         }
       }
-    }, 2000);
+    }, 5000); // Increased from 2000 to 5000ms
   }
 
   hasStuckStates(): boolean {
