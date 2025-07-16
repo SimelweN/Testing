@@ -163,8 +163,6 @@ export const resetAllBooksToAvailable = async () => {
       .from("books")
       .update({
         sold: false,
-        availability: "available",
-        sold_at: null,
       })
       .neq("id", "");
 
