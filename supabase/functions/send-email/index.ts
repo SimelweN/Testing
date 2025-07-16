@@ -53,21 +53,9 @@ function getEmailConfig(): EmailConfig {
     '"ReBooked Solutions" <noreply@rebookedsolutions.co.za>';
 
   if (!smtpKey) {
-    if (isDevelopmentMode()) {
-      // In development mode, provide mock config
-      return {
-        host: "mock-smtp.example.com",
-        port: 587,
-        secure: false,
-        auth: {
-          user: "mock-user",
-          pass: "mock-pass",
-        },
-        defaultFrom,
-        mock: true,
-      };
-    }
-    throw new Error("BREVO_SMTP_KEY environment variable is required");
+    throw new Error(
+      "BREVO_SMTP_KEY environment variable is required. Please configure your email service credentials.",
+    );
   }
 
   return {
