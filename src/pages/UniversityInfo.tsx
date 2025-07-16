@@ -139,10 +139,12 @@ const UniversityInfo = () => {
 
   const handleTabChange = useCallback(
     (value: string) => {
-      // Immediate state update for instant visual feedback
-      const newParams = new URLSearchParams();
-      newParams.set("tool", value);
-      setSearchParams(newParams);
+      // Use requestAnimationFrame for smoother transitions
+      requestAnimationFrame(() => {
+        const newParams = new URLSearchParams();
+        newParams.set("tool", value);
+        setSearchParams(newParams, { replace: true });
+      });
     },
     [setSearchParams],
   );
