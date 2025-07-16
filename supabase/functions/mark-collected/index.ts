@@ -48,15 +48,13 @@ serve(async (req) => {
       .single();
 
     if (orderError || !order) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Order not found",
-        }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+      logFunction("mark-collected", "Order not found", {
+        order_id,
+        error: orderError?.message,
+      });
+      return createErrorResponse(
+        `Order not found: ${order_id}. Error: ${orderError?.message || "Order does not exist in database"}`,
+        404,
       );
     }
 
