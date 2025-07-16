@@ -20,6 +20,7 @@ import {
 } from "@/services/authOperations";
 import { addNotification } from "@/services/notificationService";
 import { logError, getErrorMessage } from "@/utils/errorUtils";
+import loadingStateManager from "@/utils/loadingStateManager";
 
 // Simple logging for development
 const devLog = (message: string, data?: unknown) => {
