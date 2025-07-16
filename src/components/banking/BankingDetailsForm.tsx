@@ -551,11 +551,42 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
                   type="text"
                   value={formData.accountNumber}
                   onChange={(e) => handleAccountNumberChange(e.target.value)}
-                  className="pl-10 h-11 rounded-lg border-2 focus:border-book-600 focus:ring-book-600"
-                  placeholder="Enter account number (9-11 digits)"
-                  maxLength={15}
+                  className={`pl-10 h-11 rounded-lg border-2 focus:border-book-600 focus:ring-book-600 ${
+                    formData.accountNumber &&
+                    (formData.accountNumber.length < 8 ||
+                      formData.accountNumber.length > 12)
+                      ? "border-red-300 focus:border-red-500"
+                      : formData.accountNumber &&
+                          formData.accountNumber.length >= 8 &&
+                          formData.accountNumber.length <= 12
+                        ? "border-green-300 focus:border-green-500"
+                        : ""
+                  }`}
+                  placeholder="Enter account number (8-12 digits)"
+                  maxLength={12}
                   required
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                 />
+                {formData.accountNumber &&
+                  formData.accountNumber.length >= 8 &&
+                  formData.accountNumber.length <= 12 && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    </div>
+                  )}
+              </div>
+              <div className="flex justify-between items-center">
+                {formData.accountNumber &&
+                  (formData.accountNumber.length < 8 ||
+                    formData.accountNumber.length > 12) && (
+                    <p className="text-xs text-red-600">
+                      Account number must be 8-12 digits
+                    </p>
+                  )}
+                <p className="text-xs text-gray-500 ml-auto">
+                  {formData.accountNumber.length}/12 digits
+                </p>
               </div>
             </div>
 
