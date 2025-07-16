@@ -29,8 +29,9 @@ interface FunctionConfig {
   adminOnly?: boolean;
 }
 
+// Complete list of all 23 Supabase Edge Functions
 const FUNCTIONS: FunctionConfig[] = [
-  // Order Management Functions
+  // Order Management Functions (6)
   {
     name: "create-order",
     endpoint: "/functions/v1/create-order",
@@ -122,7 +123,7 @@ const FUNCTIONS: FunctionConfig[] = [
     },
   },
 
-  // Payment Functions
+  // Payment Functions (7)
   {
     name: "initialize-paystack-payment",
     endpoint: "/functions/v1/initialize-paystack-payment",
@@ -145,6 +146,7 @@ const FUNCTIONS: FunctionConfig[] = [
       shipping_address: {
         street: "123 Test St",
         city: "Cape Town",
+        postal_code: "8001",
       },
     },
   },
@@ -174,6 +176,8 @@ const FUNCTIONS: FunctionConfig[] = [
       data: {
         reference: "pay_test123",
         status: "success",
+        amount: 10000,
+        currency: "ZAR",
       },
     },
   },
@@ -186,7 +190,7 @@ const FUNCTIONS: FunctionConfig[] = [
     requiredFields: ["business_name", "settlement_bank", "account_number"],
     requiresAuth: true,
     samplePayload: {
-      business_name: "Test Seller",
+      business_name: "Test Seller Books",
       settlement_bank: "044",
       account_number: "0123456789",
       percentage_charge: 90,
@@ -215,6 +219,7 @@ const FUNCTIONS: FunctionConfig[] = [
     requiresAuth: true,
     samplePayload: {
       payment_reference: "pay_test123",
+      user_id: "test-user-123",
     },
   },
   {
@@ -227,35 +232,46 @@ const FUNCTIONS: FunctionConfig[] = [
     requiresAuth: true,
     samplePayload: {
       payment_reference: "pay_test123",
+      user_id: "test-user-123",
     },
   },
 
-  // Delivery Functions
+  // Delivery Functions (8)
   {
     name: "get-delivery-quotes",
     endpoint: "/functions/v1/get-delivery-quotes",
     method: "POST",
     category: "delivery",
     description: "Get delivery quotes from multiple providers",
-    requiredFields: ["from_address", "to_address"],
+    requiredFields: ["fromAddress", "toAddress", "items"],
     requiresAuth: true,
     samplePayload: {
-      from_address: {
-        street: "123 Seller St",
+      fromAddress: {
+        streetAddress: "123 Seller Street",
+        suburb: "Gardens",
         city: "Cape Town",
-        postal_code: "8001",
+        province: "Western Cape",
+        postalCode: "8001",
+        country: "South Africa",
       },
-      to_address: {
-        street: "456 Buyer Ave",
+      toAddress: {
+        streetAddress: "456 Buyer Avenue",
+        suburb: "Sandton",
         city: "Johannesburg",
-        postal_code: "2000",
+        province: "Gauteng",
+        postalCode: "2000",
+        country: "South Africa",
       },
       items: [
         {
           weight: 0.5,
-          dimensions: { length: 20, width: 15, height: 3 },
+          length: 20,
+          width: 15,
+          height: 3,
+          value: 100,
         },
       ],
+      deliveryType: "standard",
     },
   },
   {
@@ -268,13 +284,15 @@ const FUNCTIONS: FunctionConfig[] = [
     requiresAuth: true,
     samplePayload: {
       fromAddress: {
-        streetAddress: "123 Seller St",
+        streetAddress: "123 Seller Street",
+        suburb: "Gardens",
         city: "Cape Town",
         postalCode: "8001",
         province: "Western Cape",
       },
       toAddress: {
-        streetAddress: "456 Buyer Ave",
+        streetAddress: "456 Buyer Avenue",
+        suburb: "Sandton",
         city: "Johannesburg",
         postalCode: "2000",
         province: "Gauteng",
@@ -297,6 +315,18 @@ const FUNCTIONS: FunctionConfig[] = [
     requiresAuth: true,
     samplePayload: {
       order_id: "ORD_test123",
+      fromAddress: {
+        streetAddress: "123 Seller Street",
+        city: "Cape Town",
+        postalCode: "8001",
+        province: "Western Cape",
+      },
+      toAddress: {
+        streetAddress: "456 Buyer Avenue",
+        city: "Johannesburg",
+        postalCode: "2000",
+        province: "Gauteng",
+      },
     },
   },
   {
@@ -321,13 +351,15 @@ const FUNCTIONS: FunctionConfig[] = [
     requiresAuth: true,
     samplePayload: {
       fromAddress: {
-        streetAddress: "123 Seller St",
+        streetAddress: "123 Seller Street",
+        suburb: "Gardens",
         city: "Cape Town",
         postalCode: "8001",
         province: "Western Cape",
       },
       toAddress: {
-        streetAddress: "456 Buyer Ave",
+        streetAddress: "456 Buyer Avenue",
+        suburb: "Sandton",
         city: "Johannesburg",
         postalCode: "2000",
         province: "Gauteng",
@@ -337,6 +369,7 @@ const FUNCTIONS: FunctionConfig[] = [
         length: 20,
         width: 15,
         height: 3,
+        value: 100,
       },
     },
   },
@@ -350,6 +383,18 @@ const FUNCTIONS: FunctionConfig[] = [
     requiresAuth: true,
     samplePayload: {
       order_id: "ORD_test123",
+      fromAddress: {
+        streetAddress: "123 Seller Street",
+        city: "Cape Town",
+        postalCode: "8001",
+        province: "Western Cape",
+      },
+      toAddress: {
+        streetAddress: "456 Buyer Avenue",
+        city: "Johannesburg",
+        postalCode: "2000",
+        province: "Gauteng",
+      },
     },
   },
   {
@@ -370,14 +415,15 @@ const FUNCTIONS: FunctionConfig[] = [
     method: "POST",
     category: "delivery",
     description: "Automatically create delivery for committed orders",
-    requiredFields: ["order_id"],
+    requiredFields: ["orderId"],
     requiresAuth: true,
     samplePayload: {
-      order_id: "ORD_test123",
+      orderId: "ORD_test123",
+      provider: "courier-guy",
     },
   },
 
-  // Email Functions
+  // Email Functions (2)
   {
     name: "send-email",
     endpoint: "/functions/v1/send-email",
@@ -407,59 +453,6 @@ const FUNCTIONS: FunctionConfig[] = [
     requiredFields: [],
     adminOnly: true,
     samplePayload: {},
-  },
-
-  // Missing Functions
-  {
-    name: "get-delivery-quotes",
-    endpoint: "/functions/v1/get-delivery-quotes",
-    method: "POST",
-    category: "delivery",
-    description: "Get delivery quotes from multiple providers",
-    requiredFields: ["fromAddress", "toAddress", "items"],
-    requiresAuth: true,
-    samplePayload: {
-      fromAddress: {
-        streetAddress: "123 Seller St",
-        suburb: "Gardens",
-        city: "Cape Town",
-        province: "Western Cape",
-        postalCode: "8001",
-        country: "South Africa",
-      },
-      toAddress: {
-        streetAddress: "456 Buyer Ave",
-        suburb: "Sandton",
-        city: "Johannesburg",
-        province: "Gauteng",
-        postalCode: "2000",
-        country: "South Africa",
-      },
-      items: [
-        {
-          weight: 0.5,
-          length: 20,
-          width: 15,
-          height: 3,
-          value: 100,
-        },
-      ],
-      deliveryType: "standard",
-    },
-  },
-
-  {
-    name: "automate-delivery",
-    endpoint: "/functions/v1/automate-delivery",
-    method: "POST",
-    category: "delivery",
-    description: "Automatically create delivery for committed orders",
-    requiredFields: ["orderId"],
-    requiresAuth: true,
-    samplePayload: {
-      orderId: "ORD_test123",
-      provider: "courier-guy",
-    },
   },
 ];
 
@@ -702,13 +695,47 @@ export default function FunctionTesting() {
         <div>
           <h1 className="text-3xl font-bold">Function Testing Dashboard</h1>
           <p className="text-gray-600">
-            Test all {FUNCTIONS.length} functions with detailed error analysis
+            Test all {FUNCTIONS.length} Supabase Edge Functions with
+            comprehensive mock data
           </p>
         </div>
         <Button onClick={testAllFunctions} size="lg">
           <Play className="mr-2 h-4 w-4" />
           Test All Functions
         </Button>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+        <div className="bg-blue-50 p-3 rounded">
+          <div className="text-2xl font-bold text-blue-600">
+            {FUNCTIONS.filter((f) => f.category === "order").length}
+          </div>
+          <div className="text-sm text-blue-800">Order Functions</div>
+        </div>
+        <div className="bg-green-50 p-3 rounded">
+          <div className="text-2xl font-bold text-green-600">
+            {FUNCTIONS.filter((f) => f.category === "payment").length}
+          </div>
+          <div className="text-sm text-green-800">Payment Functions</div>
+        </div>
+        <div className="bg-orange-50 p-3 rounded">
+          <div className="text-2xl font-bold text-orange-600">
+            {FUNCTIONS.filter((f) => f.category === "delivery").length}
+          </div>
+          <div className="text-sm text-orange-800">Delivery Functions</div>
+        </div>
+        <div className="bg-purple-50 p-3 rounded">
+          <div className="text-2xl font-bold text-purple-600">
+            {FUNCTIONS.filter((f) => f.category === "email").length}
+          </div>
+          <div className="text-sm text-purple-800">Email Functions</div>
+        </div>
+        <div className="bg-gray-50 p-3 rounded">
+          <div className="text-2xl font-bold text-gray-600">
+            {FUNCTIONS.length}
+          </div>
+          <div className="text-sm text-gray-800">Total Functions</div>
+        </div>
       </div>
 
       <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -782,15 +809,21 @@ export default function FunctionTesting() {
                         Required Fields:
                       </label>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {func.requiredFields.map((field) => (
-                          <Badge
-                            key={field}
-                            variant="outline"
-                            className="text-xs"
-                          >
-                            {field}
+                        {func.requiredFields.length > 0 ? (
+                          func.requiredFields.map((field) => (
+                            <Badge
+                              key={field}
+                              variant="outline"
+                              className="text-xs"
+                            >
+                              {field}
+                            </Badge>
+                          ))
+                        ) : (
+                          <Badge variant="outline" className="text-xs">
+                            None
                           </Badge>
-                        ))}
+                        )}
                       </div>
                     </div>
 
