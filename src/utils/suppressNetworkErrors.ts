@@ -169,12 +169,49 @@ window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
   }
 };
 
-// Add specific handler for Vite HMR ping errors (removed WebSocket override to prevent constructor issues)
+// Add specific handler for Vite HMR ping errors and development server connection issues
 if (import.meta.env.DEV) {
-  // Simply suppress WebSocket errors in development instead of overriding the constructor
+  // Handle Vite HMR connection issues gracefully
   console.debug(
-    "[Dev Mode] WebSocket errors will be handled by existing error suppression",
+    "[Dev Mode] Enhanced error suppression active for development server",
   );
+
+  // Add window-level error listener specifically for development
+  window.addEventListener("error", (event) => {
+    const error = event.error;
+    if (error && error.stack) {
+      // Check for specific Vite HMR patterns in the stack trace
+      if (
+        error.stack.includes("@vite/client") ||
+        error.stack.includes("ping") ||
+        error.stack.includes("waitForSuccessfulPing") ||
+        error.stack.includes("WebSocket") ||
+        error.stack.includes(".fly.dev")
+      ) {
+        event.preventDefault();
+        console.debug("[Dev Server Error Suppressed]:", error.message);
+        return false;
+      }
+    }
+  });
+
+  // Suppress WebSocket connection errors in development
+  const originalWebSocket = window.WebSocket;
+  window.WebSocket = class extends originalWebSocket {
+    constructor(url: string | URL, protocols?: string | string[]) {
+      super(url, protocols);
+
+      this.addEventListener("error", (event) => {
+        console.debug("[WebSocket Error Suppressed in Dev]:", event);
+      });
+
+      this.addEventListener("close", (event) => {
+        if (event.code !== 1000) {
+          console.debug("[WebSocket Closed in Dev]:", event.code, event.reason);
+        }
+      });
+    }
+  };
 }
 
 export default {};
