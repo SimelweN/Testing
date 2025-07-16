@@ -58,7 +58,14 @@ const AdminUsageExamples: React.FC = () => {
     },
   ];
 
-  const handlePaystackSuccess = (response: any) => {
+  const handlePaystackSuccess = (response: {
+    reference: string;
+    status: string;
+    trans: string;
+    transaction: string;
+    trxref: string;
+    redirecturl: string;
+  }) => {
     console.log("Test payment successful:", response);
     toast.success("Test payment completed successfully!", {
       description: `Reference: ${response.reference}`,
