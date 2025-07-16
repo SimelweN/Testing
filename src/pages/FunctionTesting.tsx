@@ -25,6 +25,8 @@ interface FunctionConfig {
   description: string;
   samplePayload: any;
   requiredFields: string[];
+  requiresAuth?: boolean;
+  adminOnly?: boolean;
 }
 
 const FUNCTIONS: FunctionConfig[] = [
@@ -36,6 +38,7 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "order",
     description: "Creates new orders for buyers",
     requiredFields: ["user_id", "items", "total_amount", "payment_reference"],
+    requiresAuth: true,
     samplePayload: {
       user_id: "test-user-123",
       items: [
@@ -53,6 +56,10 @@ const FUNCTIONS: FunctionConfig[] = [
         postal_code: "8001",
       },
       payment_reference: "pay_test123",
+      payment_data: {
+        method: "paystack",
+        status: "success",
+      },
     },
   },
   {
@@ -61,10 +68,11 @@ const FUNCTIONS: FunctionConfig[] = [
     method: "POST",
     category: "order",
     description: "Seller commits to fulfilling an order",
-    requiredFields: ["order_id", "seller_id"],
+    requiredFields: ["orderId", "sellerId"],
+    requiresAuth: true,
     samplePayload: {
-      order_id: "ORD_test123",
-      seller_id: "seller-456",
+      orderId: "ORD_test123",
+      sellerId: "seller-456",
     },
   },
   {
@@ -73,10 +81,11 @@ const FUNCTIONS: FunctionConfig[] = [
     method: "POST",
     category: "order",
     description: "Seller declines to fulfill an order",
-    requiredFields: ["order_id", "seller_id"],
+    requiredFields: ["orderId", "sellerId"],
+    requiresAuth: true,
     samplePayload: {
-      order_id: "ORD_test123",
-      seller_id: "seller-456",
+      orderId: "ORD_test123",
+      sellerId: "seller-456",
       reason: "Out of stock",
     },
   },
@@ -87,6 +96,7 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "order",
     description: "Automatically expires orders past their deadline",
     requiredFields: [],
+    adminOnly: true,
     samplePayload: {},
   },
   {
@@ -96,6 +106,7 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "order",
     description: "Checks for and handles expired orders",
     requiredFields: [],
+    adminOnly: true,
     samplePayload: {},
   },
   {
@@ -105,6 +116,7 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "order",
     description: "Marks an order as collected by buyer",
     requiredFields: ["order_id"],
+    requiresAuth: true,
     samplePayload: {
       order_id: "ORD_test123",
     },
@@ -118,6 +130,7 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "payment",
     description: "Initialize Paystack payment transaction",
     requiredFields: ["user_id", "items", "total_amount", "email"],
+    requiresAuth: true,
     samplePayload: {
       user_id: "test-user-123",
       items: [
@@ -142,8 +155,10 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "payment",
     description: "Verify Paystack payment status",
     requiredFields: ["reference"],
+    requiresAuth: true,
     samplePayload: {
-      reference: "pay_test123",
+      reference: "T123456789",
+      user_id: "test-user-123",
     },
   },
   {
@@ -153,6 +168,7 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "payment",
     description: "Handle Paystack webhook events",
     requiredFields: ["event"],
+    adminOnly: true,
     samplePayload: {
       event: "charge.success",
       data: {
@@ -168,11 +184,13 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "payment",
     description: "Create Paystack subaccount for seller",
     requiredFields: ["business_name", "settlement_bank", "account_number"],
+    requiresAuth: true,
     samplePayload: {
       business_name: "Test Seller",
       settlement_bank: "044",
       account_number: "0123456789",
       percentage_charge: 90,
+      user_id: "test-user-123",
     },
   },
   {
@@ -182,6 +200,7 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "payment",
     description: "Process payment to seller after order completion",
     requiredFields: ["order_id"],
+    adminOnly: true,
     samplePayload: {
       order_id: "ORD_test123",
     },
@@ -193,6 +212,7 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "payment",
     description: "Process completed book purchase",
     requiredFields: ["payment_reference"],
+    requiresAuth: true,
     samplePayload: {
       payment_reference: "pay_test123",
     },
@@ -204,6 +224,7 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "payment",
     description: "Process purchase with multiple sellers",
     requiredFields: ["payment_reference"],
+    requiresAuth: true,
     samplePayload: {
       payment_reference: "pay_test123",
     },
@@ -217,6 +238,7 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "delivery",
     description: "Get delivery quotes from multiple providers",
     requiredFields: ["from_address", "to_address"],
+    requiresAuth: true,
     samplePayload: {
       from_address: {
         street: "123 Seller St",
@@ -242,17 +264,26 @@ const FUNCTIONS: FunctionConfig[] = [
     method: "POST",
     category: "delivery",
     description: "Get quote from Courier Guy",
-    requiredFields: ["from_address", "to_address"],
+    requiredFields: ["fromAddress", "toAddress", "weight"],
+    requiresAuth: true,
     samplePayload: {
-      from_address: {
-        street: "123 Seller St",
+      fromAddress: {
+        streetAddress: "123 Seller St",
         city: "Cape Town",
-        postal_code: "8001",
+        postalCode: "8001",
+        province: "Western Cape",
       },
-      to_address: {
-        street: "456 Buyer Ave",
+      toAddress: {
+        streetAddress: "456 Buyer Ave",
         city: "Johannesburg",
-        postal_code: "2000",
+        postalCode: "2000",
+        province: "Gauteng",
+      },
+      weight: 0.5,
+      dimensions: {
+        length: 20,
+        width: 15,
+        height: 3,
       },
     },
   },
@@ -263,6 +294,7 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "delivery",
     description: "Create shipment with Courier Guy",
     requiredFields: ["order_id"],
+    requiresAuth: true,
     samplePayload: {
       order_id: "ORD_test123",
     },
@@ -274,6 +306,7 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "delivery",
     description: "Track Courier Guy shipment",
     requiredFields: ["tracking_number"],
+    requiresAuth: true,
     samplePayload: {
       tracking_number: "CG123456789",
     },
@@ -284,17 +317,26 @@ const FUNCTIONS: FunctionConfig[] = [
     method: "POST",
     category: "delivery",
     description: "Get quote from Fastway",
-    requiredFields: ["from_address", "to_address"],
+    requiredFields: ["fromAddress", "toAddress"],
+    requiresAuth: true,
     samplePayload: {
-      from_address: {
-        street: "123 Seller St",
+      fromAddress: {
+        streetAddress: "123 Seller St",
         city: "Cape Town",
-        postal_code: "8001",
+        postalCode: "8001",
+        province: "Western Cape",
       },
-      to_address: {
-        street: "456 Buyer Ave",
+      toAddress: {
+        streetAddress: "456 Buyer Ave",
         city: "Johannesburg",
-        postal_code: "2000",
+        postalCode: "2000",
+        province: "Gauteng",
+      },
+      parcel: {
+        weight: 0.5,
+        length: 20,
+        width: 15,
+        height: 3,
       },
     },
   },
@@ -305,6 +347,7 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "delivery",
     description: "Create shipment with Fastway",
     requiredFields: ["order_id"],
+    requiresAuth: true,
     samplePayload: {
       order_id: "ORD_test123",
     },
@@ -316,6 +359,7 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "delivery",
     description: "Track Fastway shipment",
     requiredFields: ["tracking_number"],
+    requiresAuth: true,
     samplePayload: {
       tracking_number: "FW123456789",
     },
@@ -327,6 +371,7 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "delivery",
     description: "Automatically create delivery for committed orders",
     requiredFields: ["order_id"],
+    requiresAuth: true,
     samplePayload: {
       order_id: "ORD_test123",
     },
@@ -340,14 +385,15 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "email",
     description: "Send email notifications",
     requiredFields: ["to", "subject"],
+    requiresAuth: true,
     samplePayload: {
       to: "test@example.com",
       subject: "Test Email",
       template: {
-        name: "test-template",
+        name: "welcome",
         data: {
-          name: "Test User",
-          message: "This is a test email",
+          userName: "Test User",
+          loginUrl: "https://example.com/login",
         },
       },
     },
@@ -359,6 +405,7 @@ const FUNCTIONS: FunctionConfig[] = [
     category: "email",
     description: "Send reminder emails for pending orders",
     requiredFields: [],
+    adminOnly: true,
     samplePayload: {},
   },
 ];
@@ -377,12 +424,34 @@ export default function FunctionTesting() {
     return import.meta.env.VITE_SUPABASE_URL || "http://localhost:54321";
   };
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem("supabase.auth.token");
+  const getAuthHeaders = (func: FunctionConfig) => {
+    // Get the stored auth session
+    const session = JSON.parse(
+      localStorage.getItem("sb-localhost-auth-token") || "{}",
+    );
+    const userToken = session?.access_token;
+
+    // For admin-only functions, try to use service role key or fallback to user token
+    if (func.adminOnly) {
+      const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+      return {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${serviceKey || userToken || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      };
+    }
+
+    // For regular functions that require auth
+    if (func.requiresAuth) {
+      return {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userToken || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      };
+    }
+
+    // For public functions
     return {
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-      ...(token && { Authorization: `Bearer ${token}` }),
     };
   };
 
@@ -391,7 +460,7 @@ export default function FunctionTesting() {
       return "Bad Request - Check if all required fields are provided and properly formatted";
     }
     if (statusCode === 401) {
-      return "Unauthorized - Check authentication token or API keys";
+      return "Unauthorized - Check authentication token or API keys. Admin functions require service role key.";
     }
     if (statusCode === 403) {
       return "Forbidden - User doesn't have permission for this operation";
@@ -417,6 +486,15 @@ export default function FunctionTesting() {
 
     if (errorStr.includes("Missing required fields")) {
       return "Missing Required Fields - Check that all required parameters are included in the request";
+    }
+    if (errorStr.includes("Order ID and Seller ID are required")) {
+      return "Missing Order/Seller ID - The function expects 'orderId' and 'sellerId' fields";
+    }
+    if (errorStr.includes("Missing fields: fromAddress, toAddress, weight")) {
+      return "Missing Address/Weight - Courier functions need 'fromAddress', 'toAddress', and 'weight' fields";
+    }
+    if (errorStr.includes("Missing address or parcel information")) {
+      return "Missing Address/Parcel - Fastway needs proper address and parcel information";
     }
     if (errorStr.includes("not found")) {
       return "Resource Not Found - The requested user, order, or other resource doesn't exist in the database";
@@ -445,6 +523,9 @@ export default function FunctionTesting() {
     if (errorStr.includes("validation")) {
       return "Validation Error - Input data doesn't meet required format or constraints";
     }
+    if (errorStr.includes("pattern is not defined")) {
+      return "Template Error - Email template is using an undefined variable 'pattern'. Check template implementation.";
+    }
 
     return errorStr || "Unknown error occurred";
   };
@@ -466,7 +547,7 @@ export default function FunctionTesting() {
 
       const response = await fetch(url, {
         method: func.method,
-        headers: getAuthHeaders(),
+        headers: getAuthHeaders(func),
         body: func.method !== "GET" ? JSON.stringify(payload) : undefined,
       });
 
@@ -568,8 +649,7 @@ export default function FunctionTesting() {
         <div>
           <h1 className="text-3xl font-bold">Function Testing Dashboard</h1>
           <p className="text-gray-600">
-            Test all {FUNCTIONS.length} functions and get detailed error
-            analysis
+            Test all {FUNCTIONS.length} functions with detailed error analysis
           </p>
         </div>
         <Button onClick={testAllFunctions} size="lg">
@@ -605,6 +685,12 @@ export default function FunctionTesting() {
                           {func.category}
                         </Badge>
                         <Badge variant="outline">{func.method}</Badge>
+                        {func.adminOnly && (
+                          <Badge variant="destructive">Admin Only</Badge>
+                        )}
+                        {func.requiresAuth && !func.adminOnly && (
+                          <Badge variant="secondary">Auth Required</Badge>
+                        )}
                         {result.timing && (
                           <Badge variant="secondary">{result.timing}ms</Badge>
                         )}
