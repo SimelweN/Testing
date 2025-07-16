@@ -42,10 +42,16 @@ serve(async (req) => {
       .single();
 
     if (bookError || !book) {
+      console.log("Book not found:", { book_id, error: bookError?.message });
       return new Response(
         JSON.stringify({
           success: false,
-          error: "Book not found or already sold",
+          error: `Book not found: ${book_id}. Error: ${bookError?.message || "Book does not exist or is already sold"}`,
+          details: {
+            book_id,
+            database_error: bookError?.message,
+            suggestion: "Please use a valid book_id from your books table",
+          },
         }),
         {
           status: 404,
