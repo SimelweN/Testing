@@ -125,17 +125,9 @@ const BookGrid = ({
                           "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=300&fit=crop&auto=format&q=80";
                       }}
                     />
-                    <p className="text-xs text-gray-500 mb-2 line-clamp-2">
-                      {book.description}
-                    </p>
-
-                    {/* Province/Location display */}
-                    {book.province && (
-                      <div className="flex items-center text-xs text-gray-500 mb-2">
-                        <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-                        <span className="truncate">{book.province}</span>
-                      </div>
-                    )}
+                    <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full text-sm font-semibold text-book-800">
+                      R{book.price.toLocaleString()}
+                    </div>
                     {book.sold && (
                       <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                         <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
@@ -149,9 +141,17 @@ const BookGrid = ({
                       {book.title}
                     </h3>
                     <p className="text-gray-600 mb-2">{book.author}</p>
-                    <p className="text-gray-500 text-sm mb-auto line-clamp-2">
+                    <p className="text-gray-500 text-sm mb-2 line-clamp-2">
                       {book.description}
                     </p>
+
+                    {/* Province/Location display */}
+                    {book.province && (
+                      <div className="flex items-center text-xs text-gray-500 mb-2">
+                        <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                        <span className="truncate">{book.province}</span>
+                      </div>
+                    )}
                     <div className="flex flex-wrap items-center justify-between mt-4 gap-1">
                       <span className="bg-book-100 text-book-800 px-2 py-1 rounded text-xs font-medium">
                         {book.condition}
