@@ -498,21 +498,32 @@ const SupabaseFunctionTester: React.FC = () => {
       category: "Delivery",
       parameters: [
         {
-          name: "from_address",
+          name: "fromAddress",
           type: "object",
           required: true,
           description: "Pickup address",
         },
         {
-          name: "to_address",
+          name: "toAddress",
           type: "object",
           required: true,
           description: "Delivery address",
         },
       ],
       examplePayload: {
-        from_address: { city: "Cape Town", postal_code: "8001" },
-        to_address: { city: "Johannesburg", postal_code: "2001" },
+        fromAddress: {
+          suburb: "Gardens",
+          city: "Cape Town",
+          postal_code: "8001",
+          province: "Western Cape",
+        },
+        toAddress: {
+          suburb: "Sandton",
+          city: "Johannesburg",
+          postal_code: "2001",
+          province: "Gauteng",
+        },
+        weight: 1.5,
       },
     },
     {
@@ -528,7 +539,27 @@ const SupabaseFunctionTester: React.FC = () => {
         },
       ],
       examplePayload: {
-        order_id: "order-id-here",
+        order_id: "00000000-0000-0000-0000-000000000003",
+        service_code: "LOCAL",
+        pickup_address: {
+          name: "Test Seller",
+          phone: "0123456789",
+          email: "seller@example.com",
+          address_line_1: "123 Seller Street",
+          suburb: "Gardens",
+          postal_code: "8001",
+          province: "Western Cape",
+        },
+        delivery_address: {
+          name: "Test Buyer",
+          phone: "0987654321",
+          email: "buyer@example.com",
+          address_line_1: "456 Buyer Avenue",
+          suburb: "Sandton",
+          postal_code: "2001",
+          province: "Gauteng",
+        },
+        weight: 1.5,
       },
     },
     {
