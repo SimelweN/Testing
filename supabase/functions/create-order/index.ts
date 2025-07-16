@@ -123,8 +123,6 @@ serve(async (req) => {
           .from("books")
           .update({
             sold: true,
-            sold_at: new Date().toISOString(),
-            buyer_id: user_id,
           })
           .in("id", bookIds);
       }
