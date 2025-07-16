@@ -429,8 +429,9 @@ const SupabaseFunctionTester: React.FC = () => {
       ],
       examplePayload: {
         to: "test@example.com",
-        template: "test-template",
-        data: { name: "Test User" },
+        subject: "Test Email from Admin Panel",
+        text: "This is a test email sent from the admin panel to verify email functionality.",
+        html: "<h1>Test Email</h1><p>This is a test email sent from the admin panel to verify email functionality.</p>",
       },
     },
     {
