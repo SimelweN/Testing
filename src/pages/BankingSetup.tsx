@@ -40,6 +40,13 @@ const BankingSetup: React.FC = () => {
         return;
       }
 
+      // Set a timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        console.warn("⏰ Banking setup: Timeout reached, stopping loading");
+        setIsLoading(false);
+        setShowForm(true);
+      }, 10000); // 10 second timeout
+
       try {
         console.log("📞 Banking setup: Calling getUserSubaccountStatus...");
         const status = await PaystackSubaccountService.getUserSubaccountStatus(
@@ -70,6 +77,7 @@ const BankingSetup: React.FC = () => {
         // Show form as fallback in case of error
         setShowForm(true);
       } finally {
+        clearTimeout(timeout);
         console.log("🏁 Banking setup: Setting loading to false");
         setIsLoading(false);
       }
