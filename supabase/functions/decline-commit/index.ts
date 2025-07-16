@@ -44,15 +44,14 @@ serve(async (req) => {
       .single();
 
     if (orderError || !order) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Order not found or not in pending commit status",
-        }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+      logFunction("decline-commit", "Order not found", {
+        order_id,
+        seller_id,
+        error: orderError?.message,
+      });
+      return createErrorResponse(
+        `Order not found: ${order_id} for seller ${seller_id}. Error: ${orderError?.message || "Order does not exist or is not in pending_commit status"}`,
+        404,
       );
     }
 
