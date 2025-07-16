@@ -23,6 +23,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Settings, MessageSquare, Megaphone, Trash2 } from "lucide-react";
 import EdgeFunctionTestButton from "@/components/EdgeFunctionTestButton";
+import EmailTestingComponent from "@/components/admin/EmailTestingComponent";
 import { runBankingCleanup } from "@/utils/cleanupDevelopmentBanking";
 
 interface AdminSettingsTabProps {
