@@ -7,6 +7,8 @@ import { Analytics } from "@vercel/analytics/react";
 import "./utils/suppressResizeObserverError";
 // Suppress harmless network and third-party script errors
 import "./utils/suppressNetworkErrors";
+// Network debugging utility for development
+import "./utils/networkDebugger";
 
 import { ThemeProvider } from "next-themes";
 import ErrorBoundary from "./components/ErrorBoundary";
