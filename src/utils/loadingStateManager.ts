@@ -11,7 +11,7 @@ interface LoadingState {
 class LoadingStateManager {
   private loadingStates = new Map<string, LoadingState>();
   private defaultTimeout = 15000; // 15 seconds
-  private enabled = false; // Temporarily disabled to debug blank screen issue
+  private enabled = import.meta.env.DEV;
 
   startLoading(id: string, component: string, timeout?: number) {
     if (!this.enabled) return;
