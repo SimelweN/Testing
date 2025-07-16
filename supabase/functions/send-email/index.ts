@@ -71,25 +71,6 @@ function getEmailConfig(): EmailConfig {
 }
 
 async function createTransporter(config: EmailConfig) {
-  // Return mock transporter in development mode
-  if (config.mock) {
-    return {
-      sendMail: async (mailOptions: any) => {
-        logEmailEvent("sent", {
-          message: "Mock email sent",
-          to: mailOptions.to,
-        });
-        return {
-          messageId: "mock-message-id-" + Date.now(),
-          accepted: [mailOptions.to],
-          rejected: [],
-          response: "250 Mock message accepted",
-        };
-      },
-      verify: async () => true,
-    };
-  }
-
   const transporter = nodemailer.createTransport({
     host: config.host,
     port: config.port,
