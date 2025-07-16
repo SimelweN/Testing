@@ -95,10 +95,13 @@ function App() {
 
   if (!isAppReady) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-book-50 to-book-100">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-book-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading ReBooked Solutions...</p>
+          <div className="w-12 h-12 border-4 border-book-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+          <h2 className="text-xl font-semibold text-book-800 mb-2">
+            ReBooked Solutions
+          </h2>
+          <p className="text-book-600">Loading your academic marketplace...</p>
         </div>
       </div>
     );
