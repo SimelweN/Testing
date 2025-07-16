@@ -52,6 +52,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationRequestService } from "@/services/notificationRequestService";
 import { toast } from "sonner";
+import { useThrottleCallback } from "@/hooks/useDebounceCallback";
 
 // Direct import for APS calculator to fix loading issues
 import APSCalculatorSection from "@/components/university-info/APSCalculatorSection";
@@ -535,7 +536,7 @@ const UniversityInfo = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold mb-2">
-              🇿🇦 South African Public Universities – 2025 Application Info
+              ���🇦 South African Public Universities – 2025 Application Info
             </h2>
             <p className="text-gray-600">
               Complete application information for all{" "}
