@@ -68,7 +68,7 @@ function getEmailConfig(): EmailConfig {
 }
 
 async function createTransporter(config: EmailConfig) {
-  const transporter = nodemailer.createTransporter({
+  const transporter = nodemailer.createTransport({
     host: config.host,
     port: config.port,
     secure: config.secure,
