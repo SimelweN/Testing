@@ -135,27 +135,20 @@ export class PaystackSubaccountService {
 
             const { error: dbError } = await supabase
               .from("banking_subaccounts")
-              .upsert(
-                {
-                  user_id: userId,
-                  business_name: details.business_name,
-                  email: details.email,
-                  bank_name: details.bank_name,
-                  bank_code: details.bank_code,
-                  account_number: details.account_number,
-                  subaccount_code: mockSubaccountCode,
-                  status: "active",
-                  paystack_response: {
-                    mock: true,
-                    created_at: new Date().toISOString(),
-                  },
+              .insert({
+                business_name: details.business_name,
+                email: details.email,
+                bank_name: details.bank_name,
+                bank_code: details.bank_code,
+                account_number: details.account_number,
+                subaccount_code: mockSubaccountCode,
+                status: "active",
+                paystack_response: {
+                  mock: true,
                   created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString(),
+                  user_id: userId, // Store in metadata since no user_id column
                 },
-                {
-                  onConflict: "user_id",
-                },
-              );
+              });
 
             if (dbError) {
               console.error(
