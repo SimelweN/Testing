@@ -396,36 +396,116 @@ const AdminDashboard = () => {
             </TabsList>
           </div>
         ) : (
-          // Desktop: Proper TabsList with grid styling
-          <TabsList className="grid grid-cols-11 gap-2 p-2 bg-white border border-gray-200 rounded-lg shadow-sm h-auto">
-            {tabConfig.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className="flex flex-col items-center justify-center p-3 h-auto data-[state=active]:bg-book-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg hover:bg-gray-50 data-[state=active]:hover:bg-book-700 group"
-                >
-                  <div className="relative mb-2">
-                    <Icon
-                      className={`h-5 w-5 ${tab.color} group-data-[state=active]:text-white transition-colors`}
-                    />
-                    {tab.badge && tab.badge > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] h-4 flex items-center justify-center">
-                        {tab.badge > 99 ? "99+" : tab.badge}
+          // Desktop: Better grid layout with larger, more readable tabs
+          <div className="space-y-4">
+            {/* Primary tabs - most used */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">
+                Main Dashboard
+              </h3>
+              <TabsList className="grid grid-cols-4 gap-3 p-2 bg-white border border-gray-200 rounded-lg shadow-sm h-auto">
+                {tabConfig.slice(0, 4).map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <TabsTrigger
+                      key={tab.value}
+                      value={tab.value}
+                      className="flex flex-col items-center justify-center p-4 h-auto data-[state=active]:bg-book-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg hover:bg-gray-50 data-[state=active]:hover:bg-book-700 group"
+                    >
+                      <div className="relative mb-2">
+                        <Icon
+                          className={`h-6 w-6 ${tab.color} group-data-[state=active]:text-white transition-colors`}
+                        />
+                        {tab.badge && tab.badge > 0 && (
+                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] h-4 flex items-center justify-center">
+                            {tab.badge > 99 ? "99+" : tab.badge}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-sm font-medium mb-1 text-center">
+                        {tab.label}
                       </span>
-                    )}
-                  </div>
-                  <span className="text-xs font-medium mb-1 text-center">
-                    {tab.label}
-                  </span>
-                  <span className="text-[10px] opacity-70 text-center line-clamp-2 leading-tight">
-                    {tab.description}
-                  </span>
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
+                      <span className="text-xs opacity-70 text-center leading-tight">
+                        {tab.description}
+                      </span>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            </div>
+
+            {/* Content Management */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">
+                Content & Communication
+              </h3>
+              <TabsList className="grid grid-cols-3 gap-3 p-2 bg-white border border-gray-200 rounded-lg shadow-sm h-auto">
+                {tabConfig.slice(4, 7).map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <TabsTrigger
+                      key={tab.value}
+                      value={tab.value}
+                      className="flex flex-col items-center justify-center p-4 h-auto data-[state=active]:bg-book-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg hover:bg-gray-50 data-[state=active]:hover:bg-book-700 group"
+                    >
+                      <div className="relative mb-2">
+                        <Icon
+                          className={`h-6 w-6 ${tab.color} group-data-[state=active]:text-white transition-colors`}
+                        />
+                        {tab.badge && tab.badge > 0 && (
+                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] h-4 flex items-center justify-center">
+                            {tab.badge > 99 ? "99+" : tab.badge}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-sm font-medium mb-1 text-center">
+                        {tab.label}
+                      </span>
+                      <span className="text-xs opacity-70 text-center leading-tight">
+                        {tab.description}
+                      </span>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            </div>
+
+            {/* Developer Tools */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">
+                Developer Tools & Maintenance
+              </h3>
+              <TabsList className="grid grid-cols-4 gap-3 p-2 bg-white border border-gray-200 rounded-lg shadow-sm h-auto">
+                {tabConfig.slice(7).map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <TabsTrigger
+                      key={tab.value}
+                      value={tab.value}
+                      className="flex flex-col items-center justify-center p-4 h-auto data-[state=active]:bg-book-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg hover:bg-gray-50 data-[state=active]:hover:bg-book-700 group"
+                    >
+                      <div className="relative mb-2">
+                        <Icon
+                          className={`h-6 w-6 ${tab.color} group-data-[state=active]:text-white transition-colors`}
+                        />
+                        {tab.badge && tab.badge > 0 && (
+                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] h-4 flex items-center justify-center">
+                            {tab.badge > 99 ? "99+" : tab.badge}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-sm font-medium mb-1 text-center">
+                        {tab.label}
+                      </span>
+                      <span className="text-xs opacity-70 text-center leading-tight">
+                        {tab.description}
+                      </span>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            </div>
+          </div>
         )}
 
         {/* Tab Content with improved styling */}
