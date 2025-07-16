@@ -73,12 +73,16 @@ console.error = (...args: any[]) => {
 // Handle unhandled promise rejections from network errors
 window.onunhandledrejection = (event: PromiseRejectionEvent) => {
   const message = event.reason?.message || event.reason?.toString() || "";
+  const stack = event.reason?.stack || "";
 
-  if (shouldSuppressError(message)) {
+  if (shouldSuppressError(message) || shouldSuppressError(stack)) {
     // Suppress the error
     event.preventDefault();
     if (import.meta.env.DEV) {
-      console.debug("[Suppressed Network Rejection]:", message);
+      console.debug("[Suppressed Network Rejection]:", {
+        message,
+        stack: stack.substring(0, 200),
+      });
     }
     return;
   }
