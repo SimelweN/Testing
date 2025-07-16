@@ -57,6 +57,7 @@ import FAQ from "./pages/FAQ";
 import APSDemo from "./pages/APSDemo";
 import SellerProfile from "./pages/SellerProfile";
 import BankingSetup from "./pages/BankingSetup";
+import FunctionTesting from "./pages/FunctionTesting";
 import "./App.css";
 
 // Create query client
