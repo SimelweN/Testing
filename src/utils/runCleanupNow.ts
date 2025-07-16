@@ -8,9 +8,12 @@ export const runCleanupNow = async () => {
 
   try {
     // 1. Reset all books to available
-    const { error: booksError } = await supabase.from("books").update({
-      sold: false,
-    });
+    const { error: booksError } = await supabase
+      .from("books")
+      .update({
+        sold: false,
+      })
+      .not("id", "is", null);
 
     if (booksError) {
       console.error("Error resetting books:", booksError.message || booksError);
