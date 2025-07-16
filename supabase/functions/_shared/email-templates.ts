@@ -519,3 +519,337 @@ noreply@rebookedsolutions.co.za
 
   return { html, text };
 }
+
+function renderOrderCommittedBuyerTemplate(data: TemplateData): {
+  html: string;
+  text: string;
+} {
+  const { buyer_name, order_id, seller_name, book_titles, estimated_delivery } =
+    data;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Order Confirmed - Preparing for Delivery</title>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
+        .info-box { background: white; border: 2px solid #2d6e55; padding: 15px; border-radius: 5px; margin: 15px 0; }
+        .emoji { font-size: 18px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1><span class="emoji">🎉</span> Order Confirmed!</h1>
+        </div>
+        <div class="content">
+          <h2>Great news, ${buyer_name}!</h2>
+          <p><strong>${seller_name}</strong> has confirmed your order and is preparing your book(s) for delivery.</p>
+
+          <div class="info-box">
+            <h3><span class="emoji">📚</span> Order Details</h3>
+            <p><strong>Order ID:</strong> ${order_id}</p>
+            <p><strong>Book(s):</strong> ${book_titles}</p>
+            <p><strong>Seller:</strong> ${seller_name}</p>
+            <p><strong>Estimated Delivery:</strong> ${estimated_delivery}</p>
+          </div>
+
+          <p>We'll keep you updated throughout the delivery process!</p>
+
+          <p>Happy reading! <span class="emoji">📖</span></p>
+          <p><strong>ReBooked Solutions Team</strong></p>
+        </div>
+        <div class="footer">
+          <p>ReBooked Solutions | noreply@rebookedsolutions.co.za</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+Order Confirmed!
+
+Great news, ${buyer_name}!
+
+${seller_name} has confirmed your order and is preparing your book(s) for delivery.
+
+Order Details:
+- Order ID: ${order_id}
+- Book(s): ${book_titles}
+- Seller: ${seller_name}
+- Estimated Delivery: ${estimated_delivery}
+
+We'll keep you updated throughout the delivery process!
+
+Happy reading!
+ReBooked Solutions Team
+  `;
+
+  return { html, text };
+}
+
+function renderOrderCommittedSellerTemplate(data: TemplateData): {
+  html: string;
+  text: string;
+} {
+  const {
+    seller_name,
+    order_id,
+    buyer_name,
+    book_titles,
+    pickup_instructions,
+  } = data;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Order Commitment Confirmed - Prepare for Pickup</title>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
+        .info-box { background: white; border: 2px solid #2d6e55; padding: 15px; border-radius: 5px; margin: 15px 0; }
+        .steps { background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 15px 0; }
+        .emoji { font-size: 18px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1><span class="emoji">✅</span> Order Commitment Confirmed!</h1>
+        </div>
+        <div class="content">
+          <h2>Thank you, ${seller_name}!</h2>
+          <p>You've successfully committed to sell your book(s). The buyer has been notified and pickup has been scheduled.</p>
+
+          <div class="info-box">
+            <h3><span class="emoji">📋</span> Order Details</h3>
+            <p><strong>Order ID:</strong> ${order_id}</p>
+            <p><strong>Book(s):</strong> ${book_titles}</p>
+            <p><strong>Buyer:</strong> ${buyer_name}</p>
+          </div>
+
+          <div class="steps">
+            <h3><span class="emoji">📦</span> Next Steps</h3>
+            <p>${pickup_instructions}</p>
+          </div>
+
+          <p>Thank you for selling with ReBooked Solutions! <span class="emoji">📚</span></p>
+          <p><strong>ReBooked Solutions Team</strong></p>
+        </div>
+        <div class="footer">
+          <p>ReBooked Solutions | noreply@rebookedsolutions.co.za</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+Order Commitment Confirmed!
+
+Thank you, ${seller_name}!
+
+You've successfully committed to sell your book(s). The buyer has been notified and pickup has been scheduled.
+
+Order Details:
+- Order ID: ${order_id}
+- Book(s): ${book_titles}
+- Buyer: ${buyer_name}
+
+${pickup_instructions}
+
+Thank you for selling with ReBooked Solutions!
+ReBooked Solutions Team
+  `;
+
+  return { html, text };
+}
+
+function renderSellerNewOrderTemplate(data: TemplateData): {
+  html: string;
+  text: string;
+} {
+  const {
+    sellerName,
+    buyerName,
+    orderId,
+    items,
+    totalAmount,
+    expiresAt,
+    commitUrl,
+  } = data;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>New Order - Action Required</title>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
+        .info-box { background: white; border: 2px solid #2d6e55; padding: 15px; border-radius: 5px; margin: 15px 0; }
+        .btn { background: #2d6e55; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .emoji { font-size: 18px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1><span class="emoji">📚</span> New Order - Action Required!</h1>
+        </div>
+        <div class="content">
+          <h2>Hi ${sellerName}!</h2>
+          <p>Great news! You have a new order from <strong>${buyerName}</strong>.</p>
+
+          <div class="info-box">
+            <h3><span class="emoji">📋</span> Order Details</h3>
+            <p><strong>Order ID:</strong> ${orderId}</p>
+            <p><strong>Buyer:</strong> ${buyerName}</p>
+            <p><strong>Total Amount:</strong> R${totalAmount}</p>
+          </div>
+
+          <div class="warning">
+            <h3><span class="emoji">⏰</span> Action Required Within 48 Hours</h3>
+            <p><strong>Expires:</strong> ${new Date(expiresAt).toLocaleString()}</p>
+            <p>You must commit to this order within 48 hours or it will be automatically cancelled.</p>
+          </div>
+
+          <p>Once you commit, we'll arrange pickup and you'll be paid after delivery!</p>
+
+          <p><strong>ReBooked Solutions Team</strong></p>
+        </div>
+        <div class="footer">
+          <p>ReBooked Solutions | noreply@rebookedsolutions.co.za</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+New Order - Action Required!
+
+Hi ${sellerName}!
+
+Great news! You have a new order from ${buyerName}.
+
+Order Details:
+- Order ID: ${orderId}
+- Buyer: ${buyerName}
+- Total Amount: R${totalAmount}
+
+⏰ Action Required Within 48 Hours
+Expires: ${new Date(expiresAt).toLocaleString()}
+
+You must commit to this order within 48 hours or it will be automatically cancelled.
+
+Once you commit, we'll arrange pickup and you'll be paid after delivery!
+
+ReBooked Solutions Team
+  `;
+
+  return { html, text };
+}
+
+function renderBuyerOrderPendingTemplate(data: TemplateData): {
+  html: string;
+  text: string;
+} {
+  const { buyerName, sellerName, orderId, items, totalAmount, statusUrl } =
+    data;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Order Confirmed - Awaiting Seller Response</title>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
+        .info-box { background: white; border: 2px solid #2d6e55; padding: 15px; border-radius: 5px; margin: 15px 0; }
+        .btn { background: #2d6e55; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0; }
+        .emoji { font-size: 18px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1><span class="emoji">🎉</span> Order Confirmed!</h1>
+        </div>
+        <div class="content">
+          <h2>Thank you, ${buyerName}!</h2>
+          <p>Your order has been confirmed and <strong>${sellerName}</strong> has been notified.</p>
+
+          <div class="info-box">
+            <h3><span class="emoji">📋</span> Order Details</h3>
+            <p><strong>Order ID:</strong> ${orderId}</p>
+            <p><strong>Seller:</strong> ${sellerName}</p>
+            <p><strong>Total Amount:</strong> R${totalAmount}</p>
+          </div>
+
+          <h3><span class="emoji">📦</span> What happens next?</h3>
+          <ul>
+            <li>The seller has 48 hours to commit to your order</li>
+            <li>Once committed, we'll arrange pickup and delivery</li>
+            <li>You'll receive tracking information via email</li>
+            <li>Your book(s) will be delivered within 2-3 business days</li>
+          </ul>
+
+          <p>We'll notify you as soon as the seller confirms your order!</p>
+
+          <p><strong>ReBooked Solutions Team</strong></p>
+        </div>
+        <div class="footer">
+          <p>ReBooked Solutions | noreply@rebookedsolutions.co.za</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+Order Confirmed!
+
+Thank you, ${buyerName}!
+
+Your order has been confirmed and ${sellerName} has been notified.
+
+Order Details:
+- Order ID: ${orderId}
+- Seller: ${sellerName}
+- Total Amount: R${totalAmount}
+
+What happens next?
+- The seller has 48 hours to commit to your order
+- Once committed, we'll arrange pickup and delivery
+- You'll receive tracking information via email
+- Your book(s) will be delivered within 2-3 business days
+
+We'll notify you as soon as the seller confirms your order!
+
+ReBooked Solutions Team
+  `;
+
+  return { html, text };
+}
