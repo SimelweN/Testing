@@ -45,6 +45,12 @@ const UniversityProfile: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("programs");
+
+  // Optimized tab change handler
+  const handleTabChange = useCallback((value: string) => {
+    // Immediate state update for instant visual feedback
+    setActiveTab(value);
+  }, []);
   const [selectedProgram, setSelectedProgram] = useState<Degree | null>(null);
   const [isProgramModalOpen, setIsProgramModalOpen] = useState(false);
   const [showEligibleOnly, setShowEligibleOnly] = useState(false);
