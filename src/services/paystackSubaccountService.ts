@@ -307,14 +307,23 @@ export class PaystackSubaccountService {
     email?: string;
   }> {
     try {
+      console.log("🔍 getUserSubaccountStatus: Starting check...", { userId });
+
       if (!userId) {
+        console.log(
+          "📝 getUserSubaccountStatus: No userId provided, getting from auth...",
+        );
         const {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user) {
+          console.log(
+            "❌ getUserSubaccountStatus: No authenticated user found",
+          );
           return { hasSubaccount: false, canEdit: false };
         }
         userId = user.id;
+        console.log("✅ getUserSubaccountStatus: Got user from auth:", userId);
       }
 
       // First, check the profile table for subaccount_code
