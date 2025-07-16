@@ -342,14 +342,14 @@ const UniversityInfo = () => {
           {/* Call to Action */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto">
             <Button
-              onClick={() => handleTabChange("aps-calculator")}
+              onClick={() => throttledTabChange("aps-calculator")}
               className="w-full sm:w-auto bg-book-600 hover:bg-book-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
             >
               <Calculator className="w-4 h-4 mr-2" />
               Calculate APS Score
             </Button>
             <Button
-              onClick={() => handleTabChange("bursaries")}
+              onClick={() => throttledTabChange("bursaries")}
               variant="outline"
               className="w-full sm:w-auto border-book-300 text-book-700 hover:bg-book-50 px-6 py-3 rounded-lg font-semibold transition-colors"
             >
@@ -539,7 +539,7 @@ const UniversityInfo = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold mb-2">
-              🇿���� South African Public Universities – 2025 Application Info
+              🇿🇦 South African Public Universities – 2025 Application Info
             </h2>
             <p className="text-gray-600">
               Complete application information for all{" "}
