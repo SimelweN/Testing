@@ -276,6 +276,7 @@ serve(async (req) => {
       const { data: subaccountData, error: subaccountError } = await supabase
         .from("banking_subaccounts")
         .insert({
+          user_id: user.id,
           business_name,
           email,
           bank_name,
