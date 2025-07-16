@@ -112,7 +112,7 @@ serve(async (req) => {
     await supabase
       .from("books")
       .update({
-        reserved_until: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes
+        reserved_until: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 minutes
         reserved_by: user_id,
       })
       .eq("id", book_id);
