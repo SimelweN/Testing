@@ -202,26 +202,36 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
   };
 
   const validateForm = () => {
-    if (!formData.businessName.trim()) {
-      toast.error("Business name is required");
+    // Clean and validate business name
+    const businessName = formData.businessName?.trim();
+    if (!businessName || businessName.length < 2) {
+      toast.error("Business name must be at least 2 characters long");
       return false;
     }
 
-    if (!formData.email.includes("@")) {
+    // Validate email format more thoroughly
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email || !emailRegex.test(formData.email.trim())) {
       toast.error("Please enter a valid email address");
       return false;
     }
 
-    if (!formData.bankName) {
+    // Validate bank selection
+    if (!formData.bankName || formData.bankName.trim() === "") {
       toast.error("Please select a bank");
       return false;
     }
 
-    if (
-      formData.accountNumber.length < 9 ||
-      formData.accountNumber.length > 11
-    ) {
-      toast.error("Account number must be between 9-11 digits");
+    // Validate account number (South African banks typically use 9-11 digits)
+    const accountNumber = formData.accountNumber.replace(/\D/g, "");
+    if (accountNumber.length < 8 || accountNumber.length > 12) {
+      toast.error("Account number must be between 8-12 digits");
+      return false;
+    }
+
+    // Validate branch code
+    if (!branchCode || branchCode.trim() === "") {
+      toast.error("Bank branch code is missing. Please reselect your bank.");
       return false;
     }
 
