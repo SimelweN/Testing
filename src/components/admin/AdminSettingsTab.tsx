@@ -23,6 +23,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Settings, MessageSquare, Megaphone, Trash2 } from "lucide-react";
 import EdgeFunctionTestButton from "@/components/EdgeFunctionTestButton";
+import SupabaseFunctionTester from "@/components/admin/SupabaseFunctionTester";
 import { runBankingCleanup } from "@/utils/cleanupDevelopmentBanking";
 
 interface AdminSettingsTabProps {
@@ -333,6 +334,8 @@ const AdminSettingsTab = ({
       </Card>
 
       <EdgeFunctionTestButton />
+
+      <SupabaseFunctionTester />
 
       <Card>
         <CardHeader>
