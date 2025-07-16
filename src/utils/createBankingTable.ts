@@ -106,7 +106,7 @@ export async function testBankingSetup(): Promise<{
     // Test 3: Check profile for subaccount code
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("subaccount_code, banking_verified")
+      .select("subaccount_code")
       .eq("id", user.id)
       .single();
 
@@ -123,7 +123,7 @@ export async function testBankingSetup(): Promise<{
       userId: user.id,
       existingBanking,
       profileSubaccountCode: profile?.subaccount_code,
-      bankingVerified: profile?.banking_verified,
+      hasSubaccount: !!profile?.subaccount_code,
       tableExists: true,
     };
 
