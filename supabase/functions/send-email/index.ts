@@ -15,6 +15,7 @@ import {
   createRateLimitKey,
 } from "../_shared/email-utils.ts";
 import { renderTemplate } from "../_shared/email-templates.ts";
+import { isDevelopmentMode, createMockResponse } from "../_shared/dev-mode.ts";
 
 // In-memory rate limiting (in production, use Redis or similar)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -52,6 +53,20 @@ function getEmailConfig(): EmailConfig {
     '"ReBooked Solutions" <noreply@rebookedsolutions.co.za>';
 
   if (!smtpKey) {
+    if (isDevelopmentMode()) {
+      // In development mode, provide mock config
+      return {
+        host: "mock-smtp.example.com",
+        port: 587,
+        secure: false,
+        auth: {
+          user: "mock-user",
+          pass: "mock-pass",
+        },
+        defaultFrom,
+        mock: true,
+      };
+    }
     throw new Error("BREVO_SMTP_KEY environment variable is required");
   }
 
@@ -68,6 +83,25 @@ function getEmailConfig(): EmailConfig {
 }
 
 async function createTransporter(config: EmailConfig) {
+  // Return mock transporter in development mode
+  if (config.mock) {
+    return {
+      sendMail: async (mailOptions: any) => {
+        logEmailEvent("sent", {
+          message: "Mock email sent",
+          to: mailOptions.to,
+        });
+        return {
+          messageId: "mock-message-id-" + Date.now(),
+          accepted: [mailOptions.to],
+          rejected: [],
+          response: "250 Mock message accepted",
+        };
+      },
+      verify: async () => true,
+    };
+  }
+
   const transporter = nodemailer.createTransport({
     host: config.host,
     port: config.port,
