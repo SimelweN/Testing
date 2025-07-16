@@ -1,17 +1,55 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
-
-const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+import {
+  createSupabaseClient,
+  createErrorResponse,
+  createSuccessResponse,
+  handleCORSPreflight,
+  validateRequiredFields,
+  parseRequestBody,
+  logFunction,
+} from "../_shared/utils.ts";
+import { isDevelopmentMode, createMockResponse } from "../_shared/dev-mode.ts";
+import {
+  validatePaystackConfig,
+  validateSupabaseConfig,
+  ENV,
+} from "../_shared/config.ts";
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  // Handle CORS preflight requests
+  const corsResponse = handleCORSPreflight(req);
+  if (corsResponse) return corsResponse;
 
   try {
+    logFunction(
+      "initialize-paystack-payment",
+      "Starting payment initialization",
+    );
+
+    // Check credentials and return mock response if in development mode
+    if (!ENV.PAYSTACK_SECRET_KEY) {
+      if (isDevelopmentMode()) {
+        logFunction(
+          "initialize-paystack-payment",
+          "Using mock response (no Paystack key)",
+        );
+        const mockResponse = createMockResponse("paystack", "payment");
+        return createSuccessResponse(mockResponse);
+      } else {
+        return createErrorResponse("Paystack credentials not configured", 500);
+      }
+    }
+
+    validateSupabaseConfig();
+
+    const requestData = await parseRequestBody(req);
+    validateRequiredFields(requestData, [
+      "user_id",
+      "items",
+      "total_amount",
+      "email",
+    ]);
+
     const {
       user_id,
       items,
@@ -19,22 +57,9 @@ serve(async (req) => {
       shipping_address,
       email,
       metadata = {},
-    } = await req.json();
+    } = requestData;
 
-    if (!user_id || !items || !total_amount || !email) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Missing required fields",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = createSupabaseClient();
 
     // Get seller information for split payments
     const sellerIds = [...new Set(items.map((item: any) => item.seller_id))];
