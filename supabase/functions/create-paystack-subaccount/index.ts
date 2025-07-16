@@ -1,11 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import {
+  createSupabaseClient,
+  createErrorResponse,
+  createSuccessResponse,
+  handleCORSPreflight,
+  logFunction,
+} from "../_shared/utils.ts";
+import { isDevelopmentMode, createMockResponse } from "../_shared/dev-mode.ts";
+import { ENV } from "../_shared/config.ts";
 
 // Helper function to get user from request
 async function getUserFromRequest(req: Request) {
@@ -35,12 +38,25 @@ async function getUserFromRequest(req: Request) {
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResponse = handleCORSPreflight(req);
+  if (corsResponse) return corsResponse;
 
   try {
-    console.log("=== Paystack Subaccount Creation Request ===");
+    logFunction("create-paystack-subaccount", "Starting subaccount creation");
+
+    // Check if Paystack credentials are available
+    if (!ENV.PAYSTACK_SECRET_KEY) {
+      if (isDevelopmentMode()) {
+        logFunction(
+          "create-paystack-subaccount",
+          "Using mock response (no Paystack key)",
+        );
+        const mockResponse = createMockResponse("paystack", "subaccount");
+        return createSuccessResponse(mockResponse);
+      } else {
+        return createErrorResponse("Paystack credentials not configured", 500);
+      }
+    }
 
     // Step 1: Authenticate the user
     const user = await getUserFromRequest(req);
