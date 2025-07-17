@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { PAYSTACK_CONFIG } from "@/config/paystack";
+import { validateAddress } from "@/services/addressValidationService";
 import type {
   BankingDetails,
   BankingSubaccount,
@@ -291,9 +292,11 @@ export class BankingService {
     userId: string,
   ): Promise<SellerRequirements> {
     try {
-      // Check banking setup
+      // Check banking setup - must have banking details AND subaccount code
       const bankingDetails = await this.getUserBankingDetails(userId);
-      const hasBankingSetup = !!bankingDetails;
+      const hasBankingSetup = !!(
+        bankingDetails && bankingDetails.subaccount_code
+      );
 
       // Check pickup address (from user profile)
       const { data: profile } = await supabase
@@ -302,7 +305,10 @@ export class BankingService {
         .eq("id", userId)
         .single();
 
-      const hasPickupAddress = !!profile?.pickup_address;
+      // Properly validate address using validateAddress function
+      const hasPickupAddress = profile?.pickup_address
+        ? validateAddress(profile.pickup_address)
+        : false;
 
       // Check active books
       const { data: books } = await supabase
