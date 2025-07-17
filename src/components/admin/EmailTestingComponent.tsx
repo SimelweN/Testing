@@ -3,13 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Card,
   CardContent,
   CardHeader,
@@ -33,105 +26,13 @@ interface EmailTestResult {
 const EmailTestingComponent = () => {
   const [testEmail, setTestEmail] = useState({
     to: "",
-    subject: "",
-    template: "",
-    customData: "",
+    subject: "✅ Test Email - ReBooked Solutions",
     htmlContent: "",
     textContent: "",
   });
 
   const [isSending, setIsSending] = useState(false);
   const [lastResult, setLastResult] = useState<EmailTestResult | null>(null);
-
-  // Available email templates with sample data
-  const templates = [
-    {
-      name: "welcome",
-      label: "Welcome Email",
-      sampleData: {
-        userName: "Test User",
-        loginUrl: "https://example.com/login",
-      },
-    },
-    {
-      name: "order-confirmation",
-      label: "Order Confirmation",
-      sampleData: {
-        orderNumber: "ORD_TEST123",
-        customerName: "Test Customer",
-        items: [{ name: "Sample Book", quantity: 1, price: 100 }],
-        total: 100,
-        estimatedDelivery: "2-3 business days",
-      },
-    },
-    {
-      name: "order-committed-buyer",
-      label: "Order Committed (Buyer)",
-      sampleData: {
-        buyer_name: "Test Buyer",
-        order_id: "ORD_TEST123",
-        seller_name: "Test Seller",
-        book_titles: "Sample Textbook",
-        estimated_delivery: "2-3 business days",
-      },
-    },
-    {
-      name: "order-committed-seller",
-      label: "Order Committed (Seller)",
-      sampleData: {
-        seller_name: "Test Seller",
-        order_id: "ORD_TEST123",
-        buyer_name: "Test Buyer",
-        book_titles: "Sample Textbook",
-        pickup_instructions:
-          "A courier will contact you within 24 hours to arrange pickup",
-      },
-    },
-    {
-      name: "seller-new-order",
-      label: "New Order (Seller)",
-      sampleData: {
-        sellerName: "Test Seller",
-        buyerName: "Test Buyer",
-        orderId: "ORD_TEST123",
-        items: [{ title: "Sample Book", price: 100 }],
-        totalAmount: 100,
-        expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
-        commitUrl: "https://example.com/activity",
-      },
-    },
-    {
-      name: "buyer-order-pending",
-      label: "Order Pending (Buyer)",
-      sampleData: {
-        buyerName: "Test Buyer",
-        sellerName: "Test Seller",
-        orderId: "ORD_TEST123",
-        items: [{ title: "Sample Book", price: 100 }],
-        totalAmount: 100,
-        statusUrl: "https://example.com/activity",
-      },
-    },
-    {
-      name: "password-reset",
-      label: "Password Reset",
-      sampleData: {
-        userName: "Test User",
-        resetUrl: "https://example.com/reset-password?token=test123",
-        expiryTime: "1 hour",
-      },
-    },
-  ];
-
-  const handleTemplateChange = (templateName: string) => {
-    const template = templates.find((t) => t.name === templateName);
-    setTestEmail((prev) => ({
-      ...prev,
-      template: templateName === "custom" ? "" : templateName,
-      customData: template ? JSON.stringify(template.sampleData, null, 2) : "",
-      subject: template ? `Test ${template.label}` : "",
-    }));
-  };
 
   const testConnection = async () => {
     try {
@@ -222,6 +123,101 @@ const EmailTestingComponent = () => {
     }
   };
 
+  const loadDefaultHTML = () => {
+    setTestEmail((prev) => ({
+      ...prev,
+      htmlContent: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test Email - ReBooked Solutions</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3fef7;
+      padding: 20px;
+      color: #1f4e3d;
+      margin: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      background-color: #3ab26f;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .link {
+      color: #3ab26f;
+    }
+    .header {
+      background: #3ab26f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+      margin: -30px -30px 20px -30px;
+    }
+    .footer {
+      background: #f3fef7;
+      color: #1f4e3d;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 30px -30px -30px -30px;
+      border-radius: 0 0 10px 10px;
+      border-top: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>✅ Test Email</h1>
+    </div>
+
+    <h2>Test Email Success!</h2>
+    <p>This is a test email from ReBooked Solutions admin panel with proper styling.</p>
+
+    <p>If you're seeing this with beautiful green styling, your email system is working correctly!</p>
+
+    <div class="footer">
+      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.</p>
+      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
+      <p>T&Cs apply.</p>
+      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+    </div>
+  </div>
+</body>
+</html>`,
+      textContent: `Test Email Success!
+
+This is a test email from ReBooked Solutions admin panel with proper styling.
+
+If you're receiving this, your email system is working correctly!
+
+ReBooked Solutions
+This is an automated message from ReBooked Solutions.
+For assistance, contact: support@rebookedsolutions.co.za
+Visit us at: https://rebookedsolutions.co.za
+T&Cs apply.
+"Pre-Loved Pages, New Adventures"`,
+    }));
+  };
+
   const sendTestEmail = async () => {
     if (!testEmail.to || !testEmail.subject) {
       toast.error("Please provide email address and subject");
@@ -254,54 +250,18 @@ const EmailTestingComponent = () => {
         subject: testEmail.subject,
       };
 
-      // Template system is deprecated - throw error if template is selected
-      if (testEmail.template) {
-        toast.error(
-          "Template system is deprecated. Please use direct HTML content instead.",
-        );
+      // Use direct HTML/text content
+      if (testEmail.htmlContent) {
+        emailPayload.html = testEmail.htmlContent;
+      }
+      if (testEmail.textContent) {
+        emailPayload.text = testEmail.textContent;
+      }
+
+      if (!testEmail.htmlContent && !testEmail.textContent) {
+        toast.error("Please provide either HTML content or text content");
+        setIsSending(false);
         return;
-      } else {
-        // Use custom HTML/text content
-        if (testEmail.htmlContent) {
-          emailPayload.html = testEmail.htmlContent;
-        }
-        if (testEmail.textContent) {
-          emailPayload.text = testEmail.textContent;
-        }
-
-        if (!testEmail.htmlContent && !testEmail.textContent) {
-          emailPayload.html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Test Email - ReBooked Solutions</title>
-</head>
-<body style="font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; margin: 0;">
-  <div style="max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
-    <div style="background: #3ab26f; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px;">
-      <h1 style="margin: 0; font-size: 24px;">✅ Test Email</h1>
-    </div>
-
-    <h2 style="color: #1f4e3d; font-size: 20px; margin: 0 0 15px 0;">Test Email Success!</h2>
-    <p style="color: #1f4e3d; line-height: 1.6; margin: 15px 0;">This is a test email from ReBooked Solutions admin panel with proper styling.</p>
-
-    <p style="color: #1f4e3d; line-height: 1.6; margin: 15px 0;">If you're seeing this with beautiful green styling, your email system is working correctly!</p>
-
-    <div style="background: #f3fef7; color: #1f4e3d; padding: 20px; text-align: center; font-size: 12px; line-height: 1.5; margin: 30px -30px -30px -30px; border-radius: 0 0 10px 10px; border-top: 1px solid #e5e7eb;">
-      <p style="margin: 0 0 10px 0;"><strong>This is an automated message from ReBooked Solutions.</strong><br>
-      Please do not reply to this email.</p>
-      <p style="margin: 10px 0;">For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" style="color: #3ab26f; text-decoration: none;">support@rebookedsolutions.co.za</a><br>
-      Visit us at: <a href="https://rebookedsolutions.co.za" style="color: #3ab26f; text-decoration: none;">https://rebookedsolutions.co.za</a></p>
-      <p style="margin: 10px 0;">T&Cs apply.</p>
-      <p style="margin: 10px 0 0 0;"><em>"Pre-Loved Pages, New Adventures"</em></p>
-    </div>
-  </div>
-</body>
-</html>`;
-          emailPayload.text =
-            "Test Email Success!\n\nThis is a test email from ReBooked Solutions admin panel with proper styling.\n\nIf you're receiving this, your email system is working correctly!\n\nReBooked Solutions\nThis is an automated message from ReBooked Solutions.";
-        }
       }
 
       console.log("Sending test email with payload:", emailPayload);
@@ -382,11 +342,11 @@ const EmailTestingComponent = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Mail className="h-5 w-5" />
-          Email Testing
+          Direct HTML Email Testing
         </CardTitle>
         <CardDescription>
-          Test email templates and send test emails to verify email
-          functionality
+          Test emails using direct HTML content with proper ReBooked Solutions
+          styling
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -417,76 +377,42 @@ const EmailTestingComponent = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email-template">Email Template (Optional)</Label>
-          <Select
-            value={testEmail.template || "custom"}
-            onValueChange={handleTemplateChange}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a template or use custom content" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="custom">Custom Content</SelectItem>
-              {templates.map((template) => (
-                <SelectItem key={template.name} value={template.name}>
-                  {template.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="html-content">HTML Content</Label>
+            <Button onClick={loadDefaultHTML} variant="outline" size="sm">
+              Load Default Template
+            </Button>
+          </div>
+          <Textarea
+            id="html-content"
+            placeholder="<html><body>Your HTML email content here</body></html>"
+            value={testEmail.htmlContent}
+            onChange={(e) =>
+              setTestEmail((prev) => ({
+                ...prev,
+                htmlContent: e.target.value,
+              }))
+            }
+            rows={12}
+            className="font-mono text-sm"
+          />
         </div>
 
-        {testEmail.template ? (
-          <div className="space-y-2">
-            <Label htmlFor="template-data">Template Data (JSON)</Label>
-            <Textarea
-              id="template-data"
-              placeholder="Template data in JSON format"
-              value={testEmail.customData}
-              onChange={(e) =>
-                setTestEmail((prev) => ({
-                  ...prev,
-                  customData: e.target.value,
-                }))
-              }
-              rows={8}
-              className="font-mono text-sm"
-            />
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="html-content">HTML Content (Optional)</Label>
-              <Textarea
-                id="html-content"
-                placeholder="<p>Your HTML email content here</p>"
-                value={testEmail.htmlContent}
-                onChange={(e) =>
-                  setTestEmail((prev) => ({
-                    ...prev,
-                    htmlContent: e.target.value,
-                  }))
-                }
-                rows={4}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="text-content">Text Content (Optional)</Label>
-              <Textarea
-                id="text-content"
-                placeholder="Your plain text email content here"
-                value={testEmail.textContent}
-                onChange={(e) =>
-                  setTestEmail((prev) => ({
-                    ...prev,
-                    textContent: e.target.value,
-                  }))
-                }
-                rows={3}
-              />
-            </div>
-          </div>
-        )}
+        <div className="space-y-2">
+          <Label htmlFor="text-content">Text Content (Optional)</Label>
+          <Textarea
+            id="text-content"
+            placeholder="Your plain text email content here"
+            value={testEmail.textContent}
+            onChange={(e) =>
+              setTestEmail((prev) => ({
+                ...prev,
+                textContent: e.target.value,
+              }))
+            }
+            rows={4}
+          />
+        </div>
 
         <div className="space-y-2">
           <Button
@@ -558,17 +484,16 @@ const EmailTestingComponent = () => {
           </Alert>
         )}
 
-        <div className="text-sm text-gray-600 space-y-1">
-          <p>
-            <strong>Available Templates:</strong>
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-            {templates.map((template) => (
-              <Badge key={template.name} variant="outline" className="text-xs">
-                {template.label}
-              </Badge>
-            ))}
-          </div>
+        <div className="bg-blue-50 p-4 rounded-lg">
+          <h4 className="font-medium mb-2">✅ Correct Email Styling:</h4>
+          <ul className="text-sm space-y-1 text-blue-800">
+            <li>• Light green background (#f3fef7)</li>
+            <li>• White container with rounded corners</li>
+            <li>• Green header and buttons (#3ab26f)</li>
+            <li>• Professional ReBooked Solutions footer</li>
+            <li>• "Pre-Loved Pages, New Adventures" signature</li>
+            <li>• NO raw CSS visible in email client</li>
+          </ul>
         </div>
       </CardContent>
     </Card>
