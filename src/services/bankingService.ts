@@ -292,9 +292,11 @@ export class BankingService {
     userId: string,
   ): Promise<SellerRequirements> {
     try {
-      // Check banking setup
+      // Check banking setup - must have banking details AND subaccount code
       const bankingDetails = await this.getUserBankingDetails(userId);
-      const hasBankingSetup = !!bankingDetails;
+      const hasBankingSetup = !!(
+        bankingDetails && bankingDetails.subaccount_code
+      );
 
       // Check pickup address (from user profile)
       const { data: profile } = await supabase
