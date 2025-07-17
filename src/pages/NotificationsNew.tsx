@@ -25,6 +25,8 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/hooks/useNotifications";
+import { getActiveBroadcasts } from "@/services/broadcastService";
 import { toast } from "sonner";
 
 interface NotificationCategory {
@@ -51,13 +53,55 @@ interface NotificationItem {
 
 const NotificationsNew = () => {
   const { user, profile } = useAuth();
+  const {
+    notifications,
+    unreadCount,
+    totalCount,
+    isLoading,
+    refreshNotifications,
+  } = useNotifications();
   const [isFirstTime, setIsFirstTime] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [broadcasts, setBroadcasts] = useState([]);
   const [notificationSettings, setNotificationSettings] = useState({
     commits: true,
     purchases: true,
     deliveries: true,
   });
+
+  // Convert database notifications to our category format
+  const categorizeNotifications = (dbNotifications: any[]) => {
+    const commitNotifications = dbNotifications.filter(
+      (n) =>
+        n.type === "commit" ||
+        n.title?.toLowerCase().includes("commit") ||
+        n.message?.toLowerCase().includes("commit"),
+    );
+
+    const purchaseNotifications = dbNotifications.filter(
+      (n) =>
+        n.type === "purchase" ||
+        n.type === "order" ||
+        n.title?.toLowerCase().includes("purchase") ||
+        n.title?.toLowerCase().includes("order"),
+    );
+
+    const deliveryNotifications = dbNotifications.filter(
+      (n) =>
+        n.type === "delivery" ||
+        n.type === "shipping" ||
+        n.title?.toLowerCase().includes("delivery") ||
+        n.title?.toLowerCase().includes("shipping"),
+    );
+
+    return {
+      commits: commitNotifications,
+      purchases: purchaseNotifications,
+      deliveries: deliveryNotifications,
+    };
+  };
+
+  const categorizedNotifications = categorizeNotifications(notifications);
 
   const [categories, setCategories] = useState<NotificationCategory[]>([
     {
@@ -107,7 +151,15 @@ const NotificationsNew = () => {
       icon: <Award className="h-5 w-5" />,
       color: "orange",
       enabled: notificationSettings.commits,
-      notifications: [],
+      notifications: categorizedNotifications.commits.map((n) => ({
+        id: n.id,
+        type: n.type || "commit",
+        title: n.title,
+        message: n.message,
+        timestamp: n.created_at || n.createdAt,
+        read: n.read,
+        priority: "medium" as const,
+      })),
     },
     {
       id: "purchases",
@@ -116,7 +168,15 @@ const NotificationsNew = () => {
       icon: <ShoppingCart className="h-5 w-5" />,
       color: "green",
       enabled: notificationSettings.purchases,
-      notifications: [],
+      notifications: categorizedNotifications.purchases.map((n) => ({
+        id: n.id,
+        type: n.type || "purchase",
+        title: n.title,
+        message: n.message,
+        timestamp: n.created_at || n.createdAt,
+        read: n.read,
+        priority: "medium" as const,
+      })),
     },
     {
       id: "deliveries",
@@ -125,9 +185,32 @@ const NotificationsNew = () => {
       icon: <Truck className="h-5 w-5" />,
       color: "blue",
       enabled: notificationSettings.deliveries,
-      notifications: [],
+      notifications: categorizedNotifications.deliveries.map((n) => ({
+        id: n.id,
+        type: n.type || "delivery",
+        title: n.title,
+        message: n.message,
+        timestamp: n.created_at || n.createdAt,
+        read: n.read,
+        priority: "medium" as const,
+      })),
     },
   ]);
+
+  // Load broadcasts on component mount
+  useEffect(() => {
+    const loadBroadcasts = async () => {
+      try {
+        const activeBroadcasts = await getActiveBroadcasts();
+        setBroadcasts(activeBroadcasts);
+        console.log("📢 Loaded broadcasts:", activeBroadcasts);
+      } catch (error) {
+        console.error("Failed to load broadcasts:", error);
+      }
+    };
+
+    loadBroadcasts();
+  }, []);
 
   // Check if this is a first-time user
   useEffect(() => {
@@ -152,6 +235,59 @@ const NotificationsNew = () => {
       }
     }
   }, [user, profile]);
+
+  // Update categories when notifications change
+  useEffect(() => {
+    const categorizedNotifications = categorizeNotifications(notifications);
+
+    setCategories((prev) =>
+      prev.map((category) => {
+        if (category.id === "commits") {
+          return {
+            ...category,
+            notifications: categorizedNotifications.commits.map((n) => ({
+              id: n.id,
+              type: n.type || "commit",
+              title: n.title,
+              message: n.message,
+              timestamp: n.created_at || n.createdAt,
+              read: n.read,
+              priority: "medium" as const,
+            })),
+          };
+        }
+        if (category.id === "purchases") {
+          return {
+            ...category,
+            notifications: categorizedNotifications.purchases.map((n) => ({
+              id: n.id,
+              type: n.type || "purchase",
+              title: n.title,
+              message: n.message,
+              timestamp: n.created_at || n.createdAt,
+              read: n.read,
+              priority: "medium" as const,
+            })),
+          };
+        }
+        if (category.id === "deliveries") {
+          return {
+            ...category,
+            notifications: categorizedNotifications.deliveries.map((n) => ({
+              id: n.id,
+              type: n.type || "delivery",
+              title: n.title,
+              message: n.message,
+              timestamp: n.created_at || n.createdAt,
+              read: n.read,
+              priority: "medium" as const,
+            })),
+          };
+        }
+        return category;
+      }),
+    );
+  }, [notifications]);
 
   const markWelcomeAsSeen = () => {
     if (user) {
@@ -245,16 +381,9 @@ const NotificationsNew = () => {
     );
   };
 
-  const totalNotifications = categories.reduce(
-    (total, category) => total + category.notifications.length,
-    0,
-  );
-
-  const unreadCount = categories.reduce(
-    (total, category) =>
-      total + category.notifications.filter((notif) => !notif.read).length,
-    0,
-  );
+  // Use real notification counts from the hook
+  const totalNotifications = totalCount;
+  const unreadNotifications = unreadCount;
 
   return (
     <Layout>
@@ -272,9 +401,14 @@ const NotificationsNew = () => {
               </p>
             </div>
           </div>
-          {unreadCount > 0 && (
+          {unreadNotifications > 0 && (
             <Badge className="bg-red-500 text-white self-start sm:self-auto">
-              {unreadCount} new
+              {unreadNotifications} new
+            </Badge>
+          )}
+          {isLoading && (
+            <Badge variant="outline" className="self-start sm:self-auto">
+              Loading...
             </Badge>
           )}
         </div>
@@ -314,6 +448,56 @@ const NotificationsNew = () => {
               </div>
             </AlertDescription>
           </Alert>
+        )}
+
+        {/* System Broadcasts */}
+        {broadcasts.length > 0 && (
+          <div className="mb-8 space-y-4">
+            {broadcasts.map((broadcast) => (
+              <Alert
+                key={broadcast.id}
+                className="border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50"
+              >
+                <MessageCircle className="h-5 w-5 text-blue-600" />
+                <AlertDescription>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-blue-900 mb-2">
+                        📢 {broadcast.title}
+                      </h3>
+                      <p className="text-blue-800 mb-3 whitespace-pre-line">
+                        {broadcast.message}
+                      </p>
+                      <div className="text-xs text-blue-600">
+                        {formatTimestamp(broadcast.createdAt)}
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setBroadcasts((prev) =>
+                          prev.filter((b) => b.id !== broadcast.id),
+                        );
+                        // Save dismissal to localStorage
+                        const dismissed = JSON.parse(
+                          localStorage.getItem("dismissedBroadcasts") || "[]",
+                        );
+                        dismissed.push(broadcast.id);
+                        localStorage.setItem(
+                          "dismissedBroadcasts",
+                          JSON.stringify(dismissed),
+                        );
+                      }}
+                      className="text-blue-600 hover:bg-blue-100"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            ))}
+          </div>
         )}
 
         {/* Notification Categories */}
