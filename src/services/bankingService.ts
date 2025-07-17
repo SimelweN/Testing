@@ -306,10 +306,20 @@ export class BankingService {
         .single();
 
       // Properly validate address using validateAddress function
-      // Handle JSONB to Address conversion
-      const hasPickupAddress = profile?.pickup_address
-        ? validateAddress(profile.pickup_address as any)
-        : false;
+      // Handle JSONB to Address conversion and validate structure
+      let hasPickupAddress = false;
+      if (profile?.pickup_address) {
+        const pickupAddr = profile.pickup_address as any;
+        // Basic validation of required fields
+        hasPickupAddress = !!(
+          pickupAddr &&
+          typeof pickupAddr === "object" &&
+          pickupAddr.streetAddress &&
+          pickupAddr.city &&
+          pickupAddr.province &&
+          pickupAddr.postalCode
+        );
+      }
 
       // Check active books
       const { data: books } = await supabase
