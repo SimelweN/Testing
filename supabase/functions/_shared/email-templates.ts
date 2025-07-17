@@ -100,6 +100,15 @@ const getEmailSignature = () => `
   </div>
 `;
 
+const getTextSignature = () => `
+
+This is an automated message from ReBooked Solutions. Please do not reply to this email.
+For assistance, contact: support@rebookedsolutions.co.za
+Visit us at: https://rebookedsolutions.co.za
+T&Cs apply.
+"Pre-Loved Pages, New Adventures"
+`;
+
 export function renderTemplate(
   templateName: EmailTemplateName,
   data: TemplateData,
@@ -161,7 +170,7 @@ function renderOrderConfirmationTemplate(data: TemplateData): {
     <head>
       <meta charset="utf-8">
       <title>Order Confirmation</title>
-            ${getEmailStyles()}
+      ${getEmailStyles()}
     </head>
     <body>
       <div class="container">
@@ -169,36 +178,34 @@ function renderOrderConfirmationTemplate(data: TemplateData): {
           <h1>Order Confirmed!</h1>
           <p>Thank you for your purchase, ${customerName}!</p>
         </div>
-        <div class="content">
-          <h2>Order #${orderNumber}</h2>
-          <p>Your order has been confirmed and is being processed.</p>
-          
-          <h3>Order Details:</h3>
-          ${
-            items
-              ?.map(
-                (item: any) => `
-            <div class="order-item">
-              <strong>${item.name}</strong><br>
-              Quantity: ${item.quantity} × R${item.price}<br>
-              Subtotal: R${(item.quantity * item.price).toFixed(2)}
-            </div>
-          `,
-              )
-              .join("") || ""
-          }
-          
-          <div class="total">
-            <p>Total: R${total}</p>
+        
+        <h2>Order #${orderNumber}</h2>
+        <p>Your order has been confirmed and is being processed.</p>
+        
+        <h3>Order Details:</h3>
+        ${
+          items
+            ?.map(
+              (item: any) => `
+          <div style="border-bottom: 1px solid #ddd; padding: 10px 0;">
+            <strong>${item.name}</strong><br>
+            Quantity: ${item.quantity} × R${item.price}<br>
+            Subtotal: R${(item.quantity * item.price).toFixed(2)}
           </div>
-          
-          ${estimatedDelivery ? `<p><strong>Estimated Delivery:</strong> ${estimatedDelivery}</p>` : ""}
-          
-          <p>We'll send you another email when your order ships with tracking information.</p>
+        `,
+            )
+            .join("") || ""
+        }
+        
+        <div class="total">
+          <p>Total: R${total}</p>
         </div>
-        <div class="footer">
-          <p>ReBooked Solutions | noreply@rebookedsolutions.co.za</p>
-        </div>
+        
+        ${estimatedDelivery ? `<p><strong>Estimated Delivery:</strong> ${estimatedDelivery}</p>` : ""}
+        
+        <p>We'll send you another email when your order ships with tracking information.</p>
+        
+        ${getEmailSignature()}
       </div>
     </body>
     </html>
@@ -222,8 +229,7 @@ ${estimatedDelivery ? `Estimated Delivery: ${estimatedDelivery}` : ""}
 
 We'll send you another email when your order ships with tracking information.
 
-ReBooked Solutions
-noreply@rebookedsolutions.co.za
+${getTextSignature()}
   `;
 
   return { html, text };
@@ -241,40 +247,31 @@ function renderWelcomeTemplate(data: TemplateData): {
     <head>
       <meta charset="utf-8">
       <title>Welcome to ReBooked Solutions</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: #f9f9f9; }
-        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
-        .btn { background: #2d6e55; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0; }
-      </style>
+      ${getEmailStyles()}
     </head>
     <body>
       <div class="container">
         <div class="header">
           <h1>Welcome to ReBooked Solutions!</h1>
         </div>
-        <div class="content">
-          <h2>Hello ${userName}!</h2>
-          <p>Welcome to ReBooked Solutions - your marketplace for buying and selling textbooks.</p>
-          
-          <p>Here's what you can do:</p>
-          <ul>
-            <li>Browse thousands of affordable textbooks</li>
-            <li>Sell your used textbooks to other students</li>
-            <li>Connect with students from universities across South Africa</li>
-            <li>Track your orders and manage your account</li>
-          </ul>
-          
-          <p>Ready to get started?</p>
-          ${loginUrl ? `<a href="${loginUrl}" class="btn">Login to Your Account</a>` : ""}
-          
-          <p>If you have any questions, feel free to contact our support team.</p>
-        </div>
-        <div class="footer">
-          <p>ReBooked Solutions | noreply@rebookedsolutions.co.za</p>
-        </div>
+        
+        <h2>Hello ${userName}!</h2>
+        <p>Welcome to ReBooked Solutions - your marketplace for buying and selling textbooks.</p>
+        
+        <p>Here's what you can do:</p>
+        <ul>
+          <li>Browse thousands of affordable textbooks</li>
+          <li>Sell your used textbooks to other students</li>
+          <li>Connect with students from universities across South Africa</li>
+          <li>Track your orders and manage your account</li>
+        </ul>
+        
+        <p>Ready to get started?</p>
+        ${loginUrl ? `<a href="${loginUrl}" class="btn">Login to Your Account</a>` : ""}
+        
+        <p>If you have any questions, feel free to contact our support team.</p>
+        
+        ${getEmailSignature()}
       </div>
     </body>
     </html>
@@ -297,8 +294,7 @@ ${loginUrl ? `Login to your account: ${loginUrl}` : ""}
 
 If you have any questions, feel free to contact our support team.
 
-ReBooked Solutions
-noreply@rebookedsolutions.co.za
+${getTextSignature()}
   `;
 
   return { html, text };
@@ -316,39 +312,29 @@ function renderPasswordResetTemplate(data: TemplateData): {
     <head>
       <meta charset="utf-8">
       <title>Password Reset Request</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: #f9f9f9; }
-        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
-        .btn { background: #2d6e55; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0; }
-        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin: 10px 0; }
-      </style>
+      ${getEmailStyles()}
     </head>
     <body>
       <div class="container">
         <div class="header">
           <h1>Password Reset Request</h1>
         </div>
-        <div class="content">
-          <h2>Hello ${userName}!</h2>
-          <p>We received a request to reset your password for your ReBooked Solutions account.</p>
-          
-          <p>If you requested this password reset, click the button below:</p>
-          <a href="${resetUrl}" class="btn">Reset Your Password</a>
-          
-          <div class="warning">
-            <p><strong>Important:</strong> This link will expire in ${expiryTime || "1 hour"}.</p>
-          </div>
-          
-          <p>If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
-          
-          <p>For security reasons, this link can only be used once.</p>
+        
+        <h2>Hello ${userName}!</h2>
+        <p>We received a request to reset your password for your ReBooked Solutions account.</p>
+        
+        <p>If you requested this password reset, click the button below:</p>
+        <a href="${resetUrl}" class="btn">Reset Your Password</a>
+        
+        <div class="warning">
+          <p><strong>Important:</strong> This link will expire in ${expiryTime || "1 hour"}.</p>
         </div>
-        <div class="footer">
-          <p>ReBooked Solutions | noreply@rebookedsolutions.co.za</p>
-        </div>
+        
+        <p>If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
+        
+        <p>For security reasons, this link can only be used once.</p>
+        
+        ${getEmailSignature()}
       </div>
     </body>
     </html>
@@ -369,8 +355,7 @@ If you didn't request a password reset, you can safely ignore this email. Your p
 
 For security reasons, this link can only be used once.
 
-ReBooked Solutions
-noreply@rebookedsolutions.co.za
+${getTextSignature()}
   `;
 
   return { html, text };
@@ -394,38 +379,29 @@ function renderShippingNotificationTemplate(data: TemplateData): {
     <head>
       <meta charset="utf-8">
       <title>Your Order Has Shipped</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: #f9f9f9; }
-        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
-        .tracking-box { background: white; border: 2px solid #2d6e55; padding: 15px; border-radius: 5px; text-align: center; margin: 15px 0; }
-      </style>
+      ${getEmailStyles()}
     </head>
     <body>
       <div class="container">
         <div class="header">
           <h1>Your Order Has Shipped!</h1>
         </div>
-        <div class="content">
-          <h2>Hello ${customerName}!</h2>
-          <p>Great news! Your order #${orderNumber} has been shipped and is on its way to you.</p>
-          
-          <div class="tracking-box">
-            <h3>Tracking Information</h3>
-            <p><strong>Tracking Number:</strong> ${trackingNumber}</p>
-            <p><strong>Carrier:</strong> ${carrier}</p>
-            ${estimatedDelivery ? `<p><strong>Estimated Delivery:</strong> ${estimatedDelivery}</p>` : ""}
-          </div>
-          
-          <p>You can track your package using the tracking number above on the ${carrier} website.</p>
-          
-          <p>Thank you for choosing ReBooked Solutions!</p>
+        
+        <h2>Hello ${customerName}!</h2>
+        <p>Great news! Your order #${orderNumber} has been shipped and is on its way to you.</p>
+        
+        <div class="info-box">
+          <h3>Tracking Information</h3>
+          <p><strong>Tracking Number:</strong> ${trackingNumber}</p>
+          <p><strong>Carrier:</strong> ${carrier}</p>
+          ${estimatedDelivery ? `<p><strong>Estimated Delivery:</strong> ${estimatedDelivery}</p>` : ""}
         </div>
-        <div class="footer">
-          <p>ReBooked Solutions | noreply@rebookedsolutions.co.za</p>
-        </div>
+        
+        <p>You can track your package using the tracking number above on the ${carrier} website.</p>
+        
+        <p>Thank you for choosing ReBooked Solutions!</p>
+        
+        ${getEmailSignature()}
       </div>
     </body>
     </html>
@@ -447,8 +423,7 @@ You can track your package using the tracking number above on the ${carrier} web
 
 Thank you for choosing ReBooked Solutions!
 
-ReBooked Solutions
-noreply@rebookedsolutions.co.za
+${getTextSignature()}
   `;
 
   return { html, text };
@@ -466,37 +441,28 @@ function renderContactFormTemplate(data: TemplateData): {
     <head>
       <meta charset="utf-8">
       <title>New Contact Form Submission</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: #f9f9f9; }
-        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
-        .info-box { background: white; padding: 15px; border-radius: 5px; margin: 10px 0; }
-      </style>
+      ${getEmailStyles()}
     </head>
     <body>
       <div class="container">
         <div class="header">
           <h1>New Contact Form Submission</h1>
         </div>
-        <div class="content">
-          <div class="info-box">
-            <h3>Contact Details</h3>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Subject:</strong> ${subject}</p>
-            <p><strong>Submitted:</strong> ${timestamp || new Date().toLocaleString()}</p>
-          </div>
-          
-          <div class="info-box">
-            <h3>Message</h3>
-            <p>${message.replace(/\n/g, "<br>")}</p>
-          </div>
+        
+        <div class="info-box">
+          <h3>Contact Details</h3>
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Subject:</strong> ${subject}</p>
+          <p><strong>Submitted:</strong> ${timestamp || new Date().toLocaleString()}</p>
         </div>
-        <div class="footer">
-          <p>ReBooked Solutions Contact Form</p>
+        
+        <div class="info-box">
+          <h3>Message</h3>
+          <p>${message.replace(/\n/g, "<br>")}</p>
         </div>
+        
+        ${getEmailSignature()}
       </div>
     </body>
     </html>
@@ -514,7 +480,7 @@ Submitted: ${timestamp || new Date().toLocaleString()}
 Message:
 ${message}
 
-ReBooked Solutions Contact Form
+${getTextSignature()}
   `;
 
   return { html, text };
@@ -539,40 +505,31 @@ function renderBookingConfirmationTemplate(data: TemplateData): {
     <head>
       <meta charset="utf-8">
       <title>Booking Confirmation</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: #f9f9f9; }
-        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
-        .booking-box { background: white; border: 2px solid #2d6e55; padding: 15px; border-radius: 5px; margin: 15px 0; }
-      </style>
+      ${getEmailStyles()}
     </head>
     <body>
       <div class="container">
         <div class="header">
           <h1>Booking Confirmed!</h1>
         </div>
-        <div class="content">
-          <h2>Hello ${customerName}!</h2>
-          <p>Your booking has been confirmed. Here are the details:</p>
-          
-          <div class="booking-box">
-            <h3>Booking Details</h3>
-            <p><strong>Booking ID:</strong> ${bookingId}</p>
-            <p><strong>Book:</strong> ${bookTitle}</p>
-            <p><strong>Pickup Date:</strong> ${pickupDate}</p>
-            <p><strong>Pickup Location:</strong> ${pickupLocation}</p>
-            ${contactInfo ? `<p><strong>Contact:</strong> ${contactInfo}</p>` : ""}
-          </div>
-          
-          <p>Please arrive at the specified location on time. Bring a valid ID for verification.</p>
-          
-          <p>If you need to make any changes or have questions, please contact us immediately.</p>
+        
+        <h2>Hello ${customerName}!</h2>
+        <p>Your booking has been confirmed. Here are the details:</p>
+        
+        <div class="info-box">
+          <h3>Booking Details</h3>
+          <p><strong>Booking ID:</strong> ${bookingId}</p>
+          <p><strong>Book:</strong> ${bookTitle}</p>
+          <p><strong>Pickup Date:</strong> ${pickupDate}</p>
+          <p><strong>Pickup Location:</strong> ${pickupLocation}</p>
+          ${contactInfo ? `<p><strong>Contact:</strong> ${contactInfo}</p>` : ""}
         </div>
-        <div class="footer">
-          <p>ReBooked Solutions | noreply@rebookedsolutions.co.za</p>
-        </div>
+        
+        <p>Please arrive at the specified location on time. Bring a valid ID for verification.</p>
+        
+        <p>If you need to make any changes or have questions, please contact us immediately.</p>
+        
+        ${getEmailSignature()}
       </div>
     </body>
     </html>
@@ -596,8 +553,7 @@ Please arrive at the specified location on time. Bring a valid ID for verificati
 
 If you need to make any changes or have questions, please contact us immediately.
 
-ReBooked Solutions
-noreply@rebookedsolutions.co.za
+${getTextSignature()}
   `;
 
   return { html, text };
@@ -616,41 +572,31 @@ function renderOrderCommittedBuyerTemplate(data: TemplateData): {
     <head>
       <meta charset="utf-8">
       <title>Order Confirmed - Preparing for Delivery</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: #f9f9f9; }
-        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
-        .info-box { background: white; border: 2px solid #2d6e55; padding: 15px; border-radius: 5px; margin: 15px 0; }
-        .emoji { font-size: 18px; }
-      </style>
+      ${getEmailStyles()}
     </head>
     <body>
       <div class="container">
         <div class="header">
           <h1><span class="emoji">🎉</span> Order Confirmed!</h1>
         </div>
-        <div class="content">
-          <h2>Great news, ${buyer_name}!</h2>
-          <p><strong>${seller_name}</strong> has confirmed your order and is preparing your book(s) for delivery.</p>
+        
+        <h2>Great news, ${buyer_name}!</h2>
+        <p><strong>${seller_name}</strong> has confirmed your order and is preparing your book(s) for delivery.</p>
 
-          <div class="info-box">
-            <h3><span class="emoji">📚</span> Order Details</h3>
-            <p><strong>Order ID:</strong> ${order_id}</p>
-            <p><strong>Book(s):</strong> ${book_titles}</p>
-            <p><strong>Seller:</strong> ${seller_name}</p>
-            <p><strong>Estimated Delivery:</strong> ${estimated_delivery}</p>
-          </div>
-
-          <p>We'll keep you updated throughout the delivery process!</p>
-
-          <p>Happy reading! <span class="emoji">📖</span></p>
-          <p><strong>ReBooked Solutions Team</strong></p>
+        <div class="info-box">
+          <h3><span class="emoji">📚</span> Order Details</h3>
+          <p><strong>Order ID:</strong> ${order_id}</p>
+          <p><strong>Book(s):</strong> ${book_titles}</p>
+          <p><strong>Seller:</strong> ${seller_name}</p>
+          <p><strong>Estimated Delivery:</strong> ${estimated_delivery}</p>
         </div>
-        <div class="footer">
-          <p>ReBooked Solutions | noreply@rebookedsolutions.co.za</p>
-        </div>
+
+        <p>We'll keep you updated throughout the delivery process!</p>
+
+        <p>Happy reading! <span class="emoji">📖</span></p>
+        <p><strong>ReBooked Solutions Team</strong></p>
+        
+        ${getEmailSignature()}
       </div>
     </body>
     </html>
@@ -673,6 +619,8 @@ We'll keep you updated throughout the delivery process!
 
 Happy reading!
 ReBooked Solutions Team
+
+${getTextSignature()}
   `;
 
   return { html, text };
@@ -696,44 +644,33 @@ function renderOrderCommittedSellerTemplate(data: TemplateData): {
     <head>
       <meta charset="utf-8">
       <title>Order Commitment Confirmed - Prepare for Pickup</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: #f9f9f9; }
-        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
-        .info-box { background: white; border: 2px solid #2d6e55; padding: 15px; border-radius: 5px; margin: 15px 0; }
-        .steps { background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 15px 0; }
-        .emoji { font-size: 18px; }
-      </style>
+      ${getEmailStyles()}
     </head>
     <body>
       <div class="container">
         <div class="header">
           <h1><span class="emoji">✅</span> Order Commitment Confirmed!</h1>
         </div>
-        <div class="content">
-          <h2>Thank you, ${seller_name}!</h2>
-          <p>You've successfully committed to sell your book(s). The buyer has been notified and pickup has been scheduled.</p>
+        
+        <h2>Thank you, ${seller_name}!</h2>
+        <p>You've successfully committed to sell your book(s). The buyer has been notified and pickup has been scheduled.</p>
 
-          <div class="info-box">
-            <h3><span class="emoji">📋</span> Order Details</h3>
-            <p><strong>Order ID:</strong> ${order_id}</p>
-            <p><strong>Book(s):</strong> ${book_titles}</p>
-            <p><strong>Buyer:</strong> ${buyer_name}</p>
-          </div>
-
-          <div class="steps">
-            <h3><span class="emoji">📦</span> Next Steps</h3>
-            <p>${pickup_instructions}</p>
-          </div>
-
-          <p>Thank you for selling with ReBooked Solutions! <span class="emoji">📚</span></p>
-          <p><strong>ReBooked Solutions Team</strong></p>
+        <div class="info-box">
+          <h3><span class="emoji">📋</span> Order Details</h3>
+          <p><strong>Order ID:</strong> ${order_id}</p>
+          <p><strong>Book(s):</strong> ${book_titles}</p>
+          <p><strong>Buyer:</strong> ${buyer_name}</p>
         </div>
-        <div class="footer">
-          <p>ReBooked Solutions | noreply@rebookedsolutions.co.za</p>
+
+        <div class="steps">
+          <h3><span class="emoji">📦</span> Next Steps</h3>
+          <p>${pickup_instructions}</p>
         </div>
+
+        <p>Thank you for selling with ReBooked Solutions! <span class="emoji">📚</span></p>
+        <p><strong>ReBooked Solutions Team</strong></p>
+        
+        ${getEmailSignature()}
       </div>
     </body>
     </html>
@@ -755,6 +692,8 @@ ${pickup_instructions}
 
 Thank you for selling with ReBooked Solutions!
 ReBooked Solutions Team
+
+${getTextSignature()}
   `;
 
   return { html, text };
@@ -780,47 +719,35 @@ function renderSellerNewOrderTemplate(data: TemplateData): {
     <head>
       <meta charset="utf-8">
       <title>New Order - Action Required</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: #f9f9f9; }
-        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
-        .info-box { background: white; border: 2px solid #2d6e55; padding: 15px; border-radius: 5px; margin: 15px 0; }
-        .btn { background: #2d6e55; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0; }
-        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin: 10px 0; }
-        .emoji { font-size: 18px; }
-      </style>
+      ${getEmailStyles()}
     </head>
     <body>
       <div class="container">
         <div class="header">
           <h1><span class="emoji">📚</span> New Order - Action Required!</h1>
         </div>
-        <div class="content">
-          <h2>Hi ${sellerName}!</h2>
-          <p>Great news! You have a new order from <strong>${buyerName}</strong>.</p>
+        
+        <h2>Hi ${sellerName}!</h2>
+        <p>Great news! You have a new order from <strong>${buyerName}</strong>.</p>
 
-          <div class="info-box">
-            <h3><span class="emoji">📋</span> Order Details</h3>
-            <p><strong>Order ID:</strong> ${orderId}</p>
-            <p><strong>Buyer:</strong> ${buyerName}</p>
-            <p><strong>Total Amount:</strong> R${totalAmount}</p>
-          </div>
-
-          <div class="warning">
-            <h3><span class="emoji">⏰</span> Action Required Within 48 Hours</h3>
-            <p><strong>Expires:</strong> ${new Date(expiresAt).toLocaleString()}</p>
-            <p>You must commit to this order within 48 hours or it will be automatically cancelled.</p>
-          </div>
-
-          <p>Once you commit, we'll arrange pickup and you'll be paid after delivery!</p>
-
-          <p><strong>ReBooked Solutions Team</strong></p>
+        <div class="info-box">
+          <h3><span class="emoji">📋</span> Order Details</h3>
+          <p><strong>Order ID:</strong> ${orderId}</p>
+          <p><strong>Buyer:</strong> ${buyerName}</p>
+          <p><strong>Total Amount:</strong> R${totalAmount}</p>
         </div>
-        <div class="footer">
-          <p>ReBooked Solutions | noreply@rebookedsolutions.co.za</p>
+
+        <div class="warning">
+          <h3><span class="emoji">⏰</span> Action Required Within 48 Hours</h3>
+          <p><strong>Expires:</strong> ${new Date(expiresAt).toLocaleString()}</p>
+          <p>You must commit to this order within 48 hours or it will be automatically cancelled.</p>
         </div>
+
+        <p>Once you commit, we'll arrange pickup and you'll be paid after delivery!</p>
+
+        <p><strong>ReBooked Solutions Team</strong></p>
+        
+        ${getEmailSignature()}
       </div>
     </body>
     </html>
@@ -846,6 +773,8 @@ You must commit to this order within 48 hours or it will be automatically cancel
 Once you commit, we'll arrange pickup and you'll be paid after delivery!
 
 ReBooked Solutions Team
+
+${getTextSignature()}
   `;
 
   return { html, text };
@@ -864,48 +793,37 @@ function renderBuyerOrderPendingTemplate(data: TemplateData): {
     <head>
       <meta charset="utf-8">
       <title>Order Confirmed - Awaiting Seller Response</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: #f9f9f9; }
-        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
-        .info-box { background: white; border: 2px solid #2d6e55; padding: 15px; border-radius: 5px; margin: 15px 0; }
-        .btn { background: #2d6e55; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0; }
-        .emoji { font-size: 18px; }
-      </style>
+      ${getEmailStyles()}
     </head>
     <body>
       <div class="container">
         <div class="header">
           <h1><span class="emoji">🎉</span> Order Confirmed!</h1>
         </div>
-        <div class="content">
-          <h2>Thank you, ${buyerName}!</h2>
-          <p>Your order has been confirmed and <strong>${sellerName}</strong> has been notified.</p>
+        
+        <h2>Thank you, ${buyerName}!</h2>
+        <p>Your order has been confirmed and <strong>${sellerName}</strong> has been notified.</p>
 
-          <div class="info-box">
-            <h3><span class="emoji">📋</span> Order Details</h3>
-            <p><strong>Order ID:</strong> ${orderId}</p>
-            <p><strong>Seller:</strong> ${sellerName}</p>
-            <p><strong>Total Amount:</strong> R${totalAmount}</p>
-          </div>
-
-          <h3><span class="emoji">📦</span> What happens next?</h3>
-          <ul>
-            <li>The seller has 48 hours to commit to your order</li>
-            <li>Once committed, we'll arrange pickup and delivery</li>
-            <li>You'll receive tracking information via email</li>
-            <li>Your book(s) will be delivered within 2-3 business days</li>
-          </ul>
-
-          <p>We'll notify you as soon as the seller confirms your order!</p>
-
-          <p><strong>ReBooked Solutions Team</strong></p>
+        <div class="info-box">
+          <h3><span class="emoji">📋</span> Order Details</h3>
+          <p><strong>Order ID:</strong> ${orderId}</p>
+          <p><strong>Seller:</strong> ${sellerName}</p>
+          <p><strong>Total Amount:</strong> R${totalAmount}</p>
         </div>
-        <div class="footer">
-          <p>ReBooked Solutions | noreply@rebookedsolutions.co.za</p>
-        </div>
+
+        <h3><span class="emoji">📦</span> What happens next?</h3>
+        <ul>
+          <li>The seller has 48 hours to commit to your order</li>
+          <li>Once committed, we'll arrange pickup and delivery</li>
+          <li>You'll receive tracking information via email</li>
+          <li>Your book(s) will be delivered within 2-3 business days</li>
+        </ul>
+
+        <p>We'll notify you as soon as the seller confirms your order!</p>
+
+        <p><strong>ReBooked Solutions Team</strong></p>
+        
+        ${getEmailSignature()}
       </div>
     </body>
     </html>
@@ -932,6 +850,8 @@ What happens next?
 We'll notify you as soon as the seller confirms your order!
 
 ReBooked Solutions Team
+
+${getTextSignature()}
   `;
 
   return { html, text };

@@ -2,6 +2,106 @@ export interface TemplateData {
   [key: string]: any;
 }
 
+// Common styles and signature for all emails
+const getEmailStyles = () => `
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3fef7;
+      padding: 20px;
+      color: #1f4e3d;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      background-color: #3ab26f;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .link {
+      color: #3ab26f;
+    }
+    .header {
+      background: #3ab26f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+      margin: -30px -30px 20px -30px;
+    }
+    .footer {
+      background: #f3fef7;
+      color: #1f4e3d;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 30px -30px -30px -30px;
+      border-radius: 0 0 10px 10px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .info-box {
+      background: #f3fef7;
+      border: 1px solid #3ab26f;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+    .warning {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+    .steps {
+      background: #f3fef7;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+    .total {
+      font-weight: bold;
+      font-size: 18px;
+      color: #3ab26f;
+    }
+    .emoji {
+      font-size: 18px;
+    }
+  </style>
+`;
+
+const getEmailSignature = () => `
+  <div class="footer">
+    <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
+    Please do not reply to this email.</p>
+    <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+    Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
+    <p>T&Cs apply.</p>
+    <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+  </div>
+`;
+
+const getTextSignature = () => `
+
+This is an automated message from ReBooked Solutions. Please do not reply to this email.
+For assistance, contact: support@rebookedsolutions.co.za
+Visit us at: https://rebookedsolutions.co.za
+T&Cs apply.
+"Pre-Loved Pages, New Adventures"
+`;
+
 function renderSellerPickupNotificationTemplate(data: TemplateData): {
   html: string;
   text: string;
