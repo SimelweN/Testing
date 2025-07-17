@@ -53,13 +53,55 @@ interface NotificationItem {
 
 const NotificationsNew = () => {
   const { user, profile } = useAuth();
+  const {
+    notifications,
+    unreadCount,
+    totalCount,
+    isLoading,
+    refreshNotifications,
+  } = useNotifications();
   const [isFirstTime, setIsFirstTime] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [broadcasts, setBroadcasts] = useState([]);
   const [notificationSettings, setNotificationSettings] = useState({
     commits: true,
     purchases: true,
     deliveries: true,
   });
+
+  // Convert database notifications to our category format
+  const categorizeNotifications = (dbNotifications: any[]) => {
+    const commitNotifications = dbNotifications.filter(
+      (n) =>
+        n.type === "commit" ||
+        n.title?.toLowerCase().includes("commit") ||
+        n.message?.toLowerCase().includes("commit"),
+    );
+
+    const purchaseNotifications = dbNotifications.filter(
+      (n) =>
+        n.type === "purchase" ||
+        n.type === "order" ||
+        n.title?.toLowerCase().includes("purchase") ||
+        n.title?.toLowerCase().includes("order"),
+    );
+
+    const deliveryNotifications = dbNotifications.filter(
+      (n) =>
+        n.type === "delivery" ||
+        n.type === "shipping" ||
+        n.title?.toLowerCase().includes("delivery") ||
+        n.title?.toLowerCase().includes("shipping"),
+    );
+
+    return {
+      commits: commitNotifications,
+      purchases: purchaseNotifications,
+      deliveries: deliveryNotifications,
+    };
+  };
+
+  const categorizedNotifications = categorizeNotifications(notifications);
 
   const [categories, setCategories] = useState<NotificationCategory[]>([
     {
@@ -109,7 +151,15 @@ const NotificationsNew = () => {
       icon: <Award className="h-5 w-5" />,
       color: "orange",
       enabled: notificationSettings.commits,
-      notifications: [],
+      notifications: categorizedNotifications.commits.map((n) => ({
+        id: n.id,
+        type: n.type || "commit",
+        title: n.title,
+        message: n.message,
+        timestamp: n.created_at || n.createdAt,
+        read: n.read,
+        priority: "medium" as const,
+      })),
     },
     {
       id: "purchases",
@@ -118,7 +168,15 @@ const NotificationsNew = () => {
       icon: <ShoppingCart className="h-5 w-5" />,
       color: "green",
       enabled: notificationSettings.purchases,
-      notifications: [],
+      notifications: categorizedNotifications.purchases.map((n) => ({
+        id: n.id,
+        type: n.type || "purchase",
+        title: n.title,
+        message: n.message,
+        timestamp: n.created_at || n.createdAt,
+        read: n.read,
+        priority: "medium" as const,
+      })),
     },
     {
       id: "deliveries",
@@ -127,7 +185,15 @@ const NotificationsNew = () => {
       icon: <Truck className="h-5 w-5" />,
       color: "blue",
       enabled: notificationSettings.deliveries,
-      notifications: [],
+      notifications: categorizedNotifications.deliveries.map((n) => ({
+        id: n.id,
+        type: n.type || "delivery",
+        title: n.title,
+        message: n.message,
+        timestamp: n.created_at || n.createdAt,
+        read: n.read,
+        priority: "medium" as const,
+      })),
     },
   ]);
 
