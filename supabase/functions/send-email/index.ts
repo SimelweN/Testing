@@ -110,13 +110,22 @@ async function processEmailRequest(request: EmailRequest, config: EmailConfig) {
   // Process template if provided
   if (request.template) {
     try {
+      console.log(
+        `Rendering template: ${request.template.name} with data:`,
+        request.template.data,
+      );
       const rendered = renderTemplate(
         request.template.name as any,
         request.template.data,
       );
+      console.log(`Template rendered successfully: ${request.template.name}`);
       html = rendered.html;
       text = rendered.text;
     } catch (error) {
+      console.error(
+        `Template rendering failed for ${request.template.name}:`,
+        error,
+      );
       throw new Error(`${EMAIL_ERRORS.TEMPLATE_NOT_FOUND}: ${error.message}`);
     }
   }
