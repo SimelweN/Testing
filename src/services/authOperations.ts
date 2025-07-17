@@ -301,6 +301,21 @@ export const createUserProfile = async (user: User): Promise<Profile> => {
       isAdmin,
     );
 
+    // Create welcome notification for new user
+    try {
+      await supabase.from("notifications").insert({
+        user_id: user.id,
+        title: "Welcome to ReBooked Solutions! 🎉",
+        message: `Hi ${newProfile.name}! Welcome to South Africa's premier textbook marketplace. Start browsing textbooks, set up your profile, and join our community of students!`,
+        type: "welcome",
+        read: false,
+      });
+      console.log("✅ Welcome notification created for new user");
+    } catch (notifError) {
+      console.warn("Failed to create welcome notification:", notifError);
+      // Don't fail user creation if notification fails
+    }
+
     return {
       id: newProfile.id,
       name: newProfile.name,
