@@ -113,18 +113,13 @@ export default async function handler(req, res) {
     let finalHtml = html;
     let finalText = text;
 
-    // Process template if provided
+    // Template system REMOVED - Only direct HTML is supported now
     if (template) {
-      try {
-        const rendered = renderTemplate(template.name, template.data);
-        finalHtml = rendered.html;
-        finalText = rendered.text;
-      } catch (error) {
-        return res.status(400).json({
-          success: false,
-          error: `Template error: ${error.message}`,
-        });
-      }
+      return res.status(400).json({
+        success: false,
+        error:
+          "Template system is deprecated. Please provide html and text directly.",
+      });
     }
 
     // Sanitize HTML content
