@@ -108,6 +108,41 @@ serve(async (req) => {
       console.error("Failed to update order:", updateError);
     }
 
+    // Send ReBooked Solutions shipping notification email (instead of letting Courier Guy send theirs)
+    if (delivery_address.email && shipmentData.tracking_number) {
+      try {
+        await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            to: delivery_address.email,
+            subject: "Your Order Has Shipped - ReBooked Solutions",
+            template: {
+              name: "shipping-notification",
+              data: {
+                customerName: delivery_address.name,
+                orderNumber: reference || `ORDER-${order_id}`,
+                trackingNumber: shipmentData.tracking_number,
+                carrier: "Courier Guy",
+                estimatedDelivery:
+                  shipmentData.estimated_delivery || "2-3 business days",
+              },
+            },
+          }),
+        });
+        console.log("Shipping notification email sent successfully");
+      } catch (emailError) {
+        console.error(
+          "Failed to send shipping notification email:",
+          emailError,
+        );
+        // Don't fail the shipment if email fails
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
