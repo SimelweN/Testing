@@ -173,94 +173,38 @@ const CleanEmailTester = () => {
     try {
       console.log(`Sending ${template.label} template to ${testEmail}...`);
 
-      // Use direct HTML approach (the only correct way!)
+      // Use direct HTML approach with inline styles (the only correct way!)
       const html = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <title>${template.label} - ReBooked Solutions Test</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f3fef7;
-      padding: 20px;
-      color: #1f4e3d;
-      margin: 0;
-    }
-    .container {
-      max-width: 500px;
-      margin: auto;
-      background-color: #ffffff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-    .btn {
-      display: inline-block;
-      padding: 12px 20px;
-      background-color: #3ab26f;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-      margin-top: 20px;
-      font-weight: bold;
-    }
-    .link {
-      color: #3ab26f;
-    }
-    .header {
-      background: #3ab26f;
-      color: white;
-      padding: 20px;
-      text-align: center;
-      border-radius: 10px 10px 0 0;
-      margin: -30px -30px 20px -30px;
-    }
-    .footer {
-      background: #f3fef7;
-      color: #1f4e3d;
-      padding: 20px;
-      text-align: center;
-      font-size: 12px;
-      line-height: 1.5;
-      margin: 30px -30px -30px -30px;
-      border-radius: 0 0 10px 10px;
-      border-top: 1px solid #e5e7eb;
-    }
-    .info-box {
-      background: #f3fef7;
-      border: 1px solid #3ab26f;
-      padding: 15px;
-      border-radius: 5px;
-      margin: 15px 0;
-    }
-  </style>
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>✅ ${template.label} Test</h1>
+<body style="font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; margin: 0;">
+  <div style="max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+    <div style="background: #3ab26f; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px;">
+      <h1 style="margin: 0; font-size: 24px;">✅ ${template.label} Test</h1>
     </div>
 
-    <h2>Test Email Success!</h2>
-    <p>This is a test of the <strong>${template.label}</strong> email using the correct ReBooked Solutions styling.</p>
+    <h2 style="color: #1f4e3d; font-size: 20px; margin: 0 0 15px 0;">Test Email Success!</h2>
+    <p style="color: #1f4e3d; line-height: 1.6; margin: 15px 0;">This is a test of the <strong>${template.label}</strong> email using the correct ReBooked Solutions styling.</p>
 
-    <div class="info-box">
-      <h3>Template Information</h3>
-      <p><strong>Template:</strong> ${template.label}</p>
-      <p><strong>Test Data:</strong> ${JSON.stringify(template.data, null, 2)}</p>
+    <div style="background: #f3fef7; border: 1px solid #3ab26f; padding: 15px; border-radius: 5px; margin: 15px 0;">
+      <h3 style="color: #1f4e3d; font-size: 16px; margin: 0 0 10px 0;">Template Information</h3>
+      <p style="color: #1f4e3d; margin: 5px 0;"><strong>Template:</strong> ${template.label}</p>
+      <p style="color: #1f4e3d; margin: 5px 0; font-family: monospace; font-size: 11px; background: #ffffff; padding: 8px; border-radius: 3px;"><strong>Test Data:</strong><br>${JSON.stringify(template.data, null, 2)}</p>
     </div>
 
-    <p>If you're seeing this with proper green styling, the direct HTML approach is working!</p>
+    <p style="color: #1f4e3d; line-height: 1.6; margin: 15px 0;">If you're seeing this with proper green styling, the direct HTML approach is working!</p>
 
-    <div class="footer">
-      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
+    <div style="background: #f3fef7; color: #1f4e3d; padding: 20px; text-align: center; font-size: 12px; line-height: 1.5; margin: 30px -30px -30px -30px; border-radius: 0 0 10px 10px; border-top: 1px solid #e5e7eb;">
+      <p style="margin: 0 0 10px 0;"><strong>This is an automated message from ReBooked Solutions.</strong><br>
       Please do not reply to this email.</p>
-      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
-      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
-      <p>T&Cs apply.</p>
-      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+      <p style="margin: 10px 0;">For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" style="color: #3ab26f; text-decoration: none;">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" style="color: #3ab26f; text-decoration: none;">https://rebookedsolutions.co.za</a></p>
+      <p style="margin: 10px 0;">T&Cs apply.</p>
+      <p style="margin: 10px 0 0 0;"><em>"Pre-Loved Pages, New Adventures"</em></p>
     </div>
   </div>
 </body>
