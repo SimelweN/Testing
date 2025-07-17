@@ -424,23 +424,35 @@ const EmailTestingComponent = () => {
           </div>
         )}
 
-        <Button
-          onClick={sendTestEmail}
-          disabled={isSending || !testEmail.to || !testEmail.subject}
-          className="w-full"
-        >
-          {isSending ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Sending Test Email...
-            </>
-          ) : (
-            <>
-              <Send className="h-4 w-4 mr-2" />
-              Send Test Email
-            </>
-          )}
-        </Button>
+        <div className="space-y-2">
+          <Button
+            onClick={() => testConnection()}
+            disabled={isSending}
+            variant="outline"
+            className="w-full"
+          >
+            <CheckCircle className="h-4 w-4 mr-2" />
+            Test Email Service Connection
+          </Button>
+
+          <Button
+            onClick={sendTestEmail}
+            disabled={isSending || !testEmail.to || !testEmail.subject}
+            className="w-full"
+          >
+            {isSending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Sending Test Email...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Send Test Email
+              </>
+            )}
+          </Button>
+        </div>
 
         {lastResult && (
           <Alert variant={lastResult.success ? "default" : "destructive"}>
