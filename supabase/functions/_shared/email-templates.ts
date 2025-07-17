@@ -116,8 +116,6 @@ export function renderTemplate(
       return renderOrderConfirmationTemplate(data);
     case EMAIL_TEMPLATES.WELCOME:
       return renderWelcomeTemplate(data);
-    case EMAIL_TEMPLATES.PASSWORD_RESET:
-      return renderPasswordResetTemplate(data);
     case EMAIL_TEMPLATES.SHIPPING_NOTIFICATION:
       return renderShippingNotificationTemplate(data);
     case EMAIL_TEMPLATES.SELLER_PICKUP_NOTIFICATION:
