@@ -185,6 +185,8 @@ const EmailTestingComponent = () => {
         body: emailPayload,
       });
 
+      console.log("Supabase function response:", { data, error });
+
       const timing = Date.now() - startTime;
 
       // Check for Supabase function errors
