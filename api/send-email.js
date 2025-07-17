@@ -9,7 +9,7 @@ import {
   errorResponse,
   successResponse,
 } from "./_lib/utils.js";
-import { renderTemplate } from "./_lib/email-templates.js";
+// Template system REMOVED - direct HTML only
 
 export default async function handler(req, res) {
   // Handle CORS
