@@ -187,8 +187,16 @@ const EmailTestingComponent = () => {
 
       const timing = Date.now() - startTime;
 
+      // Check for Supabase function errors
       if (error) {
+        console.error("Supabase function error:", error);
         throw error;
+      }
+
+      // Check if the function returned an error in the response data
+      if (data && !data.success && data.error) {
+        console.error("Email function returned error:", data);
+        throw new Error(data.error);
       }
 
       setLastResult({
