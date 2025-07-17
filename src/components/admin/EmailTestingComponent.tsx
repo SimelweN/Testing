@@ -127,10 +127,99 @@ const EmailTestingComponent = () => {
     const template = templates.find((t) => t.name === templateName);
     setTestEmail((prev) => ({
       ...prev,
-      template: templateName,
+      template: templateName === "custom" ? "" : templateName,
       customData: template ? JSON.stringify(template.sampleData, null, 2) : "",
       subject: template ? `Test ${template.label}` : "",
     }));
+  };
+
+  const testConnection = async () => {
+    try {
+      // Test basic Supabase function connectivity
+      const { data, error } = await supabase.functions.invoke("send-email", {
+        body: { test: true },
+      });
+
+      console.log("Connection test result:", { data, error });
+
+      if (error) {
+        let errorMsg = "";
+
+        // Extract detailed error information from Supabase function error
+        if (error.context?.body) {
+          try {
+            const errorBody = JSON.parse(error.context.body);
+            if (errorBody.error) {
+              errorMsg = errorBody.error;
+
+              // Provide specific diagnosis based on error content
+              if (
+                errorMsg.includes(
+                  "BREVO_SMTP_KEY environment variable is required",
+                )
+              ) {
+                errorMsg =
+                  "❌ MISSING EMAIL CONFIGURATION\n\nThe Edge Function is missing the BREVO_SMTP_KEY environment variable.\n\nTo fix this:\n1. Go to your Supabase project dashboard\n2. Navigate to Edge Functions → Settings\n3. Add environment variable: BREVO_SMTP_KEY=your_brevo_api_key\n4. Redeploy the send-email function";
+              } else if (errorMsg.includes("Invalid JSON")) {
+                errorMsg =
+                  "❌ REQUEST FORMAT ERROR\n\nThe request format is invalid. This is likely a code issue.";
+              } else if (errorMsg.includes("Rate limit")) {
+                errorMsg =
+                  "❌ RATE LIMIT EXCEEDED\n\nToo many email requests. Please wait a moment before trying again.";
+              }
+            } else {
+              errorMsg = `Edge Function Error: ${JSON.stringify(errorBody)}`;
+            }
+          } catch (parseError) {
+            errorMsg = `Edge Function Error (Status ${error.context?.status || "unknown"}): ${error.message}`;
+          }
+        } else if (error.message.includes("Failed to send a request")) {
+          errorMsg =
+            "❌ EDGE FUNCTION NOT ACCESSIBLE\n\nPossible causes:\n1. Edge Function not deployed to Supabase\n2. Network connectivity issues\n3. Supabase project URL incorrect\n4. Function name 'send-email' doesn't exist";
+        } else {
+          errorMsg = `Connection Error: ${error.message}`;
+        }
+
+        throw new Error(errorMsg);
+      }
+
+      if (data && !data.success) {
+        let errorMsg = data.error || "Unknown configuration error";
+
+        // Provide specific diagnosis for configuration errors
+        if (errorMsg.includes("BREVO_SMTP_KEY")) {
+          errorMsg =
+            "❌ MISSING BREVO SMTP KEY\n\nThe email service configuration is missing the BREVO_SMTP_KEY environment variable in the Edge Function.";
+        }
+
+        throw new Error(`Configuration Error: ${errorMsg}`);
+      }
+
+      // Log configuration info for debugging
+      if (data?.config) {
+        console.log("✅ Email service configuration:", data.config);
+        toast.success("Email service connection successful!");
+      }
+
+      setLastResult({
+        success: true,
+        error: "",
+        timing: 0,
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error("Connection test failed:", error);
+
+      setLastResult({
+        success: false,
+        error: error.message,
+        timing: 0,
+      });
+
+      toast.error("Connection test failed - check details below");
+      return false;
+    }
   };
 
   const sendTestEmail = async () => {
@@ -142,6 +231,22 @@ const EmailTestingComponent = () => {
     setIsSending(true);
     setLastResult(null);
     const startTime = Date.now();
+
+    // First test connectivity
+    const isConnected = await testConnection();
+    if (!isConnected) {
+      setLastResult({
+        success: false,
+        error:
+          "Failed to connect to email service. This could be due to: 1) Edge Function not deployed, 2) Missing environment variables (BREVO_SMTP_KEY), 3) Network issues",
+        timing: Date.now() - startTime,
+      });
+      toast.error(
+        "Email service connection failed. Check console for details.",
+      );
+      setIsSending(false);
+      return;
+    }
 
     try {
       let emailPayload: any = {
@@ -185,10 +290,20 @@ const EmailTestingComponent = () => {
         body: emailPayload,
       });
 
+      console.log("Supabase function response:", { data, error });
+
       const timing = Date.now() - startTime;
 
+      // Check for Supabase function errors
       if (error) {
+        console.error("Supabase function error:", error);
         throw error;
+      }
+
+      // Check if the function returned an error in the response data
+      if (data && !data.success && data.error) {
+        console.error("Email function returned error:", data);
+        throw new Error(data.error);
       }
 
       setLastResult({
@@ -204,15 +319,39 @@ const EmailTestingComponent = () => {
       console.error("Email send error:", error);
       const timing = Date.now() - startTime;
 
+      // Extract detailed error information
+      let detailedError = "Unknown error";
+
+      if (error?.message) {
+        detailedError = error.message;
+      } else if (error?.error) {
+        detailedError = error.error;
+      } else if (typeof error === "string") {
+        detailedError = error;
+      }
+
+      // If it's a Supabase function error, try to extract more details
+      if (error?.context?.body) {
+        try {
+          const errorBody = JSON.parse(error.context.body);
+          if (errorBody.error) {
+            detailedError = errorBody.error;
+            if (errorBody.details) {
+              detailedError += ` (Details: ${JSON.stringify(errorBody.details)})`;
+            }
+          }
+        } catch (parseError) {
+          console.warn("Could not parse error body:", parseError);
+        }
+      }
+
       setLastResult({
         success: false,
-        error: error.message || "Failed to send email",
+        error: detailedError,
         timing,
       });
 
-      toast.error(
-        `Failed to send test email: ${error.message || "Unknown error"}`,
-      );
+      toast.error(`Failed to send test email: ${detailedError}`);
     } finally {
       setIsSending(false);
     }
@@ -260,14 +399,14 @@ const EmailTestingComponent = () => {
         <div className="space-y-2">
           <Label htmlFor="email-template">Email Template (Optional)</Label>
           <Select
-            value={testEmail.template}
+            value={testEmail.template || "custom"}
             onValueChange={handleTemplateChange}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select a template or use custom content" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Custom Content</SelectItem>
+              <SelectItem value="custom">Custom Content</SelectItem>
               {templates.map((template) => (
                 <SelectItem key={template.name} value={template.name}>
                   {template.label}
@@ -329,23 +468,35 @@ const EmailTestingComponent = () => {
           </div>
         )}
 
-        <Button
-          onClick={sendTestEmail}
-          disabled={isSending || !testEmail.to || !testEmail.subject}
-          className="w-full"
-        >
-          {isSending ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Sending Test Email...
-            </>
-          ) : (
-            <>
-              <Send className="h-4 w-4 mr-2" />
-              Send Test Email
-            </>
-          )}
-        </Button>
+        <div className="space-y-2">
+          <Button
+            onClick={() => testConnection()}
+            disabled={isSending}
+            variant="outline"
+            className="w-full"
+          >
+            <CheckCircle className="h-4 w-4 mr-2" />
+            Test Email Service Connection
+          </Button>
+
+          <Button
+            onClick={sendTestEmail}
+            disabled={isSending || !testEmail.to || !testEmail.subject}
+            className="w-full"
+          >
+            {isSending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Sending Test Email...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Send Test Email
+              </>
+            )}
+          </Button>
+        </div>
 
         {lastResult && (
           <Alert variant={lastResult.success ? "default" : "destructive"}>
