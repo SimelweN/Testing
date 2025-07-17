@@ -130,6 +130,24 @@ const UpdatedEmailTester = () => {
               )}
               🔄 Force Refresh Template (Cache Bust)
             </Button>
+
+            <Button
+              onClick={() =>
+                runTemplateTest(
+                  testAllNewEmailTemplates,
+                  "ALL Updated Templates",
+                )
+              }
+              disabled={isSending}
+              className="justify-start bg-purple-600 hover:bg-purple-700 text-white font-bold"
+            >
+              {isSending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              🚀 TEST ALL NEW TEMPLATES (6 emails)
+            </Button>
           </div>
 
           <h3 className="font-medium">Regular Template Tests</h3>
