@@ -236,62 +236,81 @@ const ComingSoon = () => {
         </div>
       </section>
 
-      {/* Student Voices Section */}
+      {/* Why Choose ReBooked Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-book-600 to-book-700 text-white">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h3 className="text-4xl font-bold mb-4">
-              What Students Are Saying
+              Why Choose ReBooked Solutions?
             </h3>
             <p className="text-xl text-book-100">
-              Real feedback from students who can't wait for ReBooked Solutions
+              The smartest way to buy and sell textbooks in South Africa
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
-                quote:
-                  "Finally! A platform made by students, for students. Can't wait to save money on my textbooks!",
-                author: "Sarah M.",
-                university: "UCT",
-                course: "Computer Science",
+                icon: <TrendingUp className="h-8 w-8" />,
+                title: "Save Up to 70%",
+                description:
+                  "Get the same quality textbooks at a fraction of the original price. More money for what matters to you.",
+                highlight: "Average savings of R2,500 per semester",
               },
               {
-                quote:
-                  "This is exactly what we need! Buying textbooks has always been so expensive. ReBooked will be a game-changer.",
-                author: "Thabo K.",
-                university: "Wits",
-                course: "Engineering",
+                icon: <Globe className="h-8 w-8" />,
+                title: "Eco-Friendly Impact",
+                description:
+                  "Give textbooks a second life and reduce environmental waste. Be part of the sustainability movement.",
+                highlight: "Each book reused saves 7kg of CO2",
               },
               {
-                quote:
-                  "Love the idea of connecting with other students while saving money. The eco-friendly aspect is amazing too!",
-                author: "Emma L.",
-                university: "Stellenbosch",
-                course: "Business",
+                icon: <Users className="h-8 w-8" />,
+                title: "Student Community",
+                description:
+                  "Connect with peers, share study tips, and build your academic network across South African universities.",
+                highlight: "Join 25+ university communities",
               },
-            ].map((testimonial, index) => (
+              {
+                icon: <Shield className="h-8 w-8" />,
+                title: "Safe & Secure",
+                description:
+                  "Protected payments, verified sellers, and quality guarantees. Your peace of mind is our priority.",
+                highlight: "100% money-back guarantee",
+              },
+              {
+                icon: <Truck className="h-8 w-8" />,
+                title: "Nationwide Delivery",
+                description:
+                  "Fast, reliable delivery to any campus or address across South Africa. Books when you need them.",
+                highlight: "Free delivery on orders over R500",
+              },
+              {
+                icon: <Smartphone className="h-8 w-8" />,
+                title: "Mobile-First Design",
+                description:
+                  "Seamless experience on any device. Buy, sell, and track your books on-the-go with our mobile app.",
+                highlight: "Available on iOS & Android",
+              },
+            ].map((reason, index) => (
               <div
                 key={index}
-                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
+                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300"
               >
-                <div className="flex items-center mb-4">
-                  <div className="bg-white/20 w-12 h-12 rounded-full flex items-center justify-center mr-4">
-                    <Users className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-white">
-                      {testimonial.author}
-                    </h4>
-                    <p className="text-book-100 text-sm">
-                      {testimonial.course} • {testimonial.university}
-                    </p>
-                  </div>
+                <div className="bg-white/20 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 text-white">
+                  {reason.icon}
                 </div>
-                <blockquote className="text-book-50 italic leading-relaxed">
-                  "{testimonial.quote}"
-                </blockquote>
+                <h4 className="text-xl font-bold text-white mb-3 text-center">
+                  {reason.title}
+                </h4>
+                <p className="text-book-100 text-center mb-4 leading-relaxed">
+                  {reason.description}
+                </p>
+                <div className="bg-book-500/30 rounded-lg p-3 text-center">
+                  <span className="text-book-50 font-semibold text-sm">
+                    {reason.highlight}
+                  </span>
+                </div>
               </div>
             ))}
           </div>
