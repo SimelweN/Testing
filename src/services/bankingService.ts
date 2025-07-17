@@ -318,18 +318,24 @@ export class BankingService {
       if (profile?.pickup_address) {
         const pickupAddr = profile.pickup_address as any;
         console.log("Pickup address object:", pickupAddr);
+
+        // Handle both 'street' and 'streetAddress' field names for compatibility
+        const streetField = pickupAddr.streetAddress || pickupAddr.street;
+
         console.log("Address fields:", {
+          street: pickupAddr.street,
           streetAddress: pickupAddr.streetAddress,
+          resolvedStreet: streetField,
           city: pickupAddr.city,
           province: pickupAddr.province,
           postalCode: pickupAddr.postalCode,
         });
 
-        // Basic validation of required fields
+        // Basic validation of required fields - handle both field naming conventions
         hasPickupAddress = !!(
           pickupAddr &&
           typeof pickupAddr === "object" &&
-          pickupAddr.streetAddress &&
+          streetField &&
           pickupAddr.city &&
           pickupAddr.province &&
           pickupAddr.postalCode
