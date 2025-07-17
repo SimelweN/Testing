@@ -1,4 +1,4 @@
-// Version: 2024-01-17-v3 - ALL TEMPLATES REWRITTEN WITH NEW STYLING
+// Version: 2024-01-17-v4 - REMOVED UNWANTED TEMPLATES - CLEAN VERSION
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import nodemailer from "npm:nodemailer";
 import { corsHeaders } from "../_shared/cors.ts";
