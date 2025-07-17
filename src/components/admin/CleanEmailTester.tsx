@@ -255,63 +255,19 @@ const CleanEmailTester = () => {
           </Select>
         </div>
 
-        <div className="space-y-3">
-          <Button
-            onClick={sendTestEmail}
-            disabled={isSending || !testEmail || !selectedTemplate}
-            className="w-full"
-            size="lg"
-          >
-            {isSending ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4 mr-2" />
-            )}
-            Send Test Email
-          </Button>
-
-          <Button
-            onClick={async () => {
-              if (!testEmail) {
-                toast.error("Please enter an email address");
-                return;
-              }
-              setIsSending(true);
-              try {
-                const results =
-                  await testAllCompletelyRewrittenTemplates(testEmail);
-                const successCount = results.filter((r) => r.success).length;
-                setLastResult({
-                  success: true,
-                  template: `ALL ${results.length} TEMPLATES`,
-                  data: { successCount, totalCount: results.length },
-                });
-                toast.success(
-                  `Sent ${successCount}/${results.length} emails successfully!`,
-                );
-              } catch (error: any) {
-                setLastResult({
-                  success: false,
-                  template: "ALL TEMPLATES",
-                  error: error.message,
-                });
-                toast.error("Failed to send test emails");
-              } finally {
-                setIsSending(false);
-              }
-            }}
-            disabled={isSending || !testEmail}
-            className="w-full bg-purple-600 hover:bg-purple-700"
-            size="lg"
-          >
-            {isSending ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Mail className="h-4 w-4 mr-2" />
-            )}
-            🚀 TEST ALL 10 REWRITTEN TEMPLATES
-          </Button>
-        </div>
+        <Button
+          onClick={sendTestEmail}
+          disabled={isSending || !testEmail || !selectedTemplate}
+          className="w-full"
+          size="lg"
+        >
+          {isSending ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Send className="h-4 w-4 mr-2" />
+          )}
+          Send Test Email
+        </Button>
 
         {lastResult && (
           <Alert
