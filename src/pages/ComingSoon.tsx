@@ -194,33 +194,15 @@ const ComingSoon = () => {
             </p>
           </div>
 
-          {/* Countdown Timer */}
+          {/* Email Signup */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-12 shadow-xl border border-white/20">
             <h3 className="text-2xl font-bold text-gray-900 mb-6">
-              Launching In
+              Be the First to Know!
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              {[
-                { value: timeLeft.days, label: "Days" },
-                { value: timeLeft.hours, label: "Hours" },
-                { value: timeLeft.minutes, label: "Minutes" },
-                { value: timeLeft.seconds, label: "Seconds" },
-              ].map((item, index) => (
-                <div
-                  key={index}
-                  className="bg-book-600 text-white rounded-xl p-4"
-                >
-                  <div className="text-3xl md:text-4xl font-bold">
-                    {item.value}
-                  </div>
-                  <div className="text-book-100 text-sm uppercase tracking-wide">
-                    {item.label}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <p className="text-gray-600 mb-6">
+              Join our waitlist and get exclusive early access when we launch.
+            </p>
 
-            {/* Email Signup */}
             <form
               onSubmit={handleNotifyMe}
               className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
@@ -235,11 +217,11 @@ const ComingSoon = () => {
               />
               <Button type="submit" className="bg-book-600 hover:bg-book-700">
                 <Mail className="h-4 w-4 mr-2" />
-                Notify Me
+                Join Waitlist
               </Button>
             </form>
-            <p className="text-sm text-gray-500 mt-2">
-              Join 2,500+ students already on our waitlist!
+            <p className="text-sm text-gray-500 mt-4">
+              🎉 Join 2,500+ students already on our waitlist!
             </p>
           </div>
         </div>
