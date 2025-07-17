@@ -17,6 +17,7 @@ import {
   sendDirectStyledTestEmail,
   testTemplateWithForceRefresh,
 } from "@/utils/testNewEmailStyling";
+import { testAllNewEmailTemplates } from "@/utils/testAllNewTemplates";
 
 const UpdatedEmailTester = () => {
   const [testEmail, setTestEmail] = useState("");
