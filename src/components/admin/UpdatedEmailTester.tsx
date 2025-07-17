@@ -11,6 +11,7 @@ import {
   testUpdatedEmailTemplate,
   testUpdatedOrderConfirmationTemplate,
   testManualStyledEmail,
+  debugTemplateRender,
 } from "@/utils/emailTemplateTest";
 
 const UpdatedEmailTester = () => {
