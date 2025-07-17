@@ -135,6 +135,14 @@ class EmailService {
         return "Your Order is Confirmed - ReBooked Solutions";
       case EMAIL_TEMPLATES.COMMIT_CONFIRMATION_BASIC:
         return "Order Commitment Confirmed - ReBooked Solutions";
+      case EMAIL_TEMPLATES.ORDER_COMMITTED_BUYER:
+        return "Order Confirmed - Preparing for Delivery";
+      case EMAIL_TEMPLATES.ORDER_COMMITTED_SELLER:
+        return "Order Commitment Confirmed - Prepare for Pickup";
+      case EMAIL_TEMPLATES.SELLER_NEW_ORDER:
+        return "New Order - Action Required";
+      case EMAIL_TEMPLATES.BUYER_ORDER_PENDING:
+        return "Order Confirmed - Awaiting Seller Response";
       default:
         return "Notification from ReBooked Solutions";
     }
