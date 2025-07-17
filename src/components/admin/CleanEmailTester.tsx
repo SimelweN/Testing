@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { Mail, Send, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { testAllCompletelyRewrittenTemplates } from "@/utils/testAllNewStyleTemplates";
 
 const CleanEmailTester = () => {
   const [testEmail, setTestEmail] = useState("");
