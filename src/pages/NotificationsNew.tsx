@@ -127,7 +127,7 @@ const NotificationsNew = () => {
           type: "info",
           title: "How ReBooked Works",
           message:
-            "📚 Browse thousands of textbooks → 💰 Buy at student-friendly prices → 🚚 Get delivery nationwide → ��� Sell your old books when done!",
+            "📚 Browse thousands of textbooks → 💰 Buy at student-friendly prices → 🚚 Get delivery nationwide → ✅ Sell your old books when done!",
           timestamp: new Date().toISOString(),
           read: false,
           priority: "medium",
@@ -401,9 +401,14 @@ const NotificationsNew = () => {
               </p>
             </div>
           </div>
-          {unreadCount > 0 && (
+          {unreadNotifications > 0 && (
             <Badge className="bg-red-500 text-white self-start sm:self-auto">
-              {unreadCount} new
+              {unreadNotifications} new
+            </Badge>
+          )}
+          {isLoading && (
+            <Badge variant="outline" className="self-start sm:self-auto">
+              Loading...
             </Badge>
           )}
         </div>
