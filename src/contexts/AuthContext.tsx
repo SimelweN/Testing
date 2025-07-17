@@ -120,7 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     async (email: string, password: string, name: string) => {
       try {
         setIsLoading(true);
-        const result = await registerUser(email, password, name);
+        const result = await registerUser(name, email, password);
         return result;
       } catch (error) {
         handleError(error, "Registration");
