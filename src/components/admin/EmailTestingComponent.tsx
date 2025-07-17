@@ -260,7 +260,7 @@ const EmailTestingComponent = () => {
         <div className="space-y-2">
           <Label htmlFor="email-template">Email Template (Optional)</Label>
           <Select
-            value={testEmail.template}
+            value={testEmail.template || "custom"}
             onValueChange={handleTemplateChange}
           >
             <SelectTrigger>
