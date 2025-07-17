@@ -373,4 +373,46 @@ export class EmailVerificationService {
       baseMessage + (result.message || "Please try again or contact support.")
     );
   }
+
+  /**
+   * Resend verification email for unverified users
+   */
+  static async resendVerificationEmail(
+    email: string,
+  ): Promise<{ success: boolean; message: string; error?: any }> {
+    try {
+      console.log("📧 Resending verification email to:", email);
+
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/verify`,
+        },
+      });
+
+      if (error) {
+        logError("Error resending verification email", error);
+        return {
+          success: false,
+          message: `Failed to resend verification email: ${error.message}`,
+          error,
+        };
+      }
+
+      console.log("✅ Verification email sent successfully");
+      return {
+        success: true,
+        message:
+          "Verification email sent! Please check your inbox and spam folder.",
+      };
+    } catch (exception) {
+      logError("Exception while resending verification email", exception);
+      return {
+        success: false,
+        message: `Failed to resend verification email: ${getErrorMessage(exception)}`,
+        error: exception,
+      };
+    }
+  }
 }
