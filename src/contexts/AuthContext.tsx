@@ -120,7 +120,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     async (email: string, password: string, name: string) => {
       try {
         setIsLoading(true);
+        console.log("🔄 AuthContext register called with:", { email, name });
+
         const result = await registerUser(name, email, password);
+        console.log("🔄 registerUser returned:", result);
 
         // For successful registration that requires email verification,
         // Supabase returns a user but no session
@@ -137,8 +140,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           return { needsVerification: false };
         }
 
+        console.log("⚠️ Unexpected result from registerUser:", result);
         return result;
       } catch (error) {
+        console.log("❌ AuthContext register caught error:", error);
         handleError(error, "Registration");
       } finally {
         setIsLoading(false);
