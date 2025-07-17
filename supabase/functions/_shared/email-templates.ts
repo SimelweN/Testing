@@ -4,15 +4,14 @@ export interface TemplateData {
   [key: string]: any;
 }
 
-// NEW WORKING STYLES - Based on the successful direct test
-const getReBookedStyles = () => `
+// EXACT STYLING AS REQUESTED - NO DEVIATIONS
+const getNewReBookedStyles = () => `
 <style>
   body {
     font-family: Arial, sans-serif;
     background-color: #f3fef7;
     padding: 20px;
     color: #1f4e3d;
-    margin: 0;
   }
   .container {
     max-width: 500px;
@@ -34,7 +33,6 @@ const getReBookedStyles = () => `
   }
   .link {
     color: #3ab26f;
-    text-decoration: none;
   }
   .header {
     background: #3ab26f;
@@ -80,14 +78,10 @@ const getReBookedStyles = () => `
     font-size: 18px;
     color: #3ab26f;
   }
-  .order-item {
-    border-bottom: 1px solid #ddd;
-    padding: 10px 0;
-  }
 </style>
 `;
 
-const getReBookedSignature = () => `
+const getNewReBookedSignature = () => `
 <div class="footer">
   <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
   Please do not reply to this email.</p>
@@ -98,7 +92,7 @@ const getReBookedSignature = () => `
 </div>
 `;
 
-const getTextSignature = () => `
+const getNewTextSignature = () => `
 
 This is an automated message from ReBooked Solutions. Please do not reply to this email.
 For assistance, contact: support@rebookedsolutions.co.za
@@ -113,31 +107,32 @@ export function renderTemplate(
 ): { html: string; text: string } {
   switch (templateName) {
     case EMAIL_TEMPLATES.ORDER_CONFIRMATION:
-      return renderOrderConfirmationTemplate(data);
+      return renderNewOrderConfirmationTemplate(data);
     case EMAIL_TEMPLATES.WELCOME:
-      return renderWelcomeTemplate(data);
+      return renderNewWelcomeTemplate(data);
     case EMAIL_TEMPLATES.SHIPPING_NOTIFICATION:
-      return renderShippingNotificationTemplate(data);
+      return renderNewShippingNotificationTemplate(data);
     case EMAIL_TEMPLATES.SELLER_PICKUP_NOTIFICATION:
-      return renderSellerPickupNotificationTemplate(data);
+      return renderNewSellerPickupNotificationTemplate(data);
     case EMAIL_TEMPLATES.BUYER_ORDER_CONFIRMED:
-      return renderBuyerOrderConfirmedTemplate(data);
+      return renderNewBuyerOrderConfirmedTemplate(data);
     case EMAIL_TEMPLATES.COMMIT_CONFIRMATION_BASIC:
-      return renderCommitConfirmationBasicTemplate(data);
+      return renderNewCommitConfirmationBasicTemplate(data);
     case EMAIL_TEMPLATES.ORDER_COMMITTED_BUYER:
-      return renderOrderCommittedBuyerTemplate(data);
+      return renderNewOrderCommittedBuyerTemplate(data);
     case EMAIL_TEMPLATES.ORDER_COMMITTED_SELLER:
-      return renderOrderCommittedSellerTemplate(data);
+      return renderNewOrderCommittedSellerTemplate(data);
     case EMAIL_TEMPLATES.SELLER_NEW_ORDER:
-      return renderSellerNewOrderTemplate(data);
+      return renderNewSellerNewOrderTemplate(data);
     case EMAIL_TEMPLATES.BUYER_ORDER_PENDING:
-      return renderBuyerOrderPendingTemplate(data);
+      return renderNewBuyerOrderPendingTemplate(data);
     default:
       throw new Error(`Template not found: ${templateName}`);
   }
 }
 
-function renderOrderConfirmationTemplate(data: TemplateData): {
+// 1. ORDER CONFIRMATION TEMPLATE - COMPLETELY REWRITTEN
+function renderNewOrderConfirmationTemplate(data: TemplateData): {
   html: string;
   text: string;
 } {
@@ -149,7 +144,7 @@ function renderOrderConfirmationTemplate(data: TemplateData): {
 <head>
   <meta charset="utf-8">
   <title>Order Confirmation - ReBooked Solutions</title>
-  ${getReBookedStyles()}
+  ${getNewReBookedStyles()}
 </head>
 <body>
   <div class="container">
@@ -167,7 +162,7 @@ function renderOrderConfirmationTemplate(data: TemplateData): {
         ? items
             .map(
               (item: any) => `
-        <div class="order-item">
+        <div style="border-bottom: 1px solid #ddd; padding: 10px 0;">
           <strong>${item.name || "Item"}</strong><br>
           Quantity: ${item.quantity || 1} × R${item.price || 0}<br>
           Subtotal: R${((item.quantity || 1) * (item.price || 0)).toFixed(2)}
@@ -175,7 +170,7 @@ function renderOrderConfirmationTemplate(data: TemplateData): {
       `,
             )
             .join("")
-        : '<div class="order-item">No items found</div>'
+        : '<div style="padding: 10px 0;">No items found</div>'
     }
     
     <div class="total">
@@ -186,7 +181,7 @@ function renderOrderConfirmationTemplate(data: TemplateData): {
     
     <p>We'll send you another email when your order ships with tracking information.</p>
     
-    ${getReBookedSignature()}
+    ${getNewReBookedSignature()}
   </div>
 </body>
 </html>`;
@@ -209,12 +204,13 @@ ${estimatedDelivery ? `Estimated Delivery: ${estimatedDelivery}` : ""}
 
 We'll send you another email when your order ships with tracking information.
 
-${getTextSignature()}`;
+${getNewTextSignature()}`;
 
   return { html, text };
 }
 
-function renderWelcomeTemplate(data: TemplateData): {
+// 2. WELCOME TEMPLATE - COMPLETELY REWRITTEN
+function renderNewWelcomeTemplate(data: TemplateData): {
   html: string;
   text: string;
 } {
@@ -226,7 +222,7 @@ function renderWelcomeTemplate(data: TemplateData): {
 <head>
   <meta charset="utf-8">
   <title>Welcome to ReBooked Solutions</title>
-  ${getReBookedStyles()}
+  ${getNewReBookedStyles()}
 </head>
 <body>
   <div class="container">
@@ -252,7 +248,7 @@ function renderWelcomeTemplate(data: TemplateData): {
     
     <p>If you have any questions, feel free to contact our support team.</p>
     
-    ${getReBookedSignature()}
+    ${getNewReBookedSignature()}
   </div>
 </body>
 </html>`;
@@ -274,12 +270,13 @@ ${loginUrl ? `Login to your account: ${loginUrl}` : ""}
 
 If you have any questions, feel free to contact our support team.
 
-${getTextSignature()}`;
+${getNewTextSignature()}`;
 
   return { html, text };
 }
 
-function renderShippingNotificationTemplate(data: TemplateData): {
+// 3. SHIPPING NOTIFICATION TEMPLATE - COMPLETELY REWRITTEN
+function renderNewShippingNotificationTemplate(data: TemplateData): {
   html: string;
   text: string;
 } {
@@ -297,7 +294,7 @@ function renderShippingNotificationTemplate(data: TemplateData): {
 <head>
   <meta charset="utf-8">
   <title>Your Order Has Shipped - ReBooked Solutions</title>
-  ${getReBookedStyles()}
+  ${getNewReBookedStyles()}
 </head>
 <body>
   <div class="container">
@@ -319,7 +316,7 @@ function renderShippingNotificationTemplate(data: TemplateData): {
     
     <p>Thank you for choosing ReBooked Solutions!</p>
     
-    ${getReBookedSignature()}
+    ${getNewReBookedSignature()}
   </div>
 </body>
 </html>`;
@@ -340,148 +337,13 @@ You can track your package using the tracking number above on the ${carrier} web
 
 Thank you for choosing ReBooked Solutions!
 
-${getTextSignature()}`;
+${getNewTextSignature()}`;
 
   return { html, text };
 }
 
-function renderOrderCommittedBuyerTemplate(data: TemplateData): {
-  html: string;
-  text: string;
-} {
-  const { buyer_name, order_id, seller_name, book_titles, estimated_delivery } =
-    data;
-
-  const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Order Confirmed - Preparing for Delivery</title>
-  ${getReBookedStyles()}
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>🎉 Order Confirmed!</h1>
-    </div>
-    
-    <h2>Great news, ${buyer_name}!</h2>
-    <p><strong>${seller_name}</strong> has confirmed your order and is preparing your book(s) for delivery.</p>
-
-    <div class="info-box">
-      <h3>📚 Order Details</h3>
-      <p><strong>Order ID:</strong> ${order_id}</p>
-      <p><strong>Book(s):</strong> ${book_titles}</p>
-      <p><strong>Seller:</strong> ${seller_name}</p>
-      <p><strong>Estimated Delivery:</strong> ${estimated_delivery}</p>
-    </div>
-
-    <p>We'll keep you updated throughout the delivery process!</p>
-
-    <p>Happy reading! 📖</p>
-    <p><strong>ReBooked Solutions Team</strong></p>
-    
-    ${getReBookedSignature()}
-  </div>
-</body>
-</html>`;
-
-  const text = `
-Order Confirmed!
-
-Great news, ${buyer_name}!
-
-${seller_name} has confirmed your order and is preparing your book(s) for delivery.
-
-Order Details:
-- Order ID: ${order_id}
-- Book(s): ${book_titles}
-- Seller: ${seller_name}
-- Estimated Delivery: ${estimated_delivery}
-
-We'll keep you updated throughout the delivery process!
-
-Happy reading!
-ReBooked Solutions Team
-
-${getTextSignature()}`;
-
-  return { html, text };
-}
-
-function renderOrderCommittedSellerTemplate(data: TemplateData): {
-  html: string;
-  text: string;
-} {
-  const {
-    seller_name,
-    order_id,
-    buyer_name,
-    book_titles,
-    pickup_instructions,
-  } = data;
-
-  const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Order Commitment Confirmed - Prepare for Pickup</title>
-  ${getReBookedStyles()}
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>✅ Order Commitment Confirmed!</h1>
-    </div>
-    
-    <h2>Thank you, ${seller_name}!</h2>
-    <p>You've successfully committed to sell your book(s). The buyer has been notified and pickup has been scheduled.</p>
-
-    <div class="info-box">
-      <h3>📋 Order Details</h3>
-      <p><strong>Order ID:</strong> ${order_id}</p>
-      <p><strong>Book(s):</strong> ${book_titles}</p>
-      <p><strong>Buyer:</strong> ${buyer_name}</p>
-    </div>
-
-    <div class="steps">
-      <h3>📦 Next Steps</h3>
-      <p>${pickup_instructions}</p>
-    </div>
-
-    <p>Thank you for selling with ReBooked Solutions! 📚</p>
-    <p><strong>ReBooked Solutions Team</strong></p>
-    
-    ${getReBookedSignature()}
-  </div>
-</body>
-</html>`;
-
-  const text = `
-Order Commitment Confirmed!
-
-Thank you, ${seller_name}!
-
-You've successfully committed to sell your book(s). The buyer has been notified and pickup has been scheduled.
-
-Order Details:
-- Order ID: ${order_id}
-- Book(s): ${book_titles}
-- Buyer: ${buyer_name}
-
-${pickup_instructions}
-
-Thank you for selling with ReBooked Solutions!
-ReBooked Solutions Team
-
-${getTextSignature()}`;
-
-  return { html, text };
-}
-
-function renderSellerNewOrderTemplate(data: TemplateData): {
+// 4. SELLER NEW ORDER TEMPLATE - COMPLETELY REWRITTEN
+function renderNewSellerNewOrderTemplate(data: TemplateData): {
   html: string;
   text: string;
 } {
@@ -501,7 +363,7 @@ function renderSellerNewOrderTemplate(data: TemplateData): {
 <head>
   <meta charset="utf-8">
   <title>New Order - Action Required</title>
-  ${getReBookedStyles()}
+  ${getNewReBookedStyles()}
 </head>
 <body>
   <div class="container">
@@ -531,7 +393,7 @@ function renderSellerNewOrderTemplate(data: TemplateData): {
 
     <p><strong>ReBooked Solutions Team</strong></p>
     
-    ${getReBookedSignature()}
+    ${getNewReBookedSignature()}
   </div>
 </body>
 </html>`;
@@ -559,12 +421,13 @@ ${commitUrl ? `Commit to order: ${commitUrl}` : ""}
 
 ReBooked Solutions Team
 
-${getTextSignature()}`;
+${getNewTextSignature()}`;
 
   return { html, text };
 }
 
-function renderBuyerOrderPendingTemplate(data: TemplateData): {
+// 5. BUYER ORDER PENDING TEMPLATE - COMPLETELY REWRITTEN
+function renderNewBuyerOrderPendingTemplate(data: TemplateData): {
   html: string;
   text: string;
 } {
@@ -577,7 +440,7 @@ function renderBuyerOrderPendingTemplate(data: TemplateData): {
 <head>
   <meta charset="utf-8">
   <title>Order Confirmed - Awaiting Seller Response</title>
-  ${getReBookedStyles()}
+  ${getNewReBookedStyles()}
 </head>
 <body>
   <div class="container">
@@ -611,7 +474,7 @@ function renderBuyerOrderPendingTemplate(data: TemplateData): {
 
     <p><strong>ReBooked Solutions Team</strong></p>
     
-    ${getReBookedSignature()}
+    ${getNewReBookedSignature()}
   </div>
 </body>
 </html>`;
@@ -640,13 +503,151 @@ ${statusUrl ? `Check order status: ${statusUrl}` : ""}
 
 ReBooked Solutions Team
 
-${getTextSignature()}`;
+${getNewTextSignature()}`;
 
   return { html, text };
 }
 
-// Import functions from commit templates
-function renderSellerPickupNotificationTemplate(data: TemplateData): {
+// 6. ORDER COMMITTED BUYER TEMPLATE - COMPLETELY REWRITTEN
+function renderNewOrderCommittedBuyerTemplate(data: TemplateData): {
+  html: string;
+  text: string;
+} {
+  const { buyer_name, order_id, seller_name, book_titles, estimated_delivery } =
+    data;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Order Confirmed - Preparing for Delivery</title>
+  ${getNewReBookedStyles()}
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎉 Order Confirmed!</h1>
+    </div>
+    
+    <h2>Great news, ${buyer_name}!</h2>
+    <p><strong>${seller_name}</strong> has confirmed your order and is preparing your book(s) for delivery.</p>
+
+    <div class="info-box">
+      <h3>📚 Order Details</h3>
+      <p><strong>Order ID:</strong> ${order_id}</p>
+      <p><strong>Book(s):</strong> ${book_titles}</p>
+      <p><strong>Seller:</strong> ${seller_name}</p>
+      <p><strong>Estimated Delivery:</strong> ${estimated_delivery}</p>
+    </div>
+
+    <p>We'll keep you updated throughout the delivery process!</p>
+
+    <p>Happy reading! 📖</p>
+    <p><strong>ReBooked Solutions Team</strong></p>
+    
+    ${getNewReBookedSignature()}
+  </div>
+</body>
+</html>`;
+
+  const text = `
+Order Confirmed!
+
+Great news, ${buyer_name}!
+
+${seller_name} has confirmed your order and is preparing your book(s) for delivery.
+
+Order Details:
+- Order ID: ${order_id}
+- Book(s): ${book_titles}
+- Seller: ${seller_name}
+- Estimated Delivery: ${estimated_delivery}
+
+We'll keep you updated throughout the delivery process!
+
+Happy reading!
+ReBooked Solutions Team
+
+${getNewTextSignature()}`;
+
+  return { html, text };
+}
+
+// 7. ORDER COMMITTED SELLER TEMPLATE - COMPLETELY REWRITTEN
+function renderNewOrderCommittedSellerTemplate(data: TemplateData): {
+  html: string;
+  text: string;
+} {
+  const {
+    seller_name,
+    order_id,
+    buyer_name,
+    book_titles,
+    pickup_instructions,
+  } = data;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Order Commitment Confirmed - Prepare for Pickup</title>
+  ${getNewReBookedStyles()}
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>✅ Order Commitment Confirmed!</h1>
+    </div>
+    
+    <h2>Thank you, ${seller_name}!</h2>
+    <p>You've successfully committed to sell your book(s). The buyer has been notified and pickup has been scheduled.</p>
+
+    <div class="info-box">
+      <h3>📋 Order Details</h3>
+      <p><strong>Order ID:</strong> ${order_id}</p>
+      <p><strong>Book(s):</strong> ${book_titles}</p>
+      <p><strong>Buyer:</strong> ${buyer_name}</p>
+    </div>
+
+    <div class="steps">
+      <h3>📦 Next Steps</h3>
+      <p>${pickup_instructions}</p>
+    </div>
+
+    <p>Thank you for selling with ReBooked Solutions! 📚</p>
+    <p><strong>ReBooked Solutions Team</strong></p>
+    
+    ${getNewReBookedSignature()}
+  </div>
+</body>
+</html>`;
+
+  const text = `
+Order Commitment Confirmed!
+
+Thank you, ${seller_name}!
+
+You've successfully committed to sell your book(s). The buyer has been notified and pickup has been scheduled.
+
+Order Details:
+- Order ID: ${order_id}
+- Book(s): ${book_titles}
+- Buyer: ${buyer_name}
+
+${pickup_instructions}
+
+Thank you for selling with ReBooked Solutions!
+ReBooked Solutions Team
+
+${getNewTextSignature()}`;
+
+  return { html, text };
+}
+
+// 8. SELLER PICKUP NOTIFICATION TEMPLATE - COMPLETELY REWRITTEN
+function renderNewSellerPickupNotificationTemplate(data: TemplateData): {
   html: string;
   text: string;
 } {
@@ -670,7 +671,7 @@ function renderSellerPickupNotificationTemplate(data: TemplateData): {
 <head>
   <meta charset="utf-8">
   <title>Courier Pickup Scheduled - ReBooked Solutions</title>
-  ${getReBookedStyles()}
+  ${getNewReBookedStyles()}
 </head>
 <body>
   <div class="container">
@@ -732,7 +733,7 @@ function renderSellerPickupNotificationTemplate(data: TemplateData): {
     <p>Happy selling! 📚</p>
     <p><strong>ReBooked Solutions Team</strong></p>
     
-    ${getReBookedSignature()}
+    ${getNewReBookedSignature()}
   </div>
 </body>
 </html>`;
@@ -766,12 +767,13 @@ Questions? Contact our support team.
 
 ReBooked Solutions
 
-${getTextSignature()}`;
+${getNewTextSignature()}`;
 
   return { html, text };
 }
 
-function renderBuyerOrderConfirmedTemplate(data: TemplateData): {
+// 9. BUYER ORDER CONFIRMED TEMPLATE - COMPLETELY REWRITTEN
+function renderNewBuyerOrderConfirmedTemplate(data: TemplateData): {
   html: string;
   text: string;
 } {
@@ -783,7 +785,7 @@ function renderBuyerOrderConfirmedTemplate(data: TemplateData): {
 <head>
   <meta charset="utf-8">
   <title>Your Order is Confirmed - ReBooked Solutions</title>
-  ${getReBookedStyles()}
+  ${getNewReBookedStyles()}
 </head>
 <body>
   <div class="container">
@@ -817,7 +819,7 @@ function renderBuyerOrderConfirmedTemplate(data: TemplateData): {
     <p>Happy reading! 📖</p>
     <p><strong>ReBooked Solutions Team</strong></p>
     
-    ${getReBookedSignature()}
+    ${getNewReBookedSignature()}
   </div>
 </body>
 </html>`;
@@ -836,12 +838,13 @@ We'll keep you updated with tracking information.
 
 ReBooked Solutions
 
-${getTextSignature()}`;
+${getNewTextSignature()}`;
 
   return { html, text };
 }
 
-function renderCommitConfirmationBasicTemplate(data: TemplateData): {
+// 10. COMMIT CONFIRMATION BASIC TEMPLATE - COMPLETELY REWRITTEN
+function renderNewCommitConfirmationBasicTemplate(data: TemplateData): {
   html: string;
   text: string;
 } {
@@ -853,7 +856,7 @@ function renderCommitConfirmationBasicTemplate(data: TemplateData): {
 <head>
   <meta charset="utf-8">
   <title>Order Commitment Confirmed - ReBooked Solutions</title>
-  ${getReBookedStyles()}
+  ${getNewReBookedStyles()}
 </head>
 <body>
   <div class="container">
@@ -880,7 +883,7 @@ function renderCommitConfirmationBasicTemplate(data: TemplateData): {
     
     <p>Best regards,<br><strong>ReBooked Solutions</strong></p>
     
-    ${getReBookedSignature()}
+    ${getNewReBookedSignature()}
   </div>
 </body>
 </html>`;
@@ -897,7 +900,7 @@ We'll arrange courier pickup within 24 hours.
 
 ReBooked Solutions
 
-${getTextSignature()}`;
+${getNewTextSignature()}`;
 
   return { html, text };
 }

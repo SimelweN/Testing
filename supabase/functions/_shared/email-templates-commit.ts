@@ -2,15 +2,14 @@ export interface TemplateData {
   [key: string]: any;
 }
 
-// NEW WORKING STYLES - Same as main templates
-const getReBookedStyles = () => `
+// EXACT STYLING AS REQUESTED - NO DEVIATIONS
+const getNewReBookedStyles = () => `
 <style>
   body {
     font-family: Arial, sans-serif;
     background-color: #f3fef7;
     padding: 20px;
     color: #1f4e3d;
-    margin: 0;
   }
   .container {
     max-width: 500px;
@@ -32,7 +31,6 @@ const getReBookedStyles = () => `
   }
   .link {
     color: #3ab26f;
-    text-decoration: none;
   }
   .header {
     background: #3ab26f;
@@ -85,7 +83,7 @@ const getReBookedStyles = () => `
 </style>
 `;
 
-const getReBookedSignature = () => `
+const getNewReBookedSignature = () => `
 <div class="footer">
   <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
   Please do not reply to this email.</p>
@@ -96,7 +94,7 @@ const getReBookedSignature = () => `
 </div>
 `;
 
-const getTextSignature = () => `
+const getNewTextSignature = () => `
 
 This is an automated message from ReBooked Solutions. Please do not reply to this email.
 For assistance, contact: support@rebookedsolutions.co.za
@@ -129,7 +127,7 @@ function renderSellerPickupNotificationTemplate(data: TemplateData): {
 <head>
   <meta charset="utf-8">
   <title>Courier Pickup Scheduled - ReBooked Solutions</title>
-  ${getReBookedStyles()}
+  ${getNewReBookedStyles()}
 </head>
 <body>
   <div class="container">
@@ -191,7 +189,7 @@ function renderSellerPickupNotificationTemplate(data: TemplateData): {
     <p>Happy selling! 📚</p>
     <p><strong>ReBooked Solutions Team</strong></p>
     
-    ${getReBookedSignature()}
+    ${getNewReBookedSignature()}
   </div>
 </body>
 </html>`;
@@ -225,7 +223,7 @@ Questions? Contact our support team.
 
 ReBooked Solutions
 
-${getTextSignature()}`;
+${getNewTextSignature()}`;
 
   return { html, text };
 }
@@ -242,7 +240,7 @@ function renderBuyerOrderConfirmedTemplate(data: TemplateData): {
 <head>
   <meta charset="utf-8">
   <title>Your Order is Confirmed - ReBooked Solutions</title>
-  ${getReBookedStyles()}
+  ${getNewReBookedStyles()}
 </head>
 <body>
   <div class="container">
@@ -276,7 +274,7 @@ function renderBuyerOrderConfirmedTemplate(data: TemplateData): {
     <p>Happy reading! 📖</p>
     <p><strong>ReBooked Solutions Team</strong></p>
     
-    ${getReBookedSignature()}
+    ${getNewReBookedSignature()}
   </div>
 </body>
 </html>`;
@@ -295,7 +293,7 @@ We'll keep you updated with tracking information.
 
 ReBooked Solutions
 
-${getTextSignature()}`;
+${getNewTextSignature()}`;
 
   return { html, text };
 }
@@ -312,7 +310,7 @@ function renderCommitConfirmationBasicTemplate(data: TemplateData): {
 <head>
   <meta charset="utf-8">
   <title>Order Commitment Confirmed - ReBooked Solutions</title>
-  ${getReBookedStyles()}
+  ${getNewReBookedStyles()}
 </head>
 <body>
   <div class="container">
@@ -339,7 +337,7 @@ function renderCommitConfirmationBasicTemplate(data: TemplateData): {
     
     <p>Best regards,<br><strong>ReBooked Solutions</strong></p>
     
-    ${getReBookedSignature()}
+    ${getNewReBookedSignature()}
   </div>
 </body>
 </html>`;
@@ -356,7 +354,7 @@ We'll arrange courier pickup within 24 hours.
 
 ReBooked Solutions
 
-${getTextSignature()}`;
+${getNewTextSignature()}`;
 
   return { html, text };
 }
