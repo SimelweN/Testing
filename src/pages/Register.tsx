@@ -48,12 +48,18 @@ const Register = () => {
         throw new Error("Password must be at least 6 characters long");
       }
 
-      await register(email, password, name);
+      const result = await register(email, password, name);
 
       // Show confirmation message and redirect to login
       toast.success(
         "Registration successful! Please check your email for verification.",
+        {
+          duration: 4000,
+        },
       );
+
+      console.log("✅ Registration completed, redirecting to login...");
+
       setTimeout(() => {
         navigate("/login", {
           state: {
