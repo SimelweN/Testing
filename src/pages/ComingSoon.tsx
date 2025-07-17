@@ -283,7 +283,7 @@ const ComingSoon = () => {
                 title: "Nationwide Delivery",
                 description:
                   "Fast, reliable delivery to any campus or address across South Africa. Books when you need them.",
-                highlight: "Free delivery on orders over R500",
+                highlight: "Fast & reliable shipping",
               },
               {
                 icon: <Smartphone className="h-8 w-8" />,
