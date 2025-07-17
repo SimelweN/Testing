@@ -161,15 +161,7 @@ function renderOrderConfirmationTemplate(data: TemplateData): {
     <head>
       <meta charset="utf-8">
       <title>Order Confirmation</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: #f9f9f9; }
-        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
-        .order-item { border-bottom: 1px solid #ddd; padding: 10px 0; }
-        .total { font-weight: bold; font-size: 18px; color: #2d6e55; }
-      </style>
+            ${getEmailStyles()}
     </head>
     <body>
       <div class="container">
