@@ -1,3 +1,4 @@
+// Version: 2024-01-17-FINAL - ALL 10 TEMPLATES COMPLETELY REWRITTEN FROM SCRATCH WITH NEW STYLING
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import nodemailer from "npm:nodemailer";
 import { corsHeaders } from "../_shared/cors.ts";
@@ -68,7 +69,7 @@ function getEmailConfig(): EmailConfig {
 }
 
 async function createTransporter(config: EmailConfig) {
-  const transporter = nodemailer.createTransporter({
+  const transporter = nodemailer.createTransport({
     host: config.host,
     port: config.port,
     secure: config.secure,
@@ -109,13 +110,22 @@ async function processEmailRequest(request: EmailRequest, config: EmailConfig) {
   // Process template if provided
   if (request.template) {
     try {
+      console.log(
+        `Rendering template: ${request.template.name} with data:`,
+        request.template.data,
+      );
       const rendered = renderTemplate(
         request.template.name as any,
         request.template.data,
       );
+      console.log(`Template rendered successfully: ${request.template.name}`);
       html = rendered.html;
       text = rendered.text;
     } catch (error) {
+      console.error(
+        `Template rendering failed for ${request.template.name}:`,
+        error,
+      );
       throw new Error(`${EMAIL_ERRORS.TEMPLATE_NOT_FOUND}: ${error.message}`);
     }
   }

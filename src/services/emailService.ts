@@ -41,6 +41,10 @@ export const EMAIL_TEMPLATES = {
   SELLER_PICKUP_NOTIFICATION: "seller-pickup-notification",
   BUYER_ORDER_CONFIRMED: "buyer-order-confirmed",
   COMMIT_CONFIRMATION_BASIC: "commit-confirmation-basic",
+  ORDER_COMMITTED_BUYER: "order-committed-buyer",
+  ORDER_COMMITTED_SELLER: "order-committed-seller",
+  SELLER_NEW_ORDER: "seller-new-order",
+  BUYER_ORDER_PENDING: "buyer-order-pending",
 } as const;
 
 export type EmailTemplateName =
@@ -131,6 +135,14 @@ class EmailService {
         return "Your Order is Confirmed - ReBooked Solutions";
       case EMAIL_TEMPLATES.COMMIT_CONFIRMATION_BASIC:
         return "Order Commitment Confirmed - ReBooked Solutions";
+      case EMAIL_TEMPLATES.ORDER_COMMITTED_BUYER:
+        return "Order Confirmed - Preparing for Delivery";
+      case EMAIL_TEMPLATES.ORDER_COMMITTED_SELLER:
+        return "Order Commitment Confirmed - Prepare for Pickup";
+      case EMAIL_TEMPLATES.SELLER_NEW_ORDER:
+        return "New Order - Action Required";
+      case EMAIL_TEMPLATES.BUYER_ORDER_PENDING:
+        return "Order Confirmed - Awaiting Seller Response";
       default:
         return "Notification from ReBooked Solutions";
     }
@@ -286,6 +298,77 @@ class EmailService {
       to,
       EMAIL_TEMPLATES.COMMIT_CONFIRMATION_BASIC,
       commitData,
+    );
+  }
+
+  async sendOrderCommittedBuyer(
+    to: string,
+    orderData: {
+      buyer_name: string;
+      order_id: string;
+      seller_name: string;
+      book_titles: string;
+      estimated_delivery: string;
+    },
+  ): Promise<EmailResponse> {
+    return this.sendTemplateEmail(
+      to,
+      EMAIL_TEMPLATES.ORDER_COMMITTED_BUYER,
+      orderData,
+    );
+  }
+
+  async sendOrderCommittedSeller(
+    to: string,
+    orderData: {
+      seller_name: string;
+      order_id: string;
+      buyer_name: string;
+      book_titles: string;
+      pickup_instructions: string;
+    },
+  ): Promise<EmailResponse> {
+    return this.sendTemplateEmail(
+      to,
+      EMAIL_TEMPLATES.ORDER_COMMITTED_SELLER,
+      orderData,
+    );
+  }
+
+  async sendSellerNewOrder(
+    to: string,
+    orderData: {
+      sellerName: string;
+      buyerName: string;
+      orderId: string;
+      items: Array<{ name: string; quantity: number; price: number }>;
+      totalAmount: string;
+      expiresAt: string;
+      commitUrl?: string;
+    },
+  ): Promise<EmailResponse> {
+    return this.sendTemplateEmail(
+      to,
+      EMAIL_TEMPLATES.SELLER_NEW_ORDER,
+      orderData,
+    );
+  }
+
+  async sendBuyerOrderPending(
+    to: string,
+    orderData: {
+      buyerName: string;
+      sellerName: string;
+      orderId: string;
+      items: Array<{ name: string; quantity: number; price: number }>;
+      totalAmount: string;
+      statusUrl?: string;
+    },
+  ): Promise<EmailResponse> {
+    return this.sendTemplateEmail(
+      to,
+      EMAIL_TEMPLATES.BUYER_ORDER_PENDING,
+      orderData,
     );
   }
 

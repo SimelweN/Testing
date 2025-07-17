@@ -27,7 +27,7 @@ import AdminResourcesTab from "@/components/admin/AdminResourcesTab";
 import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
 import AdminUsageExamples from "@/components/admin/AdminUsageExamples";
 import SupabaseFunctionTester from "@/components/admin/SupabaseFunctionTester";
-import EmailTestingComponent from "@/components/admin/EmailTestingComponent";
+import CleanEmailTester from "@/components/admin/CleanEmailTester";
 
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -583,7 +583,7 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="emails" className="space-y-4 mt-0">
-            <EmailTestingComponent />
+            <CleanEmailTester />
           </TabsContent>
 
           <TabsContent value="cleanup" className="space-y-4 mt-0">
