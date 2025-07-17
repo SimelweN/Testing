@@ -303,7 +303,10 @@ export class BankingService {
         .eq("id", userId)
         .single();
 
-      const hasPickupAddress = !!profile?.pickup_address;
+      // Properly validate address using validateAddress function
+      const hasPickupAddress = profile?.pickup_address
+        ? validateAddress(profile.pickup_address)
+        : false;
 
       // Check active books
       const { data: books } = await supabase
