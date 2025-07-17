@@ -254,20 +254,12 @@ const EmailTestingComponent = () => {
         subject: testEmail.subject,
       };
 
-      // Use template if selected
+      // Template system is deprecated - throw error if template is selected
       if (testEmail.template) {
-        try {
-          const templateData = testEmail.customData
-            ? JSON.parse(testEmail.customData)
-            : {};
-          emailPayload.template = {
-            name: testEmail.template,
-            data: templateData,
-          };
-        } catch (error) {
-          toast.error("Invalid JSON in template data");
-          return;
-        }
+        toast.error(
+          "Template system is deprecated. Please use direct HTML content instead.",
+        );
+        return;
       } else {
         // Use custom HTML/text content
         if (testEmail.htmlContent) {
@@ -284,62 +276,25 @@ const EmailTestingComponent = () => {
 <head>
   <meta charset="utf-8">
   <title>Test Email - ReBooked Solutions</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f3fef7;
-      padding: 20px;
-      color: #1f4e3d;
-      margin: 0;
-    }
-    .container {
-      max-width: 500px;
-      margin: auto;
-      background-color: #ffffff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-    .header {
-      background: #3ab26f;
-      color: white;
-      padding: 20px;
-      text-align: center;
-      border-radius: 10px 10px 0 0;
-      margin: -30px -30px 20px -30px;
-    }
-    .footer {
-      background: #f3fef7;
-      color: #1f4e3d;
-      padding: 20px;
-      text-align: center;
-      font-size: 12px;
-      line-height: 1.5;
-      margin: 30px -30px -30px -30px;
-      border-radius: 0 0 10px 10px;
-      border-top: 1px solid #e5e7eb;
-    }
-    .link { color: #3ab26f; }
-  </style>
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>✅ Test Email</h1>
+<body style="font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; margin: 0;">
+  <div style="max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+    <div style="background: #3ab26f; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px;">
+      <h1 style="margin: 0; font-size: 24px;">✅ Test Email</h1>
     </div>
 
-    <h2>Test Email Success!</h2>
-    <p>This is a test email from ReBooked Solutions admin panel with proper styling.</p>
+    <h2 style="color: #1f4e3d; font-size: 20px; margin: 0 0 15px 0;">Test Email Success!</h2>
+    <p style="color: #1f4e3d; line-height: 1.6; margin: 15px 0;">This is a test email from ReBooked Solutions admin panel with proper styling.</p>
 
-    <p>If you're seeing this with beautiful green styling, your email system is working correctly!</p>
+    <p style="color: #1f4e3d; line-height: 1.6; margin: 15px 0;">If you're seeing this with beautiful green styling, your email system is working correctly!</p>
 
-    <div class="footer">
-      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
+    <div style="background: #f3fef7; color: #1f4e3d; padding: 20px; text-align: center; font-size: 12px; line-height: 1.5; margin: 30px -30px -30px -30px; border-radius: 0 0 10px 10px; border-top: 1px solid #e5e7eb;">
+      <p style="margin: 0 0 10px 0;"><strong>This is an automated message from ReBooked Solutions.</strong><br>
       Please do not reply to this email.</p>
-      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
-      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
-      <p>T&Cs apply.</p>
-      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+      <p style="margin: 10px 0;">For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" style="color: #3ab26f; text-decoration: none;">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" style="color: #3ab26f; text-decoration: none;">https://rebookedsolutions.co.za</a></p>
+      <p style="margin: 10px 0;">T&Cs apply.</p>
+      <p style="margin: 10px 0 0 0;"><em>"Pre-Loved Pages, New Adventures"</em></p>
     </div>
   </div>
 </body>
