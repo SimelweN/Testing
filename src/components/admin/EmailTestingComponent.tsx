@@ -127,7 +127,7 @@ const EmailTestingComponent = () => {
     const template = templates.find((t) => t.name === templateName);
     setTestEmail((prev) => ({
       ...prev,
-      template: templateName,
+      template: templateName === "custom" ? "" : templateName,
       customData: template ? JSON.stringify(template.sampleData, null, 2) : "",
       subject: template ? `Test ${template.label}` : "",
     }));
