@@ -183,19 +183,21 @@ function renderOrderConfirmationTemplate(data: TemplateData): {
         <h2>Order #${orderNumber}</h2>
         <p>Your order has been confirmed and is being processed.</p>
         
-        <h3>Order Details:</h3>
+                <h3>Order Details:</h3>
         ${
-          items
-            ?.map(
-              (item: any) => `
-          <div style="border-bottom: 1px solid #ddd; padding: 10px 0;">
-            <strong>${item.name}</strong><br>
-            Quantity: ${item.quantity} × R${item.price}<br>
-            Subtotal: R${(item.quantity * item.price).toFixed(2)}
-          </div>
-        `,
-            )
-            .join("") || ""
+          Array.isArray(items) && items.length > 0
+            ? items
+                .map(
+                  (item: any) => `
+            <div style="border-bottom: 1px solid #ddd; padding: 10px 0;">
+              <strong>${item.name || "Item"}</strong><br>
+              Quantity: ${item.quantity || 1} × R${item.price || 0}<br>
+              Subtotal: R${((item.quantity || 1) * (item.price || 0)).toFixed(2)}
+            </div>
+          `,
+                )
+                .join("")
+            : '<div style="padding: 10px 0;">No items found</div>'
         }
         
         <div class="total">
