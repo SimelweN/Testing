@@ -133,9 +133,22 @@ const NotificationsNew = () => {
   useEffect(() => {
     if (user && profile) {
       const hasSeenWelcome = localStorage.getItem(`welcome_seen_${user.id}`);
-      if (!hasSeenWelcome) {
+      const hasDismissedWelcome = localStorage.getItem(
+        `welcome_dismissed_${user.id}`,
+      );
+
+      // Only show welcome if user hasn't seen it AND hasn't dismissed it
+      if (!hasSeenWelcome && !hasDismissedWelcome) {
         setIsFirstTime(true);
         setShowWelcome(true);
+      } else {
+        // If user has already seen/dismissed welcome, ensure states are correct
+        setIsFirstTime(false);
+        setShowWelcome(false);
+        // Remove welcome category from state if it exists
+        setCategories((prev) =>
+          prev.filter((category) => category.id !== "welcome"),
+        );
       }
     }
   }, [user, profile]);
