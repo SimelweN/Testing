@@ -25,6 +25,8 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/hooks/useNotifications";
+import { getActiveBroadcasts } from "@/services/broadcastService";
 import { toast } from "sonner";
 
 interface NotificationCategory {
