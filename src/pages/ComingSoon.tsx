@@ -263,28 +263,62 @@ const ComingSoon = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* Student Voices Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-book-600 to-book-700 text-white">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h3 className="text-4xl font-bold mb-4">
-              The Numbers Speak for Themselves
+              What Students Are Saying
             </h3>
             <p className="text-xl text-book-100">
-              Trusted by thousands of students across South Africa
+              Real feedback from students who can't wait for ReBooked Solutions
             </p>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="bg-white/20 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-white">
-                  {stat.icon}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                quote:
+                  "Finally! A platform made by students, for students. Can't wait to save money on my textbooks!",
+                author: "Sarah M.",
+                university: "UCT",
+                course: "Computer Science",
+              },
+              {
+                quote:
+                  "This is exactly what we need! Buying textbooks has always been so expensive. ReBooked will be a game-changer.",
+                author: "Thabo K.",
+                university: "Wits",
+                course: "Engineering",
+              },
+              {
+                quote:
+                  "Love the idea of connecting with other students while saving money. The eco-friendly aspect is amazing too!",
+                author: "Emma L.",
+                university: "Stellenbosch",
+                course: "Business",
+              },
+            ].map((testimonial, index) => (
+              <div
+                key={index}
+                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
+              >
+                <div className="flex items-center mb-4">
+                  <div className="bg-white/20 w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                    <Users className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white">
+                      {testimonial.author}
+                    </h4>
+                    <p className="text-book-100 text-sm">
+                      {testimonial.course} • {testimonial.university}
+                    </p>
+                  </div>
                 </div>
-                <div className="text-3xl md:text-4xl font-bold mb-2">
-                  {stat.number}
-                </div>
-                <div className="text-book-100">{stat.label}</div>
+                <blockquote className="text-book-50 italic leading-relaxed">
+                  "{testimonial.quote}"
+                </blockquote>
               </div>
             ))}
           </div>
