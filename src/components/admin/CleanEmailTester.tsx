@@ -46,15 +46,7 @@ const CleanEmailTester = () => {
         estimatedDelivery: "2-3 business days",
       },
     },
-    {
-      value: "password-reset",
-      label: "Password Reset",
-      data: {
-        userName: "Test User",
-        resetUrl: "https://app.rebookedsolutions.co.za/reset?token=test123",
-        expiryTime: "1 hour",
-      },
-    },
+
     {
       value: "shipping-notification",
       label: "Shipping Notification",
@@ -66,29 +58,7 @@ const CleanEmailTester = () => {
         estimatedDelivery: "2024-01-20",
       },
     },
-    {
-      value: "contact-form",
-      label: "Contact Form",
-      data: {
-        name: "Test User",
-        email: "test@example.com",
-        subject: "Test Inquiry",
-        message: "This is a test contact form message.",
-        timestamp: new Date().toLocaleString(),
-      },
-    },
-    {
-      value: "booking-confirmation",
-      label: "Booking Confirmation",
-      data: {
-        customerName: "Test Customer",
-        bookingId: "BOOK_123456",
-        bookTitle: "Advanced Chemistry",
-        pickupDate: "2024-01-20",
-        pickupLocation: "UCT Campus Bookstore",
-        contactInfo: "021-555-0123",
-      },
-    },
+
     {
       value: "seller-new-order",
       label: "Seller New Order",
