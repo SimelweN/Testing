@@ -143,12 +143,37 @@ const EmailTestingComponent = () => {
       console.log("Connection test result:", { data, error });
 
       if (error) {
-        throw new Error(`Connection failed: ${error.message}`);
+        let errorMsg = `Connection failed: ${error.message}`;
+
+        // Provide specific guidance for common errors
+        if (error.message.includes("Failed to send a request")) {
+          errorMsg +=
+            "\n\nPossible causes:\n1. Edge Function not deployed\n2. Supabase project not accessible\n3. Network connectivity issues";
+        } else if (error.message.includes("BREVO_SMTP_KEY")) {
+          errorMsg +=
+            "\n\nMissing BREVO_SMTP_KEY environment variable in Edge Function";
+        }
+
+        throw new Error(errorMsg);
+      }
+
+      if (data && !data.success) {
+        throw new Error(`Configuration error: ${data.error}`);
+      }
+
+      // Log configuration info for debugging
+      if (data?.config) {
+        console.log("Email service configuration:", data.config);
       }
 
       return true;
     } catch (error: any) {
       console.error("Connection test failed:", error);
+      setLastResult({
+        success: false,
+        error: error.message,
+        timing: 0,
+      });
       return false;
     }
   };
