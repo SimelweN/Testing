@@ -45,240 +45,6 @@ export function renderTemplate(templateName, data) {
   }
 }
 
-function renderSellerPickupNotificationTemplate(data) {
-  const {
-    sellerName,
-    bookTitle,
-    orderId,
-    pickupDate,
-    pickupTimeWindow,
-    courierProvider,
-    trackingNumber,
-    shippingLabelUrl,
-    pickupAddress,
-  } = data;
-
-  const courierDisplayName =
-    courierProvider === "courier-guy" ? "Courier Guy" : "Fastway";
-
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Courier Pickup Scheduled</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: #f9f9f9; }
-        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
-        .info-box { background: white; border: 2px solid #2d6e55; padding: 15px; border-radius: 5px; margin: 15px 0; }
-        .btn { background: #2d6e55; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0; }
-        .steps { background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 15px 0; }
-        .emoji { font-size: 18px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1><span class="emoji">📦</span> Courier Pickup Scheduled!</h1>
-        </div>
-        <div class="content">
-          <h2>Hi ${sellerName}!</h2>
-          <p>Great news! Your order commitment has been processed and a courier pickup has been automatically scheduled.</p>
-          
-          <div class="info-box">
-            <h3><span class="emoji">📋</span> Order Details</h3>
-            <p><strong>Book:</strong> ${bookTitle}</p>
-            <p><strong>Order ID:</strong> ${orderId}</p>
-            <p><strong>Tracking Number:</strong> ${trackingNumber}</p>
-          </div>
-          
-          <div class="info-box">
-            <h3><span class="emoji">🚚</span> Pickup Information</h3>
-            <p><strong>Courier:</strong> ${courierDisplayName}</p>
-            <p><strong>Pickup Date:</strong> ${pickupDate}</p>
-            <p><strong>Time Window:</strong> ${pickupTimeWindow}</p>
-            <p><strong>Address:</strong><br>
-              ${pickupAddress?.streetAddress || "Your registered address"}<br>
-              ${pickupAddress?.city ? `${pickupAddress.city}, ${pickupAddress.province}` : ""}
-            </p>
-          </div>
-          
-          ${
-            shippingLabelUrl
-              ? `
-          <div style="text-align: center; margin: 20px 0;">
-            <a href="${shippingLabelUrl}" class="btn" target="_blank">
-              <span class="emoji">📄</span> Download Shipping Label (PDF)
-            </a>
-          </div>
-          `
-              : ""
-          }
-          
-          <p>Happy selling! <span class="emoji">📚</span></p>
-        </div>
-        <div class="footer">
-          <p>ReBooked Solutions | noreply@rebookedsolutions.co.za</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-
-  const text = `
-Courier Pickup Scheduled! 
-
-Hi ${sellerName},
-
-Your order commitment has been processed and courier pickup scheduled.
-
-Order Details:
-- Book: ${bookTitle}
-- Order ID: ${orderId}
-- Tracking: ${trackingNumber}
-
-Pickup Information:
-- Courier: ${courierDisplayName}
-- Date: ${pickupDate}
-- Time: ${pickupTimeWindow}
-
-${shippingLabelUrl ? `Download your shipping label: ${shippingLabelUrl}` : ""}
-
-ReBooked Solutions
-  `;
-
-  return { html, text };
-}
-
-function renderBuyerOrderConfirmedTemplate(data) {
-  const { buyerName, bookTitle, orderId, sellerName, expectedDelivery } = data;
-
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Your Order is Confirmed</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: #f9f9f9; }
-        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
-        .info-box { background: white; border: 2px solid #2d6e55; padding: 15px; border-radius: 5px; margin: 15px 0; }
-        .emoji { font-size: 18px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1><span class="emoji">🎉</span> Your Order is Confirmed!</h1>
-        </div>
-        <div class="content">
-          <h2>Hi ${buyerName}!</h2>
-          <p>Excellent news! <strong>${sellerName}</strong> has confirmed your order and your book is being prepared for shipment.</p>
-          
-          <div class="info-box">
-            <h3><span class="emoji">📚</span> Your Order</h3>
-            <p><strong>Book:</strong> ${bookTitle}</p>
-            <p><strong>Order ID:</strong> ${orderId}</p>
-            <p><strong>Seller:</strong> ${sellerName}</p>
-            <p><strong>Expected Delivery:</strong> ${expectedDelivery}</p>
-          </div>
-          
-          <p>Happy reading! <span class="emoji">📖</span></p>
-        </div>
-        <div class="footer">
-          <p>ReBooked Solutions | noreply@rebookedsolutions.co.za</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-
-  const text = `
-Your Order is Confirmed! 
-
-Hi ${buyerName}, 
-
-${sellerName} has confirmed your order for "${bookTitle}". 
-
-Order ID: ${orderId}
-Expected delivery: ${expectedDelivery}
-
-ReBooked Solutions
-  `;
-
-  return { html, text };
-}
-
-function renderCommitConfirmationBasicTemplate(data) {
-  const { sellerName, bookTitle, orderId, buyerEmail } = data;
-
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Order Commitment Confirmed</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: #f9f9f9; }
-        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
-        .info-box { background: white; border: 2px solid #2d6e55; padding: 15px; border-radius: 5px; margin: 15px 0; }
-        .emoji { font-size: 18px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1><span class="emoji">✅</span> Order Commitment Confirmed</h1>
-        </div>
-        <div class="content">
-          <h2>Hi ${sellerName}!</h2>
-          <p>You have successfully committed to sell <strong>"${bookTitle}"</strong></p>
-          
-          <div class="info-box">
-            <p><strong>Order ID:</strong> ${orderId}</p>
-            <p><strong>Buyer:</strong> ${buyerEmail}</p>
-          </div>
-          
-          <h3>Next Steps:</h3>
-          <ul>
-            <li>We'll arrange courier pickup within 24 hours</li>
-            <li>You'll receive pickup details via email</li>
-            <li>Prepare your book for shipping</li>
-          </ul>
-        </div>
-        <div class="footer">
-          <p>ReBooked Solutions | noreply@rebookedsolutions.co.za</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-
-  const text = `
-Order Commitment Confirmed. 
-
-Hi ${sellerName}, you have committed to sell "${bookTitle}". 
-
-Order ID: ${orderId}
-Buyer: ${buyerEmail}
-
-We'll arrange courier pickup within 24 hours.
-
-ReBooked Solutions
-  `;
-
-  return { html, text };
-}
-
 // EXACT STYLING AS REQUESTED - NO DEVIATIONS
 const getNewReBookedStyles = () => `
 <style>
@@ -376,6 +142,253 @@ T&Cs apply.
 "Pre-Loved Pages, New Adventures"
 `;
 
+function renderSellerPickupNotificationTemplate(data) {
+  const {
+    sellerName,
+    bookTitle,
+    orderId,
+    pickupDate,
+    pickupTimeWindow,
+    courierProvider,
+    trackingNumber,
+    shippingLabelUrl,
+    pickupAddress,
+  } = data;
+  const courierDisplayName =
+    courierProvider === "courier-guy" ? "Courier Guy" : "Fastway";
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Courier Pickup Scheduled - ReBooked Solutions</title>
+  ${getNewReBookedStyles()}
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📦 Courier Pickup Scheduled!</h1>
+    </div>
+    
+    <h2>Hi ${sellerName}!</h2>
+    <p>Great news! Your order commitment has been processed and a courier pickup has been automatically scheduled.</p>
+    
+    <div class="info-box">
+      <h3>📋 Order Details</h3>
+      <p><strong>Book:</strong> ${bookTitle}</p>
+      <p><strong>Order ID:</strong> ${orderId}</p>
+      <p><strong>Tracking Number:</strong> ${trackingNumber}</p>
+    </div>
+    
+    <div class="info-box">
+      <h3>🚚 Pickup Information</h3>
+      <p><strong>Courier:</strong> ${courierDisplayName}</p>
+      <p><strong>Pickup Date:</strong> ${pickupDate}</p>
+      <p><strong>Time Window:</strong> ${pickupTimeWindow}</p>
+      <p><strong>Address:</strong><br>
+        ${pickupAddress?.streetAddress || "Your registered address"}<br>
+        ${pickupAddress?.city ? `${pickupAddress.city}, ${pickupAddress.province}` : ""}
+      </p>
+    </div>
+    
+    ${
+      shippingLabelUrl
+        ? `
+    <div style="text-align: center; margin: 20px 0;">
+      <a href="${shippingLabelUrl}" class="btn" target="_blank">
+        📄 Download Shipping Label (PDF)
+      </a>
+    </div>
+    `
+        : ""
+    }
+    
+    <div class="steps">
+      <h3>📋 What You Need To Do:</h3>
+      <ol>
+        <li><strong>Download the shipping label</strong> using the button above</li>
+        <li><strong>Print the label</strong> and attach it securely to your package</li>
+        <li><strong>Package the book</strong> safely with bubble wrap or padding</li>
+        <li><strong>Be available</strong> during the pickup time window</li>
+        <li><strong>Hand over</strong> the packaged book to the courier</li>
+      </ol>
+    </div>
+    
+    <div class="info-box">
+      <h3>📱 Track Your Shipment</h3>
+      <p>Use tracking number <strong>${trackingNumber}</strong> on the ${courierDisplayName} website.</p>
+    </div>
+    
+    <p>If you have any questions or the courier doesn't arrive during the scheduled window, please contact our support team.</p>
+    
+    <p>Happy selling! 📚</p>
+    <p><strong>ReBooked Solutions Team</strong></p>
+    
+    ${getNewReBookedSignature()}
+  </div>
+</body>
+</html>`;
+
+  const text = `
+Courier Pickup Scheduled! 
+
+Hi ${sellerName},
+
+Your order commitment has been processed and courier pickup scheduled.
+
+Order Details:
+- Book: ${bookTitle}
+- Order ID: ${orderId}
+- Tracking: ${trackingNumber}
+
+Pickup Information:
+- Courier: ${courierDisplayName}
+- Date: ${pickupDate}
+- Time: ${pickupTimeWindow}
+
+${shippingLabelUrl ? `Download your shipping label: ${shippingLabelUrl}` : ""}
+
+Steps:
+1. Download & print the shipping label
+2. Package the book securely
+3. Be available during pickup time
+4. Hand over to courier
+
+Questions? Contact our support team.
+
+ReBooked Solutions
+
+${getNewTextSignature()}`;
+
+  return { html, text };
+}
+
+function renderBuyerOrderConfirmedTemplate(data) {
+  const { buyerName, bookTitle, orderId, sellerName, expectedDelivery } = data;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Your Order is Confirmed - ReBooked Solutions</title>
+  ${getNewReBookedStyles()}
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎉 Your Order is Confirmed!</h1>
+    </div>
+    
+    <h2>Hi ${buyerName}!</h2>
+    <p>Excellent news! <strong>${sellerName}</strong> has confirmed your order and your book is being prepared for shipment.</p>
+    
+    <div class="info-box">
+      <h3>📚 Your Order</h3>
+      <p><strong>Book:</strong> ${bookTitle}</p>
+      <p><strong>Order ID:</strong> ${orderId}</p>
+      <p><strong>Seller:</strong> ${sellerName}</p>
+      <p><strong>Expected Delivery:</strong> ${expectedDelivery}</p>
+    </div>
+    
+    <div class="steps">
+      <h3>📦 What Happens Next?</h3>
+      <ul>
+        <li>The seller packages your book securely</li>
+        <li>Courier picks up the package from the seller</li>
+        <li>You'll receive tracking information via email</li>
+        <li>Your book will be delivered within ${expectedDelivery}</li>
+      </ul>
+    </div>
+    
+    <p>We'll keep you updated throughout the delivery process. If you have any questions, our support team is here to help!</p>
+    
+    <p>Happy reading! 📖</p>
+    <p><strong>ReBooked Solutions Team</strong></p>
+    
+    ${getNewReBookedSignature()}
+  </div>
+</body>
+</html>`;
+
+  const text = `
+Your Order is Confirmed! 
+
+Hi ${buyerName}, 
+
+${sellerName} has confirmed your order for "${bookTitle}". 
+
+Order ID: ${orderId}
+Expected delivery: ${expectedDelivery}
+
+We'll keep you updated with tracking information.
+
+ReBooked Solutions
+
+${getNewTextSignature()}`;
+
+  return { html, text };
+}
+
+function renderCommitConfirmationBasicTemplate(data) {
+  const { sellerName, bookTitle, orderId, buyerEmail } = data;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Order Commitment Confirmed - ReBooked Solutions</title>
+  ${getNewReBookedStyles()}
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>✅ Order Commitment Confirmed</h1>
+    </div>
+    
+    <h2>Hi ${sellerName}!</h2>
+    <p>You have successfully committed to sell <strong>"${bookTitle}"</strong></p>
+    
+    <div class="info-box">
+      <p><strong>Order ID:</strong> ${orderId}</p>
+      <p><strong>Buyer:</strong> ${buyerEmail}</p>
+    </div>
+    
+    <div class="steps">
+      <h3>Next Steps:</h3>
+      <ul>
+        <li>We'll arrange courier pickup within 24 hours</li>
+        <li>You'll receive pickup details via email</li>
+        <li>Prepare your book for shipping</li>
+      </ul>
+    </div>
+    
+    <p>Best regards,<br><strong>ReBooked Solutions</strong></p>
+    
+    ${getNewReBookedSignature()}
+  </div>
+</body>
+</html>`;
+
+  const text = `
+Order Commitment Confirmed. 
+
+Hi ${sellerName}, you have committed to sell "${bookTitle}". 
+
+Order ID: ${orderId}
+Buyer: ${buyerEmail}
+
+We'll arrange courier pickup within 24 hours.
+
+ReBooked Solutions
+
+${getNewTextSignature()}`;
+
+  return { html, text };
+}
+
 function renderOrderConfirmationTemplate(data) {
   const { orderNumber, customerName, items, total, estimatedDelivery } = data;
 
@@ -393,10 +406,10 @@ function renderOrderConfirmationTemplate(data) {
       <h1>🎉 Order Confirmed!</h1>
       <p>Thank you for your purchase, ${customerName}!</p>
     </div>
-
+    
     <h2>Order #${orderNumber}</h2>
     <p>Your order has been confirmed and is being processed.</p>
-
+    
     <h3>Order Details:</h3>
     ${
       Array.isArray(items) && items.length > 0
@@ -413,15 +426,15 @@ function renderOrderConfirmationTemplate(data) {
             .join("")
         : '<div style="padding: 10px 0;">No items found</div>'
     }
-
+    
     <div class="total">
       <p>Total: R${total}</p>
     </div>
-
+    
     ${estimatedDelivery ? `<p><strong>Estimated Delivery:</strong> ${estimatedDelivery}</p>` : ""}
-
+    
     <p>We'll send you another email when your order ships with tracking information.</p>
-
+    
     ${getNewReBookedSignature()}
   </div>
 </body>
@@ -437,7 +450,7 @@ Order #${orderNumber}
 Your order has been confirmed and is being processed.
 
 Order Details:
-${Array.isArray(items) ? items.map((item) => `${item.name || "Item"} - Quantity: ${item.quantity || 1} × R${item.price || 0} = R${((item.quantity || 1) * (item.price || 0)).toFixed(2)}`).join("\n") : "No items found"}
+${Array.isArray(items) ? items.map((item) => `${item.name || "Item"} - Quantity: ${item.quantity || 1} × R${item.price || 0} = R${((item.quantity || 1) * (item.price || 0)).toFixed(2)}`).join("\\n") : "No items found"}
 
 Total: R${total}
 
@@ -466,10 +479,10 @@ function renderWelcomeTemplate(data) {
     <div class="header">
       <h1>🎉 Welcome to ReBooked Solutions!</h1>
     </div>
-
+    
     <h2>Hello ${userName}!</h2>
     <p>Welcome to ReBooked Solutions - your marketplace for buying and selling textbooks.</p>
-
+    
     <div class="info-box">
       <h3>Here's what you can do:</h3>
       <ul>
@@ -479,12 +492,12 @@ function renderWelcomeTemplate(data) {
         <li>Track your orders and manage your account</li>
       </ul>
     </div>
-
+    
     <p>Ready to get started?</p>
     ${loginUrl ? `<a href="${loginUrl}" class="btn">Login to Your Account</a>` : ""}
-
+    
     <p>If you have any questions, feel free to contact our support team.</p>
-
+    
     ${getNewReBookedSignature()}
   </div>
 </body>
@@ -528,19 +541,19 @@ function renderPasswordResetTemplate(data) {
     <div class="header">
       <h1>🔐 Password Reset Request</h1>
     </div>
-
+    
     <h2>Hello ${userName || "User"}!</h2>
     <p>We received a request to reset your password for your ReBooked Solutions account.</p>
-
+    
     <div class="info-box">
       <h3>Reset Your Password</h3>
       <p>Click the button below to reset your password. This link will expire in 24 hours.</p>
     </div>
-
+    
     ${resetUrl ? `<a href="${resetUrl}" class="btn">Reset Password</a>` : ""}
-
+    
     <p>If you didn't request this password reset, please ignore this email.</p>
-
+    
     ${getNewReBookedSignature()}
   </div>
 </body>
@@ -586,21 +599,21 @@ function renderShippingNotificationTemplate(data) {
     <div class="header">
       <h1>📦 Your Order Has Shipped!</h1>
     </div>
-
+    
     <h2>Hello ${customerName}!</h2>
     <p>Great news! Your order #${orderNumber} has been shipped and is on its way to you.</p>
-
+    
     <div class="info-box">
       <h3>📱 Tracking Information</h3>
       <p><strong>Tracking Number:</strong> ${trackingNumber}</p>
       <p><strong>Carrier:</strong> ${carrier}</p>
       ${estimatedDelivery ? `<p><strong>Estimated Delivery:</strong> ${estimatedDelivery}</p>` : ""}
     </div>
-
+    
     <p>You can track your package using the tracking number above on the ${carrier} website.</p>
-
+    
     <p>Thank you for choosing ReBooked Solutions!</p>
-
+    
     ${getNewReBookedSignature()}
   </div>
 </body>
@@ -643,20 +656,20 @@ function renderContactFormTemplate(data) {
     <div class="header">
       <h1>📧 New Contact Form Submission</h1>
     </div>
-
+    
     <h2>Contact Form Message</h2>
-
+    
     <div class="info-box">
       <h3>Sender Information</h3>
       <p><strong>Name:</strong> ${name || "Not provided"}</p>
       <p><strong>Email:</strong> ${email}</p>
     </div>
-
+    
     <div class="info-box">
       <h3>Message</h3>
       <p>${message}</p>
     </div>
-
+    
     ${getNewReBookedSignature()}
   </div>
 </body>
@@ -693,18 +706,18 @@ function renderBookingConfirmationTemplate(data) {
     <div class="header">
       <h1>✅ Booking Confirmed!</h1>
     </div>
-
+    
     <h2>Hello ${customerName}!</h2>
     <p>Your booking has been confirmed successfully.</p>
-
+    
     <div class="info-box">
       <h3>Booking Details</h3>
       <p><strong>Booking ID:</strong> ${bookingId}</p>
       ${bookingDetails ? `<p><strong>Details:</strong> ${bookingDetails}</p>` : ""}
     </div>
-
+    
     <p>Thank you for choosing ReBooked Solutions!</p>
-
+    
     ${getNewReBookedSignature()}
   </div>
 </body>
