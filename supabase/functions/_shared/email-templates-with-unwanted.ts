@@ -279,6 +279,65 @@ ${getTextSignature()}`;
   return { html, text };
 }
 
+function renderPasswordResetTemplate(data: TemplateData): {
+  html: string;
+  text: string;
+} {
+  const { userName, resetUrl, expiryTime } = data;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Password Reset Request - ReBooked Solutions</title>
+  ${getReBookedStyles()}
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔐 Password Reset Request</h1>
+    </div>
+    
+    <h2>Hello ${userName}!</h2>
+    <p>We received a request to reset your password for your ReBooked Solutions account.</p>
+    
+    <p>If you requested this password reset, click the button below:</p>
+    <a href="${resetUrl}" class="btn">Reset Your Password</a>
+    
+    <div class="warning">
+      <p><strong>⏰ Important:</strong> This link will expire in ${expiryTime || "1 hour"}.</p>
+    </div>
+    
+    <p>If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
+    
+    <p>For security reasons, this link can only be used once.</p>
+    
+    ${getReBookedSignature()}
+  </div>
+</body>
+</html>`;
+
+  const text = `
+Password Reset Request
+
+Hello ${userName}!
+
+We received a request to reset your password for your ReBooked Solutions account.
+
+If you requested this password reset, use this link: ${resetUrl}
+
+Important: This link will expire in ${expiryTime || "1 hour"}.
+
+If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
+
+For security reasons, this link can only be used once.
+
+${getTextSignature()}`;
+
+  return { html, text };
+}
+
 function renderShippingNotificationTemplate(data: TemplateData): {
   html: string;
   text: string;
@@ -339,6 +398,132 @@ ${estimatedDelivery ? `Estimated Delivery: ${estimatedDelivery}` : ""}
 You can track your package using the tracking number above on the ${carrier} website.
 
 Thank you for choosing ReBooked Solutions!
+
+${getTextSignature()}`;
+
+  return { html, text };
+}
+
+function renderContactFormTemplate(data: TemplateData): {
+  html: string;
+  text: string;
+} {
+  const { name, email, subject, message, timestamp } = data;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>New Contact Form Submission - ReBooked Solutions</title>
+  ${getReBookedStyles()}
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📧 New Contact Form Submission</h1>
+    </div>
+    
+    <div class="info-box">
+      <h3>Contact Details</h3>
+      <p><strong>Name:</strong> ${name}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Subject:</strong> ${subject}</p>
+      <p><strong>Submitted:</strong> ${timestamp || new Date().toLocaleString()}</p>
+    </div>
+    
+    <div class="info-box">
+      <h3>Message</h3>
+      <p>${message.replace(/\n/g, "<br>")}</p>
+    </div>
+    
+    ${getReBookedSignature()}
+  </div>
+</body>
+</html>`;
+
+  const text = `
+New Contact Form Submission
+
+Contact Details:
+Name: ${name}
+Email: ${email}
+Subject: ${subject}
+Submitted: ${timestamp || new Date().toLocaleString()}
+
+Message:
+${message}
+
+${getTextSignature()}`;
+
+  return { html, text };
+}
+
+function renderBookingConfirmationTemplate(data: TemplateData): {
+  html: string;
+  text: string;
+} {
+  const {
+    customerName,
+    bookingId,
+    bookTitle,
+    pickupDate,
+    pickupLocation,
+    contactInfo,
+  } = data;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Booking Confirmation - ReBooked Solutions</title>
+  ${getReBookedStyles()}
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>✅ Booking Confirmed!</h1>
+    </div>
+    
+    <h2>Hello ${customerName}!</h2>
+    <p>Your booking has been confirmed. Here are the details:</p>
+    
+    <div class="info-box">
+      <h3>📋 Booking Details</h3>
+      <p><strong>Booking ID:</strong> ${bookingId}</p>
+      <p><strong>Book:</strong> ${bookTitle}</p>
+      <p><strong>Pickup Date:</strong> ${pickupDate}</p>
+      <p><strong>Pickup Location:</strong> ${pickupLocation}</p>
+      ${contactInfo ? `<p><strong>Contact:</strong> ${contactInfo}</p>` : ""}
+    </div>
+    
+    <p>Please arrive at the specified location on time. Bring a valid ID for verification.</p>
+    
+    <p>If you need to make any changes or have questions, please contact us immediately.</p>
+    
+    ${getReBookedSignature()}
+  </div>
+</body>
+</html>`;
+
+  const text = `
+Booking Confirmed!
+
+Hello ${customerName}!
+
+Your booking has been confirmed. Here are the details:
+
+Booking Details:
+Booking ID: ${bookingId}
+Book: ${bookTitle}
+Pickup Date: ${pickupDate}
+Pickup Location: ${pickupLocation}
+${contactInfo ? `Contact: ${contactInfo}` : ""}
+
+Please arrive at the specified location on time. Bring a valid ID for verification.
+
+If you need to make any changes or have questions, please contact us immediately.
 
 ${getTextSignature()}`;
 
