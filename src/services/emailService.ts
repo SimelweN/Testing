@@ -301,6 +301,77 @@ class EmailService {
     );
   }
 
+  async sendOrderCommittedBuyer(
+    to: string,
+    orderData: {
+      buyer_name: string;
+      order_id: string;
+      seller_name: string;
+      book_titles: string;
+      estimated_delivery: string;
+    },
+  ): Promise<EmailResponse> {
+    return this.sendTemplateEmail(
+      to,
+      EMAIL_TEMPLATES.ORDER_COMMITTED_BUYER,
+      orderData,
+    );
+  }
+
+  async sendOrderCommittedSeller(
+    to: string,
+    orderData: {
+      seller_name: string;
+      order_id: string;
+      buyer_name: string;
+      book_titles: string;
+      pickup_instructions: string;
+    },
+  ): Promise<EmailResponse> {
+    return this.sendTemplateEmail(
+      to,
+      EMAIL_TEMPLATES.ORDER_COMMITTED_SELLER,
+      orderData,
+    );
+  }
+
+  async sendSellerNewOrder(
+    to: string,
+    orderData: {
+      sellerName: string;
+      buyerName: string;
+      orderId: string;
+      items: Array<{ name: string; quantity: number; price: number }>;
+      totalAmount: string;
+      expiresAt: string;
+      commitUrl?: string;
+    },
+  ): Promise<EmailResponse> {
+    return this.sendTemplateEmail(
+      to,
+      EMAIL_TEMPLATES.SELLER_NEW_ORDER,
+      orderData,
+    );
+  }
+
+  async sendBuyerOrderPending(
+    to: string,
+    orderData: {
+      buyerName: string;
+      sellerName: string;
+      orderId: string;
+      items: Array<{ name: string; quantity: number; price: number }>;
+      totalAmount: string;
+      statusUrl?: string;
+    },
+  ): Promise<EmailResponse> {
+    return this.sendTemplateEmail(
+      to,
+      EMAIL_TEMPLATES.BUYER_ORDER_PENDING,
+      orderData,
+    );
+  }
+
   // Utility method to validate email addresses
   static validateEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
