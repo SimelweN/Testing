@@ -267,7 +267,7 @@ const EmailTestingComponent = () => {
               <SelectValue placeholder="Select a template or use custom content" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Custom Content</SelectItem>
+              <SelectItem value="custom">Custom Content</SelectItem>
               {templates.map((template) => (
                 <SelectItem key={template.name} value={template.name}>
                   {template.label}
