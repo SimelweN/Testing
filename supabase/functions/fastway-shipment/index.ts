@@ -49,7 +49,7 @@ serve(async (req) => {
         company_name: pickup_address.company || "ReBooked Solutions",
         contact_name: pickup_address.name,
         phone: pickup_address.phone,
-        email: pickup_address.email,
+        // email: pickup_address.email, // Removed to prevent Fastway from sending their own emails
         address_line_1: pickup_address.address_line_1,
         suburb: pickup_address.suburb,
         postcode: pickup_address.postal_code,
@@ -59,7 +59,7 @@ serve(async (req) => {
         company_name: delivery_address.company || "",
         contact_name: delivery_address.name,
         phone: delivery_address.phone,
-        email: delivery_address.email,
+        // email: delivery_address.email, // Removed to prevent Fastway from sending their own emails
         address_line_1: delivery_address.address_line_1,
         suburb: delivery_address.suburb,
         postcode: delivery_address.postal_code,
@@ -105,6 +105,150 @@ serve(async (req) => {
 
     if (updateError) {
       console.error("Failed to update order:", updateError);
+    }
+
+    // Send ReBooked Solutions shipping notification email using DIRECT HTML (the only way that works!)
+    if (delivery_address.email && shipmentData.tracking_number) {
+      try {
+        const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Your Order Has Shipped - ReBooked Solutions</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3fef7;
+      padding: 20px;
+      color: #1f4e3d;
+      margin: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      background-color: #3ab26f;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .link {
+      color: #3ab26f;
+    }
+    .header {
+      background: #3ab26f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+      margin: -30px -30px 20px -30px;
+    }
+    .footer {
+      background: #f3fef7;
+      color: #1f4e3d;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 30px -30px -30px -30px;
+      border-radius: 0 0 10px 10px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .info-box {
+      background: #f3fef7;
+      border: 1px solid #3ab26f;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📦 Your Order Has Shipped!</h1>
+    </div>
+
+    <h2>Hello ${delivery_address.name}!</h2>
+    <p>Great news! Your order #${reference || `ORDER-${order_id}`} has been shipped and is on its way to you.</p>
+
+    <div class="info-box">
+      <h3>📱 Tracking Information</h3>
+      <p><strong>Tracking Number:</strong> ${shipmentData.tracking_number}</p>
+      <p><strong>Carrier:</strong> Fastway</p>
+      <p><strong>Estimated Delivery:</strong> ${shipmentData.estimated_delivery || "2-3 business days"}</p>
+    </div>
+
+    <p>You can track your package using the tracking number above on the Fastway website.</p>
+
+    <p>Thank you for choosing ReBooked Solutions!</p>
+
+    <div class="footer">
+      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.</p>
+      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
+      <p>T&Cs apply.</p>
+      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+        const text = `
+Your Order Has Shipped!
+
+Hello ${delivery_address.name}!
+
+Great news! Your order #${reference || `ORDER-${order_id}`} has been shipped and is on its way to you.
+
+Tracking Information:
+Tracking Number: ${shipmentData.tracking_number}
+Carrier: Fastway
+Estimated Delivery: ${shipmentData.estimated_delivery || "2-3 business days"}
+
+You can track your package using the tracking number above on the Fastway website.
+
+Thank you for choosing ReBooked Solutions!
+
+This is an automated message from ReBooked Solutions. Please do not reply to this email.
+For assistance, contact: support@rebookedsolutions.co.za
+Visit us at: https://rebookedsolutions.co.za
+T&Cs apply.
+"Pre-Loved Pages, New Adventures"
+        `;
+
+        await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            to: delivery_address.email,
+            subject: "Your Order Has Shipped - ReBooked Solutions",
+            html: html,
+            text: text,
+          }),
+        });
+        console.log("Shipping notification email sent successfully");
+      } catch (emailError) {
+        console.error(
+          "Failed to send shipping notification email:",
+          emailError,
+        );
+        // Don't fail the shipment if email fails
+      }
     }
 
     return new Response(

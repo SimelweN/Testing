@@ -91,46 +91,189 @@ serve(async (req) => {
       // Continue anyway - delivery can be scheduled manually
     }
 
-    // Send notification emails
+    // Send notification emails using DIRECT HTML (the only correct way!)
     try {
       // Notify buyer
+      const buyerHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Order Confirmed - Pickup Scheduled</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3fef7;
+      padding: 20px;
+      color: #1f4e3d;
+      margin: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .header {
+      background: #3ab26f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+      margin: -30px -30px 20px -30px;
+    }
+    .footer {
+      background: #f3fef7;
+      color: #1f4e3d;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 30px -30px -30px -30px;
+      border-radius: 0 0 10px 10px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .info-box {
+      background: #f3fef7;
+      border: 1px solid #3ab26f;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+    .link { color: #3ab26f; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎉 Order Confirmed!</h1>
+    </div>
+
+    <h2>Great news, ${order.buyer.name}!</h2>
+    <p><strong>${order.seller.name}</strong> has confirmed your order and is preparing your book(s) for delivery.</p>
+
+    <div class="info-box">
+      <h3>📚 Order Details</h3>
+      <p><strong>Order ID:</strong> ${order_id}</p>
+      <p><strong>Book(s):</strong> ${order.order_items.map((item: any) => item.book?.title).join(", ")}</p>
+      <p><strong>Seller:</strong> ${order.seller.name}</p>
+      <p><strong>Estimated Delivery:</strong> 2-3 business days</p>
+    </div>
+
+    <p>Happy reading! 📖</p>
+
+    <div class="footer">
+      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.</p>
+      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
+      <p>T&Cs apply.</p>
+      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+    </div>
+  </div>
+</body>
+</html>`;
+
       await supabase.functions.invoke("send-email", {
         body: {
           to: order.buyer.email,
           subject: "Order Confirmed - Pickup Scheduled",
-          template: {
-            name: "order-committed-buyer",
-            data: {
-              buyer_name: order.buyer.name,
-              order_id: order_id,
-              seller_name: order.seller.name,
-              book_titles: order.order_items
-                .map((item: any) => item.book?.title)
-                .join(", "),
-              estimated_delivery: "2-3 business days",
-            },
-          },
+          html: buyerHtml,
+          text: `Order Confirmed!\n\nGreat news, ${order.buyer.name}!\n\n${order.seller.name} has confirmed your order and is preparing your book(s) for delivery.\n\nOrder ID: ${order_id}\nBook(s): ${order.order_items.map((item: any) => item.book?.title).join(", ")}\nSeller: ${order.seller.name}\nEstimated Delivery: 2-3 business days\n\nReBooked Solutions\nThis is an automated message from ReBooked Solutions.`,
         },
       });
 
       // Notify seller
+      const sellerHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Order Commitment Confirmed - Prepare for Pickup</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3fef7;
+      padding: 20px;
+      color: #1f4e3d;
+      margin: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .header {
+      background: #3ab26f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+      margin: -30px -30px 20px -30px;
+    }
+    .footer {
+      background: #f3fef7;
+      color: #1f4e3d;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 30px -30px -30px -30px;
+      border-radius: 0 0 10px 10px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .info-box {
+      background: #f3fef7;
+      border: 1px solid #3ab26f;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+    .link { color: #3ab26f; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>✅ Order Commitment Confirmed!</h1>
+    </div>
+
+    <h2>Thank you, ${order.seller.name}!</h2>
+    <p>You've successfully committed to sell your book(s). The buyer has been notified and pickup has been scheduled.</p>
+
+    <div class="info-box">
+      <h3>📋 Order Details</h3>
+      <p><strong>Order ID:</strong> ${order_id}</p>
+      <p><strong>Book(s):</strong> ${order.order_items.map((item: any) => item.book?.title).join(", ")}</p>
+      <p><strong>Buyer:</strong> ${order.buyer.name}</p>
+    </div>
+
+    <p>A courier will contact you within 24 hours to arrange pickup.</p>
+    <p>Thank you for selling with ReBooked Solutions! 📚</p>
+
+    <div class="footer">
+      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.</p>
+      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
+      <p>T&Cs apply.</p>
+      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+    </div>
+  </div>
+</body>
+</html>`;
+
       await supabase.functions.invoke("send-email", {
         body: {
           to: order.seller.email,
           subject: "Order Commitment Confirmed - Prepare for Pickup",
-          template: {
-            name: "order-committed-seller",
-            data: {
-              seller_name: order.seller.name,
-              order_id: order_id,
-              buyer_name: order.buyer.name,
-              book_titles: order.order_items
-                .map((item: any) => item.book?.title)
-                .join(", "),
-              pickup_instructions:
-                "A courier will contact you within 24 hours to arrange pickup",
-            },
-          },
+          html: sellerHtml,
+          text: `Order Commitment Confirmed!\n\nThank you, ${order.seller.name}!\n\nYou've successfully committed to sell your book(s). The buyer has been notified and pickup has been scheduled.\n\nOrder ID: ${order_id}\nBook(s): ${order.order_items.map((item: any) => item.book?.title).join(", ")}\nBuyer: ${order.buyer.name}\n\nA courier will contact you within 24 hours to arrange pickup.\n\nReBooked Solutions`,
         },
       });
     } catch (emailError) {

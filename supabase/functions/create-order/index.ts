@@ -127,8 +127,148 @@ serve(async (req) => {
           .in("id", bookIds);
       }
 
-      // Send notification email to seller about new order
+      // Send notification email to seller about new order using DIRECT HTML (the only way that works!)
       try {
+        const sellerHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>New Order - Action Required</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3fef7;
+      padding: 20px;
+      color: #1f4e3d;
+      margin: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      background-color: #3ab26f;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .link {
+      color: #3ab26f;
+    }
+    .header {
+      background: #3ab26f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+      margin: -30px -30px 20px -30px;
+    }
+    .footer {
+      background: #f3fef7;
+      color: #1f4e3d;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 30px -30px -30px -30px;
+      border-radius: 0 0 10px 10px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .info-box {
+      background: #f3fef7;
+      border: 1px solid #3ab26f;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+    .warning {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📚 New Order - Action Required!</h1>
+    </div>
+
+    <h2>Hi ${seller.name}!</h2>
+    <p>Great news! You have a new order from <strong>${buyer.name}</strong>.</p>
+
+    <div class="info-box">
+      <h3>📋 Order Details</h3>
+      <p><strong>Order ID:</strong> ${orderId}</p>
+      <p><strong>Buyer:</strong> ${buyer.name}</p>
+      <p><strong>Total Amount:</strong> R${orderTotal}</p>
+    </div>
+
+    <div class="warning">
+      <h3>⏰ Action Required Within 48 Hours</h3>
+      <p><strong>Expires:</strong> ${new Date(orderData.expires_at).toLocaleString()}</p>
+      <p>You must commit to this order within 48 hours or it will be automatically cancelled.</p>
+    </div>
+
+    <p>Once you commit, we'll arrange pickup and you'll be paid after delivery!</p>
+
+    <a href="${req.headers.get("origin")}/activity" class="btn">Commit to Order</a>
+
+    <p><strong>ReBooked Solutions Team</strong></p>
+
+    <div class="footer">
+      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.</p>
+      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
+      <p>T&Cs apply.</p>
+      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+        const sellerText = `
+New Order - Action Required!
+
+Hi ${seller.name}!
+
+Great news! You have a new order from ${buyer.name}.
+
+Order Details:
+- Order ID: ${orderId}
+- Buyer: ${buyer.name}
+- Total Amount: R${orderTotal}
+
+⏰ Action Required Within 48 Hours
+Expires: ${new Date(orderData.expires_at).toLocaleString()}
+
+You must commit to this order within 48 hours or it will be automatically cancelled.
+
+Once you commit, we'll arrange pickup and you'll be paid after delivery!
+
+Commit to order: ${req.headers.get("origin")}/activity
+
+ReBooked Solutions Team
+
+This is an automated message from ReBooked Solutions. Please do not reply to this email.
+For assistance, contact: support@rebookedsolutions.co.za
+Visit us at: https://rebookedsolutions.co.za
+T&Cs apply.
+"Pre-Loved Pages, New Adventures"
+        `;
+
         await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
           method: "POST",
           headers: {
@@ -138,26 +278,160 @@ serve(async (req) => {
           body: JSON.stringify({
             to: seller.email,
             subject: "📚 New Order - Action Required (48 hours)",
-            template: {
-              name: "seller-new-order",
-              data: {
-                sellerName: seller.name,
-                buyerName: buyer.name,
-                orderId,
-                items: sellerItems,
-                totalAmount: orderTotal,
-                expiresAt: orderData.expires_at,
-                commitUrl: `${req.headers.get("origin")}/activity`,
-              },
-            },
+            html: sellerHtml,
+            text: sellerText,
           }),
         });
       } catch (emailError) {
         console.error("Failed to send seller notification:", emailError);
       }
 
-      // Send confirmation email to buyer
+      // Send confirmation email to buyer using DIRECT HTML (the only way that works!)
       try {
+        const buyerHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Order Confirmed - Awaiting Seller Response</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3fef7;
+      padding: 20px;
+      color: #1f4e3d;
+      margin: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      background-color: #3ab26f;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .link {
+      color: #3ab26f;
+    }
+    .header {
+      background: #3ab26f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+      margin: -30px -30px 20px -30px;
+    }
+    .footer {
+      background: #f3fef7;
+      color: #1f4e3d;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 30px -30px -30px -30px;
+      border-radius: 0 0 10px 10px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .info-box {
+      background: #f3fef7;
+      border: 1px solid #3ab26f;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+    .steps {
+      background: #f3fef7;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎉 Order Confirmed!</h1>
+    </div>
+
+    <h2>Thank you, ${buyer.name}!</h2>
+    <p>Your order has been confirmed and <strong>${seller.name}</strong> has been notified.</p>
+
+    <div class="info-box">
+      <h3>📋 Order Details</h3>
+      <p><strong>Order ID:</strong> ${orderId}</p>
+      <p><strong>Seller:</strong> ${seller.name}</p>
+      <p><strong>Total Amount:</strong> R${orderTotal}</p>
+    </div>
+
+    <div class="steps">
+      <h3>📦 What happens next?</h3>
+      <ul>
+        <li>The seller has 48 hours to commit to your order</li>
+        <li>Once committed, we'll arrange pickup and delivery</li>
+        <li>You'll receive tracking information via email</li>
+        <li>Your book(s) will be delivered within 2-3 business days</li>
+      </ul>
+    </div>
+
+    <p>We'll notify you as soon as the seller confirms your order!</p>
+
+    <a href="${req.headers.get("origin")}/orders/${orderId}" class="btn">Check Order Status</a>
+
+    <p><strong>ReBooked Solutions Team</strong></p>
+
+    <div class="footer">
+      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.</p>
+      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
+      <p>T&Cs apply.</p>
+      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+        const buyerText = `
+Order Confirmed!
+
+Thank you, ${buyer.name}!
+
+Your order has been confirmed and ${seller.name} has been notified.
+
+Order Details:
+- Order ID: ${orderId}
+- Seller: ${seller.name}
+- Total Amount: R${orderTotal}
+
+What happens next?
+- The seller has 48 hours to commit to your order
+- Once committed, we'll arrange pickup and delivery
+- You'll receive tracking information via email
+- Your book(s) will be delivered within 2-3 business days
+
+We'll notify you as soon as the seller confirms your order!
+
+Check order status: ${req.headers.get("origin")}/orders/${orderId}
+
+ReBooked Solutions Team
+
+This is an automated message from ReBooked Solutions. Please do not reply to this email.
+For assistance, contact: support@rebookedsolutions.co.za
+Visit us at: https://rebookedsolutions.co.za
+T&Cs apply.
+"Pre-Loved Pages, New Adventures"
+        `;
+
         await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
           method: "POST",
           headers: {
@@ -167,17 +441,8 @@ serve(async (req) => {
           body: JSON.stringify({
             to: buyer.email,
             subject: "🎉 Order Confirmed - Awaiting Seller Commitment",
-            template: {
-              name: "buyer-order-pending",
-              data: {
-                buyerName: buyer.name,
-                sellerName: seller.name,
-                orderId,
-                items: sellerItems,
-                totalAmount: orderTotal,
-                statusUrl: `${req.headers.get("origin")}/orders/${orderId}`,
-              },
-            },
+            html: buyerHtml,
+            text: buyerText,
           }),
         });
       } catch (emailError) {

@@ -85,38 +85,188 @@ serve(async (req) => {
       console.error("Failed to create refund transaction:", refundError);
     }
 
-    // Send notification emails (buyer and seller)
+    // Send notification emails using DIRECT HTML (the only correct way!)
     try {
       // Notify buyer
+      const buyerHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Order Declined - Refund Processed</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3fef7;
+      padding: 20px;
+      color: #1f4e3d;
+      margin: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .header {
+      background: #3ab26f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+      margin: -30px -30px 20px -30px;
+    }
+    .footer {
+      background: #f3fef7;
+      color: #1f4e3d;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 30px -30px -30px -30px;
+      border-radius: 0 0 10px 10px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .info-box {
+      background: #f3fef7;
+      border: 1px solid #3ab26f;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+    .link { color: #3ab26f; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>❌ Order Declined</h1>
+    </div>
+
+    <h2>Hello ${order.buyer.name},</h2>
+    <p>We're sorry to inform you that your order has been declined by the seller.</p>
+
+    <div class="info-box">
+      <h3>📋 Order Details</h3>
+      <p><strong>Order ID:</strong> ${order_id}</p>
+      <p><strong>Amount:</strong> R${order.total_amount}</p>
+      <p><strong>Reason:</strong> ${reason || "Seller declined to commit"}</p>
+    </div>
+
+    <p><strong>Your refund has been processed and will appear in your account within 3-5 business days.</strong></p>
+
+    <p>We apologize for any inconvenience. Please feel free to browse our marketplace for similar books from other sellers.</p>
+
+    <div class="footer">
+      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.</p>
+      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
+      <p>T&Cs apply.</p>
+      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+    </div>
+  </div>
+</body>
+</html>`;
+
       await supabase.functions.invoke("send-email", {
         body: {
           to: order.buyer.email,
           subject: "Order Declined - Refund Processed",
-          template: {
-            name: "order-declined-buyer",
-            data: {
-              buyer_name: order.buyer.name,
-              order_id: order_id,
-              amount: order.total_amount,
-              reason: reason || "Seller declined to commit",
-            },
-          },
+          html: buyerHtml,
+          text: `Order Declined\n\nHello ${order.buyer.name},\n\nWe're sorry to inform you that your order has been declined by the seller.\n\nOrder ID: ${order_id}\nAmount: R${order.total_amount}\nReason: ${reason || "Seller declined to commit"}\n\nYour refund has been processed and will appear in your account within 3-5 business days.\n\nReBooked Solutions`,
         },
       });
 
       // Notify seller
+      const sellerHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Order Decline Confirmation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3fef7;
+      padding: 20px;
+      color: #1f4e3d;
+      margin: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .header {
+      background: #3ab26f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+      margin: -30px -30px 20px -30px;
+    }
+    .footer {
+      background: #f3fef7;
+      color: #1f4e3d;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 30px -30px -30px -30px;
+      border-radius: 0 0 10px 10px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .info-box {
+      background: #f3fef7;
+      border: 1px solid #3ab26f;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+    .link { color: #3ab26f; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Order Decline Confirmed</h1>
+    </div>
+
+    <h2>Hello ${order.seller.name},</h2>
+    <p>You have successfully declined the order commitment.</p>
+
+    <div class="info-box">
+      <h3>📋 Order Details</h3>
+      <p><strong>Order ID:</strong> ${order_id}</p>
+      <p><strong>Reason:</strong> ${reason || "You declined to commit"}</p>
+    </div>
+
+    <p>The buyer has been notified and their payment has been refunded.</p>
+
+    <div class="footer">
+      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.</p>
+      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
+      <p>T&Cs apply.</p>
+      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+    </div>
+  </div>
+</body>
+</html>`;
+
       await supabase.functions.invoke("send-email", {
         body: {
           to: order.seller.email,
           subject: "Order Decline Confirmation",
-          template: {
-            name: "order-declined-seller",
-            data: {
-              seller_name: order.seller.name,
-              order_id: order_id,
-              reason: reason || "You declined to commit",
-            },
-          },
+          html: sellerHtml,
+          text: `Order Decline Confirmed\n\nHello ${order.seller.name},\n\nYou have successfully declined the order commitment.\n\nOrder ID: ${order_id}\nReason: ${reason || "You declined to commit"}\n\nThe buyer has been notified and their payment has been refunded.\n\nReBooked Solutions`,
         },
       });
     } catch (emailError) {
