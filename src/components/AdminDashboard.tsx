@@ -28,6 +28,7 @@ import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
 import AdminUsageExamples from "@/components/admin/AdminUsageExamples";
 import SupabaseFunctionTester from "@/components/admin/SupabaseFunctionTester";
 import EmailTestingComponent from "@/components/admin/EmailTestingComponent";
+import UpdatedEmailTester from "@/components/admin/UpdatedEmailTester";
 
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
