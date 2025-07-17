@@ -127,25 +127,13 @@ function renderSellerPickupNotificationTemplate(data: TemplateData): {
     <head>
       <meta charset="utf-8">
       <title>Courier Pickup Scheduled</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2d6e55; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: #f9f9f9; }
-        .footer { background: #333; color: white; padding: 15px; text-align: center; font-size: 14px; }
-        .info-box { background: white; border: 2px solid #2d6e55; padding: 15px; border-radius: 5px; margin: 15px 0; }
-        .btn { background: #2d6e55; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0; }
-        .steps { background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 15px 0; }
-        .steps ol { margin: 0; padding-left: 20px; }
-        .emoji { font-size: 18px; }
-      </style>
+      ${getEmailStyles()}
     </head>
     <body>
       <div class="container">
         <div class="header">
           <h1><span class="emoji">📦</span> Courier Pickup Scheduled!</h1>
         </div>
-        <div class="content">
           <h2>Hi ${sellerName}!</h2>
           <p>Great news! Your order commitment has been processed and a courier pickup has been automatically scheduled.</p>
           
