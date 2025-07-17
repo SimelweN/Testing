@@ -133,6 +133,26 @@ const EmailTestingComponent = () => {
     }));
   };
 
+  const testConnection = async () => {
+    try {
+      // Test basic Supabase function connectivity
+      const { data, error } = await supabase.functions.invoke("send-email", {
+        body: { test: true },
+      });
+
+      console.log("Connection test result:", { data, error });
+
+      if (error) {
+        throw new Error(`Connection failed: ${error.message}`);
+      }
+
+      return true;
+    } catch (error: any) {
+      console.error("Connection test failed:", error);
+      return false;
+    }
+  };
+
   const sendTestEmail = async () => {
     if (!testEmail.to || !testEmail.subject) {
       toast.error("Please provide email address and subject");
@@ -142,6 +162,22 @@ const EmailTestingComponent = () => {
     setIsSending(true);
     setLastResult(null);
     const startTime = Date.now();
+
+    // First test connectivity
+    const isConnected = await testConnection();
+    if (!isConnected) {
+      setLastResult({
+        success: false,
+        error:
+          "Failed to connect to email service. This could be due to: 1) Edge Function not deployed, 2) Missing environment variables (BREVO_SMTP_KEY), 3) Network issues",
+        timing: Date.now() - startTime,
+      });
+      toast.error(
+        "Email service connection failed. Check console for details.",
+      );
+      setIsSending(false);
+      return;
+    }
 
     try {
       let emailPayload: any = {
