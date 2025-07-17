@@ -133,18 +133,44 @@ const NotificationsNew = () => {
   useEffect(() => {
     if (user && profile) {
       const hasSeenWelcome = localStorage.getItem(`welcome_seen_${user.id}`);
-      if (!hasSeenWelcome) {
+      const hasDismissedWelcome = localStorage.getItem(
+        `welcome_dismissed_${user.id}`,
+      );
+
+      // Only show welcome if user hasn't seen it AND hasn't dismissed it
+      if (!hasSeenWelcome && !hasDismissedWelcome) {
         setIsFirstTime(true);
         setShowWelcome(true);
+      } else {
+        // If user has already seen/dismissed welcome, ensure states are correct
+        setIsFirstTime(false);
+        setShowWelcome(false);
+        // Remove welcome category from state if it exists
+        setCategories((prev) =>
+          prev.filter((category) => category.id !== "welcome"),
+        );
       }
     }
   }, [user, profile]);
 
   const markWelcomeAsSeen = () => {
     if (user) {
+      // Set multiple localStorage keys to ensure it's permanently dismissed
       localStorage.setItem(`welcome_seen_${user.id}`, "true");
+      localStorage.setItem(
+        `welcome_dismissed_${user.id}`,
+        new Date().toISOString(),
+      );
+
+      // Update all state to ensure it's hidden immediately and permanently
       setShowWelcome(false);
       setIsFirstTime(false);
+
+      // Remove welcome notifications from categories
+      setCategories((prev) =>
+        prev.filter((category) => category.id !== "welcome"),
+      );
+
       toast.success(
         "Welcome! You're all set to start using ReBooked Solutions.",
       );
@@ -280,7 +306,7 @@ const NotificationsNew = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowWelcome(false)}
+                  onClick={markWelcomeAsSeen}
                   className="text-purple-600 hover:bg-purple-100"
                 >
                   <X className="h-4 w-4" />

@@ -172,7 +172,15 @@ export function useEnhancedAPSStorage() {
 
         // 💾 AUTO-SAVE TO LOCALSTORAGE (PERSISTENT!)
         const success = await saveProfile(profile);
-        console.log("📊 APS profile auto-saved:", success);
+        console.log("📊 [DEBUG] APS profile auto-saved:", success);
+        console.log("📊 [DEBUG] Profile being saved:", profile);
+
+        // Verify it was actually saved
+        const verification = localStorage.getItem("userAPSProfile");
+        console.log(
+          "📊 [DEBUG] localStorage after save:",
+          verification ? "DATA FOUND" : "NO DATA",
+        );
 
         return success;
       } catch (error) {
@@ -189,23 +197,33 @@ export function useEnhancedAPSStorage() {
   // 🗑️ CLEAR FUNCTION - Only triggered by user action
   const clearUserProfile = useCallback(async () => {
     try {
-      console.log("🗑️ Clearing APS profile from localStorage");
+      console.log("🗑️ [DEBUG] Starting to clear APS profile from localStorage");
+      console.log("���️ [DEBUG] Current userProfile state:", userProfile);
 
       const success = clearAPSProfile();
+      console.log("🗑️ [DEBUG] clearAPSProfile returned:", success);
 
       if (success) {
         setUserProfileState(null);
         setError(null);
-        console.log("✅ APS Profile cleared successfully");
+        console.log(
+          "✅ [DEBUG] APS Profile cleared successfully - state set to null",
+        );
+
+        // Force a re-check of localStorage
+        const checkCleared = localStorage.getItem("userAPSProfile");
+        console.log("🗑️ [DEBUG] localStorage after clear:", checkCleared);
+      } else {
+        console.error("❌ [DEBUG] clearAPSProfile returned false");
       }
 
       return success;
     } catch (error) {
-      console.error("❌ Failed to clear APS profile:", error);
+      console.error("❌ [DEBUG] Failed to clear APS profile:", error);
       setError("Failed to clear profile");
       return false;
     }
-  }, []);
+  }, [userProfile]);
 
   // 💾 CREATE BACKUP
   const createBackup = useCallback(() => {

@@ -56,11 +56,23 @@ export const updateAddressValidation = async (
       : validateAddress(shippingAddress);
     const canList = isPickupValid && isShippingValid;
 
+    // Ensure address objects have both field names for compatibility
+    const normalizedPickupAddress = {
+      ...pickupAddress,
+      streetAddress:
+        pickupAddress.streetAddress || (pickupAddress as any).street,
+    };
+    const normalizedShippingAddress = {
+      ...shippingAddress,
+      streetAddress:
+        shippingAddress.streetAddress || (shippingAddress as any).street,
+    };
+
     const { error } = await supabase
       .from("profiles")
       .update({
-        pickup_address: pickupAddress as Record<string, unknown>,
-        shipping_address: shippingAddress as Record<string, unknown>,
+        pickup_address: normalizedPickupAddress as Record<string, unknown>,
+        shipping_address: normalizedShippingAddress as Record<string, unknown>,
         addresses_same: addressesSame,
         updated_at: new Date().toISOString(),
       })

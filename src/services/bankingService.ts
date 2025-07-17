@@ -306,9 +306,24 @@ export class BankingService {
         .single();
 
       // Properly validate address using validateAddress function
-      const hasPickupAddress = profile?.pickup_address
-        ? validateAddress(profile.pickup_address)
-        : false;
+      // Handle JSONB to Address conversion and validate structure
+      let hasPickupAddress = false;
+      if (profile?.pickup_address) {
+        const pickupAddr = profile.pickup_address as any;
+
+        // Handle both 'street' and 'streetAddress' field names for compatibility
+        const streetField = pickupAddr.streetAddress || pickupAddr.street;
+
+        // Basic validation of required fields - handle both field naming conventions
+        hasPickupAddress = !!(
+          pickupAddr &&
+          typeof pickupAddr === "object" &&
+          streetField &&
+          pickupAddr.city &&
+          pickupAddr.province &&
+          pickupAddr.postalCode
+        );
+      }
 
       // Check active books
       const { data: books } = await supabase
