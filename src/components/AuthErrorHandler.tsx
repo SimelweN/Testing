@@ -8,6 +8,10 @@ const AuthErrorHandler = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const error = urlParams.get("error");
       const errorDescription = urlParams.get("error_description");
+      const hasCode = urlParams.has("code");
+
+      let needsUrlCleanup = false;
+      const url = new URL(window.location.href);
 
       if (error) {
         console.warn("🚨 Auth error detected in URL:", {
@@ -15,19 +19,13 @@ const AuthErrorHandler = () => {
           errorDescription,
         });
 
-        // Clear error parameters from URL
-        const url = new URL(window.location.href);
+        // Mark for cleanup instead of immediate action
         url.searchParams.delete("error");
         url.searchParams.delete("error_description");
-        window.history.replaceState(
-          {},
-          document.title,
-          url.pathname + url.search,
-        );
+        needsUrlCleanup = true;
       }
 
       // Check for problematic auth code without verifier
-      const hasCode = urlParams.has("code");
       if (hasCode) {
         // Check if we have the required PKCE verifier in localStorage
         const codeVerifier = localStorage.getItem("supabase.auth.token");
@@ -35,16 +33,23 @@ const AuthErrorHandler = () => {
         if (!codeVerifier) {
           console.warn("🧹 Auth code detected without verifier, cleaning URL");
 
-          // Clear the problematic parameters
-          const url = new URL(window.location.href);
+          // Mark for cleanup instead of immediate action
           url.searchParams.delete("code");
           url.searchParams.delete("state");
+          needsUrlCleanup = true;
+        }
+      }
+
+      // Batch URL updates to prevent multiple replaceState calls
+      if (needsUrlCleanup) {
+        // Add small delay to prevent flashing
+        setTimeout(() => {
           window.history.replaceState(
             {},
             document.title,
             url.pathname + url.search,
           );
-        }
+        }, 100);
       }
     };
 
