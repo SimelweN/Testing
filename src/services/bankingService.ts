@@ -306,8 +306,9 @@ export class BankingService {
         .single();
 
       // Properly validate address using validateAddress function
+      // Handle JSONB to Address conversion
       const hasPickupAddress = profile?.pickup_address
-        ? validateAddress(profile.pickup_address)
+        ? validateAddress(profile.pickup_address as any)
         : false;
 
       // Check active books
