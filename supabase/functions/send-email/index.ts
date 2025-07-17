@@ -1,3 +1,4 @@
+// Version: 2024-01-17-v2 - Force reload updated templates
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import nodemailer from "npm:nodemailer";
 import { corsHeaders } from "../_shared/cors.ts";
