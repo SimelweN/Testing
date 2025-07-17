@@ -107,27 +107,15 @@ async function processEmailRequest(request: EmailRequest, config: EmailConfig) {
   let html = request.html;
   let text = request.text;
 
-  // Process template if provided
+  // Template system REMOVED - Only direct HTML is supported now
+  // All emails must provide html and text directly
   if (request.template) {
-    try {
-      console.log(
-        `Rendering template: ${request.template.name} with data:`,
-        request.template.data,
-      );
-      const rendered = renderTemplate(
-        request.template.name as any,
-        request.template.data,
-      );
-      console.log(`Template rendered successfully: ${request.template.name}`);
-      html = rendered.html;
-      text = rendered.text;
-    } catch (error) {
-      console.error(
-        `Template rendering failed for ${request.template.name}:`,
-        error,
-      );
-      throw new Error(`${EMAIL_ERRORS.TEMPLATE_NOT_FOUND}: ${error.message}`);
-    }
+    console.log(
+      `⚠️  Template system deprecated. Use direct html/text instead.`,
+    );
+    throw new Error(
+      "Template system is deprecated. Please provide html and text directly.",
+    );
   }
 
   // Sanitize content
