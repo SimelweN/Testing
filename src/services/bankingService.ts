@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { PAYSTACK_CONFIG } from "@/config/paystack";
+import { validateAddress } from "@/services/addressValidationService";
 import type {
   BankingDetails,
   BankingSubaccount,
