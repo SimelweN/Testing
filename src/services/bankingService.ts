@@ -305,11 +305,26 @@ export class BankingService {
         .eq("id", userId)
         .single();
 
+      // Debug logging
+      console.log(
+        "Banking service - checking pickup address for user:",
+        userId,
+      );
+      console.log("Profile pickup_address:", profile?.pickup_address);
+
       // Properly validate address using validateAddress function
       // Handle JSONB to Address conversion and validate structure
       let hasPickupAddress = false;
       if (profile?.pickup_address) {
         const pickupAddr = profile.pickup_address as any;
+        console.log("Pickup address object:", pickupAddr);
+        console.log("Address fields:", {
+          streetAddress: pickupAddr.streetAddress,
+          city: pickupAddr.city,
+          province: pickupAddr.province,
+          postalCode: pickupAddr.postalCode,
+        });
+
         // Basic validation of required fields
         hasPickupAddress = !!(
           pickupAddr &&
@@ -319,6 +334,9 @@ export class BankingService {
           pickupAddr.province &&
           pickupAddr.postalCode
         );
+        console.log("Has valid pickup address:", hasPickupAddress);
+      } else {
+        console.log("No pickup address found in profile");
       }
 
       // Check active books
