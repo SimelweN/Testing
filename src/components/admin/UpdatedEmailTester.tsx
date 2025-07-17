@@ -13,6 +13,10 @@ import {
   testManualStyledEmail,
   debugTemplateRender,
 } from "@/utils/emailTemplateTest";
+import {
+  sendDirectStyledTestEmail,
+  testTemplateWithForceRefresh,
+} from "@/utils/testNewEmailStyling";
 
 const UpdatedEmailTester = () => {
   const [testEmail, setTestEmail] = useState("");
