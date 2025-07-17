@@ -197,6 +197,21 @@ const NotificationsNew = () => {
     },
   ]);
 
+  // Load broadcasts on component mount
+  useEffect(() => {
+    const loadBroadcasts = async () => {
+      try {
+        const activeBroadcasts = await getActiveBroadcasts();
+        setBroadcasts(activeBroadcasts);
+        console.log("📢 Loaded broadcasts:", activeBroadcasts);
+      } catch (error) {
+        console.error("Failed to load broadcasts:", error);
+      }
+    };
+
+    loadBroadcasts();
+  }, []);
+
   // Check if this is a first-time user
   useEffect(() => {
     if (user && profile) {
@@ -220,6 +235,59 @@ const NotificationsNew = () => {
       }
     }
   }, [user, profile]);
+
+  // Update categories when notifications change
+  useEffect(() => {
+    const categorizedNotifications = categorizeNotifications(notifications);
+
+    setCategories((prev) =>
+      prev.map((category) => {
+        if (category.id === "commits") {
+          return {
+            ...category,
+            notifications: categorizedNotifications.commits.map((n) => ({
+              id: n.id,
+              type: n.type || "commit",
+              title: n.title,
+              message: n.message,
+              timestamp: n.created_at || n.createdAt,
+              read: n.read,
+              priority: "medium" as const,
+            })),
+          };
+        }
+        if (category.id === "purchases") {
+          return {
+            ...category,
+            notifications: categorizedNotifications.purchases.map((n) => ({
+              id: n.id,
+              type: n.type || "purchase",
+              title: n.title,
+              message: n.message,
+              timestamp: n.created_at || n.createdAt,
+              read: n.read,
+              priority: "medium" as const,
+            })),
+          };
+        }
+        if (category.id === "deliveries") {
+          return {
+            ...category,
+            notifications: categorizedNotifications.deliveries.map((n) => ({
+              id: n.id,
+              type: n.type || "delivery",
+              title: n.title,
+              message: n.message,
+              timestamp: n.created_at || n.createdAt,
+              read: n.read,
+              priority: "medium" as const,
+            })),
+          };
+        }
+        return category;
+      }),
+    );
+  }, [notifications]);
 
   const markWelcomeAsSeen = () => {
     if (user) {
