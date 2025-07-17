@@ -29,6 +29,12 @@ const Register = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    console.log("🚀 Starting registration process...");
+    console.log("📧 Email:", email);
+    console.log("👤 Name:", name);
+    console.log("🔐 Password length:", password.length);
+    console.log("✅ Terms accepted:", termsAccepted);
+
     try {
       if (!name.trim() || !email.trim() || !password.trim()) {
         throw new Error("All fields are required");
@@ -48,7 +54,9 @@ const Register = () => {
         throw new Error("Password must be at least 6 characters long");
       }
 
+      console.log("🔄 Calling register function...");
       const result = await register(email, password, name);
+      console.log("✅ Register function returned:", result);
 
       // Show confirmation message and redirect to login
       toast.success(
@@ -71,10 +79,16 @@ const Register = () => {
       }, 2000);
     } catch (error: unknown) {
       console.error(
-        "Registration error in component:",
+        "❌ Registration error in component:",
         error instanceof Error ? error.message : String(error),
       );
-      // Error is already handled in the register function
+
+      // Show the error to the user
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Registration failed. Please try again.",
+      );
     } finally {
       setIsLoading(false);
     }
