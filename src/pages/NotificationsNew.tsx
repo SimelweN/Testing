@@ -127,7 +127,7 @@ const NotificationsNew = () => {
           type: "info",
           title: "How ReBooked Works",
           message:
-            "📚 Browse thousands of textbooks → 💰 Buy at student-friendly prices → 🚚 Get delivery nationwide → ✅ Sell your old books when done!",
+            "📚 Browse thousands of textbooks → 💰 Buy at student-friendly prices → 🚚 Get delivery nationwide → ��� Sell your old books when done!",
           timestamp: new Date().toISOString(),
           read: false,
           priority: "medium",
@@ -381,16 +381,9 @@ const NotificationsNew = () => {
     );
   };
 
-  const totalNotifications = categories.reduce(
-    (total, category) => total + category.notifications.length,
-    0,
-  );
-
-  const unreadCount = categories.reduce(
-    (total, category) =>
-      total + category.notifications.filter((notif) => !notif.read).length,
-    0,
-  );
+  // Use real notification counts from the hook
+  const totalNotifications = totalCount;
+  const unreadNotifications = unreadCount;
 
   return (
     <Layout>
