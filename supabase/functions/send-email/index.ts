@@ -15,7 +15,7 @@ import {
   logEmailEvent,
   createRateLimitKey,
 } from "../_shared/email-utils.ts";
-import { renderTemplate } from "../_shared/email-templates.ts";
+// Template system REMOVED - direct HTML only
 
 // In-memory rate limiting (in production, use Redis or similar)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
