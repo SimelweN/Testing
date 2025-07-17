@@ -172,7 +172,15 @@ export function useEnhancedAPSStorage() {
 
         // 💾 AUTO-SAVE TO LOCALSTORAGE (PERSISTENT!)
         const success = await saveProfile(profile);
-        console.log("📊 APS profile auto-saved:", success);
+        console.log("📊 [DEBUG] APS profile auto-saved:", success);
+        console.log("📊 [DEBUG] Profile being saved:", profile);
+
+        // Verify it was actually saved
+        const verification = localStorage.getItem("userAPSProfile");
+        console.log(
+          "📊 [DEBUG] localStorage after save:",
+          verification ? "DATA FOUND" : "NO DATA",
+        );
 
         return success;
       } catch (error) {
@@ -190,7 +198,7 @@ export function useEnhancedAPSStorage() {
   const clearUserProfile = useCallback(async () => {
     try {
       console.log("🗑️ [DEBUG] Starting to clear APS profile from localStorage");
-      console.log("🗑️ [DEBUG] Current userProfile state:", userProfile);
+      console.log("���️ [DEBUG] Current userProfile state:", userProfile);
 
       const success = clearAPSProfile();
       console.log("🗑️ [DEBUG] clearAPSProfile returned:", success);
