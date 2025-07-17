@@ -15,138 +15,280 @@ import {
 import { toast } from "sonner";
 import { Mail, Send, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { testAllCompletelyRewrittenTemplates } from "@/utils/testAllNewStyleTemplates";
 
 const CleanEmailTester = () => {
   const [testEmail, setTestEmail] = useState("");
-  const [selectedTemplate, setSelectedTemplate] = useState("");
+  const [selectedEmailType, setSelectedEmailType] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [lastResult, setLastResult] = useState<any>(null);
 
-  // Email templates with sample data
-  const templates = [
+  // Pre-defined HTML email examples with proper ReBooked Solutions styling
+  const emailExamples = [
     {
-      value: "welcome",
-      label: "Welcome Email",
-      data: {
-        userName: "Test User",
-        loginUrl: "https://app.rebookedsolutions.co.za/login",
-      },
+      value: "test-basic",
+      label: "Basic Test Email",
+      html: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test Email - ReBooked Solutions</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3fef7;
+      padding: 20px;
+      color: #1f4e3d;
+      margin: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .header {
+      background: #3ab26f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+      margin: -30px -30px 20px -30px;
+    }
+    .footer {
+      background: #f3fef7;
+      color: #1f4e3d;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 30px -30px -30px -30px;
+      border-radius: 0 0 10px 10px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .link { color: #3ab26f; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>✅ Test Email</h1>
+    </div>
+    <h2>Email System Test</h2>
+    <p>This is a test email from ReBooked Solutions with proper styling.</p>
+    <p>If you're seeing beautiful green styling, the direct HTML approach is working!</p>
+    <div class="footer">
+      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.</p>
+      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
+      <p>T&Cs apply.</p>
+      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+    </div>
+  </div>
+</body>
+</html>`,
     },
     {
       value: "order-confirmation",
-      label: "Order Confirmation",
-      data: {
-        orderNumber: "TEST_123456",
-        customerName: "Test Customer",
-        items: [
-          { name: "Physics Textbook", quantity: 1, price: 250 },
-          { name: "Math Workbook", quantity: 2, price: 150 },
-        ],
-        total: "550.00",
-        estimatedDelivery: "2-3 business days",
-      },
-    },
-
-    {
-      value: "shipping-notification",
-      label: "Shipping Notification",
-      data: {
-        customerName: "Test Customer",
-        orderNumber: "SHIP_123456",
-        trackingNumber: "TRK789012",
-        carrier: "Courier Guy",
-        estimatedDelivery: "2024-01-20",
-      },
-    },
-
-    {
-      value: "seller-new-order",
-      label: "Seller New Order",
-      data: {
-        sellerName: "Test Seller",
-        buyerName: "Test Buyer",
-        orderId: "SELL_123456",
-        items: [{ name: "Chemistry Textbook", quantity: 1, price: 300 }],
-        totalAmount: "300.00",
-        expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
-        commitUrl: "https://app.rebookedsolutions.co.za/activity",
-      },
-    },
-    {
-      value: "buyer-order-pending",
-      label: "Buyer Order Pending",
-      data: {
-        buyerName: "Test Buyer",
-        sellerName: "Test Seller",
-        orderId: "PEND_123456",
-        items: [{ name: "Biology Textbook", quantity: 1, price: 400 }],
-        totalAmount: "400.00",
-        statusUrl: "https://app.rebookedsolutions.co.za/orders/PEND_123456",
-      },
-    },
-    {
-      value: "order-committed-buyer",
-      label: "Order Committed (Buyer)",
-      data: {
-        buyer_name: "Test Buyer",
-        order_id: "COMMIT_123456",
-        seller_name: "Test Seller",
-        book_titles: "Physics & Math Textbooks",
-        estimated_delivery: "2-3 business days",
-      },
-    },
-    {
-      value: "order-committed-seller",
-      label: "Order Committed (Seller)",
-      data: {
-        seller_name: "Test Seller",
-        order_id: "COMMIT_123456",
-        buyer_name: "Test Buyer",
-        book_titles: "Physics & Math Textbooks",
-        pickup_instructions:
-          "A courier will contact you within 24 hours to arrange pickup",
-      },
-    },
-    {
-      value: "seller-pickup-notification",
-      label: "Seller Pickup Notification",
-      data: {
-        sellerName: "Test Seller",
-        bookTitle: "Advanced Physics",
-        orderId: "PICKUP_123456",
-        pickupDate: "2024-01-20",
-        pickupTimeWindow: "9:00 AM - 5:00 PM",
-        courierProvider: "courier-guy",
-        trackingNumber: "CG123456789",
-        shippingLabelUrl: "https://example.com/label.pdf",
-        pickupAddress: {
-          streetAddress: "123 Main Street",
-          city: "Cape Town",
-          province: "Western Cape",
-        },
-      },
-    },
-    {
-      value: "buyer-order-confirmed",
-      label: "Buyer Order Confirmed",
-      data: {
-        buyerName: "Test Buyer",
-        bookTitle: "Advanced Physics",
-        orderId: "CONFIRMED_123456",
-        sellerName: "Test Seller",
-        expectedDelivery: "2-3 business days",
-      },
+      label: "Order Confirmation Example",
+      html: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Order Confirmation - ReBooked Solutions</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3fef7;
+      padding: 20px;
+      color: #1f4e3d;
+      margin: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      background-color: #3ab26f;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .link { color: #3ab26f; }
+    .header {
+      background: #3ab26f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+      margin: -30px -30px 20px -30px;
+    }
+    .footer {
+      background: #f3fef7;
+      color: #1f4e3d;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 30px -30px -30px -30px;
+      border-radius: 0 0 10px 10px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .total {
+      font-weight: bold;
+      font-size: 18px;
+      color: #3ab26f;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎉 Order Confirmed!</h1>
+      <p>Thank you for your purchase!</p>
+    </div>
+    
+    <h2>Order #TEST_123456</h2>
+    <p>Your order has been confirmed and is being processed.</p>
+    
+    <h3>Order Details:</h3>
+    <div style="border-bottom: 1px solid #ddd; padding: 10px 0;">
+      <strong>Physics Textbook</strong><br>
+      Quantity: 1 × R250<br>
+      Subtotal: R250.00
+    </div>
+    <div style="border-bottom: 1px solid #ddd; padding: 10px 0;">
+      <strong>Math Workbook</strong><br>
+      Quantity: 2 × R150<br>
+      Subtotal: R300.00
+    </div>
+    
+    <div class="total">
+      <p>Total: R550.00</p>
+    </div>
+    
+    <p><strong>Estimated Delivery:</strong> 2-3 business days</p>
+    
+    <p>We'll send you another email when your order ships with tracking information.</p>
+    
+    <div class="footer">
+      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.</p>
+      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
+      <p>T&Cs apply.</p>
+      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+    </div>
+  </div>
+</body>
+</html>`,
     },
     {
-      value: "commit-confirmation-basic",
-      label: "Commit Confirmation (Basic)",
-      data: {
-        sellerName: "Test Seller",
-        bookTitle: "Advanced Physics",
-        orderId: "BASIC_123456",
-        buyerEmail: "buyer@example.com",
-      },
+      value: "seller-notification",
+      label: "Seller Notification Example",
+      html: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>New Order - ReBooked Solutions</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3fef7;
+      padding: 20px;
+      color: #1f4e3d;
+      margin: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      background-color: #3ab26f;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .link { color: #3ab26f; }
+    .header {
+      background: #3ab26f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+      margin: -30px -30px 20px -30px;
+    }
+    .footer {
+      background: #f3fef7;
+      color: #1f4e3d;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 30px -30px -30px -30px;
+      border-radius: 0 0 10px 10px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .info-box {
+      background: #f3fef7;
+      border: 1px solid #3ab26f;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📚 New Order Received!</h1>
+    </div>
+    
+    <h2>Hello Test Seller!</h2>
+    <p>You have received a new order from Test Buyer.</p>
+    
+    <div class="info-box">
+      <h3>Order Details</h3>
+      <p><strong>Order ID:</strong> ORD_TEST123</p>
+      <p><strong>Buyer:</strong> Test Buyer</p>
+      <p><strong>Items:</strong> Chemistry Textbook</p>
+      <p><strong>Total Amount:</strong> R300.00</p>
+      <p><strong>Expires:</strong> 48 hours from now</p>
+    </div>
+    
+    <p><strong>Action Required:</strong> Please commit to this order within 48 hours.</p>
+    
+    <a href="https://app.rebookedsolutions.co.za/activity" class="btn">View Order & Commit</a>
+    
+    <div class="footer">
+      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.</p>
+      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
+      <p>T&Cs apply.</p>
+      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+    </div>
+  </div>
+</body>
+</html>`,
     },
   ];
 
@@ -156,14 +298,16 @@ const CleanEmailTester = () => {
       return;
     }
 
-    if (!selectedTemplate) {
-      toast.error("Please select a template");
+    if (!selectedEmailType) {
+      toast.error("Please select an email type");
       return;
     }
 
-    const template = templates.find((t) => t.value === selectedTemplate);
-    if (!template) {
-      toast.error("Template not found");
+    const emailTemplate = emailExamples.find(
+      (t) => t.value === selectedEmailType,
+    );
+    if (!emailTemplate) {
+      toast.error("Email template not found");
       return;
     }
 
@@ -171,51 +315,14 @@ const CleanEmailTester = () => {
     setLastResult(null);
 
     try {
-      console.log(`Sending ${template.label} template to ${testEmail}...`);
-
-      // Use direct HTML approach with inline styles (the only correct way!)
-      const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>${template.label} - ReBooked Solutions Test</title>
-</head>
-<body style="font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; margin: 0;">
-  <div style="max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
-    <div style="background: #3ab26f; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px;">
-      <h1 style="margin: 0; font-size: 24px;">✅ ${template.label} Test</h1>
-    </div>
-
-    <h2 style="color: #1f4e3d; font-size: 20px; margin: 0 0 15px 0;">Test Email Success!</h2>
-    <p style="color: #1f4e3d; line-height: 1.6; margin: 15px 0;">This is a test of the <strong>${template.label}</strong> email using the correct ReBooked Solutions styling.</p>
-
-    <div style="background: #f3fef7; border: 1px solid #3ab26f; padding: 15px; border-radius: 5px; margin: 15px 0;">
-      <h3 style="color: #1f4e3d; font-size: 16px; margin: 0 0 10px 0;">Template Information</h3>
-      <p style="color: #1f4e3d; margin: 5px 0;"><strong>Template:</strong> ${template.label}</p>
-      <p style="color: #1f4e3d; margin: 5px 0; font-family: monospace; font-size: 11px; background: #ffffff; padding: 8px; border-radius: 3px;"><strong>Test Data:</strong><br>${JSON.stringify(template.data, null, 2)}</p>
-    </div>
-
-    <p style="color: #1f4e3d; line-height: 1.6; margin: 15px 0;">If you're seeing this with proper green styling, the direct HTML approach is working!</p>
-
-    <div style="background: #f3fef7; color: #1f4e3d; padding: 20px; text-align: center; font-size: 12px; line-height: 1.5; margin: 30px -30px -30px -30px; border-radius: 0 0 10px 10px; border-top: 1px solid #e5e7eb;">
-      <p style="margin: 0 0 10px 0;"><strong>This is an automated message from ReBooked Solutions.</strong><br>
-      Please do not reply to this email.</p>
-      <p style="margin: 10px 0;">For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" style="color: #3ab26f; text-decoration: none;">support@rebookedsolutions.co.za</a><br>
-      Visit us at: <a href="https://rebookedsolutions.co.za" style="color: #3ab26f; text-decoration: none;">https://rebookedsolutions.co.za</a></p>
-      <p style="margin: 10px 0;">T&Cs apply.</p>
-      <p style="margin: 10px 0 0 0;"><em>"Pre-Loved Pages, New Adventures"</em></p>
-    </div>
-  </div>
-</body>
-</html>`;
+      console.log(`Sending ${emailTemplate.label} to ${testEmail}...`);
 
       const { data, error } = await supabase.functions.invoke("send-email", {
         body: {
           to: testEmail,
-          subject: `✅ ${template.label} - ReBooked Solutions Test`,
-          html: html,
-          text: `${template.label} Test\n\nThis is a test of the ${template.label} email using the correct ReBooked Solutions styling.\n\nTemplate: ${template.label}\nTest Data: ${JSON.stringify(template.data, null, 2)}\n\nReBooked Solutions`,
+          subject: `✅ ${emailTemplate.label} - ReBooked Solutions Test`,
+          html: emailTemplate.html,
+          text: `${emailTemplate.label} Test\n\nThis is a test of the ${emailTemplate.label} using direct HTML with proper ReBooked Solutions styling.\n\nReBooked Solutions\n"Pre-Loved Pages, New Adventures"`,
         },
       });
 
@@ -223,25 +330,25 @@ const CleanEmailTester = () => {
         console.error("Email test failed:", error);
         setLastResult({
           success: false,
-          template: template.label,
+          template: emailTemplate.label,
           error: error.message || "Unknown error",
         });
-        toast.error(`Failed to send ${template.label}`);
+        toast.error(`Failed to send ${emailTemplate.label}`);
       } else {
         console.log("Email sent successfully:", data);
         setLastResult({
           success: true,
-          template: template.label,
+          template: emailTemplate.label,
           data: data,
           messageId: data?.messageId,
         });
-        toast.success(`${template.label} sent successfully!`);
+        toast.success(`${emailTemplate.label} sent successfully!`);
       }
     } catch (error: any) {
       console.error("Email test error:", error);
       setLastResult({
         success: false,
-        template: selectedTemplate,
+        template: selectedEmailType,
         error: error.message || "Unknown error",
       });
       toast.error(`Error sending email: ${error.message}`);
@@ -255,11 +362,10 @@ const CleanEmailTester = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Mail className="h-5 w-5" />
-          Email Template Tester
+          Direct HTML Email Tester
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Test individual email templates with the new ReBooked Solutions
-          styling
+          Test pre-built HTML emails with proper ReBooked Solutions styling
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -275,13 +381,16 @@ const CleanEmailTester = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="template">Select Email Template</Label>
-          <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+          <Label htmlFor="email-type">Select Email Type</Label>
+          <Select
+            value={selectedEmailType}
+            onValueChange={setSelectedEmailType}
+          >
             <SelectTrigger>
-              <SelectValue placeholder="Choose a template to test" />
+              <SelectValue placeholder="Choose an email type to test" />
             </SelectTrigger>
             <SelectContent>
-              {templates.map((template) => (
+              {emailExamples.map((template) => (
                 <SelectItem key={template.value} value={template.value}>
                   {template.label}
                 </SelectItem>
@@ -292,7 +401,7 @@ const CleanEmailTester = () => {
 
         <Button
           onClick={sendTestEmail}
-          disabled={isSending || !testEmail || !selectedTemplate}
+          disabled={isSending || !testEmail || !selectedEmailType}
           className="w-full"
           size="lg"
         >
@@ -355,6 +464,7 @@ const CleanEmailTester = () => {
             <li>• Professional ReBooked Solutions footer</li>
             <li>• "Pre-Loved Pages, New Adventures" signature</li>
             <li>• Contact: support@rebookedsolutions.co.za</li>
+            <li>• NO raw CSS visible in email client</li>
           </ul>
         </div>
       </CardContent>
