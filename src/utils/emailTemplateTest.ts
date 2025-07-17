@@ -1,5 +1,35 @@
 import { supabase } from "../lib/supabase";
 
+export async function debugTemplateRender(
+  templateName: string,
+  data: any = {},
+) {
+  console.log("Debugging template render...", templateName);
+
+  try {
+    const { data: result, error } = await supabase.functions.invoke(
+      "debug-email-template",
+      {
+        body: {
+          templateName,
+          data,
+        },
+      },
+    );
+
+    if (error) {
+      console.error("Debug template render failed:", error);
+      throw error;
+    }
+
+    console.log("Template rendered:", result);
+    return { success: true, rendered: result };
+  } catch (error) {
+    console.error("Debug template error:", error);
+    return { success: false, error };
+  }
+}
+
 export async function testUpdatedEmailTemplate(email: string) {
   console.log("Testing updated email template...");
 
