@@ -90,7 +90,48 @@ const UpdatedEmailTester = () => {
         </div>
 
         <div className="space-y-3">
-          <h3 className="font-medium">Template Tests</h3>
+          <h3 className="font-medium text-red-600">
+            🚨 Force New Styling Tests
+          </h3>
+          <div className="grid gap-2">
+            <Button
+              onClick={() =>
+                runTemplateTest(
+                  sendDirectStyledTestEmail,
+                  "Direct New Styling Test",
+                )
+              }
+              disabled={isSending}
+              className="justify-start bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isSending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              🎯 Send DIRECT New Styling Email (No Template)
+            </Button>
+
+            <Button
+              onClick={() =>
+                runTemplateTest(
+                  testTemplateWithForceRefresh,
+                  "Force Refresh Template",
+                )
+              }
+              disabled={isSending}
+              className="justify-start bg-orange-600 hover:bg-orange-700 text-white"
+            >
+              {isSending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              🔄 Force Refresh Template (Cache Bust)
+            </Button>
+          </div>
+
+          <h3 className="font-medium">Regular Template Tests</h3>
           <div className="grid gap-2">
             <Button
               onClick={() =>
