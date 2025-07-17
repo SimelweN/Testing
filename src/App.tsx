@@ -23,46 +23,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
 
-import Index from "./pages/Index";
-import BookListing from "./pages/BookListing";
-import BookDetails from "./pages/BookDetails";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Profile from "./pages/Profile";
-import CreateListing from "./pages/CreateListing";
-
-import Admin from "./pages/Admin";
-import AdminReports from "./pages/AdminReports";
-import UniversityInfo from "./pages/UniversityInfo";
-import ModernUniversityProfile from "./pages/ModernUniversityProfile";
-import UniversityProfile from "./pages/UniversityProfile";
-import Policies from "./pages/Policies";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import NotFound from "./pages/NotFound";
-import Cart from "./pages/Cart";
-import Checkout from "./pages/Checkout";
-
-import NotificationsOld from "./pages/Notifications";
-import Notifications from "./pages/NotificationsNew";
-import Shipping from "./pages/Shipping";
-import ActivityLog from "./pages/ActivityLog";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import Verify from "./pages/Verify";
-import ContactUs from "./pages/ContactUs";
-import EditBook from "./pages/EditBook";
-import StudyResources from "./pages/StudyResources";
-import Confirm from "./pages/Confirm";
-import ConfirmEmailChange from "./pages/ConfirmEmailChange";
-import Report from "./pages/Report";
-import UserProfile from "./pages/UserProfile";
-import FAQ from "./pages/FAQ";
-import APSDemo from "./pages/APSDemo";
-import SellerProfile from "./pages/SellerProfile";
-import BankingSetup from "./pages/BankingSetup";
-import FunctionTesting from "./pages/FunctionTesting";
-import EmailTesting from "./pages/EmailTesting";
+import ComingSoon from "./pages/ComingSoon";
 import "./App.css";
 
 // Create query client
