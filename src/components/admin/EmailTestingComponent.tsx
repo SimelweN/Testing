@@ -204,15 +204,39 @@ const EmailTestingComponent = () => {
       console.error("Email send error:", error);
       const timing = Date.now() - startTime;
 
+      // Extract detailed error information
+      let detailedError = "Unknown error";
+
+      if (error?.message) {
+        detailedError = error.message;
+      } else if (error?.error) {
+        detailedError = error.error;
+      } else if (typeof error === "string") {
+        detailedError = error;
+      }
+
+      // If it's a Supabase function error, try to extract more details
+      if (error?.context?.body) {
+        try {
+          const errorBody = JSON.parse(error.context.body);
+          if (errorBody.error) {
+            detailedError = errorBody.error;
+            if (errorBody.details) {
+              detailedError += ` (Details: ${JSON.stringify(errorBody.details)})`;
+            }
+          }
+        } catch (parseError) {
+          console.warn("Could not parse error body:", parseError);
+        }
+      }
+
       setLastResult({
         success: false,
-        error: error.message || "Failed to send email",
+        error: detailedError,
         timing,
       });
 
-      toast.error(
-        `Failed to send test email: ${error.message || "Unknown error"}`,
-      );
+      toast.error(`Failed to send test email: ${detailedError}`);
     } finally {
       setIsSending(false);
     }
