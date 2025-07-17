@@ -120,10 +120,6 @@ export function renderTemplate(
       return renderPasswordResetTemplate(data);
     case EMAIL_TEMPLATES.SHIPPING_NOTIFICATION:
       return renderShippingNotificationTemplate(data);
-    case EMAIL_TEMPLATES.CONTACT_FORM:
-      return renderContactFormTemplate(data);
-    case EMAIL_TEMPLATES.BOOKING_CONFIRMATION:
-      return renderBookingConfirmationTemplate(data);
     case EMAIL_TEMPLATES.SELLER_PICKUP_NOTIFICATION:
       return renderSellerPickupNotificationTemplate(data);
     case EMAIL_TEMPLATES.BUYER_ORDER_CONFIRMED:
