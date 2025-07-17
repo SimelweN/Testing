@@ -49,7 +49,7 @@ serve(async (req) => {
         company_name: pickup_address.company || "ReBooked Solutions",
         contact_name: pickup_address.name,
         phone: pickup_address.phone,
-        email: pickup_address.email,
+        // email: pickup_address.email, // Removed to prevent Fastway from sending their own emails
         address_line_1: pickup_address.address_line_1,
         suburb: pickup_address.suburb,
         postcode: pickup_address.postal_code,
@@ -59,7 +59,7 @@ serve(async (req) => {
         company_name: delivery_address.company || "",
         contact_name: delivery_address.name,
         phone: delivery_address.phone,
-        email: delivery_address.email,
+        // email: delivery_address.email, // Removed to prevent Fastway from sending their own emails
         address_line_1: delivery_address.address_line_1,
         suburb: delivery_address.suburb,
         postcode: delivery_address.postal_code,
