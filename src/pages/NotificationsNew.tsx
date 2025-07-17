@@ -306,7 +306,7 @@ const NotificationsNew = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowWelcome(false)}
+                  onClick={markWelcomeAsSeen}
                   className="text-purple-600 hover:bg-purple-100"
                 >
                   <X className="h-4 w-4" />
