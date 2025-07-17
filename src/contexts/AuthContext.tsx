@@ -121,6 +121,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         setIsLoading(true);
         const result = await registerUser(name, email, password);
+
+        // For successful registration that requires email verification,
+        // Supabase returns a user but no session
+        if (result.user && !result.session) {
+          console.log(
+            "✅ Registration successful, email verification required",
+          );
+          return { needsVerification: true };
+        }
+
+        // For successful registration with auto-login
+        if (result.user && result.session) {
+          console.log("✅ Registration successful with auto-login");
+          return { needsVerification: false };
+        }
+
         return result;
       } catch (error) {
         handleError(error, "Registration");
