@@ -509,10 +509,6 @@ const ComingSoon = () => {
               Join Waitlist
             </Button>
           </form>
-
-          <p className="text-book-200">
-            🎉 Early birds get 50% off fees for the first 6 months!
-          </p>
         </div>
       </section>
 
