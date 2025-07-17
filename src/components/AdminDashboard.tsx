@@ -583,10 +583,7 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="emails" className="space-y-4 mt-0">
-            <div className="space-y-6">
-              <UpdatedEmailTester />
-              <EmailTestingComponent />
-            </div>
+            <CleanEmailTester />
           </TabsContent>
 
           <TabsContent value="cleanup" className="space-y-4 mt-0">
