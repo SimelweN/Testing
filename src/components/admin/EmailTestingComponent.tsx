@@ -143,37 +143,81 @@ const EmailTestingComponent = () => {
       console.log("Connection test result:", { data, error });
 
       if (error) {
-        let errorMsg = `Connection failed: ${error.message}`;
+        let errorMsg = "";
 
-        // Provide specific guidance for common errors
-        if (error.message.includes("Failed to send a request")) {
-          errorMsg +=
-            "\n\nPossible causes:\n1. Edge Function not deployed\n2. Supabase project not accessible\n3. Network connectivity issues";
-        } else if (error.message.includes("BREVO_SMTP_KEY")) {
-          errorMsg +=
-            "\n\nMissing BREVO_SMTP_KEY environment variable in Edge Function";
+        // Extract detailed error information from Supabase function error
+        if (error.context?.body) {
+          try {
+            const errorBody = JSON.parse(error.context.body);
+            if (errorBody.error) {
+              errorMsg = errorBody.error;
+
+              // Provide specific diagnosis based on error content
+              if (
+                errorMsg.includes(
+                  "BREVO_SMTP_KEY environment variable is required",
+                )
+              ) {
+                errorMsg =
+                  "❌ MISSING EMAIL CONFIGURATION\n\nThe Edge Function is missing the BREVO_SMTP_KEY environment variable.\n\nTo fix this:\n1. Go to your Supabase project dashboard\n2. Navigate to Edge Functions → Settings\n3. Add environment variable: BREVO_SMTP_KEY=your_brevo_api_key\n4. Redeploy the send-email function";
+              } else if (errorMsg.includes("Invalid JSON")) {
+                errorMsg =
+                  "❌ REQUEST FORMAT ERROR\n\nThe request format is invalid. This is likely a code issue.";
+              } else if (errorMsg.includes("Rate limit")) {
+                errorMsg =
+                  "❌ RATE LIMIT EXCEEDED\n\nToo many email requests. Please wait a moment before trying again.";
+              }
+            } else {
+              errorMsg = `Edge Function Error: ${JSON.stringify(errorBody)}`;
+            }
+          } catch (parseError) {
+            errorMsg = `Edge Function Error (Status ${error.context?.status || "unknown"}): ${error.message}`;
+          }
+        } else if (error.message.includes("Failed to send a request")) {
+          errorMsg =
+            "❌ EDGE FUNCTION NOT ACCESSIBLE\n\nPossible causes:\n1. Edge Function not deployed to Supabase\n2. Network connectivity issues\n3. Supabase project URL incorrect\n4. Function name 'send-email' doesn't exist";
+        } else {
+          errorMsg = `Connection Error: ${error.message}`;
         }
 
         throw new Error(errorMsg);
       }
 
       if (data && !data.success) {
-        throw new Error(`Configuration error: ${data.error}`);
+        let errorMsg = data.error || "Unknown configuration error";
+
+        // Provide specific diagnosis for configuration errors
+        if (errorMsg.includes("BREVO_SMTP_KEY")) {
+          errorMsg =
+            "❌ MISSING BREVO SMTP KEY\n\nThe email service configuration is missing the BREVO_SMTP_KEY environment variable in the Edge Function.";
+        }
+
+        throw new Error(`Configuration Error: ${errorMsg}`);
       }
 
       // Log configuration info for debugging
       if (data?.config) {
-        console.log("Email service configuration:", data.config);
+        console.log("✅ Email service configuration:", data.config);
+        toast.success("Email service connection successful!");
       }
+
+      setLastResult({
+        success: true,
+        error: "",
+        timing: 0,
+      });
 
       return true;
     } catch (error: any) {
       console.error("Connection test failed:", error);
+
       setLastResult({
         success: false,
         error: error.message,
         timing: 0,
       });
+
+      toast.error("Connection test failed - check details below");
       return false;
     }
   };
