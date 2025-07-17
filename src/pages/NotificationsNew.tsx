@@ -142,9 +142,22 @@ const NotificationsNew = () => {
 
   const markWelcomeAsSeen = () => {
     if (user) {
+      // Set multiple localStorage keys to ensure it's permanently dismissed
       localStorage.setItem(`welcome_seen_${user.id}`, "true");
+      localStorage.setItem(
+        `welcome_dismissed_${user.id}`,
+        new Date().toISOString(),
+      );
+
+      // Update all state to ensure it's hidden immediately and permanently
       setShowWelcome(false);
       setIsFirstTime(false);
+
+      // Remove welcome notifications from categories
+      setCategories((prev) =>
+        prev.filter((category) => category.id !== "welcome"),
+      );
+
       toast.success(
         "Welcome! You're all set to start using ReBooked Solutions.",
       );
