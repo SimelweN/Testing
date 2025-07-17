@@ -9,6 +9,7 @@ export interface TemplateData {
   [key: string]: any;
 }
 
+// Version: 2024-01-17-v2 - Updated ReBooked Solutions Styling
 // Common styles and signature for all emails
 const getEmailStyles = () => `
   <style>
