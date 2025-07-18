@@ -76,24 +76,16 @@ export const registerUser = async (
       // Generate a verification URL (this would normally come from Supabase)
       const verificationUrl = `${window.location.origin}/verify?email=${encodeURIComponent(email)}&manual=true`;
 
-      const emailResult = await emailService.sendEmailVerificationEmail(email, {
+      await emailService.sendEmailVerificationEmail(email, {
         userName: name,
         verificationUrl: verificationUrl,
         expiryTime: "24 hours",
       });
 
-      if (emailResult.success) {
-        console.log("✅ Custom verification email sent successfully");
-      } else {
-        console.warn("⚠️ Custom verification email failed:", emailResult.error);
-      }
+      console.log("✅ Custom verification email sent successfully");
     } catch (emailError) {
-      console.warn(
-        "⚠️ Custom verification email failed with exception:",
-        emailError,
-      );
+      console.warn("⚠️ Custom verification email failed:", emailError);
       // Don't throw - registration was successful even if email failed
-      // The user can still verify through other means or manual verification
     }
   }
 

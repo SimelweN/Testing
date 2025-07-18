@@ -194,7 +194,7 @@ class EmailService {
     );
   }
 
-        async sendEmailVerificationEmail(
+  async sendEmailVerificationEmail(
     to: string,
     verificationData: {
       userName: string;
@@ -202,63 +202,46 @@ class EmailService {
       expiryTime?: string;
     },
   ): Promise<EmailResponse> {
-    // Use direct HTML since backend template system is removed
-    const { userName, verificationUrl, expiryTime = "24 hours" } = verificationData;
+    // Try template first, fallback to simple HTML if template system unavailable
+    try {
+      return await this.sendTemplateEmail(
+        to,
+        EMAIL_TEMPLATES.EMAIL_VERIFICATION,
+        verificationData,
+      );
+    } catch (templateError) {
+      console.warn(
+        "Template system unavailable, using simple HTML fallback:",
+        templateError,
+      );
 
-            const htmlContent = `
+      // Fallback to simple HTML email
+      const {
+        userName,
+        verificationUrl,
+        expiryTime = "24 hours",
+      } = verificationData;
+
+      const htmlContent = `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
           <title>Verify Your Email - ReBooked Solutions</title>
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              background-color: #f3fef7;
-              padding: 20px;
-              color: #1f4e3d;
-              margin: 0;
-            }
-            .container {
-              max-width: 500px;
-              margin: auto;
-              background-color: #ffffff;
-              padding: 30px;
-              border-radius: 10px;
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            }
-            .btn {
-              display: inline-block;
-              padding: 12px 20px;
-              background-color: #3ab26f;
-              color: white;
-              text-decoration: none;
-              border-radius: 5px;
-              margin-top: 20px;
-              font-weight: bold;
-            }
-            .link {
-              color: #3ab26f;
-            }
-            .footer {
-              font-size: 14px;
-              color: #666;
-              margin-top: 30px;
-              border-top: 1px solid #e0e0e0;
-              padding-top: 20px;
-            }
-          </style>
         </head>
-        <body>
-          <div class="container">
-            <h1 style="color: #1f4e3d; margin-top: 0;">Verify Your Email Address</h1>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">Verify Your Email Address</h1>
+          </div>
 
-            <h2 style="color: #1f4e3d;">Hello ${userName}!</h2>
+          <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #ddd;">
+            <h2 style="color: #333; margin-top: 0;">Hello ${userName}!</h2>
 
             <p>Welcome to ReBooked Solutions! To complete your registration and start buying and selling textbooks, please verify your email address.</p>
 
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${verificationUrl}" class="btn">
+              <a href="${verificationUrl}"
+                 style="background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
                 Verify My Email Address
               </a>
             </div>
@@ -267,18 +250,20 @@ class EmailService {
 
             <p>If the button doesn't work, copy and paste this link into your browser:</p>
             <p style="background: #f0f0f0; padding: 10px; border-radius: 5px; word-break: break-all;">
-              <a href="${verificationUrl}" class="link">${verificationUrl}</a>
+              ${verificationUrl}
             </p>
 
-            <div class="footer">
-              <p>If you didn't create an account with ReBooked Solutions, please ignore this email.</p>
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
-              <p>
-                <strong>ReBooked Solutions</strong><br>
-                South Africa's Premier Textbook Marketplace<br>
-                <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a>
-              </p>
-            </div>
+            <p style="font-size: 14px; color: #666;">
+              If you didn't create an account with ReBooked Solutions, please ignore this email.
+            </p>
+
+            <p style="font-size: 14px; color: #666;">
+              <strong>ReBooked Solutions</strong><br>
+              South Africa's Premier Textbook Marketplace<br>
+              <a href="mailto:support@rebookedsolutions.co.za">support@rebookedsolutions.co.za</a>
+            </p>
           </div>
         </body>
         </html>
