@@ -37,8 +37,9 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   userId,
 }) => {
   const [processing, setProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<PaymentError | null>(null);
   const [userEmail, setUserEmail] = useState<string>("");
+  const [retryCount, setRetryCount] = useState(0);
 
   // Fetch user email on component mount
   React.useEffect(() => {
