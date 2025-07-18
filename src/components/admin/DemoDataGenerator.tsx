@@ -23,10 +23,24 @@ interface DemoDataResult {
   data?: any;
 }
 
+interface EmailTestData {
+  orderId: string;
+  bookTitle: string;
+  sellerName: string;
+  buyerName: string;
+  amount: number;
+  paymentRef: string;
+}
+
 const DemoDataGenerator: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [results, setResults] = useState<DemoDataResult[]>([]);
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null);
+  const [emailResults, setEmailResults] = useState<
+    Record<string, { success: boolean; message: string }>
+  >({});
 
   const generateDemoBook = async () => {
     const { data: user } = await supabase.auth.getUser();
