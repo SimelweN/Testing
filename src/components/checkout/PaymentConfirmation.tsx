@@ -1,0 +1,460 @@
+import React, { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import {
+  CheckCircle,
+  Package,
+  Mail,
+  Clock,
+  ArrowRight,
+  Download,
+  RefreshCw,
+  Loader2,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+interface PaymentData {
+  order_id: string;
+  payment_reference: string;
+  book_id: string;
+  seller_id: string;
+  buyer_id: string;
+  book_title: string;
+  book_price: number;
+  delivery_method: string;
+  delivery_price: number;
+  total_paid: number;
+  created_at: string;
+  status: string;
+}
+
+interface PaymentConfirmationProps {
+  paymentData: PaymentData;
+  onContinueShopping: () => void;
+}
+
+const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
+  paymentData,
+  onContinueShopping,
+}) => {
+  const navigate = useNavigate();
+  const [isProcessing, setIsProcessing] = useState(true);
+  const [orderDetails, setOrderDetails] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Trigger order creation and email notifications
+    finalizeOrder();
+  }, []);
+
+  const finalizeOrder = async () => {
+    try {
+      console.log("🔄 Finalizing order after payment success...");
+
+      // Get user details for email
+      const { data: userData, error: userError } =
+        await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        throw new Error("User authentication error");
+      }
+
+      // Create order via API
+      const response = await fetch("/api/create-order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: paymentData.buyer_id,
+          items: [
+            {
+              book_id: paymentData.book_id,
+              seller_id: paymentData.seller_id,
+              title: paymentData.book_title,
+              price: paymentData.book_price,
+            },
+          ],
+          total_amount: paymentData.total_paid,
+          shipping_address: {
+            name: userData.user.user_metadata?.name || "Customer",
+            email: userData.user.email,
+          },
+          payment_reference: paymentData.payment_reference,
+          payment_data: {
+            reference: paymentData.payment_reference,
+            amount: paymentData.total_paid,
+            status: "success",
+            verified_at: new Date().toISOString(),
+          },
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to create order");
+      }
+
+      console.log("✅ Order created successfully:", result);
+      setOrderDetails(result.orders[0]);
+
+      // Store payment transaction
+      const { error: paymentError } = await supabase
+        .from("payment_transactions")
+        .insert({
+          reference: paymentData.payment_reference,
+          order_id: result.orders[0].id,
+          user_id: paymentData.buyer_id,
+          amount: paymentData.total_paid,
+          currency: "ZAR",
+          status: "success",
+          customer_email: userData.user.email,
+          customer_name: userData.user.user_metadata?.name || "Customer",
+          verified_at: new Date().toISOString(),
+          metadata: {
+            book_id: paymentData.book_id,
+            book_title: paymentData.book_title,
+            delivery_method: paymentData.delivery_method,
+          },
+        });
+
+      if (paymentError) {
+        console.error("Failed to store payment transaction:", paymentError);
+        // Don't fail the entire process for this
+      }
+
+      // Send confirmation emails
+      await sendConfirmationEmails(result.orders[0], userData.user);
+
+      toast.success("Order confirmed! Confirmation emails sent.", {
+        description: `Order #${result.orders[0].id}`,
+      });
+    } catch (error) {
+      console.error("Order finalization error:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to finalize order",
+      );
+      toast.error("Order finalization failed", {
+        description: "Please contact support with your payment reference",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const sendConfirmationEmails = async (order: any, user: any) => {
+    try {
+      // Send buyer confirmation email
+      await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: user.email,
+          from: "noreply@rebookedsolutions.co.za",
+          subject: "🎉 Payment Confirmed - Order Processing",
+          html: generateBuyerConfirmationEmail(order, paymentData),
+          text: `Payment Confirmed!\n\nYour order has been confirmed and is being processed.\n\nOrder ID: ${order.id}\nPayment Reference: ${paymentData.payment_reference}\nTotal: R${paymentData.total_paid}\n\nYou'll receive updates as your order progresses.\n\nReBooked Solutions`,
+        }),
+      });
+
+      console.log("✅ Confirmation emails sent");
+    } catch (error) {
+      console.error("Email sending error:", error);
+      // Don't fail the process for email errors
+    }
+  };
+
+  const generateBuyerConfirmationEmail = (order: any, payment: PaymentData) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Payment Confirmed - ReBooked Solutions</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3fef7;
+      padding: 20px;
+      color: #1f4e3d;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      background-color: #3ab26f;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .success-box {
+      background: #d1fae5;
+      border: 1px solid #10b981;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎉 Payment Confirmed!</h1>
+    
+    <div class="success-box">
+      <strong>✅ Your payment has been successfully processed</strong>
+    </div>
+
+    <p><strong>Order Details:</strong></p>
+    <p>
+      Order ID: ${order.id}<br>
+      Payment Reference: ${payment.payment_reference}<br>
+      Book: ${payment.book_title}<br>
+      Total Paid: R${payment.total_paid}<br>
+      Delivery Method: ${payment.delivery_method}
+    </p>
+
+    <p><strong>📦 What happens next?</strong></p>
+    <ul>
+      <li>The seller has been notified of your order</li>
+      <li>They have 48 hours to commit to shipping</li>
+      <li>You'll receive tracking information once shipped</li>
+      <li>Delivery within 2-3 business days</li>
+    </ul>
+
+    <a href="https://rebookedsolutions.co.za/orders/${order.id}" class="btn">Track Your Order</a>
+
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+    
+    <p style="font-size: 12px; color: #6b7280;">
+      <strong>Thank you for choosing ReBooked Solutions!</strong><br>
+      For assistance: support@rebookedsolutions.co.za<br>
+      <em>"Pre-Loved Pages, New Adventures"</em>
+    </p>
+  </div>
+</body>
+</html>`;
+
+  const getDeliveryEstimate = () => {
+    const days = paymentData.delivery_method.includes("Express")
+      ? "1-2"
+      : "2-3";
+    return `${days} business days`;
+  };
+
+  if (isProcessing) {
+    return (
+      <div className="max-w-2xl mx-auto p-6">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <Loader2 className="h-12 w-12 mx-auto mb-4 animate-spin text-green-600" />
+            <h2 className="text-xl font-semibold mb-2">
+              Processing Your Order...
+            </h2>
+            <p className="text-gray-600">
+              We're confirming your payment and setting up your order.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-2xl mx-auto p-6">
+        <Alert className="border-red-200 bg-red-50">
+          <AlertTriangle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-800">
+            <strong>Order Processing Error</strong>
+            <p className="mt-1">{error}</p>
+            <div className="mt-3">
+              <p className="text-sm">
+                <strong>Your payment was successful!</strong> Reference:{" "}
+                {paymentData.payment_reference}
+              </p>
+              <p className="text-sm mt-1">
+                Please contact support at support@rebookedsolutions.co.za with
+                this reference.
+              </p>
+            </div>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto p-6 space-y-6">
+      {/* Success Header */}
+      <Card className="border-green-200 bg-green-50">
+        <CardContent className="p-6 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="h-8 w-8 text-green-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-green-800 mb-2">
+            Payment Successful! 🎉
+          </h1>
+          <p className="text-green-700">
+            Your order has been confirmed and is being processed.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Order Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            Order Summary
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="font-semibold">{paymentData.book_title}</h3>
+              <p className="text-sm text-gray-600">
+                Order #{orderDetails?.id || paymentData.order_id}
+              </p>
+              <Badge variant="outline" className="mt-1">
+                {paymentData.status}
+              </Badge>
+            </div>
+            <div className="text-right">
+              <p className="font-semibold">
+                R{paymentData.total_paid.toFixed(2)}
+              </p>
+              <p className="text-sm text-gray-600">Total Paid</p>
+            </div>
+          </div>
+
+          <div className="border-t pt-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Book Price:</span>
+              <span>R{paymentData.book_price.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Delivery ({paymentData.delivery_method}):</span>
+              <span>R{paymentData.delivery_price.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between font-semibold border-t pt-2">
+              <span>Total:</span>
+              <span>R{paymentData.total_paid.toFixed(2)}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Next Steps */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            What Happens Next
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-xs font-semibold text-green-600">1</span>
+              </div>
+              <div>
+                <p className="font-medium">Seller Notification</p>
+                <p className="text-sm text-gray-600">
+                  The seller has been notified and has 48 hours to commit to
+                  your order.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-xs font-semibold text-blue-600">2</span>
+              </div>
+              <div>
+                <p className="font-medium">Pickup & Processing</p>
+                <p className="text-sm text-gray-600">
+                  Once committed, we'll arrange pickup from the seller.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-xs font-semibold text-purple-600">3</span>
+              </div>
+              <div>
+                <p className="font-medium">Delivery</p>
+                <p className="text-sm text-gray-600">
+                  Expected delivery: {getDeliveryEstimate()}
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Email Confirmation */}
+      <Alert className="border-blue-200 bg-blue-50">
+        <Mail className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-800">
+          <strong>Confirmation Email Sent</strong>
+          <p className="text-sm mt-1">
+            Check your inbox for order details and tracking information.
+          </p>
+        </AlertDescription>
+      </Alert>
+
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Button
+          onClick={() =>
+            navigate(`/orders/${orderDetails?.id || paymentData.order_id}`)
+          }
+          className="flex-1"
+        >
+          <Package className="h-4 w-4 mr-2" />
+          Track Order
+        </Button>
+        <Button
+          variant="outline"
+          onClick={onContinueShopping}
+          className="flex-1"
+        >
+          <ArrowRight className="h-4 w-4 mr-2" />
+          Continue Shopping
+        </Button>
+      </div>
+
+      {/* Support Info */}
+      <div className="text-center text-sm text-gray-600">
+        <p>
+          Need help? Contact us at{" "}
+          <a
+            href="mailto:support@rebookedsolutions.co.za"
+            className="text-green-600 hover:underline"
+          >
+            support@rebookedsolutions.co.za
+          </a>
+        </p>
+        <p className="mt-1">
+          Payment Reference: {paymentData.payment_reference}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default PaymentConfirmation;
