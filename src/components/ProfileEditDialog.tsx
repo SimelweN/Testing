@@ -79,11 +79,11 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
 
       onClose();
 
+      // Page reload disabled to prevent blanking issues
       // TODO: Consider implementing proper state management instead of page reload
-      // Use setTimeout to prevent the loading state from being visible during reload
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      // setTimeout(() => {
+      //   window.location.reload();
+      // }, 100);
     } catch (error) {
       console.error("Failed to update profile:", error);
       toast.error("Failed to update profile");
