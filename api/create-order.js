@@ -148,7 +148,6 @@ export default async function handler(req, res) {
       background-color: #f3fef7;
       padding: 20px;
       color: #1f4e3d;
-      margin: 0;
     }
     .container {
       max-width: 500px;
@@ -168,40 +167,9 @@ export default async function handler(req, res) {
       margin-top: 20px;
       font-weight: bold;
     }
-    .header {
-      background: #3ab26f;
-      color: white;
-      padding: 20px;
-      text-align: center;
-      border-radius: 10px 10px 0 0;
-      margin: -30px -30px 20px -30px;
+    .link {
+      color: #3ab26f;
     }
-    .footer {
-      background: #f3fef7;
-      color: #1f4e3d;
-      padding: 20px;
-      text-align: center;
-      font-size: 12px;
-      line-height: 1.5;
-      margin: 30px -30px -30px -30px;
-      border-radius: 0 0 10px 10px;
-      border-top: 1px solid #e5e7eb;
-    }
-    .info-box {
-      background: #f3fef7;
-      border: 1px solid #3ab26f;
-      padding: 15px;
-      border-radius: 5px;
-      margin: 15px 0;
-    }
-    .warning {
-      background: #fff3cd;
-      border: 1px solid #ffeaa7;
-      padding: 10px;
-      border-radius: 5px;
-      margin: 10px 0;
-    }
-    .link { color: #3ab26f; }
   </style>
 </head>
 <body>
