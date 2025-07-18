@@ -221,7 +221,10 @@ const EnhancedAPSCalculator: React.FC = () => {
 
   // Load university-specific calculation
   const [universitySpecificScores, setUniversitySpecificScores] =
-    useState<any>(null);
+    useState<Record<
+      string,
+      { score: number; breakdown: Record<string, number> }
+    > | null>(null);
 
   useEffect(() => {
     if (apsCalculation.fullCalculation) {
