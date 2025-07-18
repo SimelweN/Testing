@@ -32,10 +32,10 @@ export const runImmediateBookCleanup = async () => {
       );
       console.log(`  ✍️ Author books: ${results.authorBooks.deletedCount}`);
 
-      // Force page reload to show clean data
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      // Page reload disabled to prevent refresh loops
+      // setTimeout(() => {
+      //   window.location.reload();
+      // }, 2000);
     } else {
       toast.error("⚠️ Cleanup partially failed. Check console for details.", {
         id: "cleanup",
