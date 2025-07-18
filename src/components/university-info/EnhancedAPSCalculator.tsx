@@ -186,36 +186,6 @@ const EnhancedAPSCalculator: React.FC = () => {
   // New state for two-section layout
   const [showProgramsSection, setShowProgramsSection] = useState(false);
 
-  // All 26 South African universities for APS calculation
-  const ALL_UNIVERSITY_IDS = [
-    "uct",
-    "wits",
-    "stellenbosch",
-    "up",
-    "ukzn",
-    "ufs",
-    "ru",
-    "nwu",
-    "uwc",
-    "uj",
-    "unisa",
-    "ufh",
-    "tut",
-    "dut",
-    "vut",
-    "mut",
-    "cput",
-    "ul",
-    "univen",
-    "wsu",
-    "smu",
-    "ump",
-    "unizulu",
-    "cut",
-    "nmu",
-    "spu",
-  ];
-
   // Calculate APS with all validations
   const apsCalculation = useMemo(() => {
     // Convert APSSubjectInput to APSSubject for calculations
