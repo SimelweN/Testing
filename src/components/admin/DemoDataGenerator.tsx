@@ -64,21 +64,27 @@ const DemoDataGenerator: React.FC = () => {
 
   const generateDemoOrder = async (bookId: string) => {
     const { data: user } = await supabase.auth.getUser();
-    if (!user.user) throw new Error("Must be logged in");
+    if (!user.user || !user.user.email)
+      throw new Error("Must be logged in with email");
+
+    const paymentRef = `demo_pay_${Date.now()}`;
 
     const demoOrder = {
       id: crypto.randomUUID(),
-      buyer_id: user.user.id,
+      buyer_email: user.user.email,
       seller_id: user.user.id, // Same user for demo
-      book_id: bookId,
-      amount: 150.0,
-      total_amount: 175.0, // Including delivery
-      delivery_fee: 25.0,
-      status: "committed",
-      delivery_status: "pending",
-      payment_reference: `demo_pay_${Date.now()}`,
-      refund_status: "none",
-      total_refunded: 0,
+      amount: 17500, // R175.00 in kobo/cents
+      paystack_ref: paymentRef,
+      status: "pending_commit",
+      items: [
+        {
+          book_id: bookId,
+          title: "Demo Textbook for Testing",
+          price: 15000, // R150.00 in kobo/cents
+          condition: "good",
+          seller_id: user.user.id,
+        },
+      ],
       shipping_address: {
         name: "Demo User",
         phone: "0123456789",
@@ -87,6 +93,18 @@ const DemoDataGenerator: React.FC = () => {
         province: "Western Cape",
         postal_code: "8000",
       },
+      delivery_data: {
+        method: "courierGuy",
+        price: 2500, // R25.00 in kobo/cents
+        estimated_days: 3,
+      },
+      metadata: {
+        demo: true,
+        delivery_fee: 2500,
+        book_price: 15000,
+        total_amount: 17500,
+      },
+      payment_held: false,
       created_at: new Date().toISOString(),
     };
 
