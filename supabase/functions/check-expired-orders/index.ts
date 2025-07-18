@@ -53,18 +53,136 @@ serve(async (req) => {
           body: JSON.stringify({
             to: "admin@rebookedsolutions.co.za",
             subject: `Order Expiry Check Report - ${totalProcessed} processed, ${totalErrors} errors`,
-            template: {
-              name: "admin-expiry-check-report",
-              data: {
-                totalProcessed,
-                totalErrors,
-                commitExpiry,
-                collectionTimeouts,
-                deliveryTimeouts,
-                reservationExpiry,
-                checkTime: now,
-              },
-            },
+            html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Order Expiry Check Report - ReBooked Solutions</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3fef7;
+      padding: 20px;
+      color: #1f4e3d;
+      margin: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .header {
+      background: #3ab26f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+      margin: -30px -30px 20px -30px;
+    }
+    .stats-section {
+      background: #f0f9ff;
+      border: 1px solid #3ab26f;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+    .error-section {
+      background: #fef2f2;
+      border: 1px solid #dc2626;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+    .footer {
+      background: #f3fef7;
+      color: #1f4e3d;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 30px -30px -30px -30px;
+      border-radius: 0 0 10px 10px;
+      border-top: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📊 Order Expiry Check Report</h1>
+    </div>
+
+    <h2>System Health Check</h2>
+    <p>Report generated on: ${new Date(now).toLocaleString()}</p>
+
+    <div class="stats-section">
+      <h3>📈 Processing Summary</h3>
+      <p><strong>Total Processed:</strong> ${totalProcessed}</p>
+      <p><strong>Total Errors:</strong> ${totalErrors}</p>
+    </div>
+
+    <div class="stats-section">
+      <h3>⏰ Expiry Categories</h3>
+      <p><strong>Commit Expiry:</strong> ${commitExpiry.length} orders</p>
+      <p><strong>Collection Timeouts:</strong> ${collectionTimeouts.length} orders</p>
+      <p><strong>Delivery Timeouts:</strong> ${deliveryTimeouts.length} orders</p>
+      <p><strong>Reservation Expiry:</strong> ${reservationExpiry.length} orders</p>
+    </div>
+
+    ${
+      totalErrors > 0
+        ? `
+    <div class="error-section">
+      <h3>⚠️ Errors Detected</h3>
+      <p>${totalErrors} errors occurred during the expiry check process. Please review the system logs for detailed error information.</p>
+    </div>
+    `
+        : `
+    <div class="stats-section">
+      <h3>✅ System Status</h3>
+      <p>All expiry checks completed successfully with no errors.</p>
+    </div>
+    `
+    }
+
+    <div class="footer">
+      <p><strong>This is an automated system report from ReBooked Solutions.</strong></p>
+      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+    </div>
+  </div>
+</body>
+</html>`,
+            text: `Order Expiry Check Report
+
+System Health Check
+Report generated on: ${new Date(now).toLocaleString()}
+
+Processing Summary:
+Total Processed: ${totalProcessed}
+Total Errors: ${totalErrors}
+
+Expiry Categories:
+Commit Expiry: ${commitExpiry.length} orders
+Collection Timeouts: ${collectionTimeouts.length} orders
+Delivery Timeouts: ${deliveryTimeouts.length} orders
+Reservation Expiry: ${reservationExpiry.length} orders
+
+${
+  totalErrors > 0
+    ? `
+Errors: ${totalErrors} errors occurred during the expiry check process. Please review the system logs for detailed error information.
+`
+    : `
+System Status: All expiry checks completed successfully with no errors.
+`
+}
+
+This is an automated system report from ReBooked Solutions.
+"Pre-Loved Pages, New Adventures"`,
           }),
         });
       } catch (emailError) {
