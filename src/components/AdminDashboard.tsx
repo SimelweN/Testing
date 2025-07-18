@@ -48,6 +48,7 @@ import {
   Code,
   TestTube,
   Mail,
+  CreditCard,
 } from "lucide-react";
 
 const AdminDashboard = () => {
