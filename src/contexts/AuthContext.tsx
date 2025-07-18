@@ -134,10 +134,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           return { needsVerification: true };
         }
 
-        // For successful registration with auto-login
+        // For successful registration with auto-login (email confirmation disabled)
         if (result.user && result.session) {
           console.log("✅ Registration successful with auto-login");
           return { needsVerification: false };
+        }
+
+        // Handle case where user exists but email confirmation failed
+        if (result.user) {
+          console.log(
+            "✅ Registration successful (email confirmation may have failed, but account created)",
+          );
+          return { needsVerification: false, emailWarning: true };
         }
 
         console.log("⚠️ Unexpected result from registerUser:", result);
@@ -156,17 +164,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       setIsLoading(true);
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
 
+      // Clear local state regardless of signOut result
       setUser(null);
       setProfile(null);
       setSession(null);
+
+      // Only throw if it's a real error (not just session missing)
+      if (error) {
+        // Common "success" scenarios that shouldn't be treated as errors
+        const isAcceptableError =
+          error.message?.includes("session") ||
+          error.message?.includes("not authenticated") ||
+          error.message?.includes("JWT") ||
+          error.message?.includes("token");
+
+        if (!isAcceptableError) {
+          console.warn("Logout had an error but user is signed out:", error);
+          // Don't throw - the user is effectively logged out
+        }
+      }
     } catch (error) {
-      handleError(error, "Logout");
+      // Always clear local state even if signOut fails
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+
+      // Only log the error, don't throw it to the UI
+      console.warn(
+        "Logout encountered an error but user state cleared:",
+        error,
+      );
     } finally {
       setIsLoading(false);
     }
-  }, [handleError]);
+  }, []);
 
   const refreshProfile = useCallback(async () => {
     if (!user) return;
@@ -193,20 +225,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           const fallbackProfile = createFallbackProfile(session.user);
           setProfile(fallbackProfile);
 
-          // Try to load full profile in background
-          fetchUserProfileQuick(session.user)
-            .then((userProfile) => {
-              if (userProfile && userProfile.id === session.user?.id) {
-                setProfile(userProfile);
-              }
-            })
-            .catch((error) => {
-              console.warn("Background profile load failed:", error);
-            });
+          // Try to load full profile in background (only if we don't have one)
+          if (!profile || profile.id !== session.user.id) {
+            fetchUserProfileQuick(session.user)
+              .then((userProfile) => {
+                if (userProfile && userProfile.id === session.user?.id) {
+                  setProfile(userProfile);
+                }
+              })
+              .catch((error) => {
+                console.warn("Background profile load failed:", error);
+              });
+          }
         } else {
-          setUser(null);
-          setProfile(null);
-          setSession(null);
+          // Only clear state if it's not already cleared to prevent unnecessary re-renders
+          if (user !== null || profile !== null || session !== null) {
+            setUser(null);
+            setProfile(null);
+            setSession(null);
+          }
         }
       } catch (error) {
         console.error("Auth state change error:", error);
@@ -251,15 +288,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     initAuth();
-  }, [authInitialized, handleAuthStateChange]);
+  }, [authInitialized]);
 
   // Listen for auth changes
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("🔄 [AuthContext] Auth state changed:", event);
-      await handleAuthStateChange(session);
+      // Reduce logging spam
+      if (import.meta.env.DEV) {
+        console.log("🔄 [AuthContext] Auth state changed:", event);
+      }
+
+      // Only handle actual changes, not redundant events
+      if (
+        event === "SIGNED_OUT" ||
+        event === "SIGNED_IN" ||
+        event === "TOKEN_REFRESHED"
+      ) {
+        await handleAuthStateChange(session);
+      }
     });
 
     return () => subscription.unsubscribe();

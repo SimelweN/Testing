@@ -58,25 +58,60 @@ const Register = () => {
       const result = await register(email, password, name);
       console.log("✅ Register function returned:", result);
 
-      // Show confirmation message and redirect to login
-      toast.success(
-        "Registration successful! Please check your email for verification.",
-        {
+      // Handle different registration outcomes
+      if (result?.needsVerification) {
+        // Email verification required
+        toast.success("🎉 Account created successfully!", {
           duration: 4000,
-        },
-      );
-
-      console.log("✅ Registration completed, redirecting to login...");
-
-      setTimeout(() => {
-        navigate("/login", {
-          state: {
-            message:
-              "Please check your email and click the verification link to activate your account.",
-            email,
-          },
         });
-      }, 2000);
+
+        toast.info(
+          "📧 Please check your email (including spam folder) for the verification link. If you don't receive it, try the 'Resend Email' option on the login page.",
+          {
+            duration: 8000,
+          },
+        );
+
+        setTimeout(() => {
+          navigate("/login", {
+            state: {
+              message:
+                "Account created! Please check your email for the verification link. You can resend the email if needed.",
+              email,
+            },
+          });
+        }, 2000);
+      } else if (result?.emailWarning) {
+        // Registration successful but email confirmation may have failed
+        toast.success("Account created successfully! You can now log in.", {
+          duration: 4000,
+        });
+        toast.warning(
+          "Note: Email confirmation service is temporarily unavailable.",
+          {
+            duration: 6000,
+          },
+        );
+
+        setTimeout(() => {
+          navigate("/login", {
+            state: {
+              message:
+                "Your account has been created successfully. You can now log in.",
+              email,
+            },
+          });
+        }, 2000);
+      } else {
+        // Direct login (no email verification needed)
+        toast.success("Registration successful! You are now logged in.", {
+          duration: 4000,
+        });
+
+        setTimeout(() => {
+          navigate("/", { replace: true });
+        }, 1000);
+      }
     } catch (error: unknown) {
       console.error(
         "❌ Registration error in component:",

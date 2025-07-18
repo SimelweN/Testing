@@ -64,6 +64,16 @@ export const registerUser = async (
   }
 
   console.log("Registration successful for:", email);
+
+  // Log that registration was successful - email issues are handled separately
+  if (data.user && !data.session) {
+    console.log("✅ Registration successful - email verification required");
+    console.log(
+      "ℹ️ Note: User should check their email inbox (including spam folder) for verification link",
+    );
+    // Don't attempt custom email to avoid errors - let Supabase handle it
+  }
+
   return data;
 };
 

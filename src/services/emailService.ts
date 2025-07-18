@@ -35,6 +35,7 @@ export const EMAIL_TEMPLATES = {
   ORDER_CONFIRMATION: "order-confirmation",
   WELCOME: "welcome",
   PASSWORD_RESET: "password-reset",
+  EMAIL_VERIFICATION: "email-verification",
   SHIPPING_NOTIFICATION: "shipping-notification",
   CONTACT_FORM: "contact-form",
   BOOKING_CONFIRMATION: "booking-confirmation",
@@ -123,6 +124,8 @@ class EmailService {
         return "Welcome to ReBooked Solutions!";
       case EMAIL_TEMPLATES.PASSWORD_RESET:
         return "Password Reset Request";
+      case EMAIL_TEMPLATES.EMAIL_VERIFICATION:
+        return "Verify Your Email Address - ReBooked Solutions";
       case EMAIL_TEMPLATES.SHIPPING_NOTIFICATION:
         return "Your Order Has Shipped!";
       case EMAIL_TEMPLATES.CONTACT_FORM:
@@ -189,6 +192,108 @@ class EmailService {
       EMAIL_TEMPLATES.PASSWORD_RESET,
       resetData,
     );
+  }
+
+  async sendEmailVerificationEmail(
+    to: string,
+    verificationData: {
+      userName: string;
+      verificationUrl: string;
+      expiryTime?: string;
+    },
+  ): Promise<EmailResponse> {
+    // Try template first, fallback to simple HTML if template system unavailable
+    try {
+      return await this.sendTemplateEmail(
+        to,
+        EMAIL_TEMPLATES.EMAIL_VERIFICATION,
+        verificationData,
+      );
+    } catch (templateError) {
+      console.warn(
+        "Template system unavailable, using simple HTML fallback:",
+        templateError,
+      );
+
+      // Fallback to simple HTML email
+      const {
+        userName,
+        verificationUrl,
+        expiryTime = "24 hours",
+      } = verificationData;
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Verify Your Email - ReBooked Solutions</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">Verify Your Email Address</h1>
+          </div>
+
+          <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #ddd;">
+            <h2 style="color: #333; margin-top: 0;">Hello ${userName}!</h2>
+
+            <p>Welcome to ReBooked Solutions! To complete your registration and start buying and selling textbooks, please verify your email address.</p>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${verificationUrl}"
+                 style="background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                Verify My Email Address
+              </a>
+            </div>
+
+            <p><strong>This verification link will expire in ${expiryTime}.</strong></p>
+
+            <p>If the button doesn't work, copy and paste this link into your browser:</p>
+            <p style="background: #f0f0f0; padding: 10px; border-radius: 5px; word-break: break-all;">
+              ${verificationUrl}
+            </p>
+
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+            <p style="font-size: 14px; color: #666;">
+              If you didn't create an account with ReBooked Solutions, please ignore this email.
+            </p>
+
+            <p style="font-size: 14px; color: #666;">
+              <strong>ReBooked Solutions</strong><br>
+              South Africa's Premier Textbook Marketplace<br>
+              <a href="mailto:support@rebookedsolutions.co.za">support@rebookedsolutions.co.za</a>
+            </p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      const textContent = `
+        Verify Your Email Address - ReBooked Solutions
+
+        Hello ${userName}!
+
+        Welcome to ReBooked Solutions! To complete your registration and start buying and selling textbooks, please verify your email address by clicking the link below:
+
+        ${verificationUrl}
+
+        This verification link will expire in ${expiryTime}.
+
+        If you didn't create an account with ReBooked Solutions, please ignore this email.
+
+        Best regards,
+        ReBooked Solutions Team
+        support@rebookedsolutions.co.za
+      `;
+
+      return await this.sendEmail({
+        to,
+        subject: "Verify Your Email Address - ReBooked Solutions",
+        html: htmlContent,
+        text: textContent,
+      });
+    }
   }
 
   async sendShippingNotification(

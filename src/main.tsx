@@ -7,8 +7,8 @@ import "./index.css";
 // Suppress ResizeObserver errors immediately
 import "./utils/suppressResizeObserverError";
 
-// Run database cleanup immediately
-import "./utils/runCleanupNow";
+// Database cleanup disabled to prevent refresh loops
+// import "./utils/runCleanupNow";
 
 // Enhanced environment validation with deployment safety
 const validateEnvironment = () => {
@@ -159,12 +159,11 @@ const initializeApp = () => {
   }
 
   // Render the app with comprehensive error boundaries
+  // StrictMode temporarily disabled to prevent double-rendering issues
   root.render(
-    <React.StrictMode>
-      <ErrorBoundary level="app">
-        <App />
-      </ErrorBoundary>
-    </React.StrictMode>,
+    <ErrorBoundary level="app">
+      <App />
+    </ErrorBoundary>,
   );
 
   if (import.meta.env.DEV) {

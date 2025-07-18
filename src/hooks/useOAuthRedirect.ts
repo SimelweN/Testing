@@ -33,17 +33,31 @@ export const useOAuthRedirect = (options: UseOAuthRedirectOptions = {}) => {
   useEffect(() => {
     // Prevent processing multiple times
     if (hasProcessed.current || hasSetupListener.current) return;
+
+    // Check if we're on an OAuth redirect page (has hash or code parameter)
+    const hash = window.location.hash;
+    const searchParams = new URLSearchParams(window.location.search);
+    const code = searchParams.get("code");
+    const error = searchParams.get("error");
+    const error_description = searchParams.get("error_description");
+
+    // Only proceed if this looks like an actual OAuth redirect
+    const hasOAuthIndicators =
+      hash.includes("access_token") ||
+      hash.includes("refresh_token") ||
+      code ||
+      error ||
+      error_description;
+
+    if (!hasOAuthIndicators) {
+      // No OAuth parameters found, don't set up any listeners
+      return;
+    }
+
     hasSetupListener.current = true;
 
     const handleOAuthRedirect = async () => {
       try {
-        // Check if we're on an OAuth redirect page (has hash or code parameter)
-        const hash = window.location.hash;
-        const searchParams = new URLSearchParams(window.location.search);
-        const code = searchParams.get("code");
-        const error = searchParams.get("error");
-        const error_description = searchParams.get("error_description");
-
         // Handle OAuth errors from query params
         if (error) {
           console.error(
