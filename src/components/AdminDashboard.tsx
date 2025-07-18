@@ -30,6 +30,8 @@ import SupabaseFunctionTester from "@/components/admin/SupabaseFunctionTester";
 import CleanEmailTester from "@/components/admin/CleanEmailTester";
 import AdminEmailTestingTab from "@/components/admin/AdminEmailTestingTab";
 import AdminPaystackTestingTab from "@/components/admin/AdminPaystackTestingTab";
+import DatabaseTableTester from "@/components/admin/DatabaseTableTester";
+import DemoDataGenerator from "@/components/admin/DemoDataGenerator";
 
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -49,6 +51,7 @@ import {
   TestTube,
   Mail,
   CreditCard,
+  Database,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -378,6 +381,20 @@ const AdminDashboard = () => {
       description: "Test payments & refunds",
     },
     {
+      value: "demo-data",
+      label: "Demo Data",
+      icon: TestTube,
+      color: "text-orange-600",
+      description: "Generate test data",
+    },
+    {
+      value: "database-testing",
+      label: "Database Testing",
+      icon: Database,
+      color: "text-purple-600",
+      description: "Test all database tables",
+    },
+    {
       value: "cleanup",
       label: "Cleanup",
       icon: Trash2,
@@ -612,6 +629,18 @@ const AdminDashboard = () => {
           <TabsContent value="paystack-testing" className="space-y-4 mt-0">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
               <AdminPaystackTestingTab />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="demo-data" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+              <DemoDataGenerator />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="database-testing" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+              <DatabaseTableTester />
             </div>
           </TabsContent>
 
