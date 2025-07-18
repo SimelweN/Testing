@@ -53,6 +53,10 @@ const validateEnvironment = () => {
 // Initialize application
 if (import.meta.env.DEV) {
   console.log("🚀 ReBooked Solutions - Starting application...");
+
+  // Import testing tools for development
+  import("./utils/testPaymentSystem");
+  import("./utils/testRefundSystem");
 }
 
 // Validate environment with graceful handling
