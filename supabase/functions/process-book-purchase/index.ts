@@ -226,50 +226,70 @@ serve(async (req) => {
   <meta charset="utf-8">
   <title>Order Confirmed - Thank You!</title>
   <style>
-    body { font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; margin: 0; }
-    .container { max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
-    .header { background: #3ab26f; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; }
-    .footer { background: #f3fef7; color: #1f4e3d; padding: 20px; text-align: center; font-size: 12px; line-height: 1.5; margin: 30px -30px -30px -30px; border-radius: 0 0 10px 10px; border-top: 1px solid #e5e7eb; }
-    .info-box { background: #f3fef7; border: 1px solid #3ab26f; padding: 15px; border-radius: 5px; margin: 15px 0; }
-    .steps { background: #f3fef7; padding: 15px; border-radius: 5px; margin: 15px 0; }
-    .link { color: #3ab26f; }
-    .btn { display: inline-block; padding: 12px 20px; background-color: #3ab26f; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: bold; }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3fef7;
+      padding: 20px;
+      color: #1f4e3d;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      background-color: #3ab26f;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .link {
+      color: #3ab26f;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1>🎉 Order Confirmed!</h1>
-    </div>
-    <h2>Thank you, ${buyer.name}!</h2>
+    <h1>🎉 Order Confirmed!</h1>
+
+    <p>Thank you, ${buyer.name}!</p>
     <p>Your order has been confirmed and <strong>${book.seller.name}</strong> has been notified.</p>
-    <div class="info-box">
-      <h3>📋 Order Details</h3>
-      <p><strong>Order ID:</strong> ${orderId}</p>
-      <p><strong>Book:</strong> ${book.title}</p>
-      <p><strong>Seller:</strong> ${book.seller.name}</p>
-      <p><strong>Total Amount:</strong> R${orderData.total_amount}</p>
-      <p><strong>Payment Reference:</strong> ${payment_reference}</p>
-    </div>
-    <div class="steps">
-      <h3>📦 What happens next?</h3>
-      <ul>
-        <li>The seller has 48 hours to commit to your order</li>
-        <li>Once committed, we'll arrange pickup and delivery</li>
-        <li>You'll receive tracking information via email</li>
-        <li>Your book(s) will be delivered within 2-3 business days</li>
-      </ul>
-    </div>
+
+    <p><strong>Order Details:</strong></p>
+    <p>Order ID: ${orderId}<br>
+    Book: ${book.title}<br>
+    Seller: ${book.seller.name}<br>
+    Total Amount: R${orderData.total_amount}<br>
+    Payment Reference: ${payment_reference}</p>
+
+    <p><strong>📦 What happens next?</strong></p>
+    <ul>
+      <li>The seller has 48 hours to commit to your order</li>
+      <li>Once committed, we'll arrange pickup and delivery</li>
+      <li>You'll receive tracking information via email</li>
+      <li>Your book(s) will be delivered within 2-3 business days</li>
+    </ul>
+
     <p>We'll notify you as soon as the seller confirms your order!</p>
+
     <a href="https://rebookedsolutions.co.za/activity" class="btn">Track Your Order</a>
-    <div class="footer">
-      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
-      Please do not reply to this email.</p>
-      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
-      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
-      <p>T&Cs apply.</p>
-      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
-    </div>
+
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+
+    <p style="font-size: 12px; color: #6b7280;">
+      <strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.<br><br>
+      For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a><br><br>
+      T&Cs apply. <em>"Pre-Loved Pages, New Adventures"</em>
+    </p>
   </div>
 </body>
 </html>`;
