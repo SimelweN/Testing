@@ -23,8 +23,15 @@ export const IS_DEVELOPMENT = ENV.NODE_ENV === "development";
 // Validate required environment variables
 export const validateEnvironment = () => {
   const required = ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"];
+  // Payment-related environment variables are critical for production
+  const paymentRequired = IS_PRODUCTION ? ["VITE_PAYSTACK_PUBLIC_KEY"] : [];
+  const allRequired = [...required, ...paymentRequired];
   // Add optional API keys for production warnings
-  const optional = ["VITE_COURIER_GUY_API_KEY", "VITE_FASTWAY_API_KEY"];
+  const optional = [
+    "VITE_COURIER_GUY_API_KEY",
+    "VITE_FASTWAY_API_KEY",
+    ...(IS_PRODUCTION ? [] : ["VITE_PAYSTACK_PUBLIC_KEY"]),
+  ];
 
   const missing = required.filter((key) => {
     const value = ENV[key as keyof typeof ENV];
