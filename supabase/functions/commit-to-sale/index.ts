@@ -240,7 +240,7 @@ serve(async (req) => {
 <body>
   <div class="container">
     <div class="header">
-      <h1>✅ Order Commitment Confirmed!</h1>
+            <h1>Order Commitment Confirmed!</h1>
     </div>
 
     <h2>Thank you, ${order.seller.name}!</h2>

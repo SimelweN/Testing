@@ -23,7 +23,47 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
 
-import ComingSoon from "./pages/ComingSoon";
+// Main Pages
+import Index from "./pages/Index";
+import BookListing from "./pages/BookListing";
+import BookDetails from "./pages/BookDetails";
+import Profile from "./pages/Profile";
+import CreateListing from "./pages/CreateListing";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
+
+// University Pages
+import UniversityInfo from "./pages/UniversityInfo";
+import UniversityProfile from "./pages/UniversityProfile";
+import StudyResources from "./pages/StudyResources";
+
+// Auth Pages
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import Verify from "./pages/Verify";
+
+// Admin Pages
+import Admin from "./pages/Admin";
+import AdminReports from "./pages/AdminReports";
+
+// Support Pages
+import ContactUs from "./pages/ContactUs";
+import FAQ from "./pages/FAQ";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Policies from "./pages/Policies";
+import Shipping from "./pages/Shipping";
+import Report from "./pages/Report";
+import SellerProfile from "./pages/SellerProfile";
+
+// Other Pages
+import NotificationsNew from "./pages/NotificationsNew";
+import ActivityLog from "./pages/ActivityLog";
+import BankingSetup from "./pages/BankingSetup";
+import UserProfile from "./pages/UserProfile";
+
 import "./App.css";
 
 // Create query client
@@ -40,7 +80,7 @@ const queryClient = new QueryClient({
   },
 });
 
-// Full app is now restored!
+// Full application routing restored
 
 function App() {
   return (
@@ -56,8 +96,151 @@ function App() {
                     <ScrollToTop />
 
                     <Routes>
-                      {/* All routes redirect to Coming Soon page */}
-                      <Route path="*" element={<ComingSoon />} />
+                      {/* Main Application Routes */}
+                      <Route path="/" element={<Index />} />
+                      <Route path="/books" element={<BookListing />} />
+                      <Route path="/books/:id" element={<BookDetails />} />
+                      <Route
+                        path="/university-info"
+                        element={<UniversityInfo />}
+                      />
+                      <Route
+                        path="/university/:id"
+                        element={<UniversityProfile />}
+                      />
+                      <Route
+                        path="/study-resources"
+                        element={<StudyResources />}
+                      />
+                      <Route
+                        path="/seller/:sellerId"
+                        element={<SellerProfile />}
+                      />
+
+                      {/* Authentication Routes */}
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/register" element={<Register />} />
+                      <Route
+                        path="/forgot-password"
+                        element={<ForgotPassword />}
+                      />
+                      <Route
+                        path="/reset-password"
+                        element={<ResetPassword />}
+                      />
+                      <Route path="/verify" element={<Verify />} />
+
+                      {/* Protected User Routes */}
+                      <Route
+                        path="/profile"
+                        element={
+                          <ProtectedRoute>
+                            <Profile />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/create-listing"
+                        element={
+                          <ProtectedRoute>
+                            <CreateListing />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/cart"
+                        element={
+                          <ProtectedRoute>
+                            <Cart />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/checkout"
+                        element={
+                          <ProtectedRoute>
+                            <Checkout />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/notifications"
+                        element={
+                          <ProtectedRoute>
+                            <NotificationsNew />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/activity"
+                        element={
+                          <ProtectedRoute>
+                            <ActivityLog />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/banking-setup"
+                        element={
+                          <ProtectedRoute>
+                            <BankingSetup />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/user-profile"
+                        element={
+                          <ProtectedRoute>
+                            <UserProfile />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/sell"
+                        element={
+                          <ProtectedRoute>
+                            <CreateListing />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/settings"
+                        element={
+                          <ProtectedRoute>
+                            <Profile />
+                          </ProtectedRoute>
+                        }
+                      />
+
+                      {/* Admin Routes */}
+                      <Route
+                        path="/admin"
+                        element={
+                          <AdminProtectedRoute>
+                            <Admin />
+                          </AdminProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/reports"
+                        element={
+                          <AdminProtectedRoute>
+                            <AdminReports />
+                          </AdminProtectedRoute>
+                        }
+                      />
+
+                      {/* Support Routes */}
+                      <Route path="/contact" element={<ContactUs />} />
+                      <Route path="/faq" element={<FAQ />} />
+                      <Route path="/privacy" element={<Privacy />} />
+                      <Route path="/terms" element={<Terms />} />
+                      <Route path="/policies" element={<Policies />} />
+                      <Route path="/shipping" element={<Shipping />} />
+                      <Route path="/report" element={<Report />} />
+
+                      {/* 404 Catch All */}
+                      <Route path="*" element={<Index />} />
                     </Routes>
                   </Router>
                 </CartProvider>

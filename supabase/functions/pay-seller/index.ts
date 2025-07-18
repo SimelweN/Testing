@@ -154,17 +154,113 @@ serve(async (req) => {
         body: JSON.stringify({
           to: seller.email,
           subject: "💰 Your payment is on the way!",
-          template: {
-            name: "seller-payout-notification",
-            data: {
-              sellerName: seller.name,
-              orderId: order_id,
-              amount: sellerAmount,
-              platformFee: platformFee,
-              totalAmount: amount,
-              transferReference: transferData.reference,
-            },
-          },
+          html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Payment Processing - ReBooked Solutions</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3fef7;
+      padding: 20px;
+      color: #1f4e3d;
+      margin: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .header {
+      background: #3ab26f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+      margin: -30px -30px 20px -30px;
+    }
+    .footer {
+      background: #f3fef7;
+      color: #1f4e3d;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 30px -30px -30px -30px;
+      border-radius: 0 0 10px 10px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .amount-box {
+      background: #f0f9ff;
+      border: 1px solid #3ab26f;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+      text-align: center;
+    }
+    .link {
+      color: #3ab26f;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>💰 Your Payment is on the Way!</h1>
+    </div>
+
+    <h2>Hello ${seller.name}!</h2>
+    <p>Great news! Your payment for order #${order_id} has been processed and is on its way to your bank account.</p>
+
+    <div class="amount-box">
+      <h3>💳 Payment Details</h3>
+      <p><strong>Your Amount:</strong> R${sellerAmount.toFixed(2)}</p>
+      <p><strong>Platform Fee:</strong> R${platformFee.toFixed(2)}</p>
+      <p><strong>Order Total:</strong> R${amount.toFixed(2)}</p>
+      <p><strong>Transfer Reference:</strong> ${transferData.reference}</p>
+    </div>
+
+    <p>The payment should reflect in your bank account within 1-3 business days.</p>
+
+    <p>Thank you for being part of the ReBooked Solutions community!</p>
+
+    <div class="footer">
+      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.</p>
+            <p>For help, contact support@rebookedsolutions.co.za<br>
+      Visit our website: www.rebookedsolutions.co.za<br>
+      T&Cs apply</p>
+      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+    </div>
+  </div>
+</body>
+</html>`,
+          text: `Your Payment is on the Way!
+
+Hello ${seller.name}!
+
+Great news! Your payment for order #${order_id} has been processed and is on its way to your bank account.
+
+Payment Details:
+Your Amount: R${sellerAmount.toFixed(2)}
+Platform Fee: R${platformFee.toFixed(2)}
+Order Total: R${amount.toFixed(2)}
+Transfer Reference: ${transferData.reference}
+
+The payment should reflect in your bank account within 1-3 business days.
+
+Thank you for being part of the ReBooked Solutions community!
+
+This is an automated message from ReBooked Solutions. Please do not reply to this email.
+For help, contact support@rebookedsolutions.co.za
+Visit our website: www.rebookedsolutions.co.za
+T&Cs apply
+"Pre-Loved Pages, New Adventures"`,
         }),
       });
     } catch (emailError) {
