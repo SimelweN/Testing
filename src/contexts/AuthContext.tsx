@@ -134,10 +134,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           return { needsVerification: true };
         }
 
-        // For successful registration with auto-login
+        // For successful registration with auto-login (email confirmation disabled)
         if (result.user && result.session) {
           console.log("✅ Registration successful with auto-login");
           return { needsVerification: false };
+        }
+
+        // Handle case where user exists but email confirmation failed
+        if (result.user) {
+          console.log(
+            "✅ Registration successful (email confirmation may have failed, but account created)",
+          );
+          return { needsVerification: false, emailWarning: true };
         }
 
         console.log("⚠️ Unexpected result from registerUser:", result);
