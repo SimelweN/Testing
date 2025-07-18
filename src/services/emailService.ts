@@ -124,6 +124,8 @@ class EmailService {
         return "Welcome to ReBooked Solutions!";
       case EMAIL_TEMPLATES.PASSWORD_RESET:
         return "Password Reset Request";
+      case EMAIL_TEMPLATES.EMAIL_VERIFICATION:
+        return "Verify Your Email Address - ReBooked Solutions";
       case EMAIL_TEMPLATES.SHIPPING_NOTIFICATION:
         return "Your Order Has Shipped!";
       case EMAIL_TEMPLATES.CONTACT_FORM:
