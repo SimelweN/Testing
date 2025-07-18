@@ -229,6 +229,7 @@ serve(async (req) => {
       await supabase.functions.invoke("send-email", {
         body: {
           to: order.buyer.email,
+          from: "noreply@rebookedsolutions.co.za",
           subject: "Order Declined - Refund Processed",
           html: buyerHtml,
           text: `Order Declined\n\nHello ${order.buyer.name},\n\nWe're sorry to inform you that your order has been declined by the seller.\n\nOrder ID: ${order_id}\nAmount: R${order.total_amount}\nReason: ${reason || "Seller declined to commit"}\n\nYour refund has been processed and will appear in your account within 3-5 business days.\n\nReBooked Solutions`,
