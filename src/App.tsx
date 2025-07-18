@@ -59,7 +59,7 @@ import Report from "./pages/Report";
 import SellerProfile from "./pages/SellerProfile";
 
 // Other Pages
-import Notifications from "./pages/Notifications";
+import NotificationsNew from "./pages/NotificationsNew";
 import ActivityLog from "./pages/ActivityLog";
 import BankingSetup from "./pages/BankingSetup";
 import UserProfile from "./pages/UserProfile";
