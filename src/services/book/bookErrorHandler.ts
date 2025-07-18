@@ -1,8 +1,10 @@
+import { safeLogError } from "@/utils/errorHandling";
+
 export const handleBookServiceError = (
   error: any,
   operation: string,
 ): never => {
-  console.error(`Error in ${operation}:`, error);
+  safeLogError(`Error in ${operation}`, error);
 
   // Handle specific Supabase errors
   if (error?.message?.includes("JWT")) {
