@@ -173,39 +173,36 @@ export default async function handler(req, res) {
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>📚 New Order - Action Required!</h1>
-    </div>
+    <div class="container">
+    <h1>📚 New Order - Action Required!</h1>
 
-    <h2>Hi ${seller.name}!</h2>
+    <p>Hi ${seller.name}!</p>
     <p>Great news! You have a new order from <strong>${buyer.name}</strong>.</p>
 
-    <div class="info-box">
-      <h3>📋 Order Details</h3>
-      <p><strong>Order ID:</strong> ${orderId}</p>
-      <p><strong>Buyer:</strong> ${buyer.name}</p>
-      <p><strong>Total Amount:</strong> R${orderTotal}</p>
-    </div>
+    <p><strong>Order Details:</strong></p>
+    <p>Order ID: ${orderId}<br>
+    Buyer: ${buyer.name}<br>
+    Total Amount: R${orderTotal}</p>
 
-    <div class="warning">
-      <h3>⏰ Action Required Within 48 Hours</h3>
-      <p><strong>Expires:</strong> ${new Date(orderData.expires_at).toLocaleString()}</p>
-      <p>You must commit to this order within 48 hours or it will be automatically cancelled.</p>
-    </div>
+    <p style="background: #fff3cd; padding: 15px; border-radius: 5px;">
+      <strong>⏰ Action Required Within 48 Hours</strong><br>
+      Expires: ${new Date(orderData.expires_at).toLocaleString()}<br>
+      You must commit to this order within 48 hours or it will be automatically cancelled.
+    </p>
 
     <p>Once you commit, we'll arrange pickup and you'll be paid after delivery!</p>
 
     <a href="${req.headers.origin}/activity" class="btn">Commit to Order</a>
 
-    <div class="footer">
-      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
-      Please do not reply to this email.</p>
-      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
-      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
-      <p>T&Cs apply.</p>
-      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
-    </div>
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+
+    <p style="font-size: 12px; color: #6b7280;">
+      <strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.<br><br>
+      For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a><br><br>
+      T&Cs apply. <em>"Pre-Loved Pages, New Adventures"</em>
+    </p>
   </div>
 </body>
 </html>`;
