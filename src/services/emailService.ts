@@ -35,6 +35,7 @@ export const EMAIL_TEMPLATES = {
   ORDER_CONFIRMATION: "order-confirmation",
   WELCOME: "welcome",
   PASSWORD_RESET: "password-reset",
+  EMAIL_VERIFICATION: "email-verification",
   SHIPPING_NOTIFICATION: "shipping-notification",
   CONTACT_FORM: "contact-form",
   BOOKING_CONFIRMATION: "booking-confirmation",
