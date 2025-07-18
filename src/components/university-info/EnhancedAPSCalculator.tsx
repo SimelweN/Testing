@@ -66,6 +66,37 @@ import {
 import { useEnhancedAPSStorage } from "@/hooks/useEnhancedAPSStorage";
 import { toast } from "sonner";
 import { APSSubject } from "@/types/university";
+
+// All 26 South African universities for APS calculation
+const ALL_UNIVERSITY_IDS = [
+  "uct",
+  "wits",
+  "stellenbosch",
+  "up",
+  "ukzn",
+  "ufs",
+  "ru",
+  "nwu",
+  "uwc",
+  "uj",
+  "unisa",
+  "ufh",
+  "tut",
+  "dut",
+  "vut",
+  "mut",
+  "cput",
+  "nmmu",
+  "urt",
+  "univen",
+  "ul",
+  "unizulu",
+  "cu",
+  "usaf",
+  "smu",
+  "vu",
+];
+
 import {
   calculateAPS,
   convertPercentageToPoints,
