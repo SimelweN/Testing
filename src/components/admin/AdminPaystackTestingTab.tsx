@@ -368,6 +368,15 @@ const AdminPaystackTestingTab: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Demo Data Hint */}
+          <Alert className="border-blue-200 bg-blue-50">
+            <TestTube className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              <strong>Need test data?</strong> Go to <strong>Demo Data</strong>{" "}
+              tab to generate order IDs and payment references for testing.
+            </AlertDescription>
+          </Alert>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="refund-order">Order ID</Label>
@@ -375,7 +384,7 @@ const AdminPaystackTestingTab: React.FC = () => {
                 id="refund-order"
                 value={refundOrderId}
                 onChange={(e) => setRefundOrderId(e.target.value)}
-                placeholder="Enter order ID to refund"
+                placeholder="Generate demo data first → use Order ID here"
               />
             </div>
             <div>
