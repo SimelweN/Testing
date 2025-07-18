@@ -39,7 +39,7 @@ export function useDebounceCallback<T extends (...args: never[]) => unknown>(
 /**
  * Simple throttle hook for high-frequency events
  */
-export function useThrottleCallback<T extends (...args: any[]) => any>(
+export function useThrottleCallback<T extends (...args: never[]) => unknown>(
   callback: T,
   delay: number = 150,
 ): T {
