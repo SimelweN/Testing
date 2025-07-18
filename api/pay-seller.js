@@ -235,6 +235,7 @@ export default async function handler(req, res) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           to: seller.email,
+          from: "noreply@rebookedsolutions.co.za",
           subject: "💰 Your payment is on the way!",
           html: html,
           text: `Your Payment is on the Way!\n\nGreat news, ${seller.name}!\n\nYour payment for the completed order has been processed and is on its way to your account.\n\nPayment Details:\n- Order ID: ${order_id}\n- Your Earnings: R${sellerAmount}\n- Platform Fee: R${platformFee}\n- Total Order Value: R${amount}\n- Transfer Reference: ${transferData.reference}\n\nYou will receive: R${sellerAmount}\n\nThe payment should reflect in your account within 2-3 business days.\n\nReBooked Solutions`,
