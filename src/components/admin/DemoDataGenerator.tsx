@@ -126,7 +126,7 @@ const DemoDataGenerator: React.FC = () => {
       reference: paymentRef,
       order_id: orderId,
       user_id: user.user.id,
-      amount: 175.0,
+      amount: 17500, // R175.00 in kobo/cents
       currency: "ZAR",
       status: "success",
       payment_method: "card",
