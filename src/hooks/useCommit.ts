@@ -105,24 +105,6 @@ export const useCommit = (): UseCommitReturn => {
     [isDeclining, refreshPendingCommits],
   );
 
-  const refreshPendingCommits = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const pending = await getCommitPendingBooks();
-      setPendingCommits(pending || []);
-    } catch (error) {
-      console.error("Failed to fetch pending commits:", error);
-      // Set empty array instead of showing error to prevent UI crash
-      setPendingCommits([]);
-      // Only show error in development
-      if (import.meta.env.DEV) {
-        toast.error("Failed to fetch pending commits");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   return {
     isCommitting,
     isDeclining,
