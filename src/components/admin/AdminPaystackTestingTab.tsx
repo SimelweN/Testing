@@ -295,6 +295,9 @@ const AdminPaystackTestingTab: React.FC = () => {
       </div>
 
       {/* System Health Check */}
+      <SystemHealthChecker />
+
+      {/* System Health Check */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
