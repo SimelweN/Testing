@@ -140,10 +140,7 @@ const CleanEmailTester = () => {
   `;
 
   const adminFooterHtml = `
-    <div class="footer">
-      <p><strong>This is an automated system report from ReBooked Solutions.</strong></p>
-      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
-    </div>
+        ${adminFooterHtml}
   `;
 
   // ALL EMAIL TEMPLATES - Updated with templates from our actual functions
@@ -493,10 +490,7 @@ const CleanEmailTester = () => {
       <p><strong>Amount:</strong> R300.00</p>
     </div>
 
-    <div class="footer">
-      <p><strong>This is an automated system report from ReBooked Solutions.</strong></p>
-      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
-    </div>
+        ${adminFooterHtml}
   </div>
 </body>
 </html>`,
@@ -539,10 +533,7 @@ const CleanEmailTester = () => {
       <p>All expiry checks completed successfully with no errors.</p>
     </div>
 
-    <div class="footer">
-      <p><strong>This is an automated system report from ReBooked Solutions.</strong></p>
-      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
-    </div>
+        ${adminFooterHtml}
   </div>
 </body>
 </html>`,
@@ -592,10 +583,7 @@ const CleanEmailTester = () => {
       <p><strong>Urgent:</strong> No</p>
     </div>
 
-    <div class="footer">
-      <p><strong>This is an automated system report from ReBooked Solutions.</strong></p>
-      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
-    </div>
+        ${adminFooterHtml}
   </div>
 </body>
 </html>`,
