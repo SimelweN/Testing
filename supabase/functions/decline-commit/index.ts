@@ -167,29 +167,23 @@ serve(async (req) => {
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1>❌ Order Declined</h1>
-    </div>
+        <h1>❌ Order Declined</h1>
 
-    <h2>Hello ${order.buyer.name},</h2>
+    <p>Hello ${order.buyer.name},</p>
     <p>We're sorry to inform you that your order has been declined by the seller.</p>
 
-    <div class="info-box">
-      <h3>📋 Order Details</h3>
-      <p><strong>Order ID:</strong> ${order_id}</p>
-      <p><strong>Amount:</strong> R${order.total_amount}</p>
-      <p><strong>Reason:</strong> ${reason || "Seller declined to commit"}</p>
-    </div>
+    <p><strong>Order Details:</strong></p>
+    <p>Order ID: ${order_id}<br>
+    Amount: R${order.total_amount}<br>
+    Reason: ${reason || "Seller declined to commit"}</p>
 
         ${
           refundResult?.success
             ? `
-    <div class="info-box">
-      <h3>💰 Refund Details</h3>
-      <p><strong>Refund Status:</strong> ${refundResult.data.status}</p>
-      <p><strong>Refund Reference:</strong> ${refundResult.data.id}</p>
-      <p><strong>Expected Processing:</strong> 3-5 business days</p>
-    </div>
+    <p><strong>Refund Details:</strong></p>
+    <p>Refund Status: ${refundResult.data.status}<br>
+    Refund Reference: ${refundResult.data.id}<br>
+    Expected Processing: 3-5 business days</p>
     <p><strong>✅ Your refund has been successfully processed and will appear in your account within 3-5 business days.</strong></p>
     `
             : `
@@ -199,14 +193,17 @@ serve(async (req) => {
 
     <p>We apologize for any inconvenience. Please feel free to browse our marketplace for similar books from other sellers.</p>
 
-    <div class="footer">
-      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
-      Please do not reply to this email.</p>
-      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
-      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
-      <p>T&Cs apply.</p>
-      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
-    </div>
+    <a href="https://rebookedsolutions.co.za/books" class="btn">Browse Books</a>
+
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+
+    <p style="font-size: 12px; color: #6b7280;">
+      <strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.<br><br>
+      For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a><br><br>
+      T&Cs apply. <em>"Pre-Loved Pages, New Adventures"</em>
+    </p>
   </div>
 </body>
 </html>`;
