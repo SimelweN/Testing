@@ -66,24 +66,29 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
     try {
       console.log("Paystack payment successful:", paystackResponse);
 
+      // Get user email for order processing
+      const { data: userData, error: userError } =
+        await supabase.auth.getUser();
+      if (userError || !userData.user?.email) {
+        throw new Error("User authentication error");
+      }
+
       // Call the process-book-purchase function to finalize the order
       const { data, error } = await supabase.functions.invoke(
         "process-book-purchase",
         {
           body: {
-            paystack_reference: paystackResponse.reference,
-            order_details: {
-              book_id: orderSummary.book.id,
-              seller_id: orderSummary.book.seller_id,
-              buyer_id: userId,
-              book_price: orderSummary.book_price,
-              delivery_price: orderSummary.delivery_price,
-              total_amount: orderSummary.total_price,
-              delivery_method: orderSummary.delivery.service_name,
-              delivery_courier: orderSummary.delivery.courier,
-              buyer_address: orderSummary.buyer_address,
-              seller_address: orderSummary.seller_address,
-              estimated_delivery_days: orderSummary.delivery.estimated_days,
+            user_id: userId,
+            book_id: orderSummary.book.id,
+            email: userData.user.email,
+            shipping_address: orderSummary.buyer_address,
+            payment_reference: paystackResponse.reference,
+            total_amount: orderSummary.total_price,
+            delivery_details: {
+              method: orderSummary.delivery.service_name,
+              courier: orderSummary.delivery.courier,
+              price: orderSummary.delivery_price,
+              estimated_days: orderSummary.delivery.estimated_days,
             },
           },
         },
@@ -93,9 +98,11 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         throw new Error(error.message || "Failed to process purchase");
       }
 
+      console.log("✅ Order processed successfully:", data);
+
       // Success - proceed to confirmation with complete order data
       onPaymentSuccess({
-        order_id: data.order_id,
+        order_id: data.order_id || `ORDER_${Date.now()}`,
         payment_reference: paystackResponse.reference,
         book_id: orderSummary.book.id,
         seller_id: orderSummary.book.seller_id,
