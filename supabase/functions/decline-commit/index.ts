@@ -196,7 +196,21 @@ serve(async (req) => {
       <p><strong>Reason:</strong> ${reason || "Seller declined to commit"}</p>
     </div>
 
-    <p><strong>Your refund has been processed and will appear in your account within 3-5 business days.</strong></p>
+        ${
+          refundResult?.success
+            ? `
+    <div class="info-box">
+      <h3>💰 Refund Details</h3>
+      <p><strong>Refund Status:</strong> ${refundResult.data.status}</p>
+      <p><strong>Refund Reference:</strong> ${refundResult.data.id}</p>
+      <p><strong>Expected Processing:</strong> 3-5 business days</p>
+    </div>
+    <p><strong>✅ Your refund has been successfully processed and will appear in your account within 3-5 business days.</strong></p>
+    `
+            : `
+    <p><strong>⚠️ Your refund is being processed manually and will appear in your account within 3-5 business days.</strong></p>
+    `
+        }
 
     <p>We apologize for any inconvenience. Please feel free to browse our marketplace for similar books from other sellers.</p>
 
