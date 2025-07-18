@@ -167,7 +167,7 @@ function App() {
                         path="/notifications"
                         element={
                           <ProtectedRoute>
-                            <Notifications />
+                            <NotificationsNew />
                           </ProtectedRoute>
                         }
                       />
