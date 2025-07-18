@@ -137,6 +137,36 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
     console.log("Payment popup closed");
   };
 
+  const handleRetryPayment = () => {
+    setError(null);
+    setRetryCount((prev) => prev + 1);
+
+    if (retryCount >= 2) {
+      toast.warning(
+        "Multiple payment attempts detected. Please contact support if issues persist.",
+      );
+    }
+  };
+
+  const handleContactSupport = () => {
+    const subject = "Payment Issue - ReBooked Solutions";
+    const body = `
+I'm experiencing payment issues:
+
+Order Details:
+- Book: ${orderSummary.book.title}
+- Total: R${orderSummary.total_price}
+- Error: ${error?.message || "Unknown error"}
+
+Retry Count: ${retryCount}
+User ID: ${userId}
+Time: ${new Date().toISOString()}
+`;
+
+    const mailtoLink = `mailto:support@rebookedsolutions.co.za?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailtoLink, "_blank");
+  };
+
   // Get user email for payment
   const getUserEmail = async () => {
     const { data: userData, error } = await supabase.auth.getUser();
