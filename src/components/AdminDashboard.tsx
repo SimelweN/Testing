@@ -364,6 +364,20 @@ const AdminDashboard = () => {
       description: "Test email templates",
     },
     {
+      value: "email-testing",
+      label: "Email Testing",
+      icon: Mail,
+      color: "text-purple-600",
+      description: "Test all email templates",
+    },
+    {
+      value: "paystack-testing",
+      label: "Paystack Testing",
+      icon: CreditCard,
+      color: "text-green-600",
+      description: "Test payments & refunds",
+    },
+    {
       value: "cleanup",
       label: "Cleanup",
       icon: Trash2,
