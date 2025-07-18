@@ -3,68 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Mail, Send, CheckCircle, AlertTriangle, Loader2 } from "lucide-react";
+import { Mail, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-interface EmailTemplate {
-  id: string;
-  name: string;
-  description: string;
-  requiredParams: string[];
-}
-
-const emailTemplates: EmailTemplate[] = [
-  {
-    id: "order_created_seller",
-    name: "New Order - Seller Notification",
-    description: "Email sent to seller when a new order is created",
-    requiredParams: ["seller_name", "buyer_name", "order_id", "total_amount"],
-  },
-  {
-    id: "order_created_buyer",
-    name: "Order Confirmation - Buyer",
-    description: "Email sent to buyer confirming their order",
-    requiredParams: ["buyer_name", "seller_name", "order_id", "total_amount"],
-  },
-  {
-    id: "order_declined_refund",
-    name: "Order Declined - Refund Processed",
-    description: "Email sent to buyer when seller declines order",
-    requiredParams: ["buyer_name", "order_id", "total_amount", "reason"],
-  },
-  {
-    id: "seller_payment",
-    name: "Payment Sent - Seller",
-    description: "Email sent to seller when payment is processed",
-    requiredParams: [
-      "seller_name",
-      "order_id",
-      "seller_amount",
-      "platform_fee",
-    ],
-  },
-  {
-    id: "refund_processed",
-    name: "Refund Processed - Buyer",
-    description: "Email sent to buyer when refund is completed",
-    requiredParams: [
-      "buyer_name",
-      "order_id",
-      "refund_amount",
-      "refund_reference",
-    ],
-  },
-];
 
 const AdminEmailTestingTab: React.FC = () => {
   const [recipientEmail, setRecipientEmail] = useState("");
@@ -221,8 +162,8 @@ const AdminEmailTestingTab: React.FC = () => {
     Total Amount: R${params.total_amount}</p>
     
     <p style="background: #fff3cd; padding: 15px; border-radius: 5px;">
-      <strong>⏰ Action Required Within 48 Hours</strong><br>
-      This is a test email - no action needed
+      <strong>⏰ This is a TEST email - no action needed</strong><br>
+      In real emails, sellers have 48 hours to commit to orders.
     </p>
     
     <p>Once you commit, we'll arrange pickup and you'll be paid after delivery!</p>
@@ -357,7 +298,7 @@ const AdminEmailTestingTab: React.FC = () => {
 </head>
 <body>
   <div class="container">
-    <h1>❌ Order Declined</h1>
+    <h1>❌ Order Declined - Refund Processed</h1>
 
     <p>Hello ${params.buyer_name},</p>
     <p>We're sorry to inform you that your order has been declined by the seller.</p>
@@ -366,6 +307,11 @@ const AdminEmailTestingTab: React.FC = () => {
     <p>Order ID: ${params.order_id}<br>
     Amount: R${params.total_amount}<br>
     Reason: ${params.reason}</p>
+
+    <p><strong>Refund Details:</strong></p>
+    <p>Refund Reference: ${params.refund_reference}<br>
+    Refund Amount: R${params.refund_amount}<br>
+    Expected Processing: 3-5 business days</p>
 
     <p><strong>✅ Your refund has been successfully processed and will appear in your account within 3-5 business days.</strong></p>
 
@@ -529,145 +475,232 @@ const AdminEmailTestingTab: React.FC = () => {
       <div>
         <h2 className="text-2xl font-bold mb-2">Email Testing</h2>
         <p className="text-gray-600">
-          Test email templates and send sample emails
+          One-click email testing - just enter your email and click any button
+          to test
         </p>
       </div>
-
-      {/* Template Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5" />
-            Email Template
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label>Select Template</Label>
-            <Select onValueChange={handleTemplateSelect}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose an email template to test" />
-              </SelectTrigger>
-              <SelectContent>
-                {emailTemplates.map((template) => (
-                  <SelectItem key={template.id} value={template.id}>
-                    {template.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {selectedTemplate && (
-            <Alert>
-              <AlertDescription>
-                <strong>{selectedTemplate.name}</strong>
-                <br />
-                {selectedTemplate.description}
-              </AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Test Parameters */}
-      {selectedTemplate && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Test Parameters</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {selectedTemplate.requiredParams.map((param) => (
-              <div key={param}>
-                <Label htmlFor={param}>
-                  {param.replace(/_/g, " ").toUpperCase()}
-                </Label>
-                <Input
-                  id={param}
-                  value={testParams[param] || ""}
-                  onChange={(e) => handleParamChange(param, e.target.value)}
-                  placeholder={`Enter ${param}`}
-                />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
 
       {/* Email Configuration */}
       <Card>
         <CardHeader>
-          <CardTitle>Email Configuration</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5" />
+            Your Email Address
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           <div>
-            <Label htmlFor="recipient">Recipient Email</Label>
+            <Label htmlFor="recipient">
+              Where should we send the test emails?
+            </Label>
             <Input
               id="recipient"
               type="email"
               value={recipientEmail}
               onChange={(e) => setRecipientEmail(e.target.value)}
-              placeholder="Enter email address to send test to"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="subject">Custom Subject (Optional)</Label>
-            <Input
-              id="subject"
-              value={customSubject}
-              onChange={(e) => setCustomSubject(e.target.value)}
-              placeholder="Override default subject line"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="message">Custom Message (Optional)</Label>
-            <Textarea
-              id="message"
-              value={customMessage}
-              onChange={(e) => setCustomMessage(e.target.value)}
-              placeholder="Override default email content with custom HTML"
-              rows={6}
+              placeholder="Enter your email address"
+              className="mt-2"
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Send Button */}
+      {/* Quick Test Buttons */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Email Tests</CardTitle>
+          <p className="text-sm text-gray-600">
+            Click any button to instantly send a test email with mock data
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Order Created - Seller */}
+            <div className="border rounded-lg p-4">
+              <h4 className="font-medium mb-2">📚 New Order (Seller)</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                Email sent to seller when buyer places order
+              </p>
+              <Button
+                onClick={() => sendTestEmail("order_created_seller")}
+                disabled={
+                  !recipientEmail.trim() || sending === "order_created_seller"
+                }
+                className="w-full"
+                size="sm"
+              >
+                {sending === "order_created_seller" ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : null}
+                Test Seller Order Email
+              </Button>
+              {results.order_created_seller && (
+                <p
+                  className={`text-xs mt-2 ${results.order_created_seller.success ? "text-green-600" : "text-red-600"}`}
+                >
+                  {results.order_created_seller.message}
+                </p>
+              )}
+            </div>
+
+            {/* Order Created - Buyer */}
+            <div className="border rounded-lg p-4">
+              <h4 className="font-medium mb-2">
+                🎉 Order Confirmation (Buyer)
+              </h4>
+              <p className="text-sm text-gray-600 mb-3">
+                Email sent to buyer confirming their order
+              </p>
+              <Button
+                onClick={() => sendTestEmail("order_created_buyer")}
+                disabled={
+                  !recipientEmail.trim() || sending === "order_created_buyer"
+                }
+                className="w-full"
+                size="sm"
+              >
+                {sending === "order_created_buyer" ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : null}
+                Test Buyer Confirmation
+              </Button>
+              {results.order_created_buyer && (
+                <p
+                  className={`text-xs mt-2 ${results.order_created_buyer.success ? "text-green-600" : "text-red-600"}`}
+                >
+                  {results.order_created_buyer.message}
+                </p>
+              )}
+            </div>
+
+            {/* Order Declined + Refund */}
+            <div className="border rounded-lg p-4">
+              <h4 className="font-medium mb-2">❌ Order Declined + Refund</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                Email when seller declines and refund is processed
+              </p>
+              <Button
+                onClick={() => sendTestEmail("order_declined_refund")}
+                disabled={
+                  !recipientEmail.trim() || sending === "order_declined_refund"
+                }
+                className="w-full"
+                size="sm"
+              >
+                {sending === "order_declined_refund" ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : null}
+                Test Decline + Refund
+              </Button>
+              {results.order_declined_refund && (
+                <p
+                  className={`text-xs mt-2 ${results.order_declined_refund.success ? "text-green-600" : "text-red-600"}`}
+                >
+                  {results.order_declined_refund.message}
+                </p>
+              )}
+            </div>
+
+            {/* Seller Payment */}
+            <div className="border rounded-lg p-4">
+              <h4 className="font-medium mb-2">💰 Seller Payment</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                Email when seller receives payment
+              </p>
+              <Button
+                onClick={() => sendTestEmail("seller_payment")}
+                disabled={
+                  !recipientEmail.trim() || sending === "seller_payment"
+                }
+                className="w-full"
+                size="sm"
+              >
+                {sending === "seller_payment" ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : null}
+                Test Seller Payment
+              </Button>
+              {results.seller_payment && (
+                <p
+                  className={`text-xs mt-2 ${results.seller_payment.success ? "text-green-600" : "text-red-600"}`}
+                >
+                  {results.seller_payment.message}
+                </p>
+              )}
+            </div>
+
+            {/* General Refund */}
+            <div className="border rounded-lg p-4">
+              <h4 className="font-medium mb-2">💰 Refund Processed</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                Email when any refund is processed
+              </p>
+              <Button
+                onClick={() => sendTestEmail("refund_processed")}
+                disabled={
+                  !recipientEmail.trim() || sending === "refund_processed"
+                }
+                className="w-full"
+                size="sm"
+              >
+                {sending === "refund_processed" ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : null}
+                Test Refund Email
+              </Button>
+              {results.refund_processed && (
+                <p
+                  className={`text-xs mt-2 ${results.refund_processed.success ? "text-green-600" : "text-red-600"}`}
+                >
+                  {results.refund_processed.message}
+                </p>
+              )}
+            </div>
+
+            {/* Send All */}
+            <div className="border rounded-lg p-4 md:col-span-2">
+              <h4 className="font-medium mb-2">🚀 Send All Test Emails</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                Send all 5 test emails at once to see the full email flow
+              </p>
+              <Button
+                onClick={() => {
+                  sendTestEmail("order_created_seller");
+                  setTimeout(() => sendTestEmail("order_created_buyer"), 1000);
+                  setTimeout(
+                    () => sendTestEmail("order_declined_refund"),
+                    2000,
+                  );
+                  setTimeout(() => sendTestEmail("seller_payment"), 3000);
+                  setTimeout(() => sendTestEmail("refund_processed"), 4000);
+                }}
+                disabled={!recipientEmail.trim() || sending}
+                className="w-full"
+              >
+                {sending ? "Sending..." : "Send All Test Emails"}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Instructions */}
       <Card>
         <CardContent className="pt-6">
-          <Button
-            onClick={sendTestEmail}
-            disabled={!selectedTemplate || !recipientEmail || sending}
-            className="w-full"
-          >
-            {sending ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4 mr-2" />
-            )}
-            {sending ? "Sending..." : "Send Test Email"}
-          </Button>
-
-          {lastResult && (
-            <Alert
-              className={`mt-4 ${lastResult.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}
-            >
-              {lastResult.success ? (
-                <CheckCircle className="h-4 w-4 text-green-600" />
-              ) : (
-                <AlertTriangle className="h-4 w-4 text-red-600" />
-              )}
-              <AlertDescription
-                className={
-                  lastResult.success ? "text-green-800" : "text-red-800"
-                }
-              >
-                {lastResult.message}
-              </AlertDescription>
-            </Alert>
-          )}
+          <div className="text-sm text-gray-600 space-y-2">
+            <p>
+              <strong>How to test:</strong>
+            </p>
+            <ol className="list-decimal list-inside space-y-1">
+              <li>Enter your email address above</li>
+              <li>Click any test button</li>
+              <li>Check your email inbox (including spam folder)</li>
+              <li>All emails use clean, consistent styling</li>
+            </ol>
+            <p className="text-xs text-gray-500 mt-4">
+              All test emails are clearly marked as [TEST] and contain mock data
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
