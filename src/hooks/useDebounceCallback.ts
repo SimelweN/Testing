@@ -4,7 +4,7 @@ import { useCallback, useRef } from "react";
  * Custom hook to debounce callback functions to prevent rapid successive calls
  * Useful for preventing button spam and improving performance
  */
-export function useDebounceCallback<T extends (...args: any[]) => any>(
+export function useDebounceCallback<T extends (...args: never[]) => unknown>(
   callback: T,
   delay: number = 300,
 ): T {
