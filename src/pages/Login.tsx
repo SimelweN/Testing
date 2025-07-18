@@ -78,7 +78,34 @@ const Login = () => {
       });
 
       if (error) {
-        toast.error(`Failed to resend verification email: ${error.message}`);
+        console.warn("Supabase resend failed, trying custom email service...");
+
+        // Try custom email service as fallback
+        try {
+          const { default: emailService } = await import(
+            "@/services/emailService"
+          );
+          const verificationUrl = `${window.location.origin}/verify?email=${encodeURIComponent(email)}&manual=true`;
+
+          await emailService.sendEmailVerificationEmail(email, {
+            userName: email.split("@")[0], // Use email prefix as name
+            verificationUrl: verificationUrl,
+            expiryTime: "24 hours",
+          });
+
+          toast.success(
+            "Verification email sent via backup service! Please check your inbox and spam folder.",
+          );
+        } catch (customError) {
+          toast.error(
+            `Failed to resend verification email. Please contact support or try logging in directly.`,
+          );
+          console.error(
+            "Both Supabase and custom email service failed:",
+            error,
+            customError,
+          );
+        }
       } else {
         toast.success(
           "Verification email sent! Please check your inbox and spam folder.",
