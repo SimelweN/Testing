@@ -95,7 +95,6 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
       .single();
 
     if (error) {
-      console.error("Error creating book:", error.message || String(error));
       handleBookServiceError(error, "create book");
     }
 
@@ -206,7 +205,6 @@ export const updateBook = async (
       .single();
 
     if (error) {
-      console.error("Error updating book:", error.message || String(error));
       handleBookServiceError(error, "update book");
     }
 
@@ -259,8 +257,10 @@ export const deleteBook = async (bookId: string): Promise<void> => {
       .single();
 
     if (fetchError || !existingBook) {
-      console.error("Book not found:", fetchError);
-      throw new Error("Book not found");
+      handleBookServiceError(
+        fetchError || new Error("Book not found"),
+        "delete book - book not found",
+      );
     }
 
     // Check if user is admin
