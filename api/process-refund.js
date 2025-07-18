@@ -335,6 +335,7 @@ async function sendRefundNotifications(order, refundResult, reason) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           to: order.buyer.email,
+          from: "noreply@rebookedsolutions.co.za",
           subject: "💰 Refund Processed - ReBooked Solutions",
           html: buyerHtml,
           text: `Refund Processed\n\nHi ${order.buyer.name}!\n\nYour refund has been processed successfully.\n\nRefund Details:\n- Order ID: ${order.id}\n- Refund Amount: R${order.total_amount}\n- Refund Reference: ${refundResult.refund_id}\n- Expected Date: ${expectedDate}\n- Reason: ${reason}\n\nYour refund will appear in your account within 3-5 business days.\n\nReBooked Solutions`,
