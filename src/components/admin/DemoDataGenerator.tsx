@@ -427,6 +427,167 @@ const DemoDataGenerator: React.FC = () => {
     }
   };
 
+  const generateTestEmailData = (): EmailTestData => ({
+    orderId: `DEMO_${Date.now()}`,
+    bookTitle: "Demo Mathematics Textbook",
+    sellerName: "Demo Seller",
+    buyerName: "Demo Buyer",
+    amount: 175.0,
+    paymentRef: `demo_pay_${Date.now()}`,
+  });
+
+  const sendDemoEmail = async (emailType: string) => {
+    if (!recipientEmail.trim()) {
+      toast.error("Please enter recipient email");
+      return;
+    }
+
+    setSendingEmail(emailType);
+    setEmailResults((prev) => ({
+      ...prev,
+      [emailType]: { success: false, message: "Sending..." },
+    }));
+
+    try {
+      const testData = generateTestEmailData();
+      let emailBody = "";
+      let subject = "";
+
+      // Generate email content based on type
+      switch (emailType) {
+        case "order_created_seller":
+          subject = "[DEMO] 📚 New Order - Action Required (48 hours)";
+          emailBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>New Order - Action Required</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; }
+    .container { max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+    .btn { display: inline-block; padding: 12px 20px; background-color: #3ab26f; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📚 [DEMO] New Order - Action Required!</h1>
+    <p>Hi ${testData.sellerName}!</p>
+    <p>Great news! You have a new order from <strong>${testData.buyerName}</strong>.</p>
+    <p><strong>Order Details:</strong></p>
+    <p>Order ID: ${testData.orderId}<br>
+    Book: ${testData.bookTitle}<br>
+    Buyer: ${testData.buyerName}<br>
+    Total Amount: R${testData.amount}</p>
+    <p style="background: #fff3cd; padding: 15px; border-radius: 5px;">
+      <strong>⏰ Action Required Within 48 Hours</strong><br>
+      This is a demo email for testing purposes.
+    </p>
+    <a href="https://rebookedsolutions.co.za/activity" class="btn">Commit to Order</a>
+  </div>
+</body>
+</html>`;
+          break;
+        case "refund_processed":
+          subject = "[DEMO] 💰 Refund Processed - ReBooked Solutions";
+          emailBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Refund Processed</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; }
+    .container { max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💰 [DEMO] Refund Processed</h1>
+    <p>Hi ${testData.buyerName}!</p>
+    <p>Your refund has been processed successfully.</p>
+    <p><strong>Refund Details:</strong></p>
+    <p>Order ID: ${testData.orderId}<br>
+    Book: ${testData.bookTitle}<br>
+    Amount Refunded: R${testData.amount}<br>
+    Payment Reference: ${testData.paymentRef}</p>
+    <p>This is a demo email for testing purposes.</p>
+  </div>
+</body>
+</html>`;
+          break;
+        case "seller_payment":
+          subject = "[DEMO] 💰 Your payment is on the way!";
+          emailBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Payment Notification</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; }
+    .container { max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💰 [DEMO] Your payment is on the way!</h1>
+    <p>Hi ${testData.sellerName}!</p>
+    <p>Great news! Your payment for the following order has been processed.</p>
+    <p><strong>Payment Details:</strong></p>
+    <p>Order ID: ${testData.orderId}<br>
+    Book: ${testData.bookTitle}<br>
+    Amount: R${testData.amount}<br>
+    Payment Reference: ${testData.paymentRef}</p>
+    <p>This is a demo email for testing purposes.</p>
+  </div>
+</body>
+</html>`;
+          break;
+        default:
+          throw new Error("Unknown email type");
+      }
+
+      // Send test email via Supabase function
+      const { data, error } = await supabase.functions.invoke("send-email", {
+        body: {
+          to: recipientEmail,
+          from: "noreply@rebookedsolutions.co.za",
+          subject,
+          html: emailBody,
+          text: subject + "\n\nThis is a demo email for testing purposes.",
+        },
+      });
+
+      if (error) {
+        throw new Error(error.message || "Failed to send email");
+      }
+
+      setEmailResults((prev) => ({
+        ...prev,
+        [emailType]: {
+          success: true,
+          message: `Demo ${emailType.replace("_", " ")} email sent successfully!`,
+        },
+      }));
+
+      toast.success(`Demo email sent to ${recipientEmail}`);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      setEmailResults((prev) => ({
+        ...prev,
+        [emailType]: {
+          success: false,
+          message: `Failed to send email: ${errorMessage}`,
+        },
+      }));
+      toast.error(`Failed to send email: ${errorMessage}`);
+    } finally {
+      setSendingEmail(null);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
