@@ -16,6 +16,10 @@ import { OrderSummary, OrderConfirmation } from "@/types/checkout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import PaystackPopup, { formatAmount } from "@/components/PaystackPopup";
+import PaymentErrorHandler, {
+  classifyPaymentError,
+  PaymentError,
+} from "@/components/payments/PaymentErrorHandler";
 
 interface Step3PaymentProps {
   orderSummary: OrderSummary;
