@@ -834,10 +834,12 @@ Time: ${new Date().toISOString()}
       </Card>
 
       {error && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <PaymentErrorHandler
+          error={error}
+          onRetry={handleRetryPayment}
+          onContactSupport={handleContactSupport}
+          onBack={onBack}
+        />
       )}
 
       {/* Payment Information */}
