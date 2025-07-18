@@ -312,7 +312,7 @@ const ActivityLog = () => {
           )}
 
           <Tabs
-            defaultValue="all"
+            defaultValue="orders"
             value={activeTab}
             onValueChange={setActiveTab}
           >
