@@ -143,45 +143,67 @@ serve(async (req) => {
   <meta charset="utf-8">
   <title>New Order - Action Required</title>
   <style>
-    body { font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; margin: 0; }
-    .container { max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
-    .header { background: #3ab26f; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; }
-    .footer { background: #f3fef7; color: #1f4e3d; padding: 20px; text-align: center; font-size: 12px; line-height: 1.5; margin: 30px -30px -30px -30px; border-radius: 0 0 10px 10px; border-top: 1px solid #e5e7eb; }
-    .info-box { background: #f3fef7; border: 1px solid #3ab26f; padding: 15px; border-radius: 5px; margin: 15px 0; }
-    .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin: 10px 0; }
-    .link { color: #3ab26f; }
-    .btn { display: inline-block; padding: 12px 20px; background-color: #3ab26f; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: bold; }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3fef7;
+      padding: 20px;
+      color: #1f4e3d;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      background-color: #3ab26f;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .link {
+      color: #3ab26f;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1>📚 New Order - Action Required!</h1>
-    </div>
-    <h2>Hi ${book.seller.name}!</h2>
+    <h1>📚 New Order - Action Required!</h1>
+
+    <p>Hi ${book.seller.name}!</p>
     <p>Great news! You have a new order from <strong>${buyer.name}</strong>.</p>
-    <div class="info-box">
-      <h3>📋 Order Details</h3>
-      <p><strong>Order ID:</strong> ${orderId}</p>
-      <p><strong>Book:</strong> ${book.title}</p>
-      <p><strong>Buyer:</strong> ${buyer.name}</p>
-      <p><strong>Total Amount:</strong> R${orderData.total_amount}</p>
-    </div>
-    <div class="warning">
-      <h3>⏰ Action Required Within 48 Hours</h3>
-      <p><strong>Expires:</strong> ${new Date(orderData.expires_at).toLocaleString()}</p>
-      <p>You must commit to this order within 48 hours or it will be automatically cancelled.</p>
-    </div>
+
+    <p><strong>Order Details:</strong></p>
+    <p>Order ID: ${orderId}<br>
+    Book: ${book.title}<br>
+    Buyer: ${buyer.name}<br>
+    Total Amount: R${orderData.total_amount}</p>
+
+    <p style="background: #fff3cd; padding: 15px; border-radius: 5px;">
+      <strong>⏰ Action Required Within 48 Hours</strong><br>
+      Expires: ${new Date(orderData.expires_at).toLocaleString()}<br>
+      You must commit to this order within 48 hours or it will be automatically cancelled.
+    </p>
+
     <p>Once you commit, we'll arrange pickup and you'll be paid after delivery!</p>
+
     <a href="https://rebookedsolutions.co.za/activity" class="btn">Commit to Order</a>
-    <div class="footer">
-      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
-      Please do not reply to this email.</p>
-      <p>For assistance, contact: <a href="mailto:noreply@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
-      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
-      <p>T&Cs apply.</p>
-      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
-    </div>
+
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+
+    <p style="font-size: 12px; color: #6b7280;">
+      <strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.<br><br>
+      For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a><br><br>
+      T&Cs apply. <em>"Pre-Loved Pages, New Adventures"</em>
+    </p>
   </div>
 </body>
 </html>`;
