@@ -50,6 +50,7 @@ import {
   TestTube,
   Mail,
   CreditCard,
+  Database,
 } from "lucide-react";
 
 const AdminDashboard = () => {
