@@ -275,19 +275,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const unavailableBooks =
         books?.filter(
-          (book: any) =>
+          (book: { id: string; sold: boolean; availability?: string }) =>
             book.sold === true || book.availability !== "available",
         ) || [];
 
       if (unavailableBooks.length > 0) {
         const removedItems = items.filter((item) =>
-          unavailableBooks.some((book: any) => book.id === item.bookId),
+          unavailableBooks.some(
+            (book: { id: string }) => book.id === item.bookId,
+          ),
         );
 
         // Remove unavailable items from cart
         const validItems = items.filter(
           (item) =>
-            !unavailableBooks.some((book: any) => book.id === item.bookId),
+            !unavailableBooks.some(
+              (book: { id: string }) => book.id === item.bookId,
+            ),
         );
 
         setItems(validItems);
