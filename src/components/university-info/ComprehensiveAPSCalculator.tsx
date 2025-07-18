@@ -160,7 +160,15 @@ interface APSSubject {
 }
 
 interface ProgramDetailsModalProps {
-  program: any;
+  program: {
+    name: string;
+    university: string;
+    requirements?: {
+      minAPS?: number;
+      requiredSubjects?: string[];
+      additionalInfo?: string;
+    };
+  };
   isOpen: boolean;
   onClose: () => void;
 }
