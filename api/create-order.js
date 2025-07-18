@@ -247,6 +247,7 @@ export default async function handler(req, res) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             to: seller.email,
+            from: "noreply@rebookedsolutions.co.za",
             subject: "📚 New Order - Action Required (48 hours)",
             html: sellerHtml,
             text: `New Order - Action Required!\n\nHi ${seller.name}!\n\nGreat news! You have a new order from ${buyer.name}.\n\nOrder Details:\n- Order ID: ${orderId}\n- Buyer: ${buyer.name}\n- Total Amount: R${orderTotal}\n\n⏰ Action Required Within 48 Hours\nExpires: ${new Date(orderData.expires_at).toLocaleString()}\n\nYou must commit to this order within 48 hours or it will be automatically cancelled.\n\nCommit to order: ${req.headers.origin}/activity\n\nReBooked Solutions`,
