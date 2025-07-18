@@ -33,7 +33,7 @@ export const validateEnvironment = () => {
     ...(IS_PRODUCTION ? [] : ["VITE_PAYSTACK_PUBLIC_KEY"]),
   ];
 
-  const missing = required.filter((key) => {
+  const missing = allRequired.filter((key) => {
     const value = ENV[key as keyof typeof ENV];
     return !value || value.trim() === "";
   });
