@@ -141,7 +141,7 @@ const FeaturedBookCard = ({ book }: { book: Book }) => {
             </Badge>
             {book.grade && (
               <Badge variant="secondary" className="text-xs">
-                Grade {book.grade}
+                {book.grade}
               </Badge>
             )}
           </div>
