@@ -79,7 +79,7 @@ export const handleBookServiceError = (
 
 // Non-throwing version for cases where we want to return empty results instead of erroring
 export const logBookServiceError = (error: any, operation: string): string => {
-  console.error(`Error in ${operation}:`, error);
+  safeLogError(`Error in ${operation}`, error);
 
   // Handle specific Supabase errors
   if (error?.message?.includes("JWT")) {
