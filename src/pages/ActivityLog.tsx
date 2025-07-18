@@ -28,7 +28,10 @@ import {
   Package,
   TrendingUp,
   X,
+  Bell,
 } from "lucide-react";
+import OrderManagementView from "@/components/orders/OrderManagementView";
+import OrderNotificationSystem from "@/components/notifications/OrderNotificationSystem";
 
 const ActivityLog = () => {
   const { user, profile } = useAuth();
