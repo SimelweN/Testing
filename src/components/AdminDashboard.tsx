@@ -30,6 +30,7 @@ import SupabaseFunctionTester from "@/components/admin/SupabaseFunctionTester";
 import CleanEmailTester from "@/components/admin/CleanEmailTester";
 import AdminEmailTestingTab from "@/components/admin/AdminEmailTestingTab";
 import AdminPaystackTestingTab from "@/components/admin/AdminPaystackTestingTab";
+import DatabaseTableTester from "@/components/admin/DatabaseTableTester";
 
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
