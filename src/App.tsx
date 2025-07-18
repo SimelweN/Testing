@@ -55,6 +55,8 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Policies from "./pages/Policies";
 import Shipping from "./pages/Shipping";
+import Report from "./pages/Report";
+import SellerProfile from "./pages/SellerProfile";
 
 // Other Pages
 import Notifications from "./pages/Notifications";
@@ -108,6 +110,10 @@ function App() {
                       <Route
                         path="/study-resources"
                         element={<StudyResources />}
+                      />
+                      <Route
+                        path="/seller/:sellerId"
+                        element={<SellerProfile />}
                       />
 
                       {/* Authentication Routes */}
@@ -206,6 +212,7 @@ function App() {
                       <Route path="/terms" element={<Terms />} />
                       <Route path="/policies" element={<Policies />} />
                       <Route path="/shipping" element={<Shipping />} />
+                      <Route path="/report" element={<Report />} />
 
                       {/* 404 Catch All */}
                       <Route path="*" element={<Index />} />
