@@ -33,6 +33,24 @@ export const useCommit = (): UseCommitReturn => {
   const [pendingCommits, setPendingCommits] = useState<PendingCommit[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const refreshPendingCommits = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const pending = await getCommitPendingBooks();
+      setPendingCommits(pending || []);
+    } catch (error) {
+      console.error("Failed to fetch pending commits:", error);
+      // Set empty array instead of showing error to prevent UI crash
+      setPendingCommits([]);
+      // Only show error in development
+      if (import.meta.env.DEV) {
+        toast.error("Failed to fetch pending commits");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const commitBook = useCallback(
     async (bookId: string) => {
       if (isCommitting) return;
