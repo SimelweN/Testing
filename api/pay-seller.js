@@ -149,7 +149,6 @@ export default async function handler(req, res) {
       background-color: #f3fef7;
       padding: 20px;
       color: #1f4e3d;
-      margin: 0;
     }
     .container {
       max-width: 500px;
@@ -159,73 +158,51 @@ export default async function handler(req, res) {
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
-    .header {
-      background: #3ab26f;
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      background-color: #3ab26f;
       color: white;
-      padding: 20px;
-      text-align: center;
-      border-radius: 10px 10px 0 0;
-      margin: -30px -30px 20px -30px;
-    }
-    .footer {
-      background: #f3fef7;
-      color: #1f4e3d;
-      padding: 20px;
-      text-align: center;
-      font-size: 12px;
-      line-height: 1.5;
-      margin: 30px -30px -30px -30px;
-      border-radius: 0 0 10px 10px;
-      border-top: 1px solid #e5e7eb;
-    }
-    .info-box {
-      background: #f3fef7;
-      border: 1px solid #3ab26f;
-      padding: 15px;
+      text-decoration: none;
       border-radius: 5px;
-      margin: 15px 0;
-    }
-    .total {
+      margin-top: 20px;
       font-weight: bold;
-      font-size: 18px;
+    }
+    .link {
       color: #3ab26f;
     }
-    .link { color: #3ab26f; }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1>💰 Your Payment is on the Way!</h1>
-    </div>
+    <h1>💰 Your Payment is on the Way!</h1>
 
-    <h2>Great news, ${seller.name}!</h2>
+    <p>Great news, ${seller.name}!</p>
     <p>Your payment for the completed order has been processed and is on its way to your account.</p>
 
-    <div class="info-box">
-      <h3>📋 Payment Details</h3>
-      <p><strong>Order ID:</strong> ${order_id}</p>
-      <p><strong>Your Earnings:</strong> R${sellerAmount}</p>
-      <p><strong>Platform Fee:</strong> R${platformFee}</p>
-      <p><strong>Total Order Value:</strong> R${amount}</p>
-      <p><strong>Transfer Reference:</strong> ${transferData.reference}</p>
-    </div>
+    <p><strong>Payment Details:</strong></p>
+    <p>Order ID: ${order_id}<br>
+    Your Earnings: R${sellerAmount}<br>
+    Platform Fee: R${platformFee}<br>
+    Total Order Value: R${amount}<br>
+    Transfer Reference: ${transferData.reference}</p>
 
-    <div class="total">
-      <p>You will receive: R${sellerAmount}</p>
-    </div>
+    <p style="font-weight: bold; font-size: 18px; color: #3ab26f;">You will receive: R${sellerAmount}</p>
 
     <p>The payment should reflect in your account within 2-3 business days.</p>
     <p>Thank you for selling with ReBooked Solutions! 📚</p>
 
-    <div class="footer">
-      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
-      Please do not reply to this email.</p>
-      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
-      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
-      <p>T&Cs apply.</p>
-      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
-    </div>
+    <a href="https://rebookedsolutions.co.za/activity" class="btn">View Your Sales</a>
+
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+
+    <p style="font-size: 12px; color: #6b7280;">
+      <strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.<br><br>
+      For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a><br><br>
+      T&Cs apply. <em>"Pre-Loved Pages, New Adventures"</em>
+    </p>
   </div>
 </body>
 </html>`;
