@@ -10,7 +10,7 @@ export const useBanking = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchBankingDetails = async () => {
+  const fetchBankingDetails = useCallback(async () => {
     if (!user) {
       setIsLoading(false);
       setBankingDetails(null);
@@ -40,11 +40,11 @@ export const useBanking = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchBankingDetails();
-  }, [user, fetchBankingDetails]);
+  }, [fetchBankingDetails]);
 
   const setupBanking = async (
     details: BankingDetails,
