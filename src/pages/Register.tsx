@@ -61,16 +61,12 @@ const Register = () => {
       // Handle different registration outcomes
       if (result?.needsVerification) {
         // Email verification required
-        toast.success(
-          "Registration successful! Please check your email for verification.",
-          {
-            duration: 6000,
-          },
-        );
+        toast.success("🎉 Account created successfully!", {
+          duration: 4000,
+        });
 
-        // Also show option for manual verification
         toast.info(
-          "If you don't receive the email, you can contact support or try logging in directly.",
+          "📧 Please check your email (including spam folder) for the verification link. If you don't receive it, try the 'Resend Email' option on the login page.",
           {
             duration: 8000,
           },
@@ -80,7 +76,7 @@ const Register = () => {
           navigate("/login", {
             state: {
               message:
-                "Please check your email and click the verification link to activate your account. If you don't receive the email, try logging in directly.",
+                "Account created! Please check your email for the verification link. You can resend the email if needed.",
               email,
             },
           });
