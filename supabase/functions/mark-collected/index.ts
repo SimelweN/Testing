@@ -234,7 +234,7 @@ T&Cs apply
         },
         body: JSON.stringify({
           to: order.seller.email,
-          subject: "✅ Order collected successfully",
+          subject: "Order collected successfully",
           html: `
 <!DOCTYPE html>
 <html>
