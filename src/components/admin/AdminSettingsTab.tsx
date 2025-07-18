@@ -336,6 +336,8 @@ const AdminSettingsTab = ({
 
       <EdgeFunctionTestButton />
 
+      <EmailServiceDebug />
+
       <EmailTestingComponent />
 
       <Card>
