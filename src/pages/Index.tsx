@@ -211,6 +211,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Ready to Get Started Section */}
+      <ReadyToGetStarted />
     </Layout>
   );
 };
