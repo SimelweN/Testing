@@ -26,7 +26,6 @@ import AdminContactTab from "@/components/admin/AdminContactTab";
 import AdminResourcesTab from "@/components/admin/AdminResourcesTab";
 import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
 import AdminUsageExamples from "@/components/admin/AdminUsageExamples";
-import SupabaseFunctionTester from "@/components/admin/SupabaseFunctionTester";
 import CleanEmailTester from "@/components/admin/CleanEmailTester";
 import AdminEmailTestingTab from "@/components/admin/AdminEmailTestingTab";
 import AdminPaystackTestingTab from "@/components/admin/AdminPaystackTestingTab";
