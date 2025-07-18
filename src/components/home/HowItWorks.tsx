@@ -10,9 +10,9 @@ const HowItWorks = () => {
     },
     {
       icon: Search,
-      title: "List your books for sale",
+      title: "Browse & Buy",
       description:
-        "List your books for sale and let ReBooked Solutions handle the rest.",
+        "Find the textbooks you need from verified sellers. Safe and secure transactions guaranteed.",
     },
     {
       icon: Star,
