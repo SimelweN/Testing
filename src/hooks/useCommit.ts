@@ -57,7 +57,7 @@ export const useCommit = (): UseCommitReturn => {
         setIsCommitting(false);
       }
     },
-    [isCommitting],
+    [isCommitting, refreshPendingCommits],
   );
 
   const declineBook = useCallback(
