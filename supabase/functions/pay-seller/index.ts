@@ -257,9 +257,9 @@ The payment should reflect in your bank account within 1-3 business days.
 Thank you for being part of the ReBooked Solutions community!
 
 This is an automated message from ReBooked Solutions. Please do not reply to this email.
-For assistance, contact: support@rebookedsolutions.co.za
-Visit us at: https://rebookedsolutions.co.za
-T&Cs apply.
+For help, contact support@rebookedsolutions.co.za
+Visit our website: www.rebookedsolutions.co.za
+T&Cs apply
 "Pre-Loved Pages, New Adventures"`,
         }),
       });
