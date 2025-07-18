@@ -618,7 +618,7 @@ const CleanEmailTester = () => {
       const { data, error } = await supabase.functions.invoke("send-email", {
         body: {
           to: testEmail,
-          subject: `✅ ${emailTemplate.label} - ReBooked Solutions Test`,
+          subject: `${emailTemplate.label} - ReBooked Solutions Test`,
           html: emailTemplate.html,
           text: `${emailTemplate.label} Test\n\nThis is a test of the ${emailTemplate.label} using direct HTML with proper ReBooked Solutions styling.\n\nReBooked Solutions\n"Pre-Loved Pages, New Adventures"`,
         },
