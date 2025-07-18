@@ -447,10 +447,21 @@ const ComprehensiveAPSCalculator: React.FC = () => {
     toast.success("Subject removed");
   }, []);
 
-  const handleViewDetails = useCallback((program: any) => {
-    setSelectedProgram(program);
-    setIsDetailsModalOpen(true);
-  }, []);
+  const handleViewDetails = useCallback(
+    (program: {
+      name: string;
+      university: string;
+      requirements?: {
+        minAPS?: number;
+        requiredSubjects?: string[];
+        additionalInfo?: string;
+      };
+    }) => {
+      setSelectedProgram(program);
+      setIsDetailsModalOpen(true);
+    },
+    [],
+  );
 
   return (
     <div className="max-w-7xl mx-auto p-4 lg:p-6 space-y-6">
