@@ -232,7 +232,7 @@ const ProgramDetailsModal: React.FC<ProgramDetailsModalProps> = ({
                 Subject Requirements
               </h3>
               <div className="grid grid-cols-1 gap-2">
-                {program.subjects.map((subject: any, index: number) => (
+                {program.subjects.map((subject: string, index: number) => (
                   <div
                     key={index}
                     className="flex justify-between items-center p-2 bg-slate-50 rounded"
