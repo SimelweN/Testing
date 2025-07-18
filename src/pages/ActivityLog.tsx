@@ -44,7 +44,7 @@ const ActivityLog = () => {
     isCommitting,
     isDeclining,
   } = useCommit();
-  const [activeTab, setActiveTab] = useState("commits");
+  const [activeTab, setActiveTab] = useState("orders");
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
