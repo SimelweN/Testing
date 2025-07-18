@@ -110,10 +110,14 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       });
     } catch (error) {
       console.error("Payment processing error:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Payment processing failed";
-      setError(errorMessage);
-      onPaymentError(errorMessage);
+      const classifiedError = classifyPaymentError(error);
+      setError(classifiedError);
+      onPaymentError(classifiedError.message);
+
+      // Toast for immediate feedback
+      toast.error("Payment processing failed", {
+        description: classifiedError.message,
+      });
     } finally {
       setProcessing(false);
     }
