@@ -194,7 +194,7 @@ class EmailService {
     );
   }
 
-  async sendEmailVerificationEmail(
+      async sendEmailVerificationEmail(
     to: string,
     verificationData: {
       userName: string;
@@ -202,27 +202,10 @@ class EmailService {
       expiryTime?: string;
     },
   ): Promise<EmailResponse> {
-    // Try template first, fallback to simple HTML if template system unavailable
-    try {
-      return await this.sendTemplateEmail(
-        to,
-        EMAIL_TEMPLATES.EMAIL_VERIFICATION,
-        verificationData,
-      );
-    } catch (templateError) {
-      console.warn(
-        "Template system unavailable, using simple HTML fallback:",
-        templateError,
-      );
+    // Use direct HTML since backend template system is removed
+    const { userName, verificationUrl, expiryTime = "24 hours" } = verificationData;
 
-      // Fallback to simple HTML email
-      const {
-        userName,
-        verificationUrl,
-        expiryTime = "24 hours",
-      } = verificationData;
-
-      const htmlContent = `
+            const htmlContent = `
         <!DOCTYPE html>
         <html>
         <head>
