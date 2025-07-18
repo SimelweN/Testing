@@ -209,6 +209,9 @@ const Index = () => {
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <HowItWorks />
+
       {/* Ready to Get Started Section */}
       <ReadyToGetStarted />
     </Layout>
