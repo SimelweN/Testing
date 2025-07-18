@@ -291,7 +291,7 @@ T&Cs apply
 <body>
   <div class="container">
     <div class="header">
-      <h1>✅ Order Collected Successfully!</h1>
+            <h1>Order Collected Successfully!</h1>
     </div>
 
     <h2>Hello ${order.seller.name}!</h2>
