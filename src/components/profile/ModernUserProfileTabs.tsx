@@ -184,7 +184,17 @@ const ModernUserProfileTabs = ({
     </Card>
   );
 
-  const StatCard = ({ icon: Icon, label, value, color = "blue" }: any) => (
+  const StatCard = ({
+    icon: Icon,
+    label,
+    value,
+    color = "blue",
+  }: {
+    icon: React.ComponentType<{ className?: string }>;
+    label: string;
+    value: string | number;
+    color?: string;
+  }) => (
     <div className="text-center p-4 bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200">
       <div
         className={`inline-flex items-center justify-center w-12 h-12 rounded-full bg-${color}-100 mb-3`}
