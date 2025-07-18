@@ -708,6 +708,114 @@ const DemoDataGenerator: React.FC = () => {
           </div>
         )}
 
+        {/* Email Testing Section */}
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+            <Mail className="h-5 w-5" />
+            Demo Email Testing
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="recipientEmail">Recipient Email</Label>
+              <Input
+                id="recipientEmail"
+                type="email"
+                placeholder="Enter email to receive demo notifications"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Button
+                onClick={() => sendDemoEmail("order_created_seller")}
+                disabled={
+                  sendingEmail === "order_created_seller" ||
+                  !recipientEmail.trim()
+                }
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                {sendingEmail === "order_created_seller" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Mail className="h-4 w-4" />
+                )}
+                Order Created (Seller)
+              </Button>
+
+              <Button
+                onClick={() => sendDemoEmail("refund_processed")}
+                disabled={
+                  sendingEmail === "refund_processed" || !recipientEmail.trim()
+                }
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                {sendingEmail === "refund_processed" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+                Refund Processed
+              </Button>
+
+              <Button
+                onClick={() => sendDemoEmail("seller_payment")}
+                disabled={
+                  sendingEmail === "seller_payment" || !recipientEmail.trim()
+                }
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                {sendingEmail === "seller_payment" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CreditCard className="h-4 w-4" />
+                )}
+                Seller Payment
+              </Button>
+            </div>
+
+            {/* Email Results */}
+            {Object.keys(emailResults).length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">Email Test Results:</h4>
+                {Object.entries(emailResults).map(([type, result]) => (
+                  <Alert
+                    key={type}
+                    className={`${
+                      result.success
+                        ? "border-green-200 bg-green-50"
+                        : "border-red-200 bg-red-50"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      {result.success ? (
+                        <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
+                      ) : (
+                        <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5" />
+                      )}
+                      <AlertDescription
+                        className={`text-sm ${
+                          result.success ? "text-green-800" : "text-red-800"
+                        }`}
+                      >
+                        <strong>{type.replace("_", " ").toUpperCase()}:</strong>{" "}
+                        {result.message}
+                      </AlertDescription>
+                    </div>
+                  </Alert>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Usage Instructions */}
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <h4 className="font-medium text-sm mb-2">How to Use Demo Data:</h4>
