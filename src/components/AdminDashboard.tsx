@@ -32,6 +32,7 @@ import AdminEmailTestingTab from "@/components/admin/AdminEmailTestingTab";
 import AdminPaystackTestingTab from "@/components/admin/AdminPaystackTestingTab";
 import DatabaseTableTester from "@/components/admin/DatabaseTableTester";
 import DemoDataGenerator from "@/components/admin/DemoDataGenerator";
+import EdgeFunctionTester from "@/components/admin/EdgeFunctionTester";
 
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -612,7 +613,7 @@ const AdminDashboard = () => {
 
           <TabsContent value="functions" className="space-y-4 mt-0">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-              <SupabaseFunctionTester />
+              <EdgeFunctionTester />
             </div>
           </TabsContent>
 
