@@ -918,7 +918,7 @@ const EnhancedAPSCalculator: React.FC = () => {
                     </h3>
                     <div className="grid grid-cols-1 gap-2">
                       {selectedProgram.subjects.map(
-                        (subject: any, index: number) => (
+                        (subject: string, index: number) => (
                           <div
                             key={index}
                             className="flex justify-between items-center p-2 bg-gray-50 rounded"
