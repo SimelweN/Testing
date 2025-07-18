@@ -73,101 +73,47 @@ const AdminEmailTestingTab: React.FC = () => {
     Record<string, { success: boolean; message: string }>
   >({});
 
-  const handleTemplateSelect = (templateId: string) => {
-    const template = emailTemplates.find((t) => t.id === templateId);
-    if (template) {
-      setSelectedTemplate(template);
-      // Initialize test parameters with default values
-      const defaultParams: Record<string, string> = {};
-      template.requiredParams.forEach((param) => {
-        switch (param) {
-          case "seller_name":
-            defaultParams[param] = "John Seller";
-            break;
-          case "buyer_name":
-            defaultParams[param] = "Jane Buyer";
-            break;
-          case "order_id":
-            defaultParams[param] = `TEST_ORDER_${Date.now()}`;
-            break;
-          case "total_amount":
-            defaultParams[param] = "150.00";
-            break;
-          case "seller_amount":
-            defaultParams[param] = "135.00";
-            break;
-          case "platform_fee":
-            defaultParams[param] = "15.00";
-            break;
-          case "refund_amount":
-            defaultParams[param] = "150.00";
-            break;
-          case "refund_reference":
-            defaultParams[param] = `REF_${Date.now()}`;
-            break;
-          case "reason":
-            defaultParams[param] = "Test decline reason";
-            break;
-          default:
-            defaultParams[param] = `test_${param}`;
-        }
-      });
-      setTestParams(defaultParams);
-    }
-  };
-
-  const handleParamChange = (param: string, value: string) => {
-    setTestParams((prev) => ({
-      ...prev,
-      [param]: value,
-    }));
-  };
-
-  const sendTestEmail = async () => {
-    if (!selectedTemplate || !recipientEmail) {
-      toast.error("Please select a template and enter recipient email");
+  const sendTestEmail = async (emailType: string) => {
+    if (!recipientEmail.trim()) {
+      toast.error("Please enter recipient email");
       return;
     }
 
-    setSending(true);
-    setLastResult(null);
+    setSending(emailType);
+    setResults((prev) => ({
+      ...prev,
+      [emailType]: { success: false, message: "Sending..." },
+    }));
 
     try {
+      const testData = generateTestData();
       let emailBody = "";
       let subject = "";
 
-      // Generate email content based on template
-      switch (selectedTemplate.id) {
+      // Generate email content based on type
+      switch (emailType) {
         case "order_created_seller":
           subject = "📚 New Order - Action Required (48 hours)";
-          emailBody = generateSellerOrderEmail(testParams);
+          emailBody = generateSellerOrderEmail(testData);
           break;
         case "order_created_buyer":
           subject = "🎉 Order Confirmed - Thank You!";
-          emailBody = generateBuyerOrderEmail(testParams);
+          emailBody = generateBuyerOrderEmail(testData);
           break;
         case "order_declined_refund":
           subject = "Order Declined - Refund Processed";
-          emailBody = generateRefundEmail(testParams);
+          emailBody = generateRefundEmail(testData);
           break;
         case "seller_payment":
           subject = "💰 Your payment is on the way!";
-          emailBody = generateSellerPaymentEmail(testParams);
+          emailBody = generateSellerPaymentEmail(testData);
           break;
         case "refund_processed":
           subject = "💰 Refund Processed - ReBooked Solutions";
-          emailBody = generateRefundProcessedEmail(testParams);
+          emailBody = generateRefundProcessedEmail(testData);
           break;
         default:
-          throw new Error("Unknown template");
-      }
-
-      // Use custom subject/message if provided
-      if (customSubject.trim()) {
-        subject = customSubject;
-      }
-      if (customMessage.trim()) {
-        emailBody = customMessage;
+          throw new Error("Unknown email type");
       }
 
       // Send test email via Supabase function
@@ -185,23 +131,44 @@ const AdminEmailTestingTab: React.FC = () => {
         throw new Error(error.message);
       }
 
-      setLastResult({
-        success: true,
-        message: `Test email sent successfully to ${recipientEmail}`,
-      });
-      toast.success("Test email sent successfully!");
+      setResults((prev) => ({
+        ...prev,
+        [emailType]: {
+          success: true,
+          message: `✅ Sent to ${recipientEmail}`,
+        },
+      }));
+      toast.success(`${subject} sent successfully!`);
     } catch (error) {
       console.error("Failed to send test email:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      setLastResult({
-        success: false,
-        message: `Failed to send email: ${errorMessage}`,
-      });
+      setResults((prev) => ({
+        ...prev,
+        [emailType]: {
+          success: false,
+          message: `❌ Failed: ${errorMessage}`,
+        },
+      }));
       toast.error("Failed to send test email");
     } finally {
-      setSending(false);
+      setSending(null);
     }
+  };
+
+  const generateTestData = () => {
+    const timestamp = Date.now();
+    return {
+      seller_name: "John Seller",
+      buyer_name: "Jane Buyer",
+      order_id: `TEST_ORDER_${timestamp}`,
+      total_amount: "150.00",
+      seller_amount: "135.00",
+      platform_fee: "15.00",
+      refund_amount: "150.00",
+      refund_reference: `REF_${timestamp}`,
+      reason: "Test decline reason - this is just a test",
+    };
   };
 
   const generateSellerOrderEmail = (params: Record<string, string>) => {
