@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { Settings, MessageSquare, Megaphone, Trash2 } from "lucide-react";
 import EdgeFunctionTestButton from "@/components/EdgeFunctionTestButton";
 import EmailTestingComponent from "@/components/admin/EmailTestingComponent";
+import EmailServiceDebug from "@/components/admin/EmailServiceDebug";
 import { runBankingCleanup } from "@/utils/cleanupDevelopmentBanking";
 
 interface AdminSettingsTabProps {
@@ -334,6 +335,8 @@ const AdminSettingsTab = ({
       </Card>
 
       <EdgeFunctionTestButton />
+
+      <EmailServiceDebug />
 
       <EmailTestingComponent />
 
