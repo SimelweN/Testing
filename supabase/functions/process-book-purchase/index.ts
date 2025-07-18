@@ -11,13 +11,22 @@ serve(async (req) => {
   }
 
   try {
-    const { user_id, book_id, shipping_address, email } = await req.json();
+    const {
+      user_id,
+      book_id,
+      email,
+      shipping_address,
+      payment_reference,
+      total_amount,
+      delivery_details,
+    } = await req.json();
 
-    if (!user_id || !book_id || !email) {
+    if (!user_id || !book_id || !email || !payment_reference) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "Missing required fields: user_id, book_id, email",
+          error:
+            "Missing required fields: user_id, book_id, email, payment_reference",
         }),
         {
           status: 400,
