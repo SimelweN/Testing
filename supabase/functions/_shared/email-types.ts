@@ -43,6 +43,7 @@ export interface EmailConfig {
 export const EMAIL_TEMPLATES = {
   ORDER_CONFIRMATION: "order-confirmation",
   WELCOME: "welcome",
+  EMAIL_VERIFICATION: "email-verification",
   SHIPPING_NOTIFICATION: "shipping-notification",
   SELLER_PICKUP_NOTIFICATION: "seller-pickup-notification",
   BUYER_ORDER_CONFIRMED: "buyer-order-confirmed",
