@@ -137,6 +137,12 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Featured Books Section */}
+      <FeaturedBooks />
+
+      {/* How It Works Section */}
+      <HowItWorks />
+
       {/* ReBooked Campus Promotion Section */}
       <section className="py-8 sm:py-12 bg-gradient-to-r from-book-600 to-book-700">
         <div className="container mx-auto px-4">
