@@ -376,6 +376,7 @@ export default async function handler(req, res) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             to: buyer.email,
+            from: "noreply@rebookedsolutions.co.za",
             subject: "🎉 Order Confirmed - Awaiting Seller Commitment",
             html: buyerHtml,
             text: `Order Confirmed!\n\nThank you, ${buyer.name}!\n\nYour order has been confirmed and ${seller.name} has been notified.\n\nOrder Details:\n- Order ID: ${orderId}\n- Seller: ${seller.name}\n- Total Amount: R${orderTotal}\n\nWhat happens next?\n- The seller has 48 hours to commit to your order\n- Once committed, we'll arrange pickup and delivery\n- You'll receive tracking information via email\n- Your book(s) will be delivered within 2-3 business days\n\nCheck order status: ${req.headers.origin}/orders/${orderId}\n\nReBooked Solutions`,
