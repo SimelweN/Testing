@@ -309,7 +309,15 @@ const ComprehensiveAPSCalculator: React.FC = () => {
   const [showAllPrograms, setShowAllPrograms] = useState(false);
   const [facultyFilter, setFacultyFilter] = useState("all");
   const [universityFilter, setUniversityFilter] = useState("all");
-  const [selectedProgram, setSelectedProgram] = useState<any>(null);
+  const [selectedProgram, setSelectedProgram] = useState<{
+    name: string;
+    university: string;
+    requirements?: {
+      minAPS?: number;
+      requiredSubjects?: string[];
+      additionalInfo?: string;
+    };
+  } | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   // Calculate total APS (excluding Life Orientation)
