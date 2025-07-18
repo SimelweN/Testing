@@ -82,22 +82,11 @@ const FeaturedBooks = () => {
           </p>
         </div>
 
-        {/* Desktop: 4 books, Mobile: 1 book with horizontal scroll */}
-        <div className="lg:grid lg:grid-cols-4 lg:gap-6 hidden">
+        {/* Responsive Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {books.map((book) => (
             <FeaturedBookCard key={book.id} book={book} />
           ))}
-        </div>
-
-        {/* Mobile: Horizontal scroll */}
-        <div className="lg:hidden overflow-x-auto pb-4">
-          <div className="flex gap-4 w-max">
-            {books.map((book) => (
-              <div key={book.id} className="flex-shrink-0 w-80">
-                <FeaturedBookCard book={book} />
-              </div>
-            ))}
-          </div>
         </div>
 
         <div className="text-center mt-8">
