@@ -603,6 +603,18 @@ const AdminDashboard = () => {
             <CleanEmailTester />
           </TabsContent>
 
+          <TabsContent value="email-testing" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+              <AdminEmailTestingTab />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="paystack-testing" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+              <AdminPaystackTestingTab />
+            </div>
+          </TabsContent>
+
           <TabsContent value="cleanup" className="space-y-4 mt-0">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
               <DatabaseCleanup />
