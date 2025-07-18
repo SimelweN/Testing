@@ -217,20 +217,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           const fallbackProfile = createFallbackProfile(session.user);
           setProfile(fallbackProfile);
 
-          // Try to load full profile in background
-          fetchUserProfileQuick(session.user)
-            .then((userProfile) => {
-              if (userProfile && userProfile.id === session.user?.id) {
-                setProfile(userProfile);
-              }
-            })
-            .catch((error) => {
-              console.warn("Background profile load failed:", error);
-            });
+          // Try to load full profile in background (only if we don't have one)
+          if (!profile || profile.id !== session.user.id) {
+            fetchUserProfileQuick(session.user)
+              .then((userProfile) => {
+                if (userProfile && userProfile.id === session.user?.id) {
+                  setProfile(userProfile);
+                }
+              })
+              .catch((error) => {
+                console.warn("Background profile load failed:", error);
+              });
+          }
         } else {
-          setUser(null);
-          setProfile(null);
-          setSession(null);
+          // Only clear state if it's not already cleared to prevent unnecessary re-renders
+          if (user !== null || profile !== null || session !== null) {
+            setUser(null);
+            setProfile(null);
+            setSession(null);
+          }
         }
       } catch (error) {
         console.error("Auth state change error:", error);
@@ -282,8 +287,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("🔄 [AuthContext] Auth state changed:", event);
-      await handleAuthStateChange(session);
+      // Reduce logging spam
+      if (import.meta.env.DEV) {
+        console.log("🔄 [AuthContext] Auth state changed:", event);
+      }
+
+      // Only handle actual changes, not redundant events
+      if (
+        event === "SIGNED_OUT" ||
+        event === "SIGNED_IN" ||
+        event === "TOKEN_REFRESHED"
+      ) {
+        await handleAuthStateChange(session);
+      }
     });
 
     return () => subscription.unsubscribe();
