@@ -62,6 +62,7 @@ import SellerProfile from "./pages/SellerProfile";
 import Notifications from "./pages/Notifications";
 import ActivityLog from "./pages/ActivityLog";
 import BankingSetup from "./pages/BankingSetup";
+import UserProfile from "./pages/UserProfile";
 
 import "./App.css";
 
@@ -183,6 +184,30 @@ function App() {
                         element={
                           <ProtectedRoute>
                             <BankingSetup />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/user-profile"
+                        element={
+                          <ProtectedRoute>
+                            <UserProfile />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/sell"
+                        element={
+                          <ProtectedRoute>
+                            <CreateListing />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/settings"
+                        element={
+                          <ProtectedRoute>
+                            <Profile />
                           </ProtectedRoute>
                         }
                       />
