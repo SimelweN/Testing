@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { emailService } from "@/services/emailService";
 import { addNotification } from "@/services/notificationService";
+import { RefundService } from "@/services/refundService";
 
 export interface Order {
   id: string;
