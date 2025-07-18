@@ -44,7 +44,7 @@ export const useBanking = () => {
 
   useEffect(() => {
     fetchBankingDetails();
-  }, [user]);
+  }, [user, fetchBankingDetails]);
 
   const setupBanking = async (
     details: BankingDetails,
