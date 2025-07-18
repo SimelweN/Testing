@@ -288,7 +288,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     initAuth();
-  }, [authInitialized]);
+  }, [authInitialized, handleAuthStateChange]);
 
   // Listen for auth changes
   useEffect(() => {
