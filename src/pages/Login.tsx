@@ -31,8 +31,16 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Handle OAuth redirect with token hash fragment
-  useOAuthRedirect();
+  // Only handle OAuth redirect if there are actual OAuth parameters in the URL
+  const hasOAuthParams =
+    location.hash.includes("access_token") ||
+    location.search.includes("code=") ||
+    location.search.includes("error=");
+
+  useOAuthRedirect({
+    redirectTo: "/",
+    showNotifications: hasOAuthParams, // Only show notifications if this is actually an OAuth redirect
+  });
 
   useEffect(() => {
     window.scrollTo(0, 0);
