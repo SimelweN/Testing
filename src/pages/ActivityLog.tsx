@@ -313,12 +313,20 @@ const ActivityLog = () => {
             value={activeTab}
             onValueChange={setActiveTab}
           >
-            <TabsList className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 mb-8 h-auto overflow-x-auto bg-gradient-to-r from-blue-50 to-purple-50">
+            <TabsList className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-8 mb-8 h-auto overflow-x-auto bg-gradient-to-r from-blue-50 to-purple-50">
               <TabsTrigger
-                value="all"
+                value="orders"
                 className="min-w-0 px-2 py-2 text-xs sm:text-sm"
               >
-                All
+                <Package className="h-3 w-3 mr-1" />
+                Orders
+              </TabsTrigger>
+              <TabsTrigger
+                value="notifications"
+                className="min-w-0 px-2 py-2 text-xs sm:text-sm"
+              >
+                <Bell className="h-3 w-3 mr-1" />
+                Notifications
               </TabsTrigger>
               <TabsTrigger
                 value="commits"
@@ -326,6 +334,12 @@ const ActivityLog = () => {
               >
                 <Package className="h-3 w-3 mr-1" />
                 Commits
+              </TabsTrigger>
+              <TabsTrigger
+                value="all"
+                className="min-w-0 px-2 py-2 text-xs sm:text-sm"
+              >
+                All
               </TabsTrigger>
               <TabsTrigger
                 value="purchases"
