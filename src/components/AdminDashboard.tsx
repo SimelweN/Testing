@@ -381,6 +381,13 @@ const AdminDashboard = () => {
       description: "Test payments & refunds",
     },
     {
+      value: "demo-data",
+      label: "Demo Data",
+      icon: TestTube,
+      color: "text-orange-600",
+      description: "Generate test data",
+    },
+    {
       value: "database-testing",
       label: "Database Testing",
       icon: Database,
