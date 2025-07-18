@@ -257,8 +257,10 @@ export const deleteBook = async (bookId: string): Promise<void> => {
       .single();
 
     if (fetchError || !existingBook) {
-      console.error("Book not found:", fetchError);
-      throw new Error("Book not found");
+      handleBookServiceError(
+        fetchError || new Error("Book not found"),
+        "delete book - book not found",
+      );
     }
 
     // Check if user is admin
