@@ -66,6 +66,37 @@ import {
 import { useEnhancedAPSStorage } from "@/hooks/useEnhancedAPSStorage";
 import { toast } from "sonner";
 import { APSSubject } from "@/types/university";
+
+// All 26 South African universities for APS calculation
+const ALL_UNIVERSITY_IDS = [
+  "uct",
+  "wits",
+  "stellenbosch",
+  "up",
+  "ukzn",
+  "ufs",
+  "ru",
+  "nwu",
+  "uwc",
+  "uj",
+  "unisa",
+  "ufh",
+  "tut",
+  "dut",
+  "vut",
+  "mut",
+  "cput",
+  "nmmu",
+  "urt",
+  "univen",
+  "ul",
+  "unizulu",
+  "cu",
+  "usaf",
+  "smu",
+  "vu",
+];
+
 import {
   calculateAPS,
   convertPercentageToPoints,
@@ -123,10 +154,28 @@ const EnhancedAPSCalculator: React.FC = () => {
   const [subjects, setSubjects] = useState<APSSubjectInput[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [selectedMarks, setSelectedMarks] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<
+    Array<{
+      name: string;
+      university: string;
+      requirements?: {
+        minAPS?: number;
+        requiredSubjects?: string[];
+        additionalInfo?: string;
+      };
+    }>
+  >([]);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
-  const [selectedProgram, setSelectedProgram] = useState<any>(null);
+  const [selectedProgram, setSelectedProgram] = useState<{
+    name: string;
+    university: string;
+    requirements?: {
+      minAPS?: number;
+      requiredSubjects?: string[];
+      additionalInfo?: string;
+    };
+  } | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [facultyFilter, setFacultyFilter] = useState<string>("all");
@@ -136,36 +185,6 @@ const EnhancedAPSCalculator: React.FC = () => {
 
   // New state for two-section layout
   const [showProgramsSection, setShowProgramsSection] = useState(false);
-
-  // All 26 South African universities for APS calculation
-  const ALL_UNIVERSITY_IDS = [
-    "uct",
-    "wits",
-    "stellenbosch",
-    "up",
-    "ukzn",
-    "ufs",
-    "ru",
-    "nwu",
-    "uwc",
-    "uj",
-    "unisa",
-    "ufh",
-    "tut",
-    "dut",
-    "vut",
-    "mut",
-    "cput",
-    "ul",
-    "univen",
-    "wsu",
-    "smu",
-    "ump",
-    "unizulu",
-    "cut",
-    "nmu",
-    "spu",
-  ];
 
   // Calculate APS with all validations
   const apsCalculation = useMemo(() => {
@@ -202,7 +221,10 @@ const EnhancedAPSCalculator: React.FC = () => {
 
   // Load university-specific calculation
   const [universitySpecificScores, setUniversitySpecificScores] =
-    useState<any>(null);
+    useState<Record<
+      string,
+      { score: number; breakdown: Record<string, number> }
+    > | null>(null);
 
   useEffect(() => {
     if (apsCalculation.fullCalculation) {
@@ -900,7 +922,7 @@ const EnhancedAPSCalculator: React.FC = () => {
                     </h3>
                     <div className="grid grid-cols-1 gap-2">
                       {selectedProgram.subjects.map(
-                        (subject: any, index: number) => (
+                        (subject: string, index: number) => (
                           <div
                             key={index}
                             className="flex justify-between items-center p-2 bg-gray-50 rounded"

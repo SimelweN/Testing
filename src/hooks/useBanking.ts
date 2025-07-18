@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { BankingService } from "@/services/bankingService";
 import type { BankingSubaccount, BankingDetails } from "@/types/banking";
@@ -10,7 +10,7 @@ export const useBanking = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchBankingDetails = async () => {
+  const fetchBankingDetails = useCallback(async () => {
     if (!user) {
       setIsLoading(false);
       setBankingDetails(null);
@@ -40,11 +40,11 @@ export const useBanking = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchBankingDetails();
-  }, [user]);
+  }, [fetchBankingDetails]);
 
   const setupBanking = async (
     details: BankingDetails,

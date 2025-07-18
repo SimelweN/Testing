@@ -164,6 +164,14 @@ function App() {
                         }
                       />
                       <Route
+                        path="/checkout/:id"
+                        element={
+                          <ProtectedRoute>
+                            <Checkout />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
                         path="/notifications"
                         element={
                           <ProtectedRoute>

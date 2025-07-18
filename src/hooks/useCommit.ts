@@ -6,12 +6,19 @@ import {
 } from "@/services/commitService";
 import { toast } from "sonner";
 
+interface PendingCommit {
+  id: string;
+  bookId: string;
+  title: string;
+  expiresAt: string;
+}
+
 interface UseCommitReturn {
   isCommitting: boolean;
   isDeclining: boolean;
   commitBook: (bookId: string) => Promise<void>;
   declineBook: (bookId: string) => Promise<void>;
-  pendingCommits: any[];
+  pendingCommits: PendingCommit[];
   refreshPendingCommits: () => Promise<void>;
   isLoading: boolean;
 }
@@ -23,8 +30,26 @@ interface UseCommitReturn {
 export const useCommit = (): UseCommitReturn => {
   const [isCommitting, setIsCommitting] = useState(false);
   const [isDeclining, setIsDeclining] = useState(false);
-  const [pendingCommits, setPendingCommits] = useState<any[]>([]);
+  const [pendingCommits, setPendingCommits] = useState<PendingCommit[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const refreshPendingCommits = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const pending = await getCommitPendingBooks();
+      setPendingCommits(pending || []);
+    } catch (error) {
+      console.error("Failed to fetch pending commits:", error);
+      // Set empty array instead of showing error to prevent UI crash
+      setPendingCommits([]);
+      // Only show error in development
+      if (import.meta.env.DEV) {
+        toast.error("Failed to fetch pending commits");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   const commitBook = useCallback(
     async (bookId: string) => {
@@ -50,7 +75,7 @@ export const useCommit = (): UseCommitReturn => {
         setIsCommitting(false);
       }
     },
-    [isCommitting],
+    [isCommitting, refreshPendingCommits],
   );
 
   const declineBook = useCallback(
@@ -77,26 +102,8 @@ export const useCommit = (): UseCommitReturn => {
         setIsDeclining(false);
       }
     },
-    [isDeclining],
+    [isDeclining, refreshPendingCommits],
   );
-
-  const refreshPendingCommits = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const pending = await getCommitPendingBooks();
-      setPendingCommits(pending || []);
-    } catch (error) {
-      console.error("Failed to fetch pending commits:", error);
-      // Set empty array instead of showing error to prevent UI crash
-      setPendingCommits([]);
-      // Only show error in development
-      if (import.meta.env.DEV) {
-        toast.error("Failed to fetch pending commits");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
 
   return {
     isCommitting,

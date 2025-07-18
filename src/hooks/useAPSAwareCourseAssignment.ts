@@ -160,7 +160,10 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
    * Supports both userProfile and direct APS value from URL params
    */
   const checkProgramEligibility = useCallback(
-    (program: any, directAPS?: number) => {
+    (
+      program: { apsRequirement?: number; defaultAps?: number; name?: string },
+      directAPS?: number,
+    ) => {
       const apsToUse = directAPS || userProfile?.totalAPS;
 
       if (!apsToUse) return { eligible: false, reason: "No APS profile" };

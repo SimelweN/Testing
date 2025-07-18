@@ -4,6 +4,9 @@ import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Search, BookOpen } from "lucide-react";
+import FeaturedBooks from "@/components/home/FeaturedBooks";
+import HowItWorks from "@/components/home/HowItWorks";
+import ReadyToGetStarted from "@/components/home/ReadyToGetStarted";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -134,6 +137,9 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Featured Books Section */}
+      <FeaturedBooks />
+
       {/* ReBooked Campus Promotion Section */}
       <section className="py-8 sm:py-12 bg-gradient-to-r from-book-600 to-book-700">
         <div className="container mx-auto px-4">
@@ -202,6 +208,12 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* How It Works Section */}
+      <HowItWorks />
+
+      {/* Ready to Get Started Section */}
+      <ReadyToGetStarted />
     </Layout>
   );
 };

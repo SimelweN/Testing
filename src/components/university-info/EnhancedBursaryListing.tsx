@@ -228,7 +228,13 @@ const EnhancedBursaryListing = () => {
   };
 
   // Helper function to get high school requirements for university bursaries
-  const getHighSchoolRequirements = (bursary: any) => {
+  const getHighSchoolRequirements = (bursary: {
+    requirements?: {
+      academicRequirement?: string;
+      apsScore?: string;
+      subjects?: string[];
+    };
+  }) => {
     const requirements = [];
 
     // Extract academic requirements
