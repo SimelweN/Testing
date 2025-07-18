@@ -371,7 +371,19 @@ const ComprehensiveAPSCalculator: React.FC = () => {
         acc[program.faculty].push(program);
         return acc;
       },
-      {} as Record<string, any[]>,
+      {} as Record<
+        string,
+        Array<{
+          name: string;
+          university: string;
+          faculty: string;
+          requirements?: {
+            minAPS?: number;
+            requiredSubjects?: string[];
+            additionalInfo?: string;
+          };
+        }>
+      >,
     );
 
     // Convert to array and sort
