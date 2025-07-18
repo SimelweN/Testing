@@ -60,7 +60,9 @@ const Navbar = () => {
                   <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
                 <span className="text-lg sm:text-xl font-bold text-book-600 truncate">
-                  ReBooked Campus
+                  {location.pathname.startsWith("/university")
+                    ? "ReBooked Campus"
+                    : "ReBooked Solutions"}
                 </span>
               </Link>
             </div>
