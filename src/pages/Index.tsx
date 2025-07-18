@@ -4,6 +4,9 @@ import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Search, BookOpen } from "lucide-react";
+import FeaturedBooks from "@/components/home/FeaturedBooks";
+import HowItWorks from "@/components/home/HowItWorks";
+import ReadyToGetStarted from "@/components/home/ReadyToGetStarted";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
