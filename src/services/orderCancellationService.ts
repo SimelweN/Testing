@@ -582,15 +582,34 @@ export class OrderCancellationService {
     amount: number,
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      // Call Paystack refund API
       console.log(`💸 Processing refund of R${amount} for order ${orderId}`);
 
-      // Placeholder for actual Paystack refund API call
-      // const refundResult = await paystack.refunds.create({
-      //   transaction: transactionId,
-      //   amount: amount * 100 // Convert to kobo
-      // });
+      // Get the order to find the payment reference
+      const { data: order, error: orderError } = await supabase
+        .from("orders")
+        .select("payment_reference")
+        .eq("id", orderId)
+        .single();
 
+      if (orderError || !order?.payment_reference) {
+        throw new Error("Payment reference not found for order");
+      }
+
+      // Use the proper refund service
+      const refundResult = await RefundService.processRefund(
+        orderId,
+        order.payment_reference,
+        amount,
+        "Order cancelled by buyer",
+      );
+
+      if (!refundResult.success) {
+        throw new Error(refundResult.error || "Refund processing failed");
+      }
+
+      console.log(
+        `✅ Refund processed successfully: ${refundResult.refundReference}`,
+      );
       return { success: true };
     } catch (error) {
       console.error("Refund processing failed:", error);
