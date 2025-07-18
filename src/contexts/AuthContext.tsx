@@ -252,7 +252,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsLoading(false);
       }
     },
-    [createFallbackProfile],
+    [createFallbackProfile, profile, user],
   );
 
   // Initialize auth
