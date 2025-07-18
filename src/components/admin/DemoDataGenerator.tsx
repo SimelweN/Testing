@@ -198,7 +198,7 @@ const DemoDataGenerator: React.FC = () => {
           message: "Demo order created",
           data: {
             id: order.id,
-            total_amount: order.total_amount,
+            amount: order.amount,
             status: order.status,
           },
         },
@@ -207,7 +207,7 @@ const DemoDataGenerator: React.FC = () => {
       // Step 3: Create demo payment transaction
       const payment = await generateDemoPaymentTransaction(
         order.id,
-        order.payment_reference,
+        order.paystack_ref,
       );
       setResults((prev) => [
         ...prev,
@@ -227,7 +227,7 @@ const DemoDataGenerator: React.FC = () => {
         .from("books")
         .update({
           sold: true,
-          buyer_id: order.buyer_id,
+          buyer_id: order.buyer_email, // Note: this should be buyer_email but we'll keep the demo structure
           sold_at: new Date().toISOString(),
         })
         .eq("id", book.id);
