@@ -16,6 +16,10 @@ import { OrderSummary, OrderConfirmation } from "@/types/checkout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import PaystackPopup, { formatAmount } from "@/components/PaystackPopup";
+import PaymentErrorHandler, {
+  classifyPaymentError,
+  PaymentError,
+} from "@/components/payments/PaymentErrorHandler";
 
 interface Step3PaymentProps {
   orderSummary: OrderSummary;
@@ -33,8 +37,9 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   userId,
 }) => {
   const [processing, setProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<PaymentError | null>(null);
   const [userEmail, setUserEmail] = useState<string>("");
+  const [retryCount, setRetryCount] = useState(0);
 
   // Fetch user email on component mount
   React.useEffect(() => {
@@ -61,24 +66,29 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
     try {
       console.log("Paystack payment successful:", paystackResponse);
 
+      // Get user email for order processing
+      const { data: userData, error: userError } =
+        await supabase.auth.getUser();
+      if (userError || !userData.user?.email) {
+        throw new Error("User authentication error");
+      }
+
       // Call the process-book-purchase function to finalize the order
       const { data, error } = await supabase.functions.invoke(
         "process-book-purchase",
         {
           body: {
-            paystack_reference: paystackResponse.reference,
-            order_details: {
-              book_id: orderSummary.book.id,
-              seller_id: orderSummary.book.seller_id,
-              buyer_id: userId,
-              book_price: orderSummary.book_price,
-              delivery_price: orderSummary.delivery_price,
-              total_amount: orderSummary.total_price,
-              delivery_method: orderSummary.delivery.service_name,
-              delivery_courier: orderSummary.delivery.courier,
-              buyer_address: orderSummary.buyer_address,
-              seller_address: orderSummary.seller_address,
-              estimated_delivery_days: orderSummary.delivery.estimated_days,
+            user_id: userId,
+            book_id: orderSummary.book.id,
+            email: userData.user.email,
+            shipping_address: orderSummary.buyer_address,
+            payment_reference: paystackResponse.reference,
+            total_amount: orderSummary.total_price,
+            delivery_details: {
+              method: orderSummary.delivery.service_name,
+              courier: orderSummary.delivery.courier,
+              price: orderSummary.delivery_price,
+              estimated_days: orderSummary.delivery.estimated_days,
             },
           },
         },
@@ -88,9 +98,11 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         throw new Error(error.message || "Failed to process purchase");
       }
 
+      console.log("✅ Order processed successfully:", data);
+
       // Success - proceed to confirmation with complete order data
       onPaymentSuccess({
-        order_id: data.order_id,
+        order_id: data.order_id || `ORDER_${Date.now()}`,
         payment_reference: paystackResponse.reference,
         book_id: orderSummary.book.id,
         seller_id: orderSummary.book.seller_id,
@@ -105,22 +117,61 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       });
     } catch (error) {
       console.error("Payment processing error:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Payment processing failed";
-      setError(errorMessage);
-      onPaymentError(errorMessage);
+      const classifiedError = classifyPaymentError(error);
+      setError(classifiedError);
+      onPaymentError(classifiedError.message);
+
+      // Toast for immediate feedback
+      toast.error("Payment processing failed", {
+        description: classifiedError.message,
+      });
     } finally {
       setProcessing(false);
     }
   };
 
   const handlePaystackError = (error: string) => {
-    setError(error);
+    const classifiedError = classifyPaymentError(error);
+    setError(classifiedError);
     onPaymentError(error);
+
+    toast.error("Payment failed", {
+      description: classifiedError.message,
+    });
   };
 
   const handlePaystackClose = () => {
     console.log("Payment popup closed");
+  };
+
+  const handleRetryPayment = () => {
+    setError(null);
+    setRetryCount((prev) => prev + 1);
+
+    if (retryCount >= 2) {
+      toast.warning(
+        "Multiple payment attempts detected. Please contact support if issues persist.",
+      );
+    }
+  };
+
+  const handleContactSupport = () => {
+    const subject = "Payment Issue - ReBooked Solutions";
+    const body = `
+I'm experiencing payment issues:
+
+Order Details:
+- Book: ${orderSummary.book.title}
+- Total: R${orderSummary.total_price}
+- Error: ${error?.message || "Unknown error"}
+
+Retry Count: ${retryCount}
+User ID: ${userId}
+Time: ${new Date().toISOString()}
+`;
+
+    const mailtoLink = `mailto:support@rebookedsolutions.co.za?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailtoLink, "_blank");
   };
 
   // Get user email for payment
@@ -790,10 +841,12 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       </Card>
 
       {error && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <PaymentErrorHandler
+          error={error}
+          onRetry={handleRetryPayment}
+          onContactSupport={handleContactSupport}
+          onBack={onBack}
+        />
       )}
 
       {/* Payment Information */}

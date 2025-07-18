@@ -28,6 +28,8 @@ import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
 import AdminUsageExamples from "@/components/admin/AdminUsageExamples";
 import SupabaseFunctionTester from "@/components/admin/SupabaseFunctionTester";
 import CleanEmailTester from "@/components/admin/CleanEmailTester";
+import AdminEmailTestingTab from "@/components/admin/AdminEmailTestingTab";
+import AdminPaystackTestingTab from "@/components/admin/AdminPaystackTestingTab";
 
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -46,6 +48,7 @@ import {
   Code,
   TestTube,
   Mail,
+  CreditCard,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -361,6 +364,20 @@ const AdminDashboard = () => {
       description: "Test email templates",
     },
     {
+      value: "email-testing",
+      label: "Email Testing",
+      icon: Mail,
+      color: "text-purple-600",
+      description: "Test all email templates",
+    },
+    {
+      value: "paystack-testing",
+      label: "Paystack Testing",
+      icon: CreditCard,
+      color: "text-green-600",
+      description: "Test payments & refunds",
+    },
+    {
       value: "cleanup",
       label: "Cleanup",
       icon: Trash2,
@@ -584,6 +601,18 @@ const AdminDashboard = () => {
 
           <TabsContent value="emails" className="space-y-4 mt-0">
             <CleanEmailTester />
+          </TabsContent>
+
+          <TabsContent value="email-testing" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+              <AdminEmailTestingTab />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="paystack-testing" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+              <AdminPaystackTestingTab />
+            </div>
           </TabsContent>
 
           <TabsContent value="cleanup" className="space-y-4 mt-0">
