@@ -192,6 +192,21 @@ class EmailService {
     );
   }
 
+  async sendEmailVerificationEmail(
+    to: string,
+    verificationData: {
+      userName: string;
+      verificationUrl: string;
+      expiryTime?: string;
+    },
+  ): Promise<EmailResponse> {
+    return this.sendTemplateEmail(
+      to,
+      EMAIL_TEMPLATES.EMAIL_VERIFICATION,
+      verificationData,
+    );
+  }
+
   async sendShippingNotification(
     to: string,
     shippingData: {
