@@ -158,7 +158,7 @@ const CleanEmailTester = () => {
 <body>
   <div class="container">
     <div class="header">
-      <h1>✅ Test Email</h1>
+            <h1>Test Email</h1>
     </div>
     <h2>Email System Test</h2>
     <p>This is a test email from ReBooked Solutions with proper styling.</p>
@@ -376,7 +376,7 @@ const CleanEmailTester = () => {
 <body>
   <div class="container">
     <div class="header">
-      <h1>✅ Order Collected Successfully!</h1>
+            <h1>Order Collected Successfully!</h1>
     </div>
 
     <h2>Hello [Seller Name]!</h2>
@@ -529,7 +529,7 @@ const CleanEmailTester = () => {
     </div>
 
     <div class="stats-box">
-      <h3>✅ System Status</h3>
+            <h3>System Status</h3>
       <p>All expiry checks completed successfully with no errors.</p>
     </div>
 
