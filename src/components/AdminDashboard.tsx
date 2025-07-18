@@ -355,10 +355,10 @@ const AdminDashboard = () => {
     },
     {
       value: "functions",
-      label: "Functions",
+      label: "Edge Functions",
       icon: TestTube,
       color: "text-blue-600",
-      description: "Test Supabase functions",
+      description: "Test all Supabase Edge Functions",
     },
     {
       value: "emails",
