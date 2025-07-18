@@ -82,9 +82,7 @@ const Login = () => {
 
         // Try custom email service as fallback
         try {
-          const { default: emailService } = await import(
-            "@/services/emailService"
-          );
+          const { emailService } = await import("@/services/emailService");
           const verificationUrl = `${window.location.origin}/verify?email=${encodeURIComponent(email)}&manual=true`;
 
           await emailService.sendEmailVerificationEmail(email, {
