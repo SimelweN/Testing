@@ -189,9 +189,9 @@ serve(async (req) => {
     <div class="footer">
       <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
       Please do not reply to this email.</p>
-      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
-      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
-      <p>T&Cs apply.</p>
+            <p>For help, contact support@rebookedsolutions.co.za<br>
+      Visit our website: www.rebookedsolutions.co.za<br>
+      T&Cs apply</p>
       <p><em>"Pre-Loved Pages, New Adventures"</em></p>
     </div>
   </div>
@@ -218,9 +218,9 @@ You'll receive another notification with tracking details once your package is d
 Thank you for choosing ReBooked Solutions!
 
 This is an automated message from ReBooked Solutions. Please do not reply to this email.
-For assistance, contact: support@rebookedsolutions.co.za
-Visit us at: https://rebookedsolutions.co.za
-T&Cs apply.
+For help, contact support@rebookedsolutions.co.za
+Visit our website: www.rebookedsolutions.co.za
+T&Cs apply
 "Pre-Loved Pages, New Adventures"`,
         }),
       });
@@ -312,9 +312,9 @@ T&Cs apply.
     <div class="footer">
       <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
       Please do not reply to this email.</p>
-      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
-      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
-      <p>T&Cs apply.</p>
+            <p>For help, contact support@rebookedsolutions.co.za<br>
+      Visit our website: www.rebookedsolutions.co.za<br>
+      T&Cs apply</p>
       <p><em>"Pre-Loved Pages, New Adventures"</em></p>
     </div>
   </div>
@@ -337,9 +337,9 @@ The buyer will be notified about the shipment and you can expect your payment to
 Thank you for being part of the ReBooked Solutions community!
 
 This is an automated message from ReBooked Solutions. Please do not reply to this email.
-For assistance, contact: support@rebookedsolutions.co.za
-Visit us at: https://rebookedsolutions.co.za
-T&Cs apply.
+For help, contact support@rebookedsolutions.co.za
+Visit our website: www.rebookedsolutions.co.za
+T&Cs apply
 "Pre-Loved Pages, New Adventures"`,
         }),
       });
