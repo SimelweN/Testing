@@ -6,12 +6,19 @@ import {
 } from "@/services/commitService";
 import { toast } from "sonner";
 
+interface PendingCommit {
+  id: string;
+  bookId: string;
+  title: string;
+  expiresAt: string;
+}
+
 interface UseCommitReturn {
   isCommitting: boolean;
   isDeclining: boolean;
   commitBook: (bookId: string) => Promise<void>;
   declineBook: (bookId: string) => Promise<void>;
-  pendingCommits: any[];
+  pendingCommits: PendingCommit[];
   refreshPendingCommits: () => Promise<void>;
   isLoading: boolean;
 }
