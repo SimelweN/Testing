@@ -124,8 +124,13 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   };
 
   const handlePaystackError = (error: string) => {
-    setError(error);
+    const classifiedError = classifyPaymentError(error);
+    setError(classifiedError);
     onPaymentError(error);
+
+    toast.error("Payment failed", {
+      description: classifiedError.message,
+    });
   };
 
   const handlePaystackClose = () => {
