@@ -43,6 +43,7 @@ export const registerUser = async (
   email: string,
   password: string,
 ) => {
+  // For now, disable email confirmation to bypass SMTP issues
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -50,7 +51,8 @@ export const registerUser = async (
       data: {
         name,
       },
-      emailRedirectTo: `${window.location.origin}/verify`,
+      // Temporarily disable email confirmation
+      // emailRedirectTo: `${window.location.origin}/verify`,
     },
   });
 
