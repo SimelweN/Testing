@@ -67,17 +67,11 @@ const emailTemplates: EmailTemplate[] = [
 ];
 
 const AdminEmailTestingTab: React.FC = () => {
-  const [selectedTemplate, setSelectedTemplate] =
-    useState<EmailTemplate | null>(null);
   const [recipientEmail, setRecipientEmail] = useState("");
-  const [testParams, setTestParams] = useState<Record<string, string>>({});
-  const [customSubject, setCustomSubject] = useState("");
-  const [customMessage, setCustomMessage] = useState("");
-  const [sending, setSending] = useState(false);
-  const [lastResult, setLastResult] = useState<{
-    success: boolean;
-    message: string;
-  } | null>(null);
+  const [sending, setSending] = useState<string | null>(null);
+  const [results, setResults] = useState<
+    Record<string, { success: boolean; message: string }>
+  >({});
 
   const handleTemplateSelect = (templateId: string) => {
     const template = emailTemplates.find((t) => t.id === templateId);
@@ -149,7 +143,7 @@ const AdminEmailTestingTab: React.FC = () => {
           emailBody = generateSellerOrderEmail(testParams);
           break;
         case "order_created_buyer":
-          subject = "���� Order Confirmed - Thank You!";
+          subject = "🎉 Order Confirmed - Thank You!";
           emailBody = generateBuyerOrderEmail(testParams);
           break;
         case "order_declined_refund":
