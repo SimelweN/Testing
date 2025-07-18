@@ -370,6 +370,16 @@ const ActivityLog = () => {
               </TabsTrigger>
             </TabsList>
 
+            {/* Orders Tab - New Enhanced Order Management */}
+            <TabsContent value="orders">
+              <OrderManagementView />
+            </TabsContent>
+
+            {/* Notifications Tab - New Notification System */}
+            <TabsContent value="notifications">
+              <OrderNotificationSystem />
+            </TabsContent>
+
             {/* Commits Tab - Enhanced */}
             <TabsContent value="commits">
               <div className="space-y-6">
