@@ -140,7 +140,14 @@ const CleanEmailTester = () => {
   `;
 
   const adminFooterHtml = `
-        ${adminFooterHtml}
+    <div class="footer">
+      <p><strong>This is an automated admin report from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.</p>
+      <p>For help, contact admin@rebookedsolutions.co.za<br>
+      Visit our admin panel: rebookedsolutions.co.za/admin<br>
+      Admin T&Cs apply</p>
+      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+    </div>
   `;
 
   // ALL EMAIL TEMPLATES - Updated with templates from our actual functions
