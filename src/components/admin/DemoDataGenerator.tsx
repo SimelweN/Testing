@@ -343,19 +343,44 @@ const DemoDataGenerator: React.FC = () => {
       const quickOrderId = crypto.randomUUID();
       const quickPaymentRef = `demo_refund_${Date.now()}`;
 
-      // Create a quick order that's ready for refund testing
+      // Create a quick order that's ready for refund testing (using correct schema)
       const quickOrder = {
         id: quickOrderId,
-        buyer_id: user.user.id,
+        buyer_email: user.user.email,
         seller_id: user.user.id,
-        amount: 200.0,
-        total_amount: 225.0,
-        delivery_fee: 25.0,
-        status: "committed", // Refundable status
-        delivery_status: "pending", // Not delivered yet
-        payment_reference: quickPaymentRef,
-        refund_status: "none",
-        total_refunded: 0,
+        amount: 22500, // R225.00 in kobo/cents
+        paystack_ref: quickPaymentRef,
+        status: "pending_commit",
+        items: [
+          {
+            book_id: crypto.randomUUID(),
+            title: "Quick Refund Test Book",
+            price: 20000, // R200.00 in kobo/cents
+            condition: "good",
+            seller_id: user.user.id,
+          },
+        ],
+        shipping_address: {
+          name: "Demo Refund User",
+          phone: "0123456789",
+          street: "456 Refund Avenue",
+          city: "Cape Town",
+          province: "Western Cape",
+          postal_code: "8000",
+        },
+        delivery_data: {
+          method: "courierGuy",
+          price: 2500, // R25.00 in kobo/cents
+          estimated_days: 3,
+        },
+        metadata: {
+          demo: true,
+          refund_test: true,
+          delivery_fee: 2500,
+          book_price: 20000,
+          total_amount: 22500,
+        },
+        payment_held: false,
         created_at: new Date().toISOString(),
       };
 
