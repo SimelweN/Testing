@@ -80,7 +80,7 @@ serve(async (req) => {
               subject: isUrgent
                 ? `🚨 URGENT: Order expires in ${timeLeft} hours - Action Required!`
                 : `⏰ Reminder: Order expires in ${timeLeft} hours - Please commit`,
-                            html: `
+              html: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -103,7 +103,7 @@ serve(async (req) => {
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
     .header {
-      background: ${isUrgent ? '#dc2626' : '#f59e0b'};
+      background: ${isUrgent ? "#dc2626" : "#f59e0b"};
       color: white;
       padding: 20px;
       text-align: center;
@@ -122,8 +122,8 @@ serve(async (req) => {
       border-top: 1px solid #e5e7eb;
     }
     .urgent-box {
-      background: ${isUrgent ? '#fef2f2' : '#fef3c7'};
-      border: 1px solid ${isUrgent ? '#dc2626' : '#f59e0b'};
+      background: ${isUrgent ? "#fef2f2" : "#fef3c7"};
+      border: 1px solid ${isUrgent ? "#dc2626" : "#f59e0b"};
       padding: 15px;
       border-radius: 5px;
       margin: 15px 0;
@@ -154,17 +154,17 @@ serve(async (req) => {
 <body>
   <div class="container">
     <div class="header">
-      <h1>${isUrgent ? '🚨 URGENT' : '⏰'} Order Reminder</h1>
+      <h1>${isUrgent ? "🚨 URGENT" : "⏰"} Order Reminder</h1>
     </div>
 
     <h2>Hello ${order.seller.name}!</h2>
-    <p>${isUrgent ? 'This is an urgent reminder' : 'This is a friendly reminder'} that you have a pending order that needs your attention.</p>
+    <p>${isUrgent ? "This is an urgent reminder" : "This is a friendly reminder"} that you have a pending order that needs your attention.</p>
 
     <div class="urgent-box">
-      <h3>${isUrgent ? '🚨 Action Required' : '⏰ Time Reminder'}</h3>
+      <h3>${isUrgent ? "🚨 Action Required" : "⏰ Time Reminder"}</h3>
       <p><strong>Time Remaining:</strong> ${timeLeft} hours</p>
       <p><strong>Expires At:</strong> ${new Date(order.expires_at).toLocaleString()}</p>
-      ${isUrgent ? '<p><strong>This order will expire soon if not committed!</strong></p>' : ''}
+      ${isUrgent ? "<p><strong>This order will expire soon if not committed!</strong></p>" : ""}
     </div>
 
     <div class="order-details">
@@ -199,15 +199,15 @@ serve(async (req) => {
   </div>
 </body>
 </html>`,
-              text: `${isUrgent ? 'URGENT: ' : ''}Order Commit Reminder
+              text: `${isUrgent ? "URGENT: " : ""}Order Commit Reminder
 
 Hello ${order.seller.name}!
 
-${isUrgent ? 'This is an urgent reminder' : 'This is a friendly reminder'} that you have a pending order that needs your attention.
+${isUrgent ? "This is an urgent reminder" : "This is a friendly reminder"} that you have a pending order that needs your attention.
 
 Time Remaining: ${timeLeft} hours
 Expires At: ${new Date(order.expires_at).toLocaleString()}
-${isUrgent ? 'This order will expire soon if not committed!' : ''}
+${isUrgent ? "This order will expire soon if not committed!" : ""}
 
 Order Details:
 Order ID: #${order.id}
@@ -296,7 +296,7 @@ T&Cs apply.
           body: JSON.stringify({
             to: "admin@rebookedsolutions.co.za",
             subject: `Order Reminders Sent: ${reminderResults.length} reminders, ${errors.length} errors`,
-                        html: `
+            html: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -375,33 +375,53 @@ T&Cs apply.
       <p><strong>Urgent Reminders:</strong> ${reminderResults.filter((r) => r.urgent).length}</p>
     </div>
 
-    ${reminderResults.filter((r) => r.urgent).length > 0 ? `
+    ${
+      reminderResults.filter((r) => r.urgent).length > 0
+        ? `
     <div class="urgent-stats">
       <h3>🚨 Urgent Reminders</h3>
       <p>${reminderResults.filter((r) => r.urgent).length} urgent reminders were sent for orders expiring soon.</p>
     </div>
-    ` : ''}
+    `
+        : ""
+    }
 
-    ${reminderResults.length > 0 ? `
+    ${
+      reminderResults.length > 0
+        ? `
     <h3>📋 Reminder Details (first 10)</h3>
-    ${reminderResults.slice(0, 10).map(reminder => `
+    ${reminderResults
+      .slice(0, 10)
+      .map(
+        (reminder) => `
     <div class="reminder-item">
       <p><strong>Order ID:</strong> ${reminder.order_id}</p>
       <p><strong>Seller:</strong> ${reminder.seller_email}</p>
       <p><strong>Time Left:</strong> ${reminder.time_left_hours} hours</p>
-      <p><strong>Urgent:</strong> ${reminder.urgent ? 'Yes' : 'No'}</p>
+      <p><strong>Urgent:</strong> ${reminder.urgent ? "Yes" : "No"}</p>
     </div>
-    `).join('')}
-    ${reminderResults.length > 10 ? `<p><em>... and ${reminderResults.length - 10} more reminders</em></p>` : ''}
-    ` : ''}
+    `,
+      )
+      .join("")}
+    ${reminderResults.length > 10 ? `<p><em>... and ${reminderResults.length - 10} more reminders</em></p>` : ""}
+    `
+        : ""
+    }
 
-    ${errors.length > 0 ? `
+    ${
+      errors.length > 0
+        ? `
     <div class="urgent-stats">
       <h3>⚠️ Errors (first 5)</h3>
-      ${errors.slice(0, 5).map(error => `<p>${error}</p>`).join('')}
-      ${errors.length > 5 ? `<p><em>... and ${errors.length - 5} more errors</em></p>` : ''}
+      ${errors
+        .slice(0, 5)
+        .map((error) => `<p>${error}</p>`)
+        .join("")}
+      ${errors.length > 5 ? `<p><em>... and ${errors.length - 5} more errors</em></p>` : ""}
     </div>
-    ` : ''}
+    `
+        : ""
+    }
 
     <div class="footer">
       <p><strong>This is an automated system report from ReBooked Solutions.</strong></p>
@@ -420,21 +440,33 @@ Total Reminders Sent: ${reminderResults.length}
 Errors: ${errors.length}
 Urgent Reminders: ${reminderResults.filter((r) => r.urgent).length}
 
-${reminderResults.length > 0 ? `
+${
+  reminderResults.length > 0
+    ? `
 Reminder Details (first 10):
-${reminderResults.slice(0, 10).map(reminder => `
+${reminderResults
+  .slice(0, 10)
+  .map(
+    (reminder) => `
 Order ID: ${reminder.order_id}
 Seller: ${reminder.seller_email}
 Time Left: ${reminder.time_left_hours} hours
-Urgent: ${reminder.urgent ? 'Yes' : 'No'}
----`).join('')}
-${reminderResults.length > 10 ? `... and ${reminderResults.length - 10} more reminders` : ''}` : ''}
+Urgent: ${reminder.urgent ? "Yes" : "No"}
+---`,
+  )
+  .join("")}
+${reminderResults.length > 10 ? `... and ${reminderResults.length - 10} more reminders` : ""}`
+    : ""
+}
 
-${errors.length > 0 ? `
+${
+  errors.length > 0
+    ? `
 Errors (first 5):
-${errors.slice(0, 5).join('
-')}
-${errors.length > 5 ? `... and ${errors.length - 5} more errors` : ''}` : ''}
+${errors.slice(0, 5).join("\n")}
+${errors.length > 5 ? `... and ${errors.length - 5} more errors` : ""}`
+    : ""
+}
 
 This is an automated system report from ReBooked Solutions.
 "Pre-Loved Pages, New Adventures"`,
