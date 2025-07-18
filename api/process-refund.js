@@ -256,7 +256,6 @@ async function sendRefundNotifications(order, refundResult, reason) {
       background-color: #f3fef7;
       padding: 20px;
       color: #1f4e3d;
-      margin: 0;
     }
     .container {
       max-width: 500px;
@@ -266,64 +265,47 @@ async function sendRefundNotifications(order, refundResult, reason) {
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
-    .header {
-      background: #3ab26f;
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      background-color: #3ab26f;
       color: white;
-      padding: 20px;
-      text-align: center;
-      border-radius: 10px 10px 0 0;
-      margin: -30px -30px 20px -30px;
-    }
-    .footer {
-      background: #f3fef7;
-      color: #1f4e3d;
-      padding: 20px;
-      text-align: center;
-      font-size: 12px;
-      line-height: 1.5;
-      margin: 30px -30px -30px -30px;
-      border-radius: 0 0 10px 10px;
-      border-top: 1px solid #e5e7eb;
-    }
-    .info-box {
-      background: #f3fef7;
-      border: 1px solid #3ab26f;
-      padding: 15px;
+      text-decoration: none;
       border-radius: 5px;
-      margin: 15px 0;
+      margin-top: 20px;
+      font-weight: bold;
     }
-    .link { color: #3ab26f; }
+    .link {
+      color: #3ab26f;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1>💰 Refund Processed</h1>
-    </div>
+    <h1>💰 Refund Processed</h1>
 
-    <h2>Hi ${order.buyer.name}!</h2>
+    <p>Hi ${order.buyer.name}!</p>
     <p>Your refund has been processed successfully.</p>
 
-    <div class="info-box">
-      <h3>💸 Refund Details</h3>
-      <p><strong>Order ID:</strong> ${order.id}</p>
-      <p><strong>Refund Amount:</strong> R${order.total_amount}</p>
-      <p><strong>Refund Reference:</strong> ${refundResult.refund_id}</p>
-      <p><strong>Expected Date:</strong> ${expectedDate}</p>
-      <p><strong>Reason:</strong> ${reason}</p>
-    </div>
+    <p><strong>Refund Details:</strong></p>
+    <p>Order ID: ${order.id}<br>
+    Refund Amount: R${order.total_amount}<br>
+    Refund Reference: ${refundResult.refund_id}<br>
+    Expected Date: ${expectedDate}<br>
+    Reason: ${reason}</p>
 
     <p>Your refund will appear in your account within 3-5 business days.</p>
     <p>Thank you for using ReBooked Solutions!</p>
 
-    <div class="footer">
-      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
-      Please do not reply to this email.</p>
-      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
-      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
-      <p>T&Cs apply.</p>
-      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
-    </div>
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+
+    <p style="font-size: 12px; color: #6b7280;">
+      <strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.<br><br>
+      For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a><br><br>
+      T&Cs apply. <em>"Pre-Loved Pages, New Adventures"</em>
+    </p>
   </div>
 </body>
 </html>`;
