@@ -264,43 +264,38 @@ export default async function handler(req, res) {
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>🎉 Order Confirmed!</h1>
-    </div>
+    <div class="container">
+    <h1>🎉 Order Confirmed!</h1>
 
-    <h2>Thank you, ${buyer.name}!</h2>
+    <p>Thank you, ${buyer.name}!</p>
     <p>Your order has been confirmed and <strong>${seller.name}</strong> has been notified.</p>
 
-    <div class="info-box">
-      <h3>📋 Order Details</h3>
-      <p><strong>Order ID:</strong> ${orderId}</p>
-      <p><strong>Seller:</strong> ${seller.name}</p>
-      <p><strong>Total Amount:</strong> R${orderTotal}</p>
-    </div>
+    <p><strong>Order Details:</strong></p>
+    <p>Order ID: ${orderId}<br>
+    Seller: ${seller.name}<br>
+    Total Amount: R${orderTotal}</p>
 
-    <div class="steps">
-      <h3>📦 What happens next?</h3>
-      <ul>
-        <li>The seller has 48 hours to commit to your order</li>
-        <li>Once committed, we'll arrange pickup and delivery</li>
-        <li>You'll receive tracking information via email</li>
-        <li>Your book(s) will be delivered within 2-3 business days</li>
-      </ul>
-    </div>
+    <p><strong>📦 What happens next?</strong></p>
+    <ul>
+      <li>The seller has 48 hours to commit to your order</li>
+      <li>Once committed, we'll arrange pickup and delivery</li>
+      <li>You'll receive tracking information via email</li>
+      <li>Your book(s) will be delivered within 2-3 business days</li>
+    </ul>
 
     <p>We'll notify you as soon as the seller confirms your order!</p>
 
-    <a href="${req.headers.origin}/orders/${orderId}" class="btn">Check Order Status</a>
+    <a href="${req.headers.origin}/activity" class="btn">Track Your Order</a>
 
-    <div class="footer">
-      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
-      Please do not reply to this email.</p>
-      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
-      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
-      <p>T&Cs apply.</p>
-      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
-    </div>
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+
+    <p style="font-size: 12px; color: #6b7280;">
+      <strong>This is an automated message from ReBooked Solutions.</strong><br>
+      Please do not reply to this email.<br><br>
+      For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a><br><br>
+      T&Cs apply. <em>"Pre-Loved Pages, New Adventures"</em>
+    </p>
   </div>
 </body>
 </html>`;
