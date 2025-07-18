@@ -71,7 +71,7 @@ export const registerUser = async (
       console.log("Attempting to send custom verification email...");
 
       // Import email service and send custom verification email
-      const { default: emailService } = await import("@/services/emailService");
+      const { emailService } = await import("@/services/emailService");
 
       // Generate a verification URL (this would normally come from Supabase)
       const verificationUrl = `${window.location.origin}/verify?email=${encodeURIComponent(email)}&manual=true`;
