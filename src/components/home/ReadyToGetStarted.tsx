@@ -34,7 +34,7 @@ const ReadyToGetStarted = () => {
               onClick={() => navigate("/books")}
               size="lg"
               variant="outline"
-              className="w-full sm:w-auto border-2 border-white text-white hover:bg-white hover:text-book-600 font-semibold px-8 py-4 text-lg"
+              className="w-full sm:w-auto border-2 border-white text-white hover:bg-white hover:text-book-600 font-semibold px-8 py-4 text-lg bg-white/10 backdrop-blur-sm"
             >
               Browse Books
             </Button>
