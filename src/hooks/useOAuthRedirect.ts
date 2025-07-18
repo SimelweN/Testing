@@ -30,7 +30,7 @@ export const useOAuthRedirect = (options: UseOAuthRedirectOptions = {}) => {
   const hasProcessed = useRef(false);
   const hasSetupListener = useRef(false);
 
-    useEffect(() => {
+  useEffect(() => {
     // Prevent processing multiple times
     if (hasProcessed.current || hasSetupListener.current) return;
 
@@ -43,8 +43,8 @@ export const useOAuthRedirect = (options: UseOAuthRedirectOptions = {}) => {
 
     // Only proceed if this looks like an actual OAuth redirect
     const hasOAuthIndicators =
-      hash.includes('access_token') ||
-      hash.includes('refresh_token') ||
+      hash.includes("access_token") ||
+      hash.includes("refresh_token") ||
       code ||
       error ||
       error_description;
@@ -57,8 +57,7 @@ export const useOAuthRedirect = (options: UseOAuthRedirectOptions = {}) => {
     hasSetupListener.current = true;
 
     const handleOAuthRedirect = async () => {
-      try;
-
+      try {
         // Handle OAuth errors from query params
         if (error) {
           console.error(
