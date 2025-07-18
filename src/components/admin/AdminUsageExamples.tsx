@@ -21,7 +21,7 @@ import {
 import PaystackPopup, { usePaystackPopup } from "@/components/PaystackPopup";
 import OrderCommitButton from "@/components/orders/OrderCommitButton";
 import OrderDeclineButton from "@/components/orders/OrderDeclineButton";
-import SupabaseFunctionTester from "@/components/admin/SupabaseFunctionTester";
+
 import { toast } from "sonner";
 
 const AdminUsageExamples: React.FC = () => {
@@ -254,7 +254,12 @@ const AdminUsageExamples: React.FC = () => {
               </ul>
             </div>
 
-            <SupabaseFunctionTester />
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-700">
+                🔧 Function testing is now available in the dedicated "Edge
+                Functions" tab with comprehensive testing capabilities.
+              </p>
+            </div>
           </div>
         );
 
