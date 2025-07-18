@@ -21,7 +21,7 @@ const Layout = ({ children }: LayoutProps) => {
         position="top-center"
         toastOptions={{
           className: "mobile-toast",
-          duration: 4000,
+          duration: 2000,
         }}
       />
     </div>
