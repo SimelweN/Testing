@@ -320,6 +320,7 @@ serve(async (req) => {
       await supabase.functions.invoke("send-email", {
         body: {
           to: order.seller.email,
+          from: "noreply@rebookedsolutions.co.za",
           subject: "Order Decline Confirmation",
           html: sellerHtml,
           text: `Order Decline Confirmed\n\nHello ${order.seller.name},\n\nYou have successfully declined the order commitment.\n\nOrder ID: ${order_id}\nReason: ${reason || "You declined to commit"}\n\nThe buyer has been notified and their payment has been refunded.\n\nReBooked Solutions`,
