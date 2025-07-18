@@ -143,7 +143,7 @@ serve(async (req) => {
     `
         : `
     <div class="stats-section">
-      <h3>✅ System Status</h3>
+            <h3>System Status</h3>
       <p>All expiry checks completed successfully with no errors.</p>
     </div>
     `
