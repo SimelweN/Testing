@@ -158,7 +158,13 @@ const ModernUserProfileTabs = ({
     description,
     onClick,
     color = "gray",
-  }: any) => (
+  }: {
+    icon: React.ComponentType<{ className?: string }>;
+    title: string;
+    description: string;
+    onClick: () => void;
+    color?: string;
+  }) => (
     <Card
       className={`cursor-pointer transition-all duration-200 hover:shadow-md border-l-4 border-l-${color}-500 hover:border-l-${color}-600`}
       onClick={onClick}
