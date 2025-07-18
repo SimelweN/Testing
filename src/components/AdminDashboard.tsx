@@ -379,6 +379,13 @@ const AdminDashboard = () => {
       description: "Test payments & refunds",
     },
     {
+      value: "database-testing",
+      label: "Database Testing",
+      icon: Database,
+      color: "text-purple-600",
+      description: "Test all database tables",
+    },
+    {
       value: "cleanup",
       label: "Cleanup",
       icon: Trash2,
