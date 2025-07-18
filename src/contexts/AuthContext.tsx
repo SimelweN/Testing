@@ -156,17 +156,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       setIsLoading(true);
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
 
+      // Clear local state regardless of signOut result
       setUser(null);
       setProfile(null);
       setSession(null);
+
+      // Only throw if it's a real error (not just session missing)
+      if (error) {
+        // Common "success" scenarios that shouldn't be treated as errors
+        const isAcceptableError =
+          error.message?.includes("session") ||
+          error.message?.includes("not authenticated") ||
+          error.message?.includes("JWT") ||
+          error.message?.includes("token");
+
+        if (!isAcceptableError) {
+          console.warn("Logout had an error but user is signed out:", error);
+          // Don't throw - the user is effectively logged out
+        }
+      }
     } catch (error) {
-      handleError(error, "Logout");
+      // Always clear local state even if signOut fails
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+
+      // Only log the error, don't throw it to the UI
+      console.warn(
+        "Logout encountered an error but user state cleared:",
+        error,
+      );
     } finally {
       setIsLoading(false);
     }
-  }, [handleError]);
+  }, []);
 
   const refreshProfile = useCallback(async () => {
     if (!user) return;
