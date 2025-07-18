@@ -194,7 +194,7 @@ class EmailService {
     );
   }
 
-      async sendEmailVerificationEmail(
+        async sendEmailVerificationEmail(
     to: string,
     verificationData: {
       userName: string;
