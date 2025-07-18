@@ -71,19 +71,59 @@ serve(async (req) => {
       throw new Error(`Failed to update order status: ${updateError.message}`);
     }
 
-    // Create refund transaction
-    const { error: refundError } = await supabase.from("transactions").insert({
-      user_id: order.buyer_id,
-      amount: order.total_amount,
-      type: "refund",
-      status: "pending",
-      description: `Refund for declined order #${order_id}`,
-      order_id: order_id,
-      created_at: new Date().toISOString(),
-    });
+    // Process actual Paystack refund
+    let refundResult = null;
+    if (order.payment_reference) {
+      console.log(`🔄 Processing Paystack refund for order ${order_id}`);
 
-    if (refundError) {
-      console.error("Failed to create refund transaction:", refundError);
+      refundResult = await refundTransaction(
+        order.payment_reference,
+        null, // Full refund
+        reason || "Order declined by seller",
+      );
+
+      if (refundResult.success) {
+        console.log(`✅ Refund processed successfully for order ${order_id}`);
+
+        // Store refund details in database
+        const { error: refundError } = await supabase
+          .from("refund_transactions")
+          .insert({
+            id: `refund_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            order_id: order_id,
+            transaction_reference: order.payment_reference,
+            refund_reference: refundResult.data.id,
+            amount: order.total_amount,
+            reason: reason || "Order declined by seller",
+            status: refundResult.data.status || "pending",
+            paystack_response: refundResult.data,
+            created_at: new Date().toISOString(),
+          });
+
+        if (refundError) {
+          console.error("Failed to store refund transaction:", refundError);
+        }
+
+        // Update order with refund info
+        await supabase
+          .from("orders")
+          .update({
+            refund_status: refundResult.data.status,
+            refund_reference: refundResult.data.id,
+            refunded_at: new Date().toISOString(),
+          })
+          .eq("id", order_id);
+      } else {
+        console.error(
+          `❌ Refund failed for order ${order_id}:`,
+          refundResult.error,
+        );
+        // Continue with the process even if refund fails - manual intervention may be needed
+      }
+    } else {
+      console.warn(
+        `⚠️ No payment reference found for order ${order_id} - refund may need manual processing`,
+      );
     }
 
     // Send notification emails using DIRECT HTML (the only correct way!)
