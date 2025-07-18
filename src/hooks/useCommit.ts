@@ -84,7 +84,7 @@ export const useCommit = (): UseCommitReturn => {
         setIsDeclining(false);
       }
     },
-    [isDeclining],
+    [isDeclining, refreshPendingCommits],
   );
 
   const refreshPendingCommits = useCallback(async () => {
