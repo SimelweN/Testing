@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { BankingService } from "@/services/bankingService";
 import type { BankingSubaccount, BankingDetails } from "@/types/banking";
