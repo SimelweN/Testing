@@ -155,6 +155,25 @@ const Register = () => {
                 Create an Account
               </h1>
 
+              {showEmailFix && (
+                <div className="mb-6">
+                  <EmailConfirmationFix
+                    userEmail={userEmail}
+                    onSuccess={() => {
+                      setShowEmailFix(false);
+                      toast.success(
+                        "Email confirmation fixed! You can now log in.",
+                      );
+                      setTimeout(
+                        () =>
+                          navigate("/login", { state: { email: userEmail } }),
+                        1500,
+                      );
+                    }}
+                  />
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
