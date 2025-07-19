@@ -38,9 +38,11 @@ serve(async (req) => {
 
     // Check for health check in POST body as well
     let body = null;
-    if (req.method === "POST") {
+    if (req.method === "POST" || req.method === "PUT") {
       try {
-        body = await req.json();
+        // Clone the request to avoid consuming the body
+        const clonedReq = req.clone();
+        body = await clonedReq.json();
       } catch {
         // Ignore JSON parsing errors for health checks
       }
