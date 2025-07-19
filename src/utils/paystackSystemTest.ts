@@ -847,9 +847,16 @@ export class PaystackSystemTester {
       } else {
         this.addResult(
           "Refund System",
-          "warning",
-          "Refund system returned unexpected format",
-          result,
+          "error",
+          `Refund system failed - Exact response: ${JSON.stringify(result)}`,
+          {
+            actual_response: result,
+            expected_fields: ["success", "data"],
+            response_keys: result ? Object.keys(result) : [],
+            error_details:
+              result?.error || result?.message || "No error message provided",
+            method_used: "GET",
+          },
           timing,
         );
       }
