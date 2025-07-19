@@ -115,24 +115,83 @@ const SignupEmailTest: React.FC = () => {
 
   const testEmailServiceConfig = async () => {
     try {
+      console.log("🔄 Testing email service configuration...");
+
       const { data, error } = await supabase.functions.invoke("send-email", {
         body: { test: true },
       });
 
       if (error) {
+        console.error("❌ Email service config error:", error);
         toast.error(`Email service config error: ${error.message}`);
+        setCustomResult(`❌ Email Service Config Error: ${error.message}`);
         return;
       }
 
       if (data?.success) {
+        console.log("✅ Email service configuration is valid");
         toast.success("Email service configuration is valid");
+        setCustomResult("✅ Email service configuration is working");
       } else {
-        toast.error("Email service configuration issue");
+        console.error("❌ Email service config issue:", data);
+        toast.error(
+          `Email service issue: ${data?.error || "Unknown configuration problem"}`,
+        );
+        setCustomResult(
+          `❌ Email Service Issue: ${data?.error || "Configuration problem"}`,
+        );
       }
     } catch (error) {
-      toast.error(
-        `Config test failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      console.error("❌ Config test failed:", error);
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      toast.error(`Config test failed: ${errorMsg}`);
+      setCustomResult(`❌ Config Test Failed: ${errorMsg}`);
+    }
+  };
+
+  const testSignupFlow = async () => {
+    if (!testEmail.trim()) {
+      toast.error("Please enter a test email");
+      return;
+    }
+
+    setIsTestingCustom(true);
+    setCustomResult(null);
+
+    try {
+      console.log("🔄 Testing full signup flow...");
+
+      // Import the signup fix utility
+      const { signupEmailFix } = await import("@/utils/signupEmailFix");
+
+      // Test email service first
+      const serviceTest = await signupEmailFix.testEmailService();
+
+      if (!serviceTest.working) {
+        setCustomResult(`❌ Email Service Not Working: ${serviceTest.error}`);
+        toast.error(`Email service issue: ${serviceTest.error}`);
+        return;
+      }
+
+      // Test sending a welcome email
+      const emailTest = await signupEmailFix.sendTestWelcomeEmail(
+        testEmail,
+        "Test User",
       );
+
+      if (emailTest.success) {
+        setCustomResult("✅ Signup email flow working correctly");
+        toast.success("Test welcome email sent successfully!");
+      } else {
+        setCustomResult(`❌ Signup Email Failed: ${emailTest.error}`);
+        toast.error(`Signup email failed: ${emailTest.error}`);
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      setCustomResult(`❌ Signup Flow Test Failed: ${errorMsg}`);
+      toast.error(`Signup flow test failed: ${errorMsg}`);
+    } finally {
+      setIsTestingCustom(false);
     }
   };
 
