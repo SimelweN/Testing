@@ -42,6 +42,44 @@ serve(async (req) => {
   try {
     console.log("=== Paystack Subaccount Creation Request ===");
 
+    // Handle health check first
+    const url = new URL(req.url);
+    const isHealthCheck =
+      url.pathname.endsWith("/health") ||
+      url.searchParams.get("health") === "true";
+
+    // Check for health check in POST body as well
+    let body = null;
+    if (req.method === "POST") {
+      try {
+        const clonedReq = req.clone();
+        body = await clonedReq.json();
+      } catch {
+        // Ignore JSON parsing errors for health checks
+      }
+    }
+
+    if (isHealthCheck || body?.health === true) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          service: "create-paystack-subaccount",
+          status: "healthy",
+          timestamp: new Date().toISOString(),
+          environment: {
+            paystack_configured: !!Deno.env.get("PAYSTACK_SECRET_KEY"),
+            supabase_configured: !!(
+              Deno.env.get("SUPABASE_URL") &&
+              Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
+            ),
+          },
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
     // Step 1: Authenticate the user
     const user = await getUserFromRequest(req);
     if (!user) {
