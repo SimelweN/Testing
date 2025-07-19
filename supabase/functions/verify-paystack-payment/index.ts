@@ -11,14 +11,90 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // Validate request method
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "METHOD_NOT_ALLOWED",
+        details: {
+          provided_method: req.method,
+          required_method: "POST",
+          message: "Payment verification endpoint only accepts POST requests",
+        },
+        fix_instructions:
+          "Send payment verification requests using POST method only",
+      }),
+      {
+        status: 405,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
+  }
+
   try {
-    const { reference } = await req.json();
+    // Check environment configuration
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    const missingEnvVars = [];
+    if (!supabaseUrl) missingEnvVars.push("SUPABASE_URL");
+    if (!supabaseServiceKey) missingEnvVars.push("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (missingEnvVars.length > 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "ENVIRONMENT_CONFIG_ERROR",
+          details: {
+            missing_env_vars: missingEnvVars,
+            message: "Required environment variables are not configured",
+          },
+          fix_instructions:
+            "Configure missing environment variables in deployment settings",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (parseError) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "INVALID_JSON_PAYLOAD",
+          details: {
+            parse_error: parseError.message,
+            message: "Request body must be valid JSON",
+          },
+          fix_instructions: "Ensure request body contains valid JSON format",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    const { reference } = requestBody;
 
     if (!reference) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "Payment reference is required",
+          error: "MISSING_PAYMENT_REFERENCE",
+          details: {
+            provided_fields: Object.keys(requestBody || {}),
+            required_fields: ["reference"],
+            message: "Payment reference is required for verification",
+          },
+          fix_instructions:
+            "Provide 'reference' field in request body with valid payment reference",
         }),
         {
           status: 400,
@@ -48,6 +124,24 @@ serve(async (req) => {
 
       if (updateError) {
         console.warn("Failed to update mock transaction:", updateError);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "DATABASE_UPDATE_FAILED",
+            details: {
+              database_error: updateError.message,
+              operation: "update mock transaction",
+              reference: reference,
+              message: "Failed to update mock transaction status",
+            },
+            fix_instructions:
+              "Check database connectivity and transaction table structure",
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
       // Mock successful transaction
@@ -118,24 +212,117 @@ serve(async (req) => {
 
     // Handle real Paystack verification
     if (!PAYSTACK_SECRET_KEY) {
-      throw new Error("Paystack not configured");
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "PAYSTACK_NOT_CONFIGURED",
+          details: {
+            missing_env_vars: ["PAYSTACK_SECRET_KEY"],
+            message: "Paystack integration is not properly configured",
+          },
+          fix_instructions:
+            "Configure PAYSTACK_SECRET_KEY environment variable with your Paystack secret key",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     // Verify payment with Paystack
-    const paystackResponse = await fetch(
-      `https://api.paystack.co/transaction/verify/${reference}`,
-      {
-        headers: {
-          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+    let paystackResponse;
+    try {
+      paystackResponse = await fetch(
+        `https://api.paystack.co/transaction/verify/${reference}`,
+        {
+          headers: {
+            Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+          },
         },
-      },
-    );
+      );
+    } catch (fetchError) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "PAYSTACK_API_CONNECTION_FAILED",
+          details: {
+            fetch_error: fetchError.message,
+            api_endpoint: "https://api.paystack.co/transaction/verify",
+            reference: reference,
+            message: "Unable to connect to Paystack API",
+          },
+          fix_instructions:
+            "Check network connectivity and Paystack API status",
+        }),
+        {
+          status: 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
 
-    const paystackResult = await paystackResponse.json();
+    if (!paystackResponse.ok) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "PAYSTACK_API_ERROR",
+          details: {
+            status_code: paystackResponse.status,
+            status_text: paystackResponse.statusText,
+            reference: reference,
+            message: "Paystack API returned error response",
+          },
+          fix_instructions:
+            "Check payment reference validity and Paystack API key",
+        }),
+        {
+          status: 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    let paystackResult;
+    try {
+      paystackResult = await paystackResponse.json();
+    } catch (parseError) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "PAYSTACK_RESPONSE_PARSE_ERROR",
+          details: {
+            parse_error: parseError.message,
+            message: "Unable to parse Paystack API response",
+          },
+          fix_instructions:
+            "This indicates an issue with Paystack API response format",
+        }),
+        {
+          status: 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
 
     if (!paystackResult.status) {
-      throw new Error(
-        `Paystack verification failed: ${paystackResult.message}`,
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "PAYSTACK_VERIFICATION_FAILED",
+          details: {
+            paystack_message: paystackResult.message,
+            reference: reference,
+            paystack_data: paystackResult.data,
+            message: "Paystack verification was unsuccessful",
+          },
+          fix_instructions:
+            "Check if payment reference is valid and payment was successful",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -153,6 +340,25 @@ serve(async (req) => {
 
     if (updateError) {
       console.error("Failed to update transaction:", updateError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "DATABASE_UPDATE_FAILED",
+          details: {
+            database_error: updateError.message,
+            operation: "update payment transaction",
+            reference: reference,
+            transaction_status: transaction.status,
+            message: "Payment verified but failed to update database",
+          },
+          fix_instructions:
+            "Check database connectivity and payment_transactions table structure",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     // If payment is successful, create orders
@@ -199,16 +405,23 @@ serve(async (req) => {
 
         return new Response(
           JSON.stringify({
-            success: true,
-            data: {
-              transaction,
-              verified: true,
-              status: "success",
-              order_creation_failed: true,
+            success: false,
+            error: "ORDER_CREATION_FAILED",
+            details: {
+              payment_verified: true,
+              transaction_status: "success",
               order_error: orderError.message,
+              reference: reference,
+              message:
+                "Payment verified successfully but order creation failed",
             },
+            fix_instructions:
+              "Payment was successful but order processing failed. Check create-order function logs.",
           }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
         );
       }
     }
@@ -217,21 +430,37 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        data: {
-          transaction,
+        error: "PAYMENT_NOT_SUCCESSFUL",
+        details: {
+          transaction_status: transaction.status,
+          transaction_data: transaction,
           verified: true,
-          status: transaction.status,
+          reference: reference,
+          message:
+            "Payment verification completed but payment was not successful",
         },
-        error: "Payment was not successful",
+        fix_instructions:
+          "Payment failed or was not completed. User should retry payment.",
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   } catch (error) {
     console.error("Payment verification error:", error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || "Failed to verify payment",
+        error: "UNEXPECTED_VERIFICATION_ERROR",
+        details: {
+          error_message: error.message,
+          error_stack: error.stack,
+          error_type: error.constructor.name,
+          timestamp: new Date().toISOString(),
+        },
+        fix_instructions:
+          "This is an unexpected server error during payment verification. Check server logs for details.",
       }),
       {
         status: 500,
