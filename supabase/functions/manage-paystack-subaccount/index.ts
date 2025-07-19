@@ -121,6 +121,23 @@ serve(async (req) => {
         } else if (action === "list") {
           return await handleListSubaccounts(url);
         } else {
+          // Get user subaccount requires authentication
+          const user = await getUserFromRequest(req);
+          if (!user) {
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: "AUTHENTICATION_FAILED",
+                details: {
+                  message: "User authentication required for this operation",
+                },
+              }),
+              {
+                status: 401,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              },
+            );
+          }
           return await handleGetUserSubaccount(user.id, supabase);
         }
 
