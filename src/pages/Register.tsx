@@ -121,12 +121,25 @@ const Register = () => {
         error instanceof Error ? error.message : String(error),
       );
 
-      // Show the error to the user
-      toast.error(
+      const errorMessage =
         error instanceof Error
           ? error.message
-          : "Registration failed. Please try again.",
-      );
+          : "Registration failed. Please try again.";
+
+      // Check if it's an email-related error
+      if (
+        errorMessage.toLowerCase().includes("email") ||
+        errorMessage.toLowerCase().includes("confirmation")
+      ) {
+        setUserEmail(email);
+        setShowEmailFix(true);
+        toast.error(
+          "Email confirmation issue detected. Please use the fix tool below.",
+        );
+      } else {
+        // Show the error to the user
+        toast.error(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
