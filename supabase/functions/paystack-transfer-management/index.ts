@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
-import { PaystackApi } from "../_shared/paystack-api.ts";
 
 const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -183,32 +182,38 @@ async function handleGetBanks(req: Request): Promise<Response> {
     const country = url.searchParams.get("country") || "south-africa";
     const currency = url.searchParams.get("currency") || "ZAR";
 
-    const result = await PaystackApi.get(
-      `/bank?country=${country}&currency=${currency}`,
+    const response = await fetch(
+      `https://api.paystack.co/bank?country=${country}&currency=${currency}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+          "Content-Type": "application/json",
+        },
+      },
     );
 
-    if (!result.success) {
+    if (!response.ok) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: result.error || "PAYSTACK_BANKS_FETCH_FAILED",
-          error_type: result.error_type,
+          error: "PAYSTACK_BANKS_FETCH_FAILED",
           details: {
-            ...result.details,
+            status_code: response.status,
+            status_text: response.statusText,
             message: "Failed to fetch banks from Paystack",
           },
           fix_instructions:
-            result.error_type === "network"
-              ? "Network error occurred. Check connectivity and try again."
-              : "Check Paystack API access and country/currency parameters",
+            "Check Paystack API access and country/currency parameters",
         }),
         {
-          status: result.status_code || 500,
+          status: response.status,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
     }
 
+    const result = await response.json();
     return new Response(
       JSON.stringify({
         success: true,
@@ -299,29 +304,35 @@ async function handleVerifyAccount(req: Request): Promise<Response> {
   }
 
   try {
-    const result = await PaystackApi.get(
-      `/bank/resolve?account_number=${account_number}&bank_code=${bank_code}`,
+    const response = await fetch(
+      `https://api.paystack.co/bank/resolve?account_number=${account_number}&bank_code=${bank_code}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+          "Content-Type": "application/json",
+        },
+      },
     );
 
-    if (!result.success) {
+    const result = await response.json();
+
+    if (!response.ok || !result.status) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: result.error || "ACCOUNT_VERIFICATION_FAILED",
-          error_type: result.error_type,
+          error: "ACCOUNT_VERIFICATION_FAILED",
           details: {
-            ...result.details,
+            status_code: response.status,
+            paystack_message: result.message,
             account_number: account_number,
             bank_code: bank_code,
             message: "Account verification failed",
           },
-          fix_instructions:
-            result.error_type === "network"
-              ? "Network error occurred. Check connectivity and try again."
-              : "Check account number and bank code are valid",
+          fix_instructions: "Check account number and bank code are valid",
         }),
         {
-          status: result.status_code || 400,
+          status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
