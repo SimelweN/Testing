@@ -492,6 +492,12 @@ interface TestResult {
 }
 
 export default function EdgeFunctionTester() {
+  // Debug: Log function count on component mount
+  React.useEffect(() => {
+    console.log(`EdgeFunctionTester: ${edgeFunctions.length} functions loaded`);
+    console.log("Function names:", edgeFunctions.map((f) => f.name).sort());
+  }, []);
+
   const [testResults, setTestResults] = useState<Record<string, TestResult>>(
     {},
   );
