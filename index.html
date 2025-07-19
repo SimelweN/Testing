@@ -62,24 +62,60 @@
         window.addEventListener("unhandledrejection", blockRejection);
         document.addEventListener("unhandledrejection", blockRejection);
 
-        // Override fetch immediately to prevent errors
-        if (window.fetch) {
-          const origFetch = window.fetch;
-          window.fetch = function (...args) {
-            const url = (args[0] || "").toString();
-            if (
-              url.includes("edge.fullstory.com") ||
-              url.includes("fs.js") ||
-              url.includes("@vite/client") ||
-              url.includes(".fly.dev")
-            ) {
-              return Promise.resolve(new Response("{}", { status: 200 }));
+        // LAYER 4: Nuclear fetch override
+        const origFetch = window.fetch;
+        window.fetch = function (...args) {
+          const url = (args[0] || "").toString();
+
+          // Completely block problematic URLs
+          if (shouldBlock(url)) {
+            return Promise.resolve(
+              new Response("{}", {
+                status: 200,
+                headers: { "Content-Type": "application/json" },
+              }),
+            );
+          }
+
+          // Wrap all fetches with complete error suppression
+          return origFetch.apply(this, args).catch((error) => {
+            if (shouldBlock(error.message || error.toString())) {
+              return new Response("{}", { status: 200 });
             }
-            return origFetch
-              .apply(this, args)
-              .catch(() => new Response("{}", { status: 200 }));
-          };
-        }
+            throw error;
+          });
+        };
+
+        // LAYER 5: Global error handlers override
+        window.onerror = function (msg, file, line, col, error) {
+          if (
+            shouldBlock(msg) ||
+            shouldBlock(file) ||
+            shouldBlock(error?.message)
+          ) {
+            return true; // Prevent default error handling
+          }
+          return false;
+        };
+
+        window.onunhandledrejection = function (e) {
+          if (shouldBlock(e.reason?.message || e.reason?.toString())) {
+            e.preventDefault();
+            return true;
+          }
+          return false;
+        };
+
+        // LAYER 6: Eval protection
+        const origEval = window.eval;
+        window.eval = function (code) {
+          try {
+            return origEval.call(this, code);
+          } catch (error) {
+            if (shouldBlock(error.message)) return {};
+            throw error;
+          }
+        };
       })();
     </script>
     <meta charset="UTF-8" />
