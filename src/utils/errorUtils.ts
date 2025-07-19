@@ -4,11 +4,35 @@ import { PostgrestError } from "@supabase/supabase-js";
  * Enhanced error logging with proper serialization
  */
 export const logError = (context: string, error: unknown) => {
+  // Extract readable error message
+  const getReadableMessage = (err: unknown): string => {
+    if (err instanceof Error) {
+      return err.message;
+    }
+    if (typeof err === "string") {
+      return err;
+    }
+    if (typeof err === "object" && err !== null) {
+      const errorObj = err as any;
+      // Check common error message properties
+      if (errorObj.message) return String(errorObj.message);
+      if (errorObj.error) return String(errorObj.error);
+      if (errorObj.details) return String(errorObj.details);
+      // Try to stringify safely
+      try {
+        return JSON.stringify(err);
+      } catch {
+        return "[Complex Error Object]";
+      }
+    }
+    return String(err);
+  };
+
   // Comprehensive error object for better debugging
   const errorInfo = {
     context,
     timestamp: new Date().toISOString(),
-    message: error instanceof Error ? error.message : String(error),
+    message: getReadableMessage(error),
     name: error instanceof Error ? error.name : undefined,
     code: (error as any)?.code || (error as any)?.error_code,
     details: (error as any)?.details,
