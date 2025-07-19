@@ -113,8 +113,15 @@ serve(async (req) => {
       .single();
 
     if (orderError) {
-      console.error("Failed to create order:", orderError);
-      throw new Error(`Failed to create order: ${orderError.message}`);
+      console.error("Failed to create order:", {
+        error: orderError,
+        orderData,
+        book_id,
+        user_id,
+      });
+      throw new Error(
+        `Failed to create order: ${orderError.message} (Code: ${orderError.code || "UNKNOWN"})`,
+      );
     }
 
     // Mark book as sold
@@ -130,7 +137,12 @@ serve(async (req) => {
       .eq("id", book_id);
 
     if (bookUpdateError) {
-      console.warn("Failed to mark book as sold:", bookUpdateError);
+      console.warn("Failed to mark book as sold:", {
+        error: bookUpdateError,
+        book_id,
+        user_id,
+      });
+      // Don't throw error for book update failure since order was created successfully
     }
 
     // Send notification emails
@@ -331,11 +343,19 @@ serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
-    console.error("💥 Process book purchase error:", error);
+    console.error("💥 Process book purchase error:", {
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString(),
+    });
+
     return new Response(
       JSON.stringify({
         success: false,
         error: error.message || "Failed to process book purchase",
+        details:
+          process.env.NODE_ENV === "development" ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
       }),
       {
         status: 500,

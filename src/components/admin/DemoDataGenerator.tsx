@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,6 +15,7 @@ import {
   CreditCard,
   ShoppingCart,
   RefreshCw,
+  Mail,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -23,10 +26,24 @@ interface DemoDataResult {
   data?: any;
 }
 
+interface EmailTestData {
+  orderId: string;
+  bookTitle: string;
+  sellerName: string;
+  buyerName: string;
+  amount: number;
+  paymentRef: string;
+}
+
 const DemoDataGenerator: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [results, setResults] = useState<DemoDataResult[]>([]);
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null);
+  const [emailResults, setEmailResults] = useState<
+    Record<string, { success: boolean; message: string }>
+  >({});
 
   const generateDemoBook = async () => {
     const { data: user } = await supabase.auth.getUser();
@@ -64,21 +81,27 @@ const DemoDataGenerator: React.FC = () => {
 
   const generateDemoOrder = async (bookId: string) => {
     const { data: user } = await supabase.auth.getUser();
-    if (!user.user) throw new Error("Must be logged in");
+    if (!user.user || !user.user.email)
+      throw new Error("Must be logged in with email");
+
+    const paymentRef = `demo_pay_${Date.now()}`;
 
     const demoOrder = {
       id: crypto.randomUUID(),
-      buyer_id: user.user.id,
+      buyer_email: user.user.email,
       seller_id: user.user.id, // Same user for demo
-      book_id: bookId,
-      amount: 150.0,
-      total_amount: 175.0, // Including delivery
-      delivery_fee: 25.0,
-      status: "committed",
-      delivery_status: "pending",
-      payment_reference: `demo_pay_${Date.now()}`,
-      refund_status: "none",
-      total_refunded: 0,
+      amount: 17500, // R175.00 in kobo/cents
+      paystack_ref: paymentRef,
+      status: "pending_commit",
+      items: [
+        {
+          book_id: bookId,
+          title: "Demo Textbook for Testing",
+          price: 15000, // R150.00 in kobo/cents
+          condition: "good",
+          seller_id: user.user.id,
+        },
+      ],
       shipping_address: {
         name: "Demo User",
         phone: "0123456789",
@@ -87,6 +110,18 @@ const DemoDataGenerator: React.FC = () => {
         province: "Western Cape",
         postal_code: "8000",
       },
+      delivery_data: {
+        method: "courierGuy",
+        price: 2500, // R25.00 in kobo/cents
+        estimated_days: 3,
+      },
+      metadata: {
+        demo: true,
+        delivery_fee: 2500,
+        book_price: 15000,
+        total_amount: 17500,
+      },
+      payment_held: false,
       created_at: new Date().toISOString(),
     };
 
@@ -108,7 +143,7 @@ const DemoDataGenerator: React.FC = () => {
       reference: paymentRef,
       order_id: orderId,
       user_id: user.user.id,
-      amount: 175.0,
+      amount: 17500, // R175.00 in kobo/cents
       currency: "ZAR",
       status: "success",
       payment_method: "card",
@@ -180,7 +215,7 @@ const DemoDataGenerator: React.FC = () => {
           message: "Demo order created",
           data: {
             id: order.id,
-            total_amount: order.total_amount,
+            amount: order.amount,
             status: order.status,
           },
         },
@@ -189,7 +224,7 @@ const DemoDataGenerator: React.FC = () => {
       // Step 3: Create demo payment transaction
       const payment = await generateDemoPaymentTransaction(
         order.id,
-        order.payment_reference,
+        order.paystack_ref,
       );
       setResults((prev) => [
         ...prev,
@@ -209,7 +244,7 @@ const DemoDataGenerator: React.FC = () => {
         .from("books")
         .update({
           sold: true,
-          buyer_id: order.buyer_id,
+          buyer_id: order.buyer_email, // Note: this should be buyer_email but we'll keep the demo structure
           sold_at: new Date().toISOString(),
         })
         .eq("id", book.id);
@@ -311,19 +346,44 @@ const DemoDataGenerator: React.FC = () => {
       const quickOrderId = crypto.randomUUID();
       const quickPaymentRef = `demo_refund_${Date.now()}`;
 
-      // Create a quick order that's ready for refund testing
+      // Create a quick order that's ready for refund testing (using correct schema)
       const quickOrder = {
         id: quickOrderId,
-        buyer_id: user.user.id,
+        buyer_email: user.user.email,
         seller_id: user.user.id,
-        amount: 200.0,
-        total_amount: 225.0,
-        delivery_fee: 25.0,
-        status: "committed", // Refundable status
-        delivery_status: "pending", // Not delivered yet
-        payment_reference: quickPaymentRef,
-        refund_status: "none",
-        total_refunded: 0,
+        amount: 22500, // R225.00 in kobo/cents
+        paystack_ref: quickPaymentRef,
+        status: "pending_commit",
+        items: [
+          {
+            book_id: crypto.randomUUID(),
+            title: "Quick Refund Test Book",
+            price: 20000, // R200.00 in kobo/cents
+            condition: "good",
+            seller_id: user.user.id,
+          },
+        ],
+        shipping_address: {
+          name: "Demo Refund User",
+          phone: "0123456789",
+          street: "456 Refund Avenue",
+          city: "Cape Town",
+          province: "Western Cape",
+          postal_code: "8000",
+        },
+        delivery_data: {
+          method: "courierGuy",
+          price: 2500, // R25.00 in kobo/cents
+          estimated_days: 3,
+        },
+        metadata: {
+          demo: true,
+          refund_test: true,
+          delivery_fee: 2500,
+          book_price: 20000,
+          total_amount: 22500,
+        },
+        payment_held: false,
         created_at: new Date().toISOString(),
       };
 
@@ -367,6 +427,167 @@ const DemoDataGenerator: React.FC = () => {
       toast.error("Failed to create quick order");
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const generateTestEmailData = (): EmailTestData => ({
+    orderId: `DEMO_${Date.now()}`,
+    bookTitle: "Demo Mathematics Textbook",
+    sellerName: "Demo Seller",
+    buyerName: "Demo Buyer",
+    amount: 175.0,
+    paymentRef: `demo_pay_${Date.now()}`,
+  });
+
+  const sendDemoEmail = async (emailType: string) => {
+    if (!recipientEmail.trim()) {
+      toast.error("Please enter recipient email");
+      return;
+    }
+
+    setSendingEmail(emailType);
+    setEmailResults((prev) => ({
+      ...prev,
+      [emailType]: { success: false, message: "Sending..." },
+    }));
+
+    try {
+      const testData = generateTestEmailData();
+      let emailBody = "";
+      let subject = "";
+
+      // Generate email content based on type
+      switch (emailType) {
+        case "order_created_seller":
+          subject = "[DEMO] 📚 New Order - Action Required (48 hours)";
+          emailBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>New Order - Action Required</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; }
+    .container { max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+    .btn { display: inline-block; padding: 12px 20px; background-color: #3ab26f; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📚 [DEMO] New Order - Action Required!</h1>
+    <p>Hi ${testData.sellerName}!</p>
+    <p>Great news! You have a new order from <strong>${testData.buyerName}</strong>.</p>
+    <p><strong>Order Details:</strong></p>
+    <p>Order ID: ${testData.orderId}<br>
+    Book: ${testData.bookTitle}<br>
+    Buyer: ${testData.buyerName}<br>
+    Total Amount: R${testData.amount}</p>
+    <p style="background: #fff3cd; padding: 15px; border-radius: 5px;">
+      <strong>⏰ Action Required Within 48 Hours</strong><br>
+      This is a demo email for testing purposes.
+    </p>
+    <a href="https://rebookedsolutions.co.za/activity" class="btn">Commit to Order</a>
+  </div>
+</body>
+</html>`;
+          break;
+        case "refund_processed":
+          subject = "[DEMO] 💰 Refund Processed - ReBooked Solutions";
+          emailBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Refund Processed</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; }
+    .container { max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💰 [DEMO] Refund Processed</h1>
+    <p>Hi ${testData.buyerName}!</p>
+    <p>Your refund has been processed successfully.</p>
+    <p><strong>Refund Details:</strong></p>
+    <p>Order ID: ${testData.orderId}<br>
+    Book: ${testData.bookTitle}<br>
+    Amount Refunded: R${testData.amount}<br>
+    Payment Reference: ${testData.paymentRef}</p>
+    <p>This is a demo email for testing purposes.</p>
+  </div>
+</body>
+</html>`;
+          break;
+        case "seller_payment":
+          subject = "[DEMO] 💰 Your payment is on the way!";
+          emailBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Payment Notification</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; }
+    .container { max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💰 [DEMO] Your payment is on the way!</h1>
+    <p>Hi ${testData.sellerName}!</p>
+    <p>Great news! Your payment for the following order has been processed.</p>
+    <p><strong>Payment Details:</strong></p>
+    <p>Order ID: ${testData.orderId}<br>
+    Book: ${testData.bookTitle}<br>
+    Amount: R${testData.amount}<br>
+    Payment Reference: ${testData.paymentRef}</p>
+    <p>This is a demo email for testing purposes.</p>
+  </div>
+</body>
+</html>`;
+          break;
+        default:
+          throw new Error("Unknown email type");
+      }
+
+      // Send test email via Supabase function
+      const { data, error } = await supabase.functions.invoke("send-email", {
+        body: {
+          to: recipientEmail,
+          from: "noreply@rebookedsolutions.co.za",
+          subject,
+          html: emailBody,
+          text: subject + "\n\nThis is a demo email for testing purposes.",
+        },
+      });
+
+      if (error) {
+        throw new Error(error.message || "Failed to send email");
+      }
+
+      setEmailResults((prev) => ({
+        ...prev,
+        [emailType]: {
+          success: true,
+          message: `Demo ${emailType.replace("_", " ")} email sent successfully!`,
+        },
+      }));
+
+      toast.success(`Demo email sent to ${recipientEmail}`);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      setEmailResults((prev) => ({
+        ...prev,
+        [emailType]: {
+          success: false,
+          message: `Failed to send email: ${errorMessage}`,
+        },
+      }));
+      toast.error(`Failed to send email: ${errorMessage}`);
+    } finally {
+      setSendingEmail(null);
     }
   };
 
@@ -489,6 +710,114 @@ const DemoDataGenerator: React.FC = () => {
             ))}
           </div>
         )}
+
+        {/* Email Testing Section */}
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+            <Mail className="h-5 w-5" />
+            Demo Email Testing
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="recipientEmail">Recipient Email</Label>
+              <Input
+                id="recipientEmail"
+                type="email"
+                placeholder="Enter email to receive demo notifications"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Button
+                onClick={() => sendDemoEmail("order_created_seller")}
+                disabled={
+                  sendingEmail === "order_created_seller" ||
+                  !recipientEmail.trim()
+                }
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                {sendingEmail === "order_created_seller" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Mail className="h-4 w-4" />
+                )}
+                Order Created (Seller)
+              </Button>
+
+              <Button
+                onClick={() => sendDemoEmail("refund_processed")}
+                disabled={
+                  sendingEmail === "refund_processed" || !recipientEmail.trim()
+                }
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                {sendingEmail === "refund_processed" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+                Refund Processed
+              </Button>
+
+              <Button
+                onClick={() => sendDemoEmail("seller_payment")}
+                disabled={
+                  sendingEmail === "seller_payment" || !recipientEmail.trim()
+                }
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                {sendingEmail === "seller_payment" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CreditCard className="h-4 w-4" />
+                )}
+                Seller Payment
+              </Button>
+            </div>
+
+            {/* Email Results */}
+            {Object.keys(emailResults).length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">Email Test Results:</h4>
+                {Object.entries(emailResults).map(([type, result]) => (
+                  <Alert
+                    key={type}
+                    className={`${
+                      result.success
+                        ? "border-green-200 bg-green-50"
+                        : "border-red-200 bg-red-50"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      {result.success ? (
+                        <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
+                      ) : (
+                        <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5" />
+                      )}
+                      <AlertDescription
+                        className={`text-sm ${
+                          result.success ? "text-green-800" : "text-red-800"
+                        }`}
+                      >
+                        <strong>{type.replace("_", " ").toUpperCase()}:</strong>{" "}
+                        {result.message}
+                      </AlertDescription>
+                    </div>
+                  </Alert>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Usage Instructions */}
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">

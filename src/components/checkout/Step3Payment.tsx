@@ -116,15 +116,31 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         status: "completed",
       });
     } catch (error) {
-      console.error("Payment processing error:", error);
-      const classifiedError = classifyPaymentError(error);
-      setError(classifiedError);
-      onPaymentError(classifiedError.message);
+      console.error("Order processing error after Paystack success:", error);
 
-      // Toast for immediate feedback
-      toast.error("Payment processing failed", {
-        description: classifiedError.message,
+      // Since Paystack already succeeded, this is an order processing issue
+      const orderProcessingError = {
+        type: "server" as const,
+        message: `Payment was successful, but order creation failed: ${error.message || "Unknown error"}`,
+        retryable: true,
+        details: error,
+      };
+
+      setError(orderProcessingError);
+
+      // Show more specific error message
+      toast.error("Payment Successful - Order Processing Issue", {
+        description:
+          "Your payment was processed, but we couldn't create your order. Our team will resolve this and contact you.",
+        duration: 8000,
       });
+
+      // Don't call onPaymentError since payment actually succeeded
+      // Instead, show a different flow
+      console.log(
+        "🔄 Payment succeeded but order processing failed. Payment reference:",
+        paystackResponse.reference,
+      );
     } finally {
       setProcessing(false);
     }
@@ -659,7 +675,7 @@ Time: ${new Date().toISOString()}
 
           // Call the success handler to show Step4Confirmation
           onPaymentSuccess(orderConfirmation);
-          toast.success("Payment completed successfully! 🎉");
+          toast.success("Payment completed successfully! ����");
         } catch (paymentError) {
           console.error("Payment processing error:", paymentError);
 
