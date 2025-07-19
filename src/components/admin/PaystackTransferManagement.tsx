@@ -50,6 +50,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import TransferTester from "./TransferTester";
 
 interface TransferRecipient {
   recipient_code: string;
@@ -459,6 +460,10 @@ const PaystackTransferManagement = () => {
           <TabsTrigger value="send-transfer">
             <Send className="h-4 w-4 mr-2" />
             Send Transfer
+          </TabsTrigger>
+          <TabsTrigger value="test">
+            <TestTube className="h-4 w-4 mr-2" />
+            Test Transfers
           </TabsTrigger>
         </TabsList>
 
@@ -981,6 +986,10 @@ const PaystackTransferManagement = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="test" className="space-y-4">
+          <TransferTester />
         </TabsContent>
       </Tabs>
     </div>
