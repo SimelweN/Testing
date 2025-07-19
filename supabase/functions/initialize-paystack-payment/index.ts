@@ -270,7 +270,7 @@ serve(async (req) => {
     }
 
     // Initialize Paystack payment
-    const paystackData = {
+    const paystackData: any = {
       email,
       amount: total_amount * 100, // Convert to kobo
       currency: "ZAR",
