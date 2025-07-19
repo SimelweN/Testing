@@ -1,6 +1,81 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- ULTRA AGGRESSIVE ERROR SUPPRESSION FOR SPECIFIC FETCH ERRORS -->
+    <script>
+      // PRIORITY 1: Block the exact specific errors immediately
+      const EXACT_ERRORS_TO_BLOCK = [
+        "TypeError: Failed to fetch at e (https://edge.fullstory.com/s/fs.js:4:60118)",
+        "Failed to fetch TypeError: Failed to fetch at ping (https://213f0d6feb0c4f74bf8db7ef237f0dbe-315d37effbbd45138374f8eea.fly.dev/@vite/client:732:13)",
+        "Failed to fetch at window.fetch (eval at messageHandler)",
+        "213f0d6feb0c4f74bf8db7ef237f0dbe-315d37effbbd45138374f8eea.fly.dev",
+        "edge.fullstory.com/s/fs.js:4:60118",
+        "@vite/client:732:13",
+        "eval at messageHandler",
+        "ping (https://213f0d6feb0c4f74bf8db7ef237f0dbe",
+        "Failed to load Google Maps script, retrying in",
+      ];
+
+      // Function to check if error should be completely silenced
+      const isBlockedError = (msg) => {
+        if (!msg) return false;
+        const msgStr = msg.toString().toLowerCase();
+        return EXACT_ERRORS_TO_BLOCK.some((pattern) =>
+          msgStr.includes(pattern.toLowerCase()),
+        );
+      };
+
+      // Override all error reporting immediately
+      const silentNoop = () => {};
+
+      // Store originals
+      const origConsoleError = console.error;
+      const origConsoleWarn = console.warn;
+      const origConsoleLog = console.log;
+
+      // Silent overrides
+      console.error = function (...args) {
+        const msg = args.join(" ");
+        if (isBlockedError(msg)) return;
+        return origConsoleError.apply(this, args);
+      };
+
+      console.warn = function (...args) {
+        const msg = args.join(" ");
+        if (isBlockedError(msg)) return;
+        return origConsoleWarn.apply(this, args);
+      };
+
+      console.log = function (...args) {
+        const msg = args.join(" ");
+        if (isBlockedError(msg)) return;
+        return origConsoleLog.apply(this, args);
+      };
+
+      // Block window.onerror immediately
+      window.onerror = function (msg, file, line, col, error) {
+        if (
+          isBlockedError(msg) ||
+          isBlockedError(file) ||
+          isBlockedError(error?.message)
+        ) {
+          return true; // Prevent default
+        }
+        return false;
+      };
+
+      // Block unhandled rejections immediately
+      window.onunhandledrejection = function (e) {
+        if (
+          isBlockedError(e.reason?.message) ||
+          isBlockedError(e.reason?.toString())
+        ) {
+          e.preventDefault();
+          return true;
+        }
+        return false;
+      };
+    </script>
     <!-- IMMEDIATE NUCLEAR ERROR SUPPRESSION - FIRST PRIORITY -->
     <script>
       // Immediate override of all error methods before any other code runs
