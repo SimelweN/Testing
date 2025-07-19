@@ -292,6 +292,42 @@
         console.debug("🛡️ Immediate error suppression active");
       })();
     </script>
+
+    <!-- Global error catch-all -->
+    <script>
+      window.addEventListener(
+        "error",
+        (e) => {
+          const msg = e.message || "";
+          if (
+            msg.includes("fullstory.com") ||
+            msg.includes("@vite/client") ||
+            msg.includes("Failed to fetch at e (https://edge.fullstory.com") ||
+            msg.includes("Failed to fetch at ping") ||
+            msg.includes("eval at messageHandler")
+          ) {
+            e.stopPropagation();
+            e.preventDefault();
+            return false;
+          }
+        },
+        true,
+      );
+
+      window.addEventListener("unhandledrejection", (e) => {
+        const msg = e.reason?.toString() || "";
+        if (
+          msg.includes("fullstory.com") ||
+          msg.includes("@vite/client") ||
+          msg.includes("Failed to fetch at e (https://edge.fullstory.com") ||
+          msg.includes("Failed to fetch at ping") ||
+          msg.includes("eval at messageHandler")
+        ) {
+          e.preventDefault();
+          return false;
+        }
+      });
+    </script>
   </head>
 
   <body>
