@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { PaystackApi } from "../_shared/paystack-api.ts";
 
 const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -152,35 +153,31 @@ async function handleGetSplits(req: Request): Promise<Response> {
       endpoint += `/${splitCode}`;
     }
 
-    const response = await fetch(endpoint, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const result = await PaystackApi.get(endpoint);
 
-    if (!response.ok) {
+    if (!result.success) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "PAYSTACK_SPLIT_FETCH_FAILED",
+          error: result.error || "PAYSTACK_SPLIT_FETCH_FAILED",
+          error_type: result.error_type,
           details: {
-            status_code: response.status,
-            status_text: response.statusText,
+            ...result.details,
             split_code: splitCode,
             message: "Failed to fetch split information from Paystack",
           },
-          fix_instructions: "Check split code validity and Paystack API access",
+          fix_instructions:
+            result.error_type === "network"
+              ? "Check network connectivity and try again. The request may have timed out."
+              : "Check split code validity and Paystack API access",
         }),
         {
-          status: response.status,
+          status: result.status_code || 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
     }
 
-    const result = await response.json();
     return new Response(
       JSON.stringify({
         success: true,
@@ -357,39 +354,30 @@ async function handleCreateSplit(
       bearer_subaccount,
     };
 
-    const response = await fetch("https://api.paystack.co/split", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(splitPayload),
-    });
+    const result = await PaystackApi.post("/split", splitPayload);
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
+    if (!result.success) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "PAYSTACK_SPLIT_CREATION_FAILED",
+          error: result.error || "PAYSTACK_SPLIT_CREATION_FAILED",
+          error_type: result.error_type,
           details: {
-            status_code: response.status,
-            status_text: response.statusText,
-            paystack_error: errorData?.message || "Unknown Paystack error",
+            ...result.details,
             split_data: splitPayload,
             message: "Paystack split creation failed",
           },
           fix_instructions:
-            "Check subaccount codes validity and split configuration",
+            result.error_type === "network"
+              ? "Network error occurred. Check connectivity and try again."
+              : "Check subaccount codes validity and split configuration",
         }),
         {
-          status: response.status,
+          status: result.status_code || 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
     }
-
-    const result = await response.json();
 
     // Store split information in database for future reference
     try {
