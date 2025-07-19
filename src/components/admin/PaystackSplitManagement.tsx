@@ -760,6 +760,10 @@ const PaystackSplitManagement = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="test" className="space-y-4">
+          <SplitPaymentTester />
+        </TabsContent>
       </Tabs>
     </div>
   );
