@@ -835,11 +835,38 @@ export default function EdgeFunctionTester() {
                         {result.status === "error" && result.error && (
                           <div>
                             <Label className="text-xs font-medium text-red-600">
-                              Error
+                              Error Details
                             </Label>
-                            <pre className="text-xs bg-red-50 p-2 rounded mt-1 overflow-x-auto max-h-32">
-                              {result.error}
-                            </pre>
+                            <div className="space-y-2 mt-1">
+                              <pre className="text-xs bg-red-50 p-2 rounded overflow-x-auto max-h-40 whitespace-pre-wrap">
+                                {result.error}
+                              </pre>
+                              {result.response && result.response.details && (
+                                <div>
+                                  <Label className="text-xs font-medium text-orange-600">
+                                    Technical Details
+                                  </Label>
+                                  <pre className="text-xs bg-orange-50 p-2 rounded overflow-x-auto max-h-32">
+                                    {JSON.stringify(
+                                      result.response.details,
+                                      null,
+                                      2,
+                                    )}
+                                  </pre>
+                                </div>
+                              )}
+                              {result.response &&
+                                result.response.fix_instructions && (
+                                  <div>
+                                    <Label className="text-xs font-medium text-blue-600">
+                                      How to Fix
+                                    </Label>
+                                    <div className="text-xs bg-blue-50 p-2 rounded">
+                                      {result.response.fix_instructions}
+                                    </div>
+                                  </div>
+                                )}
+                            </div>
                           </div>
                         )}
                       </div>
