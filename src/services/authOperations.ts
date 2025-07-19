@@ -43,6 +43,7 @@ export const registerUser = async (
   email: string,
   password: string,
 ) => {
+  // First try the standard Supabase signup
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -65,17 +66,108 @@ export const registerUser = async (
 
   console.log("Registration successful for:", email);
 
-  // Log that registration was successful - email issues are handled separately
+  // Check if email verification is working
   if (data.user && !data.session) {
     console.log("✅ Registration successful - email verification required");
     console.log(
       "ℹ️ Note: User should check their email inbox (including spam folder) for verification link",
     );
-    // Don't attempt custom email to avoid errors - let Supabase handle it
+  } else if (data.user && data.session) {
+    console.log(
+      "✅ Registration successful - email verification disabled, user logged in",
+    );
+
+    // Since email verification is disabled, send a welcome email
+    try {
+      // Import dynamically to avoid circular dependencies
+      const { emailService } = await import("./emailService");
+
+      await emailService.sendEmail({
+        to: email,
+        from: "noreply@rebookedsolutions.co.za",
+        subject: "Welcome to ReBooked Solutions! 📚",
+        html: generateWelcomeEmailHTML(name, email),
+        text: generateWelcomeEmailText(name, email),
+      });
+
+      console.log("✅ Welcome email sent to new user");
+    } catch (emailError) {
+      console.warn("⚠️ Welcome email failed (non-critical):", emailError);
+      // Don't fail registration for email issues
+    }
   }
 
   return data;
 };
+
+// Helper functions for welcome email
+const generateWelcomeEmailHTML = (name: string, email: string): string => `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <title>Welcome to ReBooked Solutions</title>
+    <style>
+      body { font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; }
+      .container { max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+      .welcome-box { background: #d1fae5; border: 1px solid #10b981; padding: 15px; border-radius: 5px; margin: 20px 0; }
+      .btn { display: inline-block; padding: 12px 20px; background-color: #3ab26f; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎉 Welcome to ReBooked Solutions!</h1>
+
+      <div class="welcome-box">
+        <strong>✅ Your account has been created successfully!</strong>
+      </div>
+
+      <p>Hi ${name}!</p>
+
+      <p>Welcome to South Africa's premier textbook marketplace! Your account is now active and you can:</p>
+
+      <ul>
+        <li>📚 Browse thousands of affordable textbooks</li>
+        <li>💰 Sell your textbooks to other students</li>
+        <li>🚚 Enjoy convenient doorstep delivery</li>
+        <li>🎓 Connect with students at your university</li>
+      </ul>
+
+      <a href="${window.location.origin}/books" class="btn">Start Browsing Books</a>
+
+      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+
+      <p style="font-size: 12px; color: #6b7280;">
+        <strong>Thank you for joining ReBooked Solutions!</strong><br>
+        Account: ${email}<br>
+        Support: support@rebookedsolutions.co.za<br>
+        <em>"Pre-Loved Pages, New Adventures"</em>
+      </p>
+    </div>
+  </body>
+  </html>
+`;
+
+const generateWelcomeEmailText = (name: string, email: string): string => `
+  Welcome to ReBooked Solutions!
+
+  Hi ${name}!
+
+  Your account has been created successfully! Welcome to South Africa's premier textbook marketplace.
+
+  You can now:
+  - Browse thousands of affordable textbooks
+  - Sell your textbooks to other students
+  - Enjoy convenient doorstep delivery
+  - Connect with students at your university
+
+  Visit ${window.location.origin}/books to start browsing!
+
+  Account: ${email}
+  Support: support@rebookedsolutions.co.za
+
+  "Pre-Loved Pages, New Adventures"
+`;
 
 export const logoutUser = async () => {
   const { error } = await supabase.auth.signOut();
