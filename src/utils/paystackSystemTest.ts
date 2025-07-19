@@ -295,9 +295,15 @@ export class PaystackSystemTester {
         } else {
           this.addResult(
             `Edge Function: ${funcName}`,
-            "warning",
-            "Health check returned unexpected format",
-            result,
+            "error",
+            `Health check failed - Response: ${JSON.stringify(result)}`,
+            {
+              actual_response: result,
+              expected_fields: ["success", "service"],
+              response_type: typeof result,
+              has_success: !!result?.success,
+              has_service: !!result?.service,
+            },
             timing,
           );
         }
