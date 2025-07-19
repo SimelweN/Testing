@@ -215,7 +215,6 @@ export class PaystackSystemTester {
         const { result, timing } = await this.measureTime(async () => {
           const { data, error } = await supabase.functions.invoke(funcName, {
             body: { health: true },
-            method: "GET",
           });
           if (error) throw error;
           return data;
