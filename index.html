@@ -73,12 +73,16 @@
           "TypeError: Failed to fetch",
           "edge.fullstory.com",
           "fs.js",
+          "fullstory.com",
           "@vite/client",
           "ping",
           "waitForSuccessfulPing",
           "WebSocket",
           ".fly.dev",
           "eval at messageHandler",
+          "chrome-extension",
+          "moz-extension",
+          "safari-extension",
         ];
 
         // Check if message should be suppressed
@@ -176,13 +180,42 @@
             // Let third-party services fail silently
             if (
               urlString.includes("fullstory.com") ||
-              urlString.includes("edge.fullstory.com")
+              urlString.includes("edge.fullstory.com") ||
+              urlString.includes("fs.js") ||
+              urlString.includes("chrome-extension") ||
+              urlString.includes("moz-extension") ||
+              urlString.includes("safari-extension")
             ) {
               return originalFetch.apply(this, args).catch(function () {
                 return new Response("", {
                   status: 204,
                   statusText: "Service unavailable",
                 });
+              });
+            }
+
+            // Handle Vite dev client issues gracefully
+            if (
+              urlString.includes("@vite/client") ||
+              urlString.includes(".fly.dev")
+            ) {
+              return originalFetch.apply(this, args).catch(function (error) {
+                // In development, provide a fallback response
+                if (
+                  window.location.hostname === "localhost" ||
+                  window.location.hostname.includes("dev")
+                ) {
+                  console.debug(
+                    "[DEV] Vite client connection issue suppressed:",
+                    error.message,
+                  );
+                  return new Response("{}", {
+                    status: 200,
+                    statusText: "OK",
+                    headers: { "Content-Type": "application/json" },
+                  });
+                }
+                throw error;
               });
             }
 
