@@ -1,6 +1,9 @@
 // IMMEDIATE error suppression - must load first
 import "./utils/immediateErrorSuppression";
 
+// Enhanced network error handling
+import "./utils/networkErrorHandler";
+
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
