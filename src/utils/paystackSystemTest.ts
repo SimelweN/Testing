@@ -421,8 +421,8 @@ export class PaystackSystemTester {
           {
             success: result.success,
             mock: result.mock,
-            business_name: mockSubaccountData.business_name,
-            bank_name: mockSubaccountData.bank_name,
+            business_name: PaystackMockData.subaccountCreation.business_name,
+            account_number: PaystackMockData.subaccountCreation.account_number,
           },
           timing,
         );
