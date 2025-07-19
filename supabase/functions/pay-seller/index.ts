@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { PaystackApi } from "../_shared/paystack-api.ts";
 
 const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -276,20 +277,35 @@ serve(async (req) => {
       currency: "ZAR",
     };
 
-    let paystackResult;
-    try {
-      const paystackResponse = await fetch("https://api.paystack.co/transfer", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(transferData),
-      });
+        try {
+      const result = await PaystackApi.post("/transfer", transferData);
 
-      paystackResult = await paystackResponse.json();
+      if (!result.success) {
+        // Handle network/timeout errors first
+        if (result.error_type === "network" || result.error_type === "timeout") {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: result.error,
+              error_type: result.error_type,
+              details: {
+                ...result.details,
+                transfer_data: transferData,
+                message: "Network error during transfer request",
+              },
+              fix_instructions: "Network connectivity issue. Please try again.",
+            }),
+            {
+              status: 500,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            },
+          );
+        }
 
-      if (!paystackResult.status) {
+        // Handle Paystack API errors
+        const paystackResult = result.details?.paystack_data || {};
+
+        if (!paystackResult || result.error_type === "paystack") {
         const errorDetails = {
           paystack_error: paystackResult.message,
           error_code: paystackResult.code,
