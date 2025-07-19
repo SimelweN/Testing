@@ -567,54 +567,6 @@ export class PaystackSystemTester {
   // Test 8: Transfer Management
   private async testTransferManagement() {
     try {
-      const { result, timing } = await this.measureTime(async () => {
-        const { data, error } = await supabase.functions.invoke(
-          "paystack-transfer-management",
-          {
-            method: "GET",
-          },
-        );
-        if (error) throw error;
-        return data;
-      });
-
-      if (result?.success || result?.split_code) {
-        this.addResult(
-          "Split Creation",
-          "success",
-          "Split creation with mock data working",
-          {
-            success: result.success,
-            split_name: mockSplitData.name,
-            items_count: mockSplitData.order_items.length,
-            total_amount: mockSplitData.order_items.reduce(
-              (sum, item) => sum + item.price,
-              0,
-            ),
-          },
-          timing,
-        );
-      } else {
-        this.addResult(
-          "Split Creation",
-          "info",
-          "Split creation test completed (may need seller subaccounts)",
-          result,
-          timing,
-        );
-      }
-    } catch (error) {
-      this.addResult(
-        "Split Creation",
-        "info",
-        `Split creation test completed: ${error.message}`,
-      );
-    }
-  }
-
-  // Test 8: Transfer Management
-  private async testTransferManagement() {
-    try {
       // Test bank list functionality
       const { result, timing } = await this.measureTime(async () => {
         const { data, error } = await supabase.functions.invoke(
@@ -921,7 +873,7 @@ export class PaystackSystemTester {
 =====================================
 
 📊 SUMMARY:
-✅ Passed: ${successCount}/${totalTests}
+�� Passed: ${successCount}/${totalTests}
 ❌ Failed: ${errorCount}/${totalTests}
 ⚠️ Warnings: ${warningCount}/${totalTests}
 
