@@ -57,10 +57,21 @@ serve(async (req) => {
 
     // Handle health check
     const url = new URL(req.url);
-    if (
+    const isHealthCheck =
       url.pathname.endsWith("/health") ||
-      url.searchParams.get("health") === "true"
-    ) {
+      url.searchParams.get("health") === "true";
+
+    // Check for health check in POST body as well
+    let body = null;
+    if (req.method === "POST") {
+      try {
+        body = await req.json();
+      } catch {
+        // Ignore JSON parsing errors for health checks
+      }
+    }
+
+    if (isHealthCheck || body?.health === true) {
       return new Response(
         JSON.stringify({
           success: true,
