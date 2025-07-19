@@ -1,6 +1,9 @@
 // IMMEDIATE error suppression - must load first
 import "./utils/immediateErrorSuppression";
 
+// Targeted fetch error suppression
+import "./utils/fetchErrorSuppression";
+
 // Enhanced network error handling
 import "./utils/networkErrorHandler";
 
