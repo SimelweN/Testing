@@ -656,8 +656,11 @@ export default function EdgeFunctionTester() {
           <p className="text-muted-foreground mt-2">
             Test all {edgeFunctions.length} Supabase Edge Functions at once or
             individually
-            {filteredFunctions.length !== edgeFunctions.length &&
-              ` (${filteredFunctions.length} showing in current category)`}
+            <br />
+            <span className="text-sm">
+              Currently showing: {filteredFunctions.length} functions in "
+              {activeCategory}" category
+            </span>
           </p>
         </div>
 
