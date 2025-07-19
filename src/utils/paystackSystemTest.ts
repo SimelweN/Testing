@@ -1,6 +1,70 @@
 import { supabase } from "@/integrations/supabase/client";
 import { PAYSTACK_CONFIG } from "@/config/paystack";
 
+// Import comprehensive mock data for proper testing
+const PaystackMockData = {
+  initializePayment: {
+    user_id: "550e8400-e29b-41d4-a716-446655440000",
+    email: "test.user@example.com",
+    amount: 29999, // Amount in kobo (R299.99)
+    currency: "ZAR",
+    reference: "TXN_" + Date.now() + "_TEST",
+    callback_url: "https://rebookedsolutions.co.za/payment/callback",
+    metadata: {
+      book_id: "book-550e8400-e29b-41d4-a716-446655440001",
+      book_title: "Test Book for Payment",
+      seller_id: "550e8400-e29b-41d4-a716-446655440002",
+      buyer_id: "550e8400-e29b-41d4-a716-446655440000",
+      delivery_fee: 8500,
+      platform_fee: 1500,
+      seller_amount: 19999,
+    },
+  },
+  splitManagement: {
+    name: "Test Split " + Date.now(),
+    type: "percentage",
+    currency: "ZAR",
+    subaccounts: [
+      {
+        subaccount: "ACCT_test_seller_1",
+        share: 7000, // 70%
+      },
+      {
+        subaccount: "ACCT_test_seller_2",
+        share: 2000, // 20%
+      },
+    ],
+    bearer_type: "account",
+  },
+  subaccountCreation: {
+    business_name: "Test Business " + Date.now(),
+    bank_code: "058",
+    account_number: "1234567890",
+    account_name: "Test Account Holder",
+    phone: "+27123456789",
+    email: "test@example.com",
+    percentage_charge: 85.5,
+    description: "Test subaccount for automated testing",
+  },
+  transferManagement: {
+    amount: 10000, // R100.00 in kobo
+    currency: "ZAR",
+    reason: "test_transfer",
+    reference: "TRANSFER_TEST_" + Date.now(),
+    recipient_code: "RCP_test_recipient",
+  },
+  refundManagement: {
+    transaction: "TXN_test_transaction",
+    amount: 5000, // R50.00 in kobo
+    currency: "ZAR",
+    customer_note: "Test refund for automated testing",
+    merchant_note: "Automated test refund",
+  },
+  paymentVerification: {
+    reference: "TXN_" + Date.now() + "_VERIFY_TEST",
+  },
+};
+
 export interface PaystackTestResult {
   component: string;
   status: "success" | "error" | "warning" | "info";
@@ -231,9 +295,15 @@ export class PaystackSystemTester {
         } else {
           this.addResult(
             `Edge Function: ${funcName}`,
-            "warning",
-            "Health check returned unexpected format",
-            result,
+            "error",
+            `Health check failed - Response: ${JSON.stringify(result)}`,
+            {
+              actual_response: result,
+              expected_fields: ["success", "service"],
+              response_type: typeof result,
+              has_success: !!result?.success,
+              has_service: !!result?.service,
+            },
             timing,
           );
         }
@@ -275,9 +345,15 @@ export class PaystackSystemTester {
       } else {
         this.addResult(
           "Paystack API",
-          "warning",
-          "Paystack API test returned unexpected format",
-          result,
+          "error",
+          `Paystack API test failed - Exact response: ${JSON.stringify(result)}`,
+          {
+            actual_response: result,
+            expected_fields: ["success", "service"],
+            response_keys: result ? Object.keys(result) : [],
+            error_details:
+              result?.error || result?.message || "No error message provided",
+          },
           timing,
         );
       }
@@ -320,9 +396,15 @@ export class PaystackSystemTester {
       } else {
         this.addResult(
           "Subaccount Management",
-          "warning",
-          "Subaccount function returned unexpected format",
-          result,
+          "error",
+          `Subaccount test failed - Exact response: ${JSON.stringify(result)}`,
+          {
+            actual_response: result,
+            expected_fields: ["success", "error"],
+            response_keys: result ? Object.keys(result) : [],
+            error_details:
+              result?.error || result?.message || "No error message provided",
+          },
           timing,
         );
       }
@@ -337,22 +419,12 @@ export class PaystackSystemTester {
 
   private async testSubaccountCreationWithMockData() {
     try {
-      const mockSubaccountData = {
-        business_name: "Mock Test Business PTY LTD",
-        email: "business@mocktest.co.za",
-        bank_name: "Standard Bank",
-        bank_code: "058",
-        account_number: "1234567890",
-        is_update: false,
-        test_mode: true,
-      };
-
       const { result, timing } = await this.measureTime(async () => {
         const { data, error } = await supabase.functions.invoke(
           "create-paystack-subaccount",
           {
             method: "POST",
-            body: mockSubaccountData,
+            body: PaystackMockData.subaccountCreation,
           },
         );
         if (error) throw error;
@@ -367,17 +439,24 @@ export class PaystackSystemTester {
           {
             success: result.success,
             mock: result.mock,
-            business_name: mockSubaccountData.business_name,
-            bank_name: mockSubaccountData.bank_name,
+            business_name: PaystackMockData.subaccountCreation.business_name,
+            account_number: PaystackMockData.subaccountCreation.account_number,
           },
           timing,
         );
       } else {
         this.addResult(
           "Subaccount Creation",
-          "warning",
-          "Subaccount creation test returned unexpected format",
-          result,
+          "error",
+          `Subaccount creation failed - Exact response: ${JSON.stringify(result)}`,
+          {
+            actual_response: result,
+            expected_fields: ["success", "mock"],
+            response_keys: result ? Object.keys(result) : [],
+            error_details:
+              result?.error || result?.message || "No error message provided",
+            input_data: PaystackMockData.subaccountCreation,
+          },
           timing,
         );
       }
@@ -420,9 +499,16 @@ export class PaystackSystemTester {
       } else {
         this.addResult(
           "Split Management",
-          "warning",
-          "Split management returned unexpected format",
-          result,
+          "error",
+          `Split management failed - Exact response: ${JSON.stringify(result)}`,
+          {
+            actual_response: result,
+            expected_fields: ["success", "data"],
+            response_keys: result ? Object.keys(result) : [],
+            error_details:
+              result?.error || result?.message || "No error message provided",
+            method_used: "GET",
+          },
           timing,
         );
       }
@@ -437,61 +523,34 @@ export class PaystackSystemTester {
 
   private async testSplitCreationWithMockData() {
     try {
-      const mockSplitData = {
-        name: `Mock Test Split ${Date.now()}`,
-        type: "flat",
-        currency: "ZAR",
-        order_items: [
-          {
-            id: "book-test-001",
-            seller_id: "seller-test-001",
-            price: 250.0,
-            title: "Mock Book 1",
-          },
-          {
-            id: "book-test-002",
-            seller_id: "seller-test-002",
-            price: 150.0,
-            title: "Mock Book 2",
-          },
-        ],
-        bearer_type: "account",
-        test_mode: true,
-      };
-
       const { result, timing } = await this.measureTime(async () => {
         const { data, error } = await supabase.functions.invoke(
           "paystack-split-management",
           {
             method: "POST",
-            body: mockSplitData,
+            body: PaystackMockData.splitManagement,
           },
         );
         if (error) throw error;
         return data;
       });
 
-      if (result?.success || result?.split_code) {
+      if (result?.success || result?.data) {
         this.addResult(
           "Split Creation",
           "success",
-          "Split creation with mock data working",
+          "Split creation test passed",
           {
-            success: result.success,
-            split_name: mockSplitData.name,
-            items_count: mockSplitData.order_items.length,
-            total_amount: mockSplitData.order_items.reduce(
-              (sum, item) => sum + item.price,
-              0,
-            ),
+            split_name: PaystackMockData.splitManagement.name,
+            response: result,
           },
           timing,
         );
       } else {
         this.addResult(
           "Split Creation",
-          "info",
-          "Split creation test completed (may need seller subaccounts)",
+          "warning",
+          "Split creation returned unexpected format",
           result,
           timing,
         );
@@ -499,8 +558,8 @@ export class PaystackSystemTester {
     } catch (error) {
       this.addResult(
         "Split Creation",
-        "info",
-        `Split creation test completed: ${error.message}`,
+        "error",
+        `Split creation test failed: ${error.message}`,
       );
     }
   }
@@ -543,9 +602,16 @@ export class PaystackSystemTester {
       } else {
         this.addResult(
           "Transfer Management",
-          "warning",
-          "Transfer management returned unexpected format",
-          result,
+          "error",
+          `Transfer management failed - Exact response: ${JSON.stringify(result)}`,
+          {
+            actual_response: result,
+            expected_fields: ["success", "data"],
+            response_keys: result ? Object.keys(result) : [],
+            error_details:
+              result?.error || result?.message || "No error message provided",
+            method_used: "GET",
+          },
           timing,
         );
       }
@@ -651,50 +717,14 @@ export class PaystackSystemTester {
   // Test 9: Payment Flow
   private async testPaymentFlow() {
     try {
-      // Test payment initialization with comprehensive mock data
-      const mockPaymentData = {
-        user_id: "test-user-12345",
-        items: [
-          {
-            id: "book-test-001",
-            title: "Mock Test Book 1",
-            price: 250.0,
-            seller_id: "seller-test-001",
-            quantity: 1,
-          },
-          {
-            id: "book-test-002",
-            title: "Mock Test Book 2",
-            price: 150.0,
-            seller_id: "seller-test-002",
-            quantity: 1,
-          },
-        ],
-        total_amount: 400.0,
-        email: "test.user@example.com",
-        shipping_address: {
-          name: "Test User",
-          phone: "+27123456789",
-          address: "123 Test Street",
-          city: "Cape Town",
-          province: "Western Cape",
-          postal_code: "8001",
-          country: "South Africa",
-        },
-        metadata: {
-          test_mode: true,
-          test_timestamp: Date.now(),
-          user_id: "test-user-12345",
-          source: "paystack_system_test",
-        },
-      };
+      // Test payment initialization with proper mock data
 
       const { result, timing } = await this.measureTime(async () => {
         const { data, error } = await supabase.functions.invoke(
           "initialize-paystack-payment",
           {
             method: "POST",
-            body: mockPaymentData,
+            body: PaystackMockData.initializePayment,
           },
         );
         if (error) throw error;
@@ -710,16 +740,23 @@ export class PaystackSystemTester {
             success: result.success,
             mock: result.mock || result.fallback,
             reference: result.data?.reference,
-            amount: mockPaymentData.total_amount,
+            amount: PaystackMockData.initializePayment.amount / 100, // Convert from kobo
           },
           timing,
         );
       } else {
         this.addResult(
           "Payment Flow",
-          "warning",
-          "Payment initialization returned unexpected format",
-          result,
+          "error",
+          `Payment initialization failed - Exact response: ${JSON.stringify(result)}`,
+          {
+            actual_response: result,
+            expected_fields: ["success", "data.authorization_url"],
+            response_keys: result ? Object.keys(result) : [],
+            error_details:
+              result?.error || result?.message || "No error message provided",
+            input_data: PaystackMockData.initializePayment,
+          },
           timing,
         );
       }
@@ -762,9 +799,16 @@ export class PaystackSystemTester {
       } else {
         this.addResult(
           "Refund System",
-          "warning",
-          "Refund system returned unexpected format",
-          result,
+          "error",
+          `Refund system failed - Exact response: ${JSON.stringify(result)}`,
+          {
+            actual_response: result,
+            expected_fields: ["success", "data"],
+            response_keys: result ? Object.keys(result) : [],
+            error_details:
+              result?.error || result?.message || "No error message provided",
+            method_used: "GET",
+          },
           timing,
         );
       }
@@ -779,24 +823,12 @@ export class PaystackSystemTester {
 
   private async testScenarioRefundWithMockData() {
     try {
-      const mockRefundData = {
-        action: "scenario-refund",
-        type: "cancellation",
-        reason: "Order cancelled by customer during testing",
-        transaction: `mock_txn_${Date.now()}`,
-        customer_note: "Mock refund for system testing",
-        merchant_note: "System test - mock refund scenario",
-        order_id: "mock-order-123",
-        user_id: "test-user-456",
-        test_mode: true,
-      };
-
       const { result, timing } = await this.measureTime(async () => {
         const { data, error } = await supabase.functions.invoke(
           "paystack-refund-management",
           {
             method: "POST",
-            body: mockRefundData,
+            body: PaystackMockData.refundManagement,
           },
         );
         if (error) throw error;
@@ -810,8 +842,8 @@ export class PaystackSystemTester {
           ? "Refund scenarios working"
           : "Refund scenario test completed",
         {
-          type: mockRefundData.type,
-          reason: mockRefundData.reason,
+          transaction: PaystackMockData.refundManagement.transaction,
+          amount: PaystackMockData.refundManagement.amount,
           result: result?.success || result?.error,
         },
         timing,
@@ -841,7 +873,7 @@ export class PaystackSystemTester {
 =====================================
 
 📊 SUMMARY:
-✅ Passed: ${successCount}/${totalTests}
+�� Passed: ${successCount}/${totalTests}
 ❌ Failed: ${errorCount}/${totalTests}
 ⚠️ Warnings: ${warningCount}/${totalTests}
 

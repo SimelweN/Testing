@@ -33,16 +33,23 @@ interface GoogleMapsProviderProps {
 export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
   children,
 }) => {
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+  // If no API key, don't attempt to load Google Maps
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
+    googleMapsApiKey: apiKey || "",
     libraries,
     preventGoogleFontsLoading: true,
+    // Skip loading if no API key to prevent errors
+    ...(apiKey ? {} : { loadingElement: null }),
   });
 
   const value: GoogleMapsContextType = {
-    isLoaded,
-    loadError,
+    isLoaded: apiKey ? isLoaded : false,
+    loadError: apiKey
+      ? loadError
+      : new Error("Google Maps API key not configured"),
   };
 
   return (

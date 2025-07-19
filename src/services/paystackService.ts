@@ -92,7 +92,11 @@ export const createPaystackSubaccount = async (
       .eq("id", sellerId);
 
     if (error) {
-      console.error("Error updating profile with subaccount code:", error);
+      console.error("Error updating profile with subaccount code:", {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+      });
       throw error;
     }
 

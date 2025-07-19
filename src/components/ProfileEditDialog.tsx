@@ -59,7 +59,11 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
         .eq("id", user.id);
 
       if (error) {
-        console.error("Error updating profile:", error);
+        console.error("Error updating profile:", {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+        });
         toast.error("Failed to update profile");
         return;
       }
@@ -85,7 +89,10 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
       //   window.location.reload();
       // }, 100);
     } catch (error) {
-      console.error("Failed to update profile:", error);
+      console.error("Failed to update profile:", {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       toast.error("Failed to update profile");
     } finally {
       setIsLoading(false);

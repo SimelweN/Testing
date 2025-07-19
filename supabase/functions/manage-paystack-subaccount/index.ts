@@ -57,10 +57,23 @@ serve(async (req) => {
 
     // Handle health check
     const url = new URL(req.url);
-    if (
+    const isHealthCheck =
       url.pathname.endsWith("/health") ||
-      url.searchParams.get("health") === "true"
-    ) {
+      url.searchParams.get("health") === "true";
+
+    // Check for health check in request body as well (for POST/PUT methods)
+    let body = null;
+    if (req.method === "POST" || req.method === "PUT") {
+      try {
+        // Clone the request to avoid consuming the body
+        const clonedReq = req.clone();
+        body = await clonedReq.json();
+      } catch {
+        // Ignore JSON parsing errors for health checks
+      }
+    }
+
+    if (isHealthCheck || body?.health === true) {
       return new Response(
         JSON.stringify({
           success: true,
@@ -73,24 +86,7 @@ serve(async (req) => {
           },
         }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    // Authenticate user
-    const user = await getUserFromRequest(req);
-    if (!user) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "AUTHENTICATION_FAILED",
-          details: {
-            message: "User authentication required",
-          },
-        }),
-        {
-          status: 401,
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
@@ -126,12 +122,75 @@ serve(async (req) => {
         } else if (action === "list") {
           return await handleListSubaccounts(url);
         } else {
+          // Get user subaccount requires authentication
+          const user = await getUserFromRequest(req);
+          if (!user) {
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: "AUTHENTICATION_FAILED",
+                details: {
+                  message: "User authentication required for this operation",
+                },
+              }),
+              {
+                status: 401,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              },
+            );
+          }
           return await handleGetUserSubaccount(user.id, supabase);
         }
 
       case "POST":
         if (action === "create") {
-          return await handleCreateSubaccount(req, user, supabase);
+          // Authenticate user for subaccount creation
+          const user = await getUserFromRequest(req);
+          if (!user) {
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: "AUTHENTICATION_FAILED",
+                details: {
+                  message:
+                    "User authentication required for subaccount creation",
+                },
+              }),
+              {
+                status: 401,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              },
+            );
+          }
+
+          // Parse request body if not already parsed for health check
+          let requestBody;
+          if (body) {
+            requestBody = body;
+          } else {
+            try {
+              requestBody = await req.json();
+            } catch (error) {
+              return new Response(
+                JSON.stringify({
+                  success: false,
+                  error: "INVALID_JSON_PAYLOAD",
+                  details: {
+                    error_message: error.message,
+                    message: "Request body must be valid JSON",
+                  },
+                }),
+                {
+                  status: 400,
+                  headers: {
+                    ...corsHeaders,
+                    "Content-Type": "application/json",
+                  },
+                },
+              );
+            }
+          }
+          return await handleCreateSubaccount(requestBody, user, supabase);
         } else {
           return new Response(
             JSON.stringify({
@@ -148,8 +207,53 @@ serve(async (req) => {
 
       case "PUT":
         if (action === "update" && subaccountId) {
+          // Authenticate user for subaccount update
+          const user = await getUserFromRequest(req);
+          if (!user) {
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: "AUTHENTICATION_FAILED",
+                details: {
+                  message: "User authentication required for subaccount update",
+                },
+              }),
+              {
+                status: 401,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              },
+            );
+          }
+
+          // Parse request body if not already parsed for health check
+          let requestBody;
+          if (body) {
+            requestBody = body;
+          } else {
+            try {
+              requestBody = await req.json();
+            } catch (error) {
+              return new Response(
+                JSON.stringify({
+                  success: false,
+                  error: "INVALID_JSON_PAYLOAD",
+                  details: {
+                    error_message: error.message,
+                    message: "Request body must be valid JSON",
+                  },
+                }),
+                {
+                  status: 400,
+                  headers: {
+                    ...corsHeaders,
+                    "Content-Type": "application/json",
+                  },
+                },
+              );
+            }
+          }
           return await handleUpdateSubaccount(
-            req,
+            requestBody,
             user,
             subaccountId,
             supabase,
@@ -407,11 +511,10 @@ async function handleGetUserSubaccount(
 
 // Create new subaccount
 async function handleCreateSubaccount(
-  req: Request,
+  requestBody: any,
   user: any,
   supabase: any,
 ): Promise<Response> {
-  const requestBody = await req.json();
   const {
     business_name,
     settlement_bank,
@@ -543,12 +646,11 @@ async function handleCreateSubaccount(
 
 // Update existing subaccount
 async function handleUpdateSubaccount(
-  req: Request,
+  requestBody: any,
   user: any,
   subaccountId: string,
   supabase: any,
 ): Promise<Response> {
-  const requestBody = await req.json();
   const {
     business_name,
     settlement_bank,

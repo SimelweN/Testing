@@ -111,11 +111,15 @@ export async function testBankingSetup(): Promise<{
       .single();
 
     if (profileError) {
-      console.error("Error querying profile:", profileError);
+      console.error("Error querying profile:", {
+        message: profileError.message,
+        code: profileError.code,
+        details: profileError.details,
+      });
       return {
         success: false,
         message: "Error accessing profile",
-        details: profileError,
+        details: profileError.message || "Unknown profile error",
       };
     }
 

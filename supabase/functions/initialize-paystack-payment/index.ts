@@ -22,7 +22,9 @@ serve(async (req) => {
     let body = null;
     if (req.method === "POST") {
       try {
-        body = await req.json();
+        // Clone the request to avoid consuming the body
+        const clonedReq = req.clone();
+        body = await clonedReq.json();
       } catch {
         // Ignore JSON parsing errors for health checks
       }
@@ -41,6 +43,7 @@ serve(async (req) => {
           },
         }),
         {
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
@@ -69,8 +72,29 @@ serve(async (req) => {
     }
 
     // Parse request body if not already parsed
-    if (!body) {
-      body = await req.json();
+    let requestBody;
+    if (body) {
+      requestBody = body;
+    } else {
+      try {
+        requestBody = await req.json();
+      } catch (parseError) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "INVALID_JSON_PAYLOAD",
+            details: {
+              parse_error: parseError.message,
+              message: "Request body must be valid JSON",
+            },
+            fix_instructions: "Ensure request body contains valid JSON format",
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
     }
 
     // Check environment configuration
@@ -95,27 +119,6 @@ serve(async (req) => {
         }),
         {
           status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    let requestBody;
-    try {
-      requestBody = await req.json();
-    } catch (parseError) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "INVALID_JSON_PAYLOAD",
-          details: {
-            parse_error: parseError.message,
-            message: "Request body must be valid JSON",
-          },
-          fix_instructions: "Ensure request body contains valid JSON format",
-        }),
-        {
-          status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );

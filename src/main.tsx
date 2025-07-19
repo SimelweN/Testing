@@ -1,6 +1,15 @@
 // IMMEDIATE error suppression - must load first
 import "./utils/immediateErrorSuppression";
 
+// Targeted fetch error suppression
+import "./utils/fetchErrorSuppression";
+
+// Enhanced network error handling
+import "./utils/networkErrorHandler";
+
+// Environment debugging (development only)
+import "./utils/environmentDebug";
+
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";

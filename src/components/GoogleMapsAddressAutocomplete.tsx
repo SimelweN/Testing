@@ -221,8 +221,8 @@ const GoogleMapsAddressAutocomplete: React.FC<
     };
 
     script.onerror = () => {
-      console.error("Failed to load Google Maps script");
-      setLoadError("Failed to load Google Maps script");
+      // Silently handle Google Maps loading errors
+      setLoadError("Google Maps unavailable");
       setIsLoading(false);
     };
 
