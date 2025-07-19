@@ -39,8 +39,43 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  // Validate request method
-  if (!["POST", "GET", "PUT", "DELETE"].includes(req.method)) {
+  try {
+    // Handle health check first
+    const url = new URL(req.url);
+    const isHealthCheck =
+      url.pathname.endsWith("/health") ||
+      url.searchParams.get("health") === "true";
+
+    // Check for health check in POST body as well
+    let body = null;
+    if (req.method === "POST") {
+      try {
+        body = await req.json();
+      } catch {
+        // Ignore JSON parsing errors for health checks
+      }
+    }
+
+    if (isHealthCheck || body?.health === true) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          service: "paystack-transfer-management",
+          status: "healthy",
+          timestamp: new Date().toISOString(),
+          environment: {
+            paystack_configured: !!PAYSTACK_SECRET_KEY,
+            supabase_configured: !!(SUPABASE_URL && SUPABASE_SERVICE_KEY),
+          },
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Validate request method for non-health endpoints
+    if (!["POST", "GET", "PUT", "DELETE"].includes(req.method)) {
     return new Response(
       JSON.stringify({
         success: false,
