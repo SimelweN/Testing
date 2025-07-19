@@ -256,7 +256,7 @@ const SignupEmailTest: React.FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Button
               onClick={testEmailServiceConfig}
               variant="outline"
@@ -268,6 +268,7 @@ const SignupEmailTest: React.FC = () => {
             <Button
               onClick={testSupabaseEmailAuth}
               disabled={isTestingSupabase || !testEmail.trim()}
+              variant="outline"
               className="w-full"
             >
               {isTestingSupabase ? (
@@ -283,6 +284,7 @@ const SignupEmailTest: React.FC = () => {
             <Button
               onClick={testCustomEmailService}
               disabled={isTestingCustom || !testEmail.trim()}
+              variant="outline"
               className="w-full"
             >
               {isTestingCustom ? (
@@ -292,6 +294,21 @@ const SignupEmailTest: React.FC = () => {
                 </>
               ) : (
                 "Test Custom Email"
+              )}
+            </Button>
+
+            <Button
+              onClick={testSignupFlow}
+              disabled={isTestingCustom || !testEmail.trim()}
+              className="w-full bg-emerald-600 hover:bg-emerald-700"
+            >
+              {isTestingCustom ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Testing Signup...
+                </>
+              ) : (
+                "🔧 Test Signup Flow"
               )}
             </Button>
           </div>
