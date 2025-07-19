@@ -146,10 +146,19 @@
           true,
         );
 
-        // Handle unhandled promise rejections
+                // Handle unhandled promise rejections
         window.addEventListener("unhandledrejection", function (e) {
           const message = e.reason?.message || e.reason?.toString() || "";
-          if (shouldSuppress(message)) {
+          const stack = e.reason?.stack || "";
+
+          // Additional checks for fetch-related rejections
+          if (
+            shouldSuppress(message) ||
+            stack.includes("messageHandler") ||
+            stack.includes("eval at") ||
+            message.includes("ping") ||
+            message.includes("@vite/client")
+          ) {
             e.preventDefault();
             return false;
           }
