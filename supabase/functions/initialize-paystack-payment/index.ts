@@ -200,58 +200,51 @@ serve(async (req) => {
       );
     }
 
-    // Get seller information for split payments
+    // Check if we need to create a split for multiple sellers
     const sellerIds = [...new Set(items.map((item: any) => item.seller_id))];
-    const { data: sellers, error: sellersError } = await supabase
-      .from("profiles")
-      .select("id, subaccount_code, name")
-      .in("id", sellerIds);
+    let splitCode = null;
 
-    if (sellersError) {
-      console.warn(
-        "Failed to fetch sellers, proceeding without splits:",
-        sellersError.message,
-      );
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "SELLER_DATA_FETCH_FAILED",
-          details: {
-            database_error: sellersError.message,
-            seller_ids: sellerIds,
-            message: "Unable to fetch seller information from database",
+    if (
+      sellerIds.length > 1 ||
+      (sellerIds.length === 1 && sellerIds[0] !== null)
+    ) {
+      try {
+        // Create a payment split using the split management function
+        const splitResponse = await fetch(
+          `${SUPABASE_URL}/functions/v1/paystack-split-management`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+            },
+            body: JSON.stringify({
+              name: `Order Split ${Date.now()}`,
+              type: "flat",
+              currency: "ZAR",
+              order_items: items,
+              bearer_type: "account",
+            }),
           },
-          fix_instructions:
-            "Check database connectivity and seller data integrity",
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+        );
+
+        if (splitResponse.ok) {
+          const splitResult = await splitResponse.json();
+          if (splitResult.success) {
+            splitCode = splitResult.split_code;
+            console.log("Split created successfully:", splitCode);
+          } else {
+            console.warn("Split creation failed:", splitResult.error);
+            // Continue without split - payment will go to main account
+          }
+        } else {
+          console.warn("Split creation request failed:", splitResponse.status);
+        }
+      } catch (splitError) {
+        console.warn("Error creating split:", splitError.message);
+        // Continue without split - payment will go to main account
+      }
     }
-
-    // Calculate split payments for sellers (90% of book prices)
-    const splitPayments =
-      sellers
-        ?.map((seller) => {
-          const sellerItems = items.filter(
-            (item: any) => item.seller_id === seller.id,
-          );
-          const sellerBookTotal = sellerItems.reduce(
-            (sum: number, item: any) => sum + item.price,
-            0,
-          );
-
-          // Seller gets 90% of their book prices (not including delivery)
-          const sellerAmount = sellerBookTotal * 0.9;
-
-          return {
-            subaccount: seller.subaccount_code,
-            share: Math.round(sellerAmount * 100), // Convert to kobo, seller gets 90%
-          };
-        })
-        .filter((split) => split.subaccount) || [];
 
     // Initialize Paystack payment
     const paystackData = {
@@ -263,21 +256,17 @@ serve(async (req) => {
         user_id,
         items,
         shipping_address,
+        split_code: splitCode,
         ...metadata,
       },
     };
 
-    // Add subaccount for single seller or splits for multiple sellers
-    if (splitPayments.length === 1) {
-      paystackData.subaccount = splitPayments[0].subaccount;
-    } else if (splitPayments.length > 1) {
-      paystackData.split = {
-        type: "percentage",
-        currency: "ZAR",
-        subaccounts: splitPayments,
-        bearer_type: "account",
-        bearer_subaccount: splitPayments[0].subaccount,
-      };
+    // Add split code if we have one
+    if (splitCode) {
+      paystackData.split_code = splitCode;
+      console.log("Using split code for payment:", splitCode);
+    } else {
+      console.log("No split code - payment goes to main account");
     }
 
     try {
@@ -388,6 +377,7 @@ serve(async (req) => {
           status: "pending",
           items,
           shipping_address,
+          split_code: splitCode,
           paystack_data: paystackResult.data,
           created_at: new Date().toISOString(),
         });
