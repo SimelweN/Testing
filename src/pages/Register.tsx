@@ -17,6 +17,8 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showEmailFix, setShowEmailFix] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
