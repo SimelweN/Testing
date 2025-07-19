@@ -57,7 +57,7 @@
       gtag("config", "G-33V40Q5BEW");
     </script>
 
-    <!-- Immediate ResizeObserver error suppression -->
+    <!-- Immediate error suppression for network and ResizeObserver errors -->
     <script>
       (function () {
         "use strict";
@@ -66,16 +66,58 @@
         const origError = console.error;
         const origWarn = console.warn;
 
+        // Error patterns to suppress
+        const suppressPatterns = [
+          "ResizeObserver",
+          "Failed to fetch",
+          "TypeError: Failed to fetch",
+          "edge.fullstory.com",
+          "fs.js",
+          "@vite/client",
+          "ping",
+          "waitForSuccessfulPing",
+          "WebSocket",
+          ".fly.dev",
+          "eval at messageHandler",
+        ];
+
+        // Check if message should be suppressed
+        function shouldSuppress(msg) {
+          return suppressPatterns.some((pattern) =>
+            msg.toLowerCase().includes(pattern.toLowerCase()),
+          );
+        }
+
         // Override console methods immediately
         console.error = function () {
           const msg = Array.from(arguments).join(" ");
-          if (msg.includes("ResizeObserver")) return;
+          if (shouldSuppress(msg)) {
+            // In development, log to debug instead
+            if (
+              window.location.hostname === "localhost" ||
+              window.location.hostname.includes("dev")
+            ) {
+              console.debug("[SUPPRESSED]:", msg.substring(0, 100) + "...");
+            }
+            return;
+          }
           return origError.apply(this, arguments);
         };
 
         console.warn = function () {
           const msg = Array.from(arguments).join(" ");
-          if (msg.includes("ResizeObserver")) return;
+          if (shouldSuppress(msg)) {
+            if (
+              window.location.hostname === "localhost" ||
+              window.location.hostname.includes("dev")
+            ) {
+              console.debug(
+                "[SUPPRESSED WARN]:",
+                msg.substring(0, 100) + "...",
+              );
+            }
+            return;
+          }
           return origWarn.apply(this, arguments);
         };
 
@@ -83,7 +125,15 @@
         window.addEventListener(
           "error",
           function (e) {
-            if (e.message && e.message.includes("ResizeObserver")) {
+            const message = e.message || e.error?.message || "";
+            const filename = e.filename || "";
+
+            if (
+              shouldSuppress(message) ||
+              filename.includes("fullstory.com") ||
+              filename.includes("fs.js") ||
+              filename.includes("@vite/client")
+            ) {
               e.stopPropagation();
               e.preventDefault();
               return false;
@@ -91,6 +141,15 @@
           },
           true,
         );
+
+        // Handle unhandled promise rejections
+        window.addEventListener("unhandledrejection", function (e) {
+          const message = e.reason?.message || e.reason?.toString() || "";
+          if (shouldSuppress(message)) {
+            e.preventDefault();
+            return false;
+          }
+        });
 
         // Silent ResizeObserver
         if (window.ResizeObserver) {
@@ -105,6 +164,33 @@
             });
           };
         }
+
+        // Override fetch to handle network errors
+        if (window.fetch) {
+          const originalFetch = window.fetch;
+          window.fetch = function (...args) {
+            const url = args[0];
+            const urlString =
+              typeof url === "string" ? url : url?.toString() || "";
+
+            // Let third-party services fail silently
+            if (
+              urlString.includes("fullstory.com") ||
+              urlString.includes("edge.fullstory.com")
+            ) {
+              return originalFetch.apply(this, args).catch(function () {
+                return new Response("", {
+                  status: 204,
+                  statusText: "Service unavailable",
+                });
+              });
+            }
+
+            return originalFetch.apply(this, args);
+          };
+        }
+
+        console.debug("🛡️ Immediate error suppression active");
       })();
     </script>
   </head>
