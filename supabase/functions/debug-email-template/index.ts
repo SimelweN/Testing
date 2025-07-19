@@ -9,9 +9,77 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // Validate request method
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "METHOD_NOT_ALLOWED",
+        details: {
+          provided_method: req.method,
+          required_method: "POST",
+          message: "Debug email template endpoint only accepts POST requests",
+        },
+        fix_instructions: "Send requests using POST method only",
+      }),
+      {
+        status: 405,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
+  }
+
   try {
+    // Check environment configuration
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    const missingEnvVars = [];
+    if (!supabaseUrl) missingEnvVars.push("SUPABASE_URL");
+    if (!supabaseServiceKey) missingEnvVars.push("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (missingEnvVars.length > 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "ENVIRONMENT_CONFIG_ERROR",
+          details: {
+            missing_env_vars: missingEnvVars,
+            message: "Required environment variables are not configured",
+          },
+          fix_instructions:
+            "Configure missing environment variables in deployment settings",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (parseError) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "INVALID_JSON_PAYLOAD",
+          details: {
+            parse_error: parseError.message,
+            message: "Request body must be valid JSON",
+          },
+          fix_instructions: "Ensure request body contains valid JSON format",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
     const { templateName, template, data, to, subject, html, text } =
-      await req.json();
+      requestBody;
 
     // Handle direct email sending (new format)
     if (to && subject && (html || text)) {
@@ -52,7 +120,14 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({
             success: false,
-            error: emailError.message,
+            error: "EMAIL_SEND_FAILED",
+            details: {
+              email_error: emailError.message,
+              email_data: { to, subject, has_html: !!html, has_text: !!text },
+              message: "Failed to send test email via send-email function",
+            },
+            fix_instructions:
+              "Check email configuration and recipient address validity",
             timestamp: new Date().toISOString(),
           }),
           {
@@ -70,7 +145,14 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "templateName or template is required",
+          error: "MISSING_TEMPLATE_NAME",
+          details: {
+            provided_fields: Object.keys(requestBody || {}),
+            required_fields: ["templateName", "template"],
+            message: "Template name is required for template debugging",
+          },
+          fix_instructions:
+            "Provide either 'templateName' or 'template' field in request body",
         }),
         {
           status: 400,
@@ -101,9 +183,15 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
+        error: "UNEXPECTED_TEMPLATE_DEBUG_ERROR",
+        details: {
+          error_message: error.message,
+          error_stack: error.stack,
+          error_type: error.constructor.name,
+          timestamp: new Date().toISOString(),
+        },
+        fix_instructions:
+          "This is an unexpected server error. Check server logs for details.",
       }),
       {
         status: 500,
