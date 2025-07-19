@@ -447,9 +447,16 @@ export class PaystackSystemTester {
       } else {
         this.addResult(
           "Subaccount Creation",
-          "warning",
-          "Subaccount creation test returned unexpected format",
-          result,
+          "error",
+          `Subaccount creation failed - Exact response: ${JSON.stringify(result)}`,
+          {
+            actual_response: result,
+            expected_fields: ["success", "mock"],
+            response_keys: result ? Object.keys(result) : [],
+            error_details:
+              result?.error || result?.message || "No error message provided",
+            input_data: PaystackMockData.subaccountCreation,
+          },
           timing,
         );
       }
