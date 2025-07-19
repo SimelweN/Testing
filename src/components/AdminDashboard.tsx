@@ -411,6 +411,13 @@ const AdminDashboard = () => {
       description: "Comprehensive system verification",
     },
     {
+      value: "paystack-edge-diagnostic",
+      label: "Paystack Edge Functions",
+      icon: TestTube,
+      color: "text-purple-600",
+      description: "Diagnose Edge Function connectivity issues",
+    },
+    {
       value: "split-management",
       label: "Payment Splits",
       icon: Split,
