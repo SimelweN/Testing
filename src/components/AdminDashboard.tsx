@@ -661,6 +661,12 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="signup-email-test" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+              <SignupEmailTest />
+            </div>
+          </TabsContent>
+
           <TabsContent value="paystack-testing" className="space-y-4 mt-0">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
               <AdminPaystackTestingTab />
