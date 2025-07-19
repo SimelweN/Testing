@@ -172,7 +172,7 @@ window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
     const stack = error instanceof Error ? error.stack : "";
 
     // If it's a network error from third-party services or dev server, handle gracefully
-    if (shouldSuppressError(message) || shouldSuppressError(stack || "")) {
+    if (shouldSuppressError(message, stack || "")) {
       console.debug("[Network Error Handled]:", message);
       // Return a failed response instead of throwing
       return new Response(null, {
