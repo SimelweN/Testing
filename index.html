@@ -160,6 +160,28 @@
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Block problematic domains via CSP -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+      connect-src 'self'
+        https://*.supabase.co
+        https://api.paystack.co
+        https://js.paystack.co
+        https://www.googletagmanager.com
+        https://www.google-analytics.com
+        https://images.unsplash.com
+        https://cdn.builder.io
+        https://cdn.gpteng.co
+        wss: ws:;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval'
+        https://www.googletagmanager.com
+        https://js.paystack.co
+        https://cdn.gpteng.co;
+      img-src 'self' data: https:;
+      style-src 'self' 'unsafe-inline' https:;
+    "
+    />
     <title>ReBooked Solutions - Buy and Sell Textbooks Securely</title>
     <meta
       name="description"
