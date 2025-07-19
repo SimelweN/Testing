@@ -29,6 +29,20 @@ const suppressedErrorPatterns = [
   "window.fetch (eval at messageHandler", // Specific pattern from stack trace
   "at ping \\(https://.*/@vite/client", // Vite ping function
   "WebSocket\\.<anonymous>.*/@vite/client", // Vite WebSocket errors
+  // Enhanced patterns for the specific errors in the stack trace
+  "at e \\(https://edge\\.fullstory\\.com/s/fs\\.js:4:60118\\)",
+  "at m\\.<computed> \\(eval at <anonymous>",
+  "at window\\.fetch \\(eval at messageHandler",
+  "at window\\.fetch \\(https://.*\\.fly\\.dev/src/utils/suppressNetworkErrors\\.ts:",
+  "at ping \\(https://.*\\.fly\\.dev/@vite/client:",
+  "at waitForSuccessfulPing \\(https://.*\\.fly\\.dev/@vite/client:",
+  "at WebSocket\\.<anonymous> \\(https://.*\\.fly\\.dev/@vite/client:",
+  // Broader patterns for eval-based errors
+  "eval at <anonymous> \\(eval at messageHandler",
+  "\\.fly\\.dev/\\?reload=\\d+",
+  // Network connectivity patterns
+  "Failed to fetch.*edge\\.fullstory\\.com",
+  "TypeError: Failed to fetch.*fullstory",
 ];
 
 // Check if error should be suppressed
