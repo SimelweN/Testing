@@ -447,11 +447,10 @@ async function handleGetUserSubaccount(
 
 // Create new subaccount
 async function handleCreateSubaccount(
-  req: Request,
+  requestBody: any,
   user: any,
   supabase: any,
 ): Promise<Response> {
-  const requestBody = await req.json();
   const {
     business_name,
     settlement_bank,
