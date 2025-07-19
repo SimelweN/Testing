@@ -55,6 +55,29 @@ serve(async (req) => {
   try {
     console.log("=== Paystack Subaccount Management Request ===");
 
+    // Handle health check
+    const url = new URL(req.url);
+    if (
+      url.pathname.endsWith("/health") ||
+      url.searchParams.get("health") === "true"
+    ) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          service: "manage-paystack-subaccount",
+          status: "healthy",
+          timestamp: new Date().toISOString(),
+          environment: {
+            paystack_configured: !!PAYSTACK_SECRET_KEY,
+            supabase_configured: !!(SUPABASE_URL && SUPABASE_SERVICE_KEY),
+          },
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
     // Authenticate user
     const user = await getUserFromRequest(req);
     if (!user) {

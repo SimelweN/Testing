@@ -59,6 +59,29 @@ serve(async (req) => {
   }
 
   try {
+    // Handle health check
+    const url = new URL(req.url);
+    if (
+      url.pathname.endsWith("/health") ||
+      url.searchParams.get("health") === "true"
+    ) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          service: "paystack-refund-management",
+          status: "healthy",
+          timestamp: new Date().toISOString(),
+          environment: {
+            paystack_configured: !!PAYSTACK_SECRET_KEY,
+            supabase_configured: !!(SUPABASE_URL && SUPABASE_SERVICE_KEY),
+          },
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
     // Check environment configuration
     const missingEnvVars = [];
     if (!SUPABASE_URL) missingEnvVars.push("SUPABASE_URL");

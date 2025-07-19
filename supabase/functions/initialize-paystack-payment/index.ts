@@ -33,6 +33,29 @@ serve(async (req) => {
   }
 
   try {
+    // Handle health check
+    const url = new URL(req.url);
+    if (
+      url.pathname.endsWith("/health") ||
+      url.searchParams.get("health") === "true"
+    ) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          service: "initialize-paystack-payment",
+          status: "healthy",
+          timestamp: new Date().toISOString(),
+          environment: {
+            paystack_configured: !!PAYSTACK_SECRET_KEY,
+            supabase_configured: !!(SUPABASE_URL && SUPABASE_SERVICE_KEY),
+          },
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
     // Check environment configuration
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -247,7 +270,7 @@ serve(async (req) => {
     }
 
     // Initialize Paystack payment
-    const paystackData = {
+    const paystackData: any = {
       email,
       amount: total_amount * 100, // Convert to kobo
       currency: "ZAR",
