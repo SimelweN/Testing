@@ -97,7 +97,10 @@ export async function saveAPSProfile(
     // 3️⃣ NON-AUTHENTICATED USERS: localStorage only
     return { success: true, source: "localStorage" };
   } catch (error) {
-    console.error("❌ Failed to save APS profile:", error);
+    console.error("❌ Failed to save APS profile:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
