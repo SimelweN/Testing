@@ -19,14 +19,45 @@ serve(async (req) => {
       collected_at = new Date().toISOString(),
     } = await req.json();
 
+    // Enhanced validation with specific error messages
     if (!order_id) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "Missing required field: order_id",
+          error: "VALIDATION_FAILED",
+          details: {
+            missing_fields: ["order_id"],
+            provided_fields: Object.keys(await req.json()),
+            message: "order_id is required",
+          },
+          fix_instructions:
+            "Provide order_id (string). Optional fields: collected_by, collection_notes, tracking_reference, collected_at",
         }),
         {
           status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Check environment variables
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "ENVIRONMENT_CONFIG_ERROR",
+          details: {
+            missing_env_vars: [
+              !SUPABASE_URL ? "SUPABASE_URL" : null,
+              !SUPABASE_SERVICE_KEY ? "SUPABASE_SERVICE_ROLE_KEY" : null,
+            ].filter(Boolean),
+            message: "Required environment variables are not configured",
+          },
+          fix_instructions:
+            "Configure missing environment variables in your deployment settings",
+        }),
+        {
+          status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
@@ -37,21 +68,65 @@ serve(async (req) => {
     // Get order details with buyer and seller info
     const { data: order, error: orderError } = await supabase
       .from("orders")
-      .select(
-        `
-        *,
-        seller:profiles!orders_seller_id_fkey(id, name, email),
-        buyer:profiles!orders_buyer_id_fkey(id, name, email)
-      `,
-      )
+      .select("*")
       .eq("id", order_id)
       .single();
 
-    if (orderError || !order) {
+    if (orderError) {
+      if (orderError.code === "PGRST116") {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "ORDER_NOT_FOUND",
+            details: {
+              order_id,
+              database_error: orderError.message,
+              possible_causes: [
+                "Order ID does not exist",
+                "Order ID format is incorrect",
+                "Order may have been deleted",
+              ],
+            },
+            fix_instructions:
+              "Verify the order_id exists in the database. Check order ID format and spelling.",
+          }),
+          {
+            status: 404,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
       return new Response(
         JSON.stringify({
           success: false,
-          error: "Order not found",
+          error: "DATABASE_QUERY_FAILED",
+          details: {
+            error_code: orderError.code,
+            error_message: orderError.message,
+            query_details: "SELECT from orders table with order_id filter",
+          },
+          fix_instructions:
+            "Check database connection and table structure. Ensure 'orders' table exists and is accessible.",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    if (!order) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "ORDER_NOT_FOUND",
+          details: {
+            order_id,
+            message: "No order found with the provided ID",
+          },
+          fix_instructions:
+            "Verify the order_id is correct and the order exists in the database",
         }),
         {
           status: 404,
@@ -61,12 +136,20 @@ serve(async (req) => {
     }
 
     // Check if order is in a state that allows collection
-    if (!["committed", "courier_scheduled"].includes(order.status)) {
+    const validStatuses = ["committed", "courier_scheduled", "shipped"];
+    if (!validStatuses.includes(order.status)) {
       return new Response(
         JSON.stringify({
           success: false,
-          error:
-            "Order must be committed and courier scheduled before collection",
+          error: "INVALID_ORDER_STATUS",
+          details: {
+            order_id,
+            current_status: order.status,
+            required_statuses: validStatuses,
+            message:
+              "Order must be committed and courier scheduled before collection",
+          },
+          fix_instructions: `Order status must be one of: ${validStatuses.join(", ")}. Current status is '${order.status}'. Ensure the order has been committed and shipping arranged first.`,
         }),
         {
           status: 400,
@@ -74,6 +157,20 @@ serve(async (req) => {
         },
       );
     }
+
+    // Get buyer and seller profiles
+    const [{ data: buyer }, { data: seller }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, name, email")
+        .eq("id", order.buyer_id)
+        .single(),
+      supabase
+        .from("profiles")
+        .select("id, name, email")
+        .eq("id", order.seller_id)
+        .single(),
+    ]);
 
     // Update order status to collected
     const { data: updatedOrder, error: updateError } = await supabase
@@ -91,72 +188,53 @@ serve(async (req) => {
       .single();
 
     if (updateError) {
-      throw new Error(`Failed to update order status: ${updateError.message}`);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "ORDER_UPDATE_FAILED",
+          details: {
+            error_code: updateError.code,
+            error_message: updateError.message,
+            update_fields: [
+              "status",
+              "collected_at",
+              "collected_by",
+              "collection_notes",
+              "tracking_reference",
+              "updated_at",
+            ],
+            order_id,
+          },
+          fix_instructions:
+            "Check database permissions and ensure the orders table allows updates to these fields. Verify column names exist in the table.",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     // Send notification emails
+    const emailPromises = [];
+    let emailErrors = [];
+
     try {
       // Notify buyer about collection
-      await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-        },
-        body: JSON.stringify({
-          to: order.buyer.email,
-          subject: "📦 Your order is on the way!",
-          html: `
+      if (buyer?.email) {
+        const buyerHtml = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <title>Order Collected - ReBooked Solutions</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f3fef7;
-      padding: 20px;
-      color: #1f4e3d;
-      margin: 0;
-    }
-    .container {
-      max-width: 500px;
-      margin: auto;
-      background-color: #ffffff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-    .header {
-      background: #3ab26f;
-      color: white;
-      padding: 20px;
-      text-align: center;
-      border-radius: 10px 10px 0 0;
-      margin: -30px -30px 20px -30px;
-    }
-    .footer {
-      background: #f3fef7;
-      color: #1f4e3d;
-      padding: 20px;
-      text-align: center;
-      font-size: 12px;
-      line-height: 1.5;
-      margin: 30px -30px -30px -30px;
-      border-radius: 0 0 10px 10px;
-      border-top: 1px solid #e5e7eb;
-    }
-    .info-box {
-      background: #f0f9ff;
-      border: 1px solid #3ab26f;
-      padding: 15px;
-      border-radius: 5px;
-      margin: 15px 0;
-    }
-    .link {
-      color: #3ab26f;
-    }
+    body { font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; margin: 0; }
+    .container { max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+    .header { background: #3ab26f; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; }
+    .footer { background: #f3fef7; color: #1f4e3d; padding: 20px; text-align: center; font-size: 12px; line-height: 1.5; margin: 30px -30px -30px -30px; border-radius: 0 0 10px 10px; border-top: 1px solid #e5e7eb; }
+    .info-box { background: #f0f9ff; border: 1px solid #3ab26f; padding: 15px; border-radius: 5px; margin: 15px 0; }
+    .link { color: #3ab26f; }
   </style>
 </head>
 <body>
@@ -165,137 +243,82 @@ serve(async (req) => {
       <h1>📦 Your Order is on the Way!</h1>
     </div>
 
-    <h2>Hello ${order.buyer.name}!</h2>
-    <p>Great news! Your order #${order_id} has been collected from ${order.seller.name} and is now being shipped to you.</p>
+    <h2>Hello ${buyer?.name || "Customer"}!</h2>
+    <p>Great news! Your order #${order_id} has been collected from ${seller?.name || "the seller"} and is now being shipped to you.</p>
 
     <div class="info-box">
       <h3>📱 Tracking Information</h3>
       <p><strong>Tracking Reference:</strong> ${tracking_reference || "Will be provided soon"}</p>
       <p><strong>Estimated Delivery:</strong> 3-5 business days</p>
       <p><strong>Collected At:</strong> ${new Date(collected_at).toLocaleString()}</p>
+      <p><strong>Collected By:</strong> ${collected_by}</p>
+      ${collection_notes ? `<p><strong>Notes:</strong> ${collection_notes}</p>` : ""}
     </div>
 
     <div class="info-box">
       <h3>📍 Delivery Address</h3>
-      <p>${order.shipping_address?.address_line_1 || ""}<br>
-      ${order.shipping_address?.address_line_2 || ""}<br>
-      ${order.shipping_address?.city || ""}, ${order.shipping_address?.postal_code || ""}</p>
+      <p>${order.shipping_address?.address_line_1 || order.delivery_address?.address_line_1 || "Address on file"}<br>
+      ${order.shipping_address?.address_line_2 || order.delivery_address?.address_line_2 || ""}<br>
+      ${order.shipping_address?.city || order.delivery_address?.city || ""}, ${order.shipping_address?.postal_code || order.delivery_address?.postal_code || ""}</p>
     </div>
 
     <p>You'll receive another notification with tracking details once your package is dispatched.</p>
-
     <p>Thank you for choosing ReBooked Solutions!</p>
 
     <div class="footer">
       <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
       Please do not reply to this email.</p>
-            <p>For help, contact support@rebookedsolutions.co.za<br>
+      <p>For help, contact support@rebookedsolutions.co.za<br>
       Visit our website: www.rebookedsolutions.co.za<br>
       T&Cs apply</p>
       <p><em>"Pre-Loved Pages, New Adventures"</em></p>
     </div>
   </div>
 </body>
-</html>`,
-          text: `Your Order is on the Way!
+</html>`;
 
-Hello ${order.buyer.name}!
-
-Great news! Your order #${order_id} has been collected from ${order.seller.name} and is now being shipped to you.
-
-Tracking Information:
-Tracking Reference: ${tracking_reference || "Will be provided soon"}
-Estimated Delivery: 3-5 business days
-Collected At: ${new Date(collected_at).toLocaleString()}
-
-Delivery Address:
-${order.shipping_address?.address_line_1 || ""}
-${order.shipping_address?.address_line_2 || ""}
-${order.shipping_address?.city || ""}, ${order.shipping_address?.postal_code || ""}
-
-You'll receive another notification with tracking details once your package is dispatched.
-
-Thank you for choosing ReBooked Solutions!
-
-This is an automated message from ReBooked Solutions. Please do not reply to this email.
-For help, contact support@rebookedsolutions.co.za
-Visit our website: www.rebookedsolutions.co.za
-T&Cs apply
-"Pre-Loved Pages, New Adventures"`,
-        }),
-      });
+        emailPromises.push(
+          fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+            },
+            body: JSON.stringify({
+              to: buyer.email,
+              subject: "📦 Your order is on the way!",
+              html: buyerHtml,
+              text: `Your Order is on the Way!\n\nHello ${buyer?.name || "Customer"}!\n\nGreat news! Your order #${order_id} has been collected from ${seller?.name || "the seller"} and is now being shipped to you.\n\nTracking Reference: ${tracking_reference || "Will be provided soon"}\nEstimated Delivery: 3-5 business days\nCollected At: ${new Date(collected_at).toLocaleString()}\nCollected By: ${collected_by}\n\nThank you for choosing ReBooked Solutions!`,
+            }),
+          }),
+        );
+      }
 
       // Notify seller about successful collection
-      await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-        },
-        body: JSON.stringify({
-          to: order.seller.email,
-          subject: "Order collected successfully",
-          html: `
+      if (seller?.email) {
+        const sellerHtml = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <title>Order Collected - ReBooked Solutions</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f3fef7;
-      padding: 20px;
-      color: #1f4e3d;
-      margin: 0;
-    }
-    .container {
-      max-width: 500px;
-      margin: auto;
-      background-color: #ffffff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-    .header {
-      background: #3ab26f;
-      color: white;
-      padding: 20px;
-      text-align: center;
-      border-radius: 10px 10px 0 0;
-      margin: -30px -30px 20px -30px;
-    }
-    .footer {
-      background: #f3fef7;
-      color: #1f4e3d;
-      padding: 20px;
-      text-align: center;
-      font-size: 12px;
-      line-height: 1.5;
-      margin: 30px -30px -30px -30px;
-      border-radius: 0 0 10px 10px;
-      border-top: 1px solid #e5e7eb;
-    }
-    .success-box {
-      background: #dcfce7;
-      border: 1px solid #22c55e;
-      padding: 15px;
-      border-radius: 5px;
-      margin: 15px 0;
-    }
-    .link {
-      color: #3ab26f;
-    }
+    body { font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; margin: 0; }
+    .container { max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+    .header { background: #3ab26f; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; }
+    .footer { background: #f3fef7; color: #1f4e3d; padding: 20px; text-align: center; font-size: 12px; line-height: 1.5; margin: 30px -30px -30px -30px; border-radius: 0 0 10px 10px; border-top: 1px solid #e5e7eb; }
+    .success-box { background: #dcfce7; border: 1px solid #22c55e; padding: 15px; border-radius: 5px; margin: 15px 0; }
+    .link { color: #3ab26f; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-            <h1>Order Collected Successfully!</h1>
+      <h1>Order Collected Successfully!</h1>
     </div>
 
-    <h2>Hello ${order.seller.name}!</h2>
-    <p>Your order #${order_id} has been successfully collected and is now being shipped to ${order.buyer.name}.</p>
+    <h2>Hello ${seller?.name || "Seller"}!</h2>
+    <p>Your order #${order_id} has been successfully collected and is now being shipped to ${buyer?.name || "the customer"}.</p>
 
     <div class="success-box">
       <h3>📋 Collection Details</h3>
@@ -306,46 +329,52 @@ T&Cs apply
     </div>
 
     <p>The buyer will be notified about the shipment and you can expect your payment to be processed soon.</p>
-
     <p>Thank you for being part of the ReBooked Solutions community!</p>
 
     <div class="footer">
       <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
       Please do not reply to this email.</p>
-            <p>For help, contact support@rebookedsolutions.co.za<br>
+      <p>For help, contact support@rebookedsolutions.co.za<br>
       Visit our website: www.rebookedsolutions.co.za<br>
       T&Cs apply</p>
       <p><em>"Pre-Loved Pages, New Adventures"</em></p>
     </div>
   </div>
 </body>
-</html>`,
-          text: `Order Collected Successfully!
+</html>`;
 
-Hello ${order.seller.name}!
+        emailPromises.push(
+          fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+            },
+            body: JSON.stringify({
+              to: seller.email,
+              subject: "Order collected successfully",
+              html: sellerHtml,
+              text: `Order Collected Successfully!\n\nHello ${seller?.name || "Seller"}!\n\nYour order #${order_id} has been successfully collected and is now being shipped to ${buyer?.name || "the customer"}.\n\nCollected At: ${new Date(collected_at).toLocaleString()}\nCollected By: ${collected_by}\nTracking Reference: ${tracking_reference || "Being generated"}\n\nThank you for being part of the ReBooked Solutions community!`,
+            }),
+          }),
+        );
+      }
 
-Your order #${order_id} has been successfully collected and is now being shipped to ${order.buyer.name}.
-
-Collection Details:
-Collected At: ${new Date(collected_at).toLocaleString()}
-Collected By: ${collected_by}
-Tracking Reference: ${tracking_reference || "Being generated"}
-${collection_notes ? `Notes: ${collection_notes}` : ""}
-
-The buyer will be notified about the shipment and you can expect your payment to be processed soon.
-
-Thank you for being part of the ReBooked Solutions community!
-
-This is an automated message from ReBooked Solutions. Please do not reply to this email.
-For help, contact support@rebookedsolutions.co.za
-Visit our website: www.rebookedsolutions.co.za
-T&Cs apply
-"Pre-Loved Pages, New Adventures"`,
-        }),
-      });
+      // Wait for emails to send
+      const emailResults = await Promise.allSettled(emailPromises);
+      emailErrors = emailResults
+        .map((result, index) =>
+          result.status === "rejected"
+            ? {
+                recipient: index === 0 ? "buyer" : "seller",
+                error: result.reason,
+              }
+            : null,
+        )
+        .filter(Boolean);
     } catch (emailError) {
       console.error("Failed to send collection notifications:", emailError);
-      // Don't fail the collection process for email errors
+      emailErrors.push({ general: emailError.message });
     }
 
     // Schedule delivery completion check (e.g., after estimated delivery time)
@@ -353,8 +382,6 @@ T&Cs apply
       Date.now() + 5 * 24 * 60 * 60 * 1000,
     ); // 5 days
 
-    // This could trigger another function to check delivery status
-    // For now, we'll just log it
     console.log(
       `Order ${order_id} collected, estimated delivery: ${estimatedDeliveryDate.toISOString()}`,
     );
@@ -362,14 +389,26 @@ T&Cs apply
     return new Response(
       JSON.stringify({
         success: true,
-        order: updatedOrder,
-        collection: {
-          collected_at,
-          collected_by,
-          tracking_reference,
-          collection_notes,
-        },
         message: "Order marked as collected successfully",
+        details: {
+          order: updatedOrder,
+          collection: {
+            collected_at,
+            collected_by,
+            tracking_reference,
+            collection_notes,
+          },
+          notifications: {
+            buyer_notified:
+              !!buyer?.email &&
+              emailErrors.filter((e) => e.recipient === "buyer").length === 0,
+            seller_notified:
+              !!seller?.email &&
+              emailErrors.filter((e) => e.recipient === "seller").length === 0,
+            email_errors: emailErrors,
+          },
+          estimated_delivery: estimatedDeliveryDate.toISOString(),
+        },
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
@@ -378,7 +417,15 @@ T&Cs apply
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || "Failed to mark order as collected",
+        error: "UNEXPECTED_ERROR",
+        details: {
+          error_message: error.message,
+          error_stack: error.stack,
+          error_type: error.constructor.name,
+          timestamp: new Date().toISOString(),
+        },
+        fix_instructions:
+          "This is an unexpected server error. Check the server logs for more details and contact support if the issue persists.",
       }),
       {
         status: 500,
