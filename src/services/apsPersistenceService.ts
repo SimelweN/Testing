@@ -137,7 +137,10 @@ export function loadAPSProfile(): UserAPSProfile | null {
 
     return profile;
   } catch (error) {
-    console.error("❌ Error loading APS profile:", error);
+    console.error("❌ Error loading APS profile:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     // Clear corrupted data
     localStorage.removeItem(APS_STORAGE_KEY);
     return null;
@@ -164,7 +167,10 @@ export function clearAPSProfile(): boolean {
     console.log("✅ APS Profile cleared successfully");
     return true;
   } catch (error) {
-    console.error("❌ Failed to clear APS profile:", error);
+    console.error("❌ Failed to clear APS profile:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return false;
   }
 }
