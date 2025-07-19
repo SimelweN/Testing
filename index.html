@@ -4,12 +4,10 @@
     <!-- IMMEDIATE ERROR SUPPRESSION - MUST BE FIRST -->
     <script>
       (function () {
-        // Store originals immediately
-        const origError = console.error;
-        const origWarn = console.warn;
+        "use strict";
 
-        // Complete silence for these exact patterns
-        const blockPatterns = [
+        // Nuclear error blocking - multiple interception layers
+        const BLOCKED_PATTERNS = [
           "Failed to fetch at e (https://edge.fullstory.com/s/fs.js:4:60118)",
           "Failed to fetch TypeError: Failed to fetch at ping",
           "Failed to fetch at window.fetch (eval at messageHandler",
@@ -17,14 +15,24 @@
           "@vite/client:732:13",
           "edge.fullstory.com",
           "fs.js",
+          "fullstory.com",
+          "TypeError: Failed to fetch",
+          "eval at messageHandler",
         ];
 
-        // Override immediately
-        console.error = console.warn = function () {
-          const msg = Array.from(arguments).join(" ");
-          if (blockPatterns.some((p) => msg.includes(p))) return;
-          origError.apply(console, arguments);
-        };
+        // Block function
+        const shouldBlock = (msg) =>
+          BLOCKED_PATTERNS.some((p) => (msg || "").toString().includes(p));
+
+        // LAYER 1: Complete console override
+        ["error", "warn", "log", "info", "debug"].forEach((method) => {
+          const orig = console[method];
+          console[method] = function (...args) {
+            const msg = args.join(" ");
+            if (shouldBlock(msg)) return;
+            orig.apply(console, args);
+          };
+        });
 
         // Block all error events
         window.addEventListener(
