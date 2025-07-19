@@ -28,8 +28,16 @@ export const cleanupMockData = async () => {
       .select("id, email, name");
 
     if (profilesError) {
-      console.error("Error fetching profiles:", profilesError);
-      return { success: false, error: profilesError.message };
+      console.error("Error fetching profiles:", {
+        message: profilesError.message,
+        code: profilesError.code,
+        details: profilesError.details,
+        hint: profilesError.hint,
+      });
+      return {
+        success: false,
+        error: profilesError.message || "Unknown database error",
+      };
     }
 
     // Identify mock profiles
