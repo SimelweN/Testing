@@ -65,7 +65,10 @@ export class ActivityService {
         console.log("✅ Profile update notification created");
       }
     } catch (error) {
-      console.error("Error logging profile update activity:", error);
+      console.error("Error logging profile update activity:", {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   }
 
