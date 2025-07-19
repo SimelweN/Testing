@@ -206,6 +206,24 @@ serve(async (req) => {
 
       case "PUT":
         if (action === "update" && subaccountId) {
+          // Authenticate user for subaccount update
+          const user = await getUserFromRequest(req);
+          if (!user) {
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: "AUTHENTICATION_FAILED",
+                details: {
+                  message: "User authentication required for subaccount update",
+                },
+              }),
+              {
+                status: 401,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              },
+            );
+          }
+
           // Parse request body if not already parsed for health check
           let requestBody;
           if (body) {
