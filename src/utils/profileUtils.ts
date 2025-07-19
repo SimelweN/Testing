@@ -17,7 +17,10 @@ export const safeGetProfile = async <T = any>(
 
     return { data, error };
   } catch (error) {
-    console.error(`Error fetching profile for user ${userId}:`, error);
+    console.error(`Error fetching profile for user ${userId}:`, {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return { data: null, error };
   }
 };
