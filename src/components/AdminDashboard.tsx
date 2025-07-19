@@ -34,6 +34,7 @@ import DemoDataGenerator from "@/components/admin/DemoDataGenerator";
 import EdgeFunctionTester from "@/components/admin/EdgeFunctionTester";
 import PaystackSplitManagement from "@/components/admin/PaystackSplitManagement";
 import PaystackTransferManagement from "@/components/admin/PaystackTransferManagement";
+import PaystackSystemTestComponent from "@/components/admin/PaystackSystemTestComponent";
 
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -56,6 +57,7 @@ import {
   Database,
   Split,
   ArrowUpRight,
+  ShieldCheck,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -385,6 +387,13 @@ const AdminDashboard = () => {
       description: "Test payments & refunds",
     },
     {
+      value: "paystack-verification",
+      label: "Paystack System",
+      icon: ShieldCheck,
+      color: "text-emerald-600",
+      description: "Comprehensive system verification",
+    },
+    {
       value: "split-management",
       label: "Payment Splits",
       icon: Split,
@@ -647,6 +656,12 @@ const AdminDashboard = () => {
           <TabsContent value="paystack-testing" className="space-y-4 mt-0">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
               <AdminPaystackTestingTab />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="paystack-verification" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+              <PaystackSystemTestComponent />
             </div>
           </TabsContent>
 
