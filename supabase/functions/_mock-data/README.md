@@ -1,6 +1,6 @@
 # Comprehensive Mock Data for Edge Functions Testing
 
-This directory contains complete mock data for all Edge Functions to ensure proper testing with all required fields populated.
+This directory contains **COMPLETE** mock data for **ALL** Edge Functions to ensure proper testing with **ALL** required fields populated.
 
 ## 📁 Mock Data Files
 
@@ -38,6 +38,50 @@ Complete mock data for delivery service APIs:
 - ✅ Complete address objects
 - ✅ Package details with dimensions
 - ✅ Tracking data and updates
+
+### 4. `commit-system-mock-data.ts` **[NEW]**
+
+Complete mock data for commit system Edge Functions:
+
+- ✅ Commit to sale data
+- ✅ Decline commit data
+- ✅ Auto-expire commit responses
+- ✅ Order creation with cart items
+- ✅ Mark collected data
+- ✅ Pay seller data
+- ✅ Process reminders responses
+
+### 5. `email-auth-mock-data.ts` **[NEW]**
+
+Complete mock data for email and authentication Edge Functions:
+
+- ✅ Send email requests with HTML templates
+- ✅ Debug email template data
+- ✅ Subaccount creation data
+- ✅ Subaccount management data
+- ✅ Authentication headers
+- ✅ Health test data and responses
+- ✅ Error response patterns
+
+### 6. `payment-management-mock-data.ts` **[NEW]**
+
+Complete mock data for payment management Edge Functions:
+
+- ✅ Refund management (initiate, check, cancel)
+- ✅ Transfer management (initiate, verify, list)
+- ✅ Split management (create, update, fetch)
+- ✅ Payment verification data
+- ✅ Complete response objects
+- ✅ Error handling scenarios
+
+### 7. `index.ts` **[NEW]** - Master Index
+
+Complete aggregated access to all mock data:
+
+- ✅ Function-specific mock data mapping
+- ✅ Complete test scenarios
+- ✅ Validation helpers
+- ✅ Quick access functions
 
 ## 🧪 Testing Best Practices
 
