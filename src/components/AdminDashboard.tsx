@@ -31,6 +31,7 @@ import AdminEmailTestingTab from "@/components/admin/AdminEmailTestingTab";
 import AdminPaystackTestingTab from "@/components/admin/AdminPaystackTestingTab";
 import SignupEmailTest from "@/components/admin/SignupEmailTest";
 import EmailVerificationDiagnostic from "@/components/admin/EmailVerificationDiagnostic";
+import PaystackEdgeFunctionDiagnostic from "@/components/admin/PaystackEdgeFunctionDiagnostic";
 import DatabaseTableTester from "@/components/admin/DatabaseTableTester";
 import DemoDataGenerator from "@/components/admin/DemoDataGenerator";
 import EdgeFunctionTester from "@/components/admin/EdgeFunctionTester";
