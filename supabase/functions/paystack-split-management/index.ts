@@ -219,19 +219,37 @@ async function handleGetSplits(req: Request): Promise<Response> {
       },
     );
   } catch (error) {
+    console.error("Split fetch error:", error);
+
+    let errorType = "SPLIT_FETCH_ERROR";
+    let statusCode = 500;
+    let fixInstructions = "Check network connectivity and Paystack API status";
+
+    if (error.message.includes("timeout")) {
+      errorType = "SPLIT_FETCH_TIMEOUT";
+      fixInstructions =
+        "Request timed out. Please try again or check your connection.";
+    } else if (error.message.includes("fetch")) {
+      errorType = "SPLIT_NETWORK_ERROR";
+      fixInstructions =
+        "Network connection failed. Please check your internet connection.";
+    }
+
     return new Response(
       JSON.stringify({
         success: false,
-        error: "SPLIT_FETCH_ERROR",
+        error: errorType,
+        error_type: "network",
         details: {
           error_message: error.message,
+          error_name: error.name,
           split_code: splitCode,
-          message: "Error fetching split information",
+          message: "Error connecting to split management service",
         },
-        fix_instructions: "Check network connectivity and Paystack API status",
+        fix_instructions: fixInstructions,
       }),
       {
-        status: 500,
+        status: statusCode,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       },
     );
