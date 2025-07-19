@@ -63,6 +63,22 @@
             .register("/error-block-sw.js")
             .catch(() => {});
         }
+
+        // DOM MUTATION OBSERVER TO BLOCK SCRIPTS
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+              if (node.tagName === "SCRIPT" && node.src) {
+                if (kill(node.src)) {
+                  node.remove();
+                  console.debug("🚫 DOM script blocked:", node.src);
+                }
+              }
+            });
+          });
+        });
+
+        observer.observe(document, { childList: true, subtree: true });
       })();
     </script>
     <!-- ULTRA AGGRESSIVE ERROR SUPPRESSION FOR SPECIFIC FETCH ERRORS -->
