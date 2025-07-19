@@ -381,6 +381,13 @@ const AdminDashboard = () => {
       description: "Test all email templates",
     },
     {
+      value: "signup-email-test",
+      label: "Signup Email",
+      icon: ShieldCheck,
+      color: "text-emerald-600",
+      description: "Test signup email confirmation",
+    },
+    {
       value: "paystack-testing",
       label: "Paystack Testing",
       icon: CreditCard,
