@@ -395,7 +395,7 @@
           "safari-extension",
         ];
 
-                // Check if message should be suppressed
+        // Check if message should be suppressed
         function shouldSuppress(msg) {
           const msgLower = msg.toLowerCase();
 
@@ -404,11 +404,11 @@
             "typeerror: failed to fetch at e (https://edge.fullstory.com/s/fs.js:",
             "failed to fetch typeerror: failed to fetch at ping",
             "failed to fetch at window.fetch (eval at messagehandler",
-            "@vite/client:732:13"
+            "@vite/client:732:13",
           ];
 
           // Check exact patterns first
-          if (exactPatterns.some(pattern => msgLower.includes(pattern))) {
+          if (exactPatterns.some((pattern) => msgLower.includes(pattern))) {
             return true;
           }
 
@@ -472,7 +472,7 @@
           true,
         );
 
-                // Handle unhandled promise rejections
+        // Handle unhandled promise rejections
         window.addEventListener("unhandledrejection", function (e) {
           const message = e.reason?.message || e.reason?.toString() || "";
           const stack = e.reason?.stack || "";
@@ -529,7 +529,7 @@
               });
             }
 
-                        // Handle Vite dev client issues gracefully
+            // Handle Vite dev client issues gracefully
             if (
               urlString.includes("@vite/client") ||
               urlString.includes(".fly.dev") ||
@@ -541,9 +541,7 @@
                   status: 200,
                   statusText: "OK",
                   headers: { "Content-Type": "application/json" },
-                  });
-                }
-                throw error;
+                });
               });
             }
 
@@ -551,9 +549,9 @@
           };
         }
 
-                // Additional safety net for messageHandler errors
+        // Additional safety net for messageHandler errors
         const originalEval = window.eval;
-        window.eval = function(code) {
+        window.eval = function (code) {
           try {
             return originalEval.call(this, code);
           } catch (error) {
@@ -569,13 +567,19 @@
           }
         };
 
-                // Additional aggressive suppression for persistent errors
+        // Additional aggressive suppression for persistent errors
         const suppressSpecificErrors = (msg) => {
           return (
             msg.includes("Failed to fetch at e (https://edge.fullstory.com") ||
-            msg.includes("Failed to fetch TypeError: Failed to fetch at ping") ||
-            msg.includes("Failed to fetch at window.fetch (eval at messageHandler") ||
-            msg.includes("213f0d6feb0c4f74bf8db7ef237f0dbe-315d37effbbd45138374f8eea.fly.dev")
+            msg.includes(
+              "Failed to fetch TypeError: Failed to fetch at ping",
+            ) ||
+            msg.includes(
+              "Failed to fetch at window.fetch (eval at messageHandler",
+            ) ||
+            msg.includes(
+              "213f0d6feb0c4f74bf8db7ef237f0dbe-315d37effbbd45138374f8eea.fly.dev",
+            )
           );
         };
 
@@ -583,7 +587,7 @@
         const origConsoleError = console.error;
         const origConsoleWarn = console.warn;
 
-        console.error = function(...args) {
+        console.error = function (...args) {
           const msg = args.join(" ");
           if (suppressSpecificErrors(msg) || shouldSuppress(msg)) {
             return; // Completely silent
@@ -591,7 +595,7 @@
           return origConsoleError.apply(this, args);
         };
 
-        console.warn = function(...args) {
+        console.warn = function (...args) {
           const msg = args.join(" ");
           if (suppressSpecificErrors(msg) || shouldSuppress(msg)) {
             return; // Completely silent
