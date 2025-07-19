@@ -333,12 +333,24 @@
 
       window.addEventListener("unhandledrejection", (e) => {
         const msg = e.reason?.toString() || "";
+        const stack = e.reason?.stack || "";
+
+        // Exact error patterns from the user
         if (
-          msg.includes("fullstory.com") ||
-          msg.includes("@vite/client") ||
-          msg.includes("Failed to fetch at e (https://edge.fullstory.com") ||
-          msg.includes("Failed to fetch at ping") ||
-          msg.includes("eval at messageHandler")
+          msg.includes(
+            "Failed to fetch at e (https://edge.fullstory.com/s/fs.js:4:60118)",
+          ) ||
+          msg.includes("Failed to fetch TypeError: Failed to fetch at ping") ||
+          msg.includes(
+            "Failed to fetch at window.fetch (eval at messageHandler",
+          ) ||
+          msg.includes(
+            "213f0d6feb0c4f74bf8db7ef237f0dbe-315d37effbbd45138374f8eea.fly.dev",
+          ) ||
+          msg.includes("@vite/client:732:13") ||
+          stack.includes("edge.fullstory.com") ||
+          stack.includes("@vite/client") ||
+          stack.includes("messageHandler")
         ) {
           e.preventDefault();
           return false;
