@@ -889,6 +889,19 @@ export default function EdgeFunctionTester() {
           <br />
           • Email functions will send to test addresses only
           <br />• Delivery functions use sandbox APIs where available
+          <br />
+          <details className="mt-2">
+            <summary className="cursor-pointer text-sm font-medium">
+              Debug: Show all loaded functions ({edgeFunctions.length})
+            </summary>
+            <div className="mt-2 text-xs space-y-1">
+              {edgeFunctions.map((func, index) => (
+                <div key={func.name}>
+                  {index + 1}. {func.name} ({func.category})
+                </div>
+              ))}
+            </div>
+          </details>
         </AlertDescription>
       </Alert>
     </div>
