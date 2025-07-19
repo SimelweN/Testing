@@ -401,22 +401,12 @@ export class PaystackSystemTester {
 
   private async testSubaccountCreationWithMockData() {
     try {
-      const mockSubaccountData = {
-        business_name: "Mock Test Business PTY LTD",
-        email: "business@mocktest.co.za",
-        bank_name: "Standard Bank",
-        bank_code: "058",
-        account_number: "1234567890",
-        is_update: false,
-        test_mode: true,
-      };
-
       const { result, timing } = await this.measureTime(async () => {
         const { data, error } = await supabase.functions.invoke(
           "create-paystack-subaccount",
           {
             method: "POST",
-            body: mockSubaccountData,
+            body: PaystackMockData.subaccountCreation,
           },
         );
         if (error) throw error;
