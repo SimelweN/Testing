@@ -97,6 +97,51 @@ const BankingProfileTab = () => {
     );
   }
 
+  // Show detailed subaccount view
+  if (viewMode === "detailed" && subaccountCode) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Button
+            onClick={handleBackToSummary}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            ← Back to Summary
+          </Button>
+        </div>
+        <SubaccountView
+          onEdit={() => setViewMode("edit")}
+          showEditButton={true}
+        />
+      </div>
+    );
+  }
+
+  // Show subaccount edit form
+  if (viewMode === "edit" && subaccountCode) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Button
+            onClick={handleBackToSummary}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            ← Back to Summary
+          </Button>
+        </div>
+        <SubaccountEditForm
+          subaccountCode={subaccountCode}
+          onSuccess={handleEditSuccess}
+          onCancel={handleBackToSummary}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Card>
