@@ -12,6 +12,9 @@ import {
   Info,
   ArrowRight,
   Building2,
+  Eye,
+  Edit3,
+  Settings,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { BankingService } from "@/services/bankingService";
@@ -19,6 +22,9 @@ import { useBanking } from "@/hooks/useBanking";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import type { BankingSubaccount } from "@/types/banking";
+import SubaccountView from "@/components/banking/SubaccountView";
+import SubaccountEditForm from "@/components/banking/SubaccountEditForm";
+import { PaystackSubaccountService } from "@/services/paystackSubaccountService";
 
 const BankingProfileTab = () => {
   const { user } = useAuth();
@@ -34,12 +40,49 @@ const BankingProfileTab = () => {
     refreshBankingDetails,
   } = useBanking();
 
+  const [viewMode, setViewMode] = useState<"summary" | "detailed" | "edit">(
+    "summary",
+  );
+  const [subaccountCode, setSubaccountCode] = useState<string | null>(null);
+  const [loadingSubaccount, setLoadingSubaccount] = useState(false);
+
   const handleSetupBanking = () => {
     navigate("/banking-setup");
   };
 
   const handleEditBanking = () => {
-    navigate("/banking-setup");
+    setViewMode("edit");
+  };
+
+  const handleViewDetailed = async () => {
+    if (!subaccountCode) {
+      setLoadingSubaccount(true);
+      try {
+        const code = await PaystackSubaccountService.getUserSubaccountCode();
+        if (code) {
+          setSubaccountCode(code);
+          setViewMode("detailed");
+        } else {
+          toast.error("No subaccount found");
+        }
+      } catch (error) {
+        toast.error("Failed to load subaccount details");
+      } finally {
+        setLoadingSubaccount(false);
+      }
+    } else {
+      setViewMode("detailed");
+    }
+  };
+
+  const handleEditSuccess = () => {
+    setViewMode("summary");
+    refreshBankingDetails();
+    toast.success("Banking details updated successfully!");
+  };
+
+  const handleBackToSummary = () => {
+    setViewMode("summary");
   };
 
   if (isLoading) {
@@ -51,6 +94,51 @@ const BankingProfileTab = () => {
           </div>
         </CardContent>
       </Card>
+    );
+  }
+
+  // Show detailed subaccount view
+  if (viewMode === "detailed" && subaccountCode) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Button
+            onClick={handleBackToSummary}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            ← Back to Summary
+          </Button>
+        </div>
+        <SubaccountView
+          onEdit={() => setViewMode("edit")}
+          showEditButton={true}
+        />
+      </div>
+    );
+  }
+
+  // Show subaccount edit form
+  if (viewMode === "edit" && subaccountCode) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Button
+            onClick={handleBackToSummary}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            ← Back to Summary
+          </Button>
+        </div>
+        <SubaccountEditForm
+          subaccountCode={subaccountCode}
+          onSuccess={handleEditSuccess}
+          onCancel={handleBackToSummary}
+        />
+      </div>
     );
   }
 
@@ -169,13 +257,26 @@ const BankingProfileTab = () => {
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex flex-wrap gap-3 pt-4">
+                <Button
+                  onClick={handleViewDetailed}
+                  className="bg-book-600 hover:bg-book-700 flex items-center gap-2"
+                  disabled={loadingSubaccount}
+                >
+                  {loadingSubaccount ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                  View Details
+                </Button>
                 <Button
                   onClick={handleEditBanking}
                   variant="outline"
-                  className="border-book-200 text-book-600 hover:bg-book-50"
+                  className="border-book-200 text-book-600 hover:bg-book-50 flex items-center gap-2"
                 >
-                  Update Banking Details
+                  <Edit3 className="h-4 w-4" />
+                  Edit Details
                 </Button>
                 <Button
                   onClick={refreshBankingDetails}

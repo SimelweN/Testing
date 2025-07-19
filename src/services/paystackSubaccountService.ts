@@ -9,6 +9,39 @@ export interface SubaccountDetails {
   account_number: string;
 }
 
+export interface SubaccountUpdateDetails {
+  business_name?: string;
+  settlement_bank?: string;
+  account_number?: string;
+  percentage_charge?: number;
+  description?: string;
+  primary_contact_email?: string;
+  primary_contact_name?: string;
+  primary_contact_phone?: string;
+  settlement_schedule?: "auto" | "weekly" | "monthly" | "manual";
+  metadata?: Record<string, any>;
+}
+
+export interface SubaccountData {
+  subaccount_code: string;
+  business_name: string;
+  description?: string;
+  primary_contact_email?: string;
+  primary_contact_name?: string;
+  primary_contact_phone?: string;
+  percentage_charge: number;
+  settlement_bank: string;
+  account_number: string;
+  settlement_schedule: string;
+  active: boolean;
+  migrate?: boolean;
+  metadata?: Record<string, any>;
+  domain?: string;
+  subaccount_id?: number;
+  is_verified?: boolean;
+  split_ratio?: number;
+}
+
 export class PaystackSubaccountService {
   // 🏦 CREATE OR UPDATE SUBACCOUNT
   static async createOrUpdateSubaccount(
@@ -293,6 +326,165 @@ export class PaystackSubaccountService {
     } catch (error) {
       console.error("Error getting user subaccount code:", error);
       return null;
+    }
+  }
+
+  // 🔍 FETCH SUBACCOUNT DETAILS FROM PAYSTACK
+  static async fetchSubaccountDetails(
+    subaccountCode: string,
+  ): Promise<{ success: boolean; data?: SubaccountData; error?: string }> {
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        throw new Error("Authentication required. Please log in.");
+      }
+
+      const { data, error } = await supabase.functions.invoke(
+        "manage-paystack-subaccount",
+        {
+          method: "GET",
+          body: null,
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        },
+      );
+
+      if (error) {
+        console.error("Supabase function error:", error);
+        throw new Error(error.message || "Failed to fetch subaccount details");
+      }
+
+      if (!data?.success) {
+        throw new Error(data.error || "Failed to fetch subaccount details");
+      }
+
+      return {
+        success: true,
+        data: data.data?.paystack_data,
+      };
+    } catch (error) {
+      console.error("Error fetching subaccount details:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      };
+    }
+  }
+
+  // ✏️ UPDATE SUBACCOUNT DETAILS
+  static async updateSubaccountDetails(
+    subaccountCode: string,
+    updateData: SubaccountUpdateDetails,
+  ): Promise<{ success: boolean; data?: SubaccountData; error?: string }> {
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        throw new Error("Authentication required. Please log in.");
+      }
+
+      console.log(
+        "Updating subaccount:",
+        subaccountCode,
+        "with data:",
+        updateData,
+      );
+
+      const { data, error } = await supabase.functions.invoke(
+        "manage-paystack-subaccount",
+        {
+          method: "PUT",
+          body: updateData,
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        },
+      );
+
+      if (error) {
+        console.error("Supabase function error:", error);
+        throw new Error(error.message || "Failed to update subaccount");
+      }
+
+      if (!data?.success) {
+        throw new Error(data.error || "Failed to update subaccount");
+      }
+
+      return {
+        success: true,
+        data: data.data,
+      };
+    } catch (error) {
+      console.error("Error updating subaccount:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      };
+    }
+  }
+
+  // 📊 GET COMPLETE USER SUBACCOUNT INFO
+  static async getCompleteSubaccountInfo(userId?: string): Promise<{
+    success: boolean;
+    data?: {
+      subaccount_code: string;
+      banking_details: any;
+      paystack_data: SubaccountData;
+      profile_preferences: any;
+    };
+    error?: string;
+  }> {
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        throw new Error("Authentication required. Please log in.");
+      }
+
+      const { data, error } = await supabase.functions.invoke(
+        "manage-paystack-subaccount",
+        {
+          method: "GET",
+          body: null,
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        },
+      );
+
+      if (error) {
+        console.error("Supabase function error:", error);
+        throw new Error(error.message || "Failed to get subaccount info");
+      }
+
+      if (!data?.success) {
+        throw new Error(data.error || "Failed to get subaccount info");
+      }
+
+      return {
+        success: true,
+        data: data.data,
+      };
+    } catch (error) {
+      console.error("Error getting complete subaccount info:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      };
     }
   }
 

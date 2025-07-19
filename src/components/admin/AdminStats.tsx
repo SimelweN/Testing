@@ -13,6 +13,7 @@ import {
   Activity,
 } from "lucide-react";
 import { AdminStats as AdminStatsType } from "@/services/admin/adminQueries";
+import PaystackHealthSummary from "./PaystackHealthSummary";
 
 interface AdminStatsProps {
   stats: AdminStatsType;
@@ -171,7 +172,8 @@ const AdminStats = ({ stats }: AdminStatsProps) => {
           Attention Required
         </h3>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-4">
+          {/* Alert Stats */}
           {alertStats.map((stat, index) => {
             const Icon = stat.icon;
             const hasItems = stat.value > 0;
@@ -229,6 +231,9 @@ const AdminStats = ({ stats }: AdminStatsProps) => {
               </Card>
             );
           })}
+
+          {/* Paystack Health Summary */}
+          <PaystackHealthSummary />
         </div>
       </div>
 

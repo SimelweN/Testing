@@ -2,6 +2,31 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 
+// Enhanced fetch with timeout for better reliability
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeoutMs = 30000,
+) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === "AbortError") {
+      throw new Error("Request timeout after " + timeoutMs + "ms");
+    }
+    throw error;
+  }
+}
+
 const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -73,6 +98,29 @@ serve(async (req) => {
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+    // Handle health check
+    const url = new URL(req.url);
+    if (
+      url.pathname.endsWith("/health") ||
+      url.searchParams.get("health") === "true"
+    ) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          service: "paystack-split-management",
+          status: "healthy",
+          timestamp: new Date().toISOString(),
+          environment: {
+            paystack_configured: !!PAYSTACK_SECRET_KEY,
+            supabase_configured: !!(SUPABASE_URL && SUPABASE_SERVICE_KEY),
+          },
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
 
     // Handle different HTTP methods
     switch (req.method) {
@@ -152,7 +200,7 @@ async function handleGetSplits(req: Request): Promise<Response> {
       endpoint += `/${splitCode}`;
     }
 
-    const response = await fetch(endpoint, {
+    const response = await fetchWithTimeout(endpoint, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
@@ -194,19 +242,37 @@ async function handleGetSplits(req: Request): Promise<Response> {
       },
     );
   } catch (error) {
+    console.error("Split fetch error:", error);
+
+    let errorType = "SPLIT_FETCH_ERROR";
+    let statusCode = 500;
+    let fixInstructions = "Check network connectivity and Paystack API status";
+
+    if (error.message.includes("timeout")) {
+      errorType = "SPLIT_FETCH_TIMEOUT";
+      fixInstructions =
+        "Request timed out. Please try again or check your connection.";
+    } else if (error.message.includes("fetch")) {
+      errorType = "SPLIT_NETWORK_ERROR";
+      fixInstructions =
+        "Network connection failed. Please check your internet connection.";
+    }
+
     return new Response(
       JSON.stringify({
         success: false,
-        error: "SPLIT_FETCH_ERROR",
+        error: errorType,
+        error_type: "network",
         details: {
           error_message: error.message,
+          error_name: error.name,
           split_code: splitCode,
-          message: "Error fetching split information",
+          message: "Error connecting to split management service",
         },
-        fix_instructions: "Check network connectivity and Paystack API status",
+        fix_instructions: fixInstructions,
       }),
       {
-        status: 500,
+        status: statusCode,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       },
     );
