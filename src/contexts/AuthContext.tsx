@@ -122,42 +122,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsLoading(true);
         console.log("🔄 AuthContext register called with:", { email, name });
 
-        const result = await registerUser(name, email, password);
-        console.log("🔄 registerUser returned:", result);
+        // Use enhanced signup with better error handling
+        const { signupEmailFix } = await import("@/utils/signupEmailFix");
+        const result = await signupEmailFix.enhancedSignup(
+          email,
+          password,
+          name,
+        );
 
-        // For successful registration that requires email verification,
-        // Supabase returns a user but no session
-        if (result.user && !result.session) {
+        console.log("🔄 Enhanced signup returned:", result);
+
+        if (!result.success) {
+          throw new Error(result.error || "Registration failed");
+        }
+
+        // Handle successful registration
+        if (result.needsVerification) {
           console.log(
             "✅ Registration successful, email verification required",
           );
           return { needsVerification: true };
         }
 
-        // For successful registration with auto-login (email confirmation disabled)
-        if (result.user && result.session) {
-          console.log("✅ Registration successful with auto-login");
-          return { needsVerification: false };
-        }
-
-        // Handle case where user exists but email confirmation failed
-        if (result.user) {
+        if (result.emailWarning) {
           console.log(
-            "✅ Registration successful (email confirmation may have failed, but account created)",
+            "✅ Registration successful but email confirmation failed",
           );
           return { needsVerification: false, emailWarning: true };
         }
 
-        console.log("⚠️ Unexpected result from registerUser:", result);
-        return result;
+        console.log("✅ Registration successful with welcome email sent");
+        return { needsVerification: false };
       } catch (error) {
         console.log("❌ AuthContext register caught error:", error);
-        handleError(error, "Registration");
+
+        // Provide more specific error messages
+        const errorMessage =
+          error instanceof Error ? error.message : "Registration failed";
+
+        if (errorMessage.includes("Email service")) {
+          throw new Error(
+            "Registration succeeded but email confirmation is currently unavailable. You can still log in.",
+          );
+        }
+
+        if (errorMessage.includes("already registered")) {
+          throw new Error(
+            "An account with this email already exists. Please try logging in instead.",
+          );
+        }
+
+        throw new Error(errorMessage);
       } finally {
         setIsLoading(false);
       }
     },
-    [handleError],
+    [],
   );
 
   const logout = useCallback(async () => {
