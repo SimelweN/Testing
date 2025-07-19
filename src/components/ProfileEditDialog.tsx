@@ -59,7 +59,11 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
         .eq("id", user.id);
 
       if (error) {
-        console.error("Error updating profile:", error);
+        console.error("Error updating profile:", {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+        });
         toast.error("Failed to update profile");
         return;
       }
