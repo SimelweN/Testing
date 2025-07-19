@@ -93,7 +93,7 @@ window.onunhandledrejection = (event: PromiseRejectionEvent) => {
   const message = event.reason?.message || event.reason?.toString() || "";
   const stack = event.reason?.stack || "";
 
-  if (shouldSuppressError(message) || shouldSuppressError(stack)) {
+  if (shouldSuppressError(message, stack)) {
     // Suppress the error
     event.preventDefault();
     if (import.meta.env.DEV) {
