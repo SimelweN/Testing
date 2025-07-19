@@ -188,8 +188,35 @@ serve(async (req) => {
 
       case "PUT":
         if (action === "update" && subaccountId) {
+          // Parse request body if not already parsed for health check
+          let requestBody;
+          if (body) {
+            requestBody = body;
+          } else {
+            try {
+              requestBody = await req.json();
+            } catch (error) {
+              return new Response(
+                JSON.stringify({
+                  success: false,
+                  error: "INVALID_JSON_PAYLOAD",
+                  details: {
+                    error_message: error.message,
+                    message: "Request body must be valid JSON",
+                  },
+                }),
+                {
+                  status: 400,
+                  headers: {
+                    ...corsHeaders,
+                    "Content-Type": "application/json",
+                  },
+                },
+              );
+            }
+          }
           return await handleUpdateSubaccount(
-            req,
+            requestBody,
             user,
             subaccountId,
             supabase,
