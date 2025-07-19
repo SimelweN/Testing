@@ -743,7 +743,7 @@ export class PaystackSystemTester {
           "initialize-paystack-payment",
           {
             method: "POST",
-            body: mockPaymentData,
+            body: PaystackMockData.initializePayment,
           },
         );
         if (error) throw error;
@@ -759,7 +759,7 @@ export class PaystackSystemTester {
             success: result.success,
             mock: result.mock || result.fallback,
             reference: result.data?.reference,
-            amount: mockPaymentData.total_amount,
+            amount: PaystackMockData.initializePayment.amount / 100, // Convert from kobo
           },
           timing,
         );
