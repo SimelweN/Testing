@@ -499,9 +499,16 @@ export class PaystackSystemTester {
       } else {
         this.addResult(
           "Split Management",
-          "warning",
-          "Split management returned unexpected format",
-          result,
+          "error",
+          `Split management failed - Exact response: ${JSON.stringify(result)}`,
+          {
+            actual_response: result,
+            expected_fields: ["success", "data"],
+            response_keys: result ? Object.keys(result) : [],
+            error_details:
+              result?.error || result?.message || "No error message provided",
+            method_used: "GET",
+          },
           timing,
         );
       }
