@@ -196,19 +196,50 @@ if (import.meta.env.DEV) {
   // Add window-level error listener specifically for development
   window.addEventListener("error", (event) => {
     const error = event.error;
-    if (error && error.stack) {
-      // Check for specific Vite HMR patterns in the stack trace
+    const message = error?.message || event.message || "";
+    const stack = error?.stack || "";
+
+    if (error && stack) {
+      // Check for specific patterns from the reported stack trace
       if (
-        error.stack.includes("@vite/client") ||
-        error.stack.includes("ping") ||
-        error.stack.includes("waitForSuccessfulPing") ||
-        error.stack.includes("WebSocket") ||
-        error.stack.includes(".fly.dev")
+        stack.includes("@vite/client") ||
+        stack.includes("ping") ||
+        stack.includes("waitForSuccessfulPing") ||
+        stack.includes("WebSocket") ||
+        stack.includes(".fly.dev") ||
+        stack.includes("edge.fullstory.com") ||
+        stack.includes("fs.js") ||
+        message.includes("Failed to fetch") ||
+        shouldSuppressError(message, stack)
       ) {
         event.preventDefault();
-        console.debug("[Dev Server Error Suppressed]:", error.message);
+        console.debug("[Dev Server/Third-party Error Suppressed]:", {
+          message: message.substring(0, 100),
+          source: stack.split("\n")[0],
+        });
         return false;
       }
+    }
+  });
+
+  // Enhanced error handler for uncaught errors
+  window.addEventListener("unhandledrejection", (event) => {
+    const error = event.reason;
+    const message = error?.message || error?.toString() || "";
+    const stack = error?.stack || "";
+
+    // Check for FullStory and Vite specific errors
+    if (
+      message.includes("Failed to fetch") &&
+      (stack.includes("edge.fullstory.com") ||
+        stack.includes("@vite/client") ||
+        stack.includes(".fly.dev"))
+    ) {
+      event.preventDefault();
+      console.debug("[Unhandled Rejection Suppressed]:", {
+        message: message.substring(0, 100),
+        type: "Network/Third-party error",
+      });
     }
   });
 
