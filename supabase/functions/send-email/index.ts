@@ -156,7 +156,13 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: "Method not allowed. Use POST.",
+        error: "METHOD_NOT_ALLOWED",
+        details: {
+          provided_method: req.method,
+          required_method: "POST",
+          message: "Email endpoint only accepts POST requests",
+        },
+        fix_instructions: "Send email requests using POST method only",
       }),
       {
         status: 405,
@@ -174,7 +180,12 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "Invalid JSON in request body",
+          error: "INVALID_JSON_PAYLOAD",
+          details: {
+            parse_error: error.message,
+            message: "Request body must be valid JSON",
+          },
+          fix_instructions: "Ensure request body contains valid JSON format",
         }),
         {
           status: 400,
@@ -207,7 +218,16 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({
             success: false,
-            error: `Configuration error: ${error.message}`,
+            error: "EMAIL_CONFIGURATION_ERROR",
+            details: {
+              config_error: error.message,
+              message: "Email service configuration is invalid",
+              missing_env_vars: !Deno.env.get("BREVO_SMTP_KEY")
+                ? ["BREVO_SMTP_KEY"]
+                : [],
+            },
+            fix_instructions:
+              "Configure required environment variables: BREVO_SMTP_KEY",
           }),
           {
             status: 500,
@@ -235,8 +255,15 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: EMAIL_ERRORS.RATE_LIMIT_EXCEEDED,
-          details: { resetTime: rateCheck.resetTime },
+          error: "RATE_LIMIT_EXCEEDED",
+          details: {
+            reset_time: rateCheck.resetTime,
+            max_requests: RATE_LIMIT.maxRequests,
+            window_ms: RATE_LIMIT.windowMs,
+            client_ip: clientIP,
+            message: "Too many email requests from this client",
+          },
+          fix_instructions: `Wait ${Math.ceil((rateCheck.resetTime! - Date.now()) / 1000)} seconds before sending another email`,
         }),
         {
           status: 429,
@@ -293,22 +320,39 @@ serve(async (req) => {
       stack: error.stack,
     });
 
+    // Determine error details and status code
+    let errorCode = "EMAIL_SEND_FAILED";
+    let statusCode = 500;
+    let fixInstructions = "Check email configuration and try again";
+
+    if (
+      error.message.includes("MISSING_REQUIRED_FIELDS") ||
+      error.message.includes("INVALID_EMAIL_FORMAT") ||
+      error.message.includes("TEMPLATE_NOT_FOUND")
+    ) {
+      errorCode = "VALIDATION_FAILED";
+      statusCode = 400;
+      fixInstructions = "Check email request format and required fields";
+    } else if (error.message.includes("SMTP_CONNECTION_FAILED")) {
+      errorCode = "SMTP_CONNECTION_FAILED";
+      statusCode = 502;
+      fixInstructions = "Check SMTP configuration and network connectivity";
+    } else if (error.message.includes("BREVO_SMTP_KEY")) {
+      errorCode = "ENVIRONMENT_CONFIG_ERROR";
+      statusCode = 500;
+      fixInstructions = "Configure BREVO_SMTP_KEY environment variable";
+    }
+
     const response: EmailResponse = {
       success: false,
-      error: error.message || EMAIL_ERRORS.EMAIL_SEND_FAILED,
+      error: errorCode,
+      details: {
+        error_message: error.message,
+        error_type: error.constructor.name,
+        timestamp: new Date().toISOString(),
+      },
+      fix_instructions: fixInstructions,
     };
-
-    // Determine appropriate status code
-    let statusCode = 500;
-    if (
-      error.message.includes(EMAIL_ERRORS.MISSING_REQUIRED_FIELDS) ||
-      error.message.includes(EMAIL_ERRORS.INVALID_EMAIL_FORMAT) ||
-      error.message.includes(EMAIL_ERRORS.TEMPLATE_NOT_FOUND)
-    ) {
-      statusCode = 400;
-    } else if (error.message.includes(EMAIL_ERRORS.SMTP_CONNECTION_FAILED)) {
-      statusCode = 502;
-    }
 
     return new Response(JSON.stringify(response), {
       status: statusCode,

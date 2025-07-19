@@ -32,6 +32,8 @@ import AdminPaystackTestingTab from "@/components/admin/AdminPaystackTestingTab"
 import DatabaseTableTester from "@/components/admin/DatabaseTableTester";
 import DemoDataGenerator from "@/components/admin/DemoDataGenerator";
 import EdgeFunctionTester from "@/components/admin/EdgeFunctionTester";
+import PaystackSplitManagement from "@/components/admin/PaystackSplitManagement";
+import PaystackTransferManagement from "@/components/admin/PaystackTransferManagement";
 
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -52,6 +54,8 @@ import {
   Mail,
   CreditCard,
   Database,
+  Split,
+  ArrowUpRight,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -381,6 +385,20 @@ const AdminDashboard = () => {
       description: "Test payments & refunds",
     },
     {
+      value: "split-management",
+      label: "Payment Splits",
+      icon: Split,
+      color: "text-purple-600",
+      description: "Manage payment splits",
+    },
+    {
+      value: "transfer-management",
+      label: "Transfers",
+      icon: ArrowUpRight,
+      color: "text-blue-600",
+      description: "Manage money transfers",
+    },
+    {
       value: "demo-data",
       label: "Demo Data",
       icon: TestTube,
@@ -647,6 +665,18 @@ const AdminDashboard = () => {
           <TabsContent value="cleanup" className="space-y-4 mt-0">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
               <DatabaseCleanup />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="split-management" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+              <PaystackSplitManagement />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="transfer-management" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+              <PaystackTransferManagement />
             </div>
           </TabsContent>
         </div>

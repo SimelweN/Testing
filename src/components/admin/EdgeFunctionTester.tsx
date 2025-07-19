@@ -527,22 +527,65 @@ export default function EdgeFunctionTester() {
 
     try {
       const testPayload = payload || func.testPayload;
-      const { data, error } = await supabase.functions.invoke(func.name, {
-        body: testPayload,
+
+      // Use direct fetch instead of supabase.functions.invoke to get detailed error messages
+      const supabaseUrl = supabase.supabaseUrl;
+      const supabaseKey = supabase.supabaseKey;
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/${func.name}`, {
+        method: func.method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${supabaseKey}`,
+          apikey: supabaseKey,
+        },
+        body: JSON.stringify(testPayload),
       });
 
       const duration = Date.now() - startTime;
 
-      if (error) {
+      // Parse response regardless of status code
+      let responseData;
+      try {
+        responseData = await response.json();
+      } catch (parseError) {
+        responseData = {
+          error: "Failed to parse response",
+          raw_response: await response.text(),
+          status: response.status,
+          statusText: response.statusText,
+        };
+      }
+
+      if (!response.ok) {
+        // Format detailed error message
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+
+        if (responseData) {
+          if (responseData.error) {
+            errorMessage = responseData.error;
+          }
+
+          // Add detailed error information if available
+          if (responseData.details) {
+            errorMessage += `\n\nDetails: ${JSON.stringify(responseData.details, null, 2)}`;
+          }
+
+          if (responseData.fix_instructions) {
+            errorMessage += `\n\nHow to fix: ${responseData.fix_instructions}`;
+          }
+        }
+
         updateTestResult(func.name, {
           status: "error",
-          error: error.message,
+          error: errorMessage,
+          response: responseData,
           duration,
         });
       } else {
         updateTestResult(func.name, {
           status: "success",
-          response: data,
+          response: responseData,
           duration,
         });
       }
@@ -550,7 +593,7 @@ export default function EdgeFunctionTester() {
       const duration = Date.now() - startTime;
       updateTestResult(func.name, {
         status: "error",
-        error: error.message,
+        error: `Network/Request Error: ${error.message}`,
         duration,
       });
     }
@@ -792,11 +835,38 @@ export default function EdgeFunctionTester() {
                         {result.status === "error" && result.error && (
                           <div>
                             <Label className="text-xs font-medium text-red-600">
-                              Error
+                              Error Details
                             </Label>
-                            <pre className="text-xs bg-red-50 p-2 rounded mt-1 overflow-x-auto max-h-32">
-                              {result.error}
-                            </pre>
+                            <div className="space-y-2 mt-1">
+                              <pre className="text-xs bg-red-50 p-2 rounded overflow-x-auto max-h-40 whitespace-pre-wrap">
+                                {result.error}
+                              </pre>
+                              {result.response && result.response.details && (
+                                <div>
+                                  <Label className="text-xs font-medium text-orange-600">
+                                    Technical Details
+                                  </Label>
+                                  <pre className="text-xs bg-orange-50 p-2 rounded overflow-x-auto max-h-32">
+                                    {JSON.stringify(
+                                      result.response.details,
+                                      null,
+                                      2,
+                                    )}
+                                  </pre>
+                                </div>
+                              )}
+                              {result.response &&
+                                result.response.fix_instructions && (
+                                  <div>
+                                    <Label className="text-xs font-medium text-blue-600">
+                                      How to Fix
+                                    </Label>
+                                    <div className="text-xs bg-blue-50 p-2 rounded">
+                                      {result.response.fix_instructions}
+                                    </div>
+                                  </div>
+                                )}
+                            </div>
                           </div>
                         )}
                       </div>
