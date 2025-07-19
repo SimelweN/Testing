@@ -17,8 +17,8 @@ const PaystackMockData = {
       buyer_id: "550e8400-e29b-41d4-a716-446655440000",
       delivery_fee: 8500,
       platform_fee: 1500,
-      seller_amount: 19999,
-    },
+      seller_amount: 19999
+    }
   },
   splitManagement: {
     name: "Test Split " + Date.now(),
@@ -27,14 +27,14 @@ const PaystackMockData = {
     subaccounts: [
       {
         subaccount: "ACCT_test_seller_1",
-        share: 7000, // 70%
+        share: 7000 // 70%
       },
       {
         subaccount: "ACCT_test_seller_2",
-        share: 2000, // 20%
-      },
+        share: 2000 // 20%
+      }
     ],
-    bearer_type: "account",
+    bearer_type: "account"
   },
   subaccountCreation: {
     business_name: "Test Business " + Date.now(),
@@ -44,25 +44,25 @@ const PaystackMockData = {
     phone: "+27123456789",
     email: "test@example.com",
     percentage_charge: 85.5,
-    description: "Test subaccount for automated testing",
+    description: "Test subaccount for automated testing"
   },
   transferManagement: {
     amount: 10000, // R100.00 in kobo
     currency: "ZAR",
     reason: "test_transfer",
     reference: "TRANSFER_TEST_" + Date.now(),
-    recipient_code: "RCP_test_recipient",
+    recipient_code: "RCP_test_recipient"
   },
   refundManagement: {
     transaction: "TXN_test_transaction",
     amount: 5000, // R50.00 in kobo
     currency: "ZAR",
     customer_note: "Test refund for automated testing",
-    merchant_note: "Automated test refund",
+    merchant_note: "Automated test refund"
   },
   paymentVerification: {
-    reference: "TXN_" + Date.now() + "_VERIFY_TEST",
-  },
+    reference: "TXN_" + Date.now() + "_VERIFY_TEST"
+  }
 };
 
 export interface PaystackTestResult {
@@ -499,19 +499,48 @@ export class PaystackSystemTester {
     }
   }
 
-  private async testSplitCreationWithMockData() {
+    private async testSplitCreationWithMockData() {
     try {
-      const mockSplitData = {
-        name: `Mock Test Split ${Date.now()}`,
-        type: "flat",
-        currency: "ZAR",
-        order_items: [
+      const { result, timing } = await this.measureTime(async () => {
+        const { data, error } = await supabase.functions.invoke(
+          "paystack-split-management",
           {
-            id: "book-test-001",
-            seller_id: "seller-test-001",
-            price: 250.0,
-            title: "Mock Book 1",
+            method: "POST",
+            body: PaystackMockData.splitManagement,
           },
+        );
+        if (error) throw error;
+        return data;
+      });
+
+      if (result?.success || result?.data) {
+        this.addResult(
+          "Split Creation",
+          "success",
+          "Split creation test passed",
+          {
+            split_name: PaystackMockData.splitManagement.name,
+            response: result,
+          },
+          timing,
+        );
+      } else {
+        this.addResult(
+          "Split Creation",
+          "warning",
+          "Split creation returned unexpected format",
+          result,
+          timing,
+        );
+      }
+    } catch (error) {
+      this.addResult(
+        "Split Creation",
+        "error",
+        `Split creation test failed: ${error.message}`,
+      );
+    }
+  }
           {
             id: "book-test-002",
             seller_id: "seller-test-002",
