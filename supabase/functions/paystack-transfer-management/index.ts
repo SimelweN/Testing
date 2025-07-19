@@ -299,35 +299,29 @@ async function handleVerifyAccount(req: Request): Promise<Response> {
   }
 
   try {
-    const response = await fetch(
-      `https://api.paystack.co/bank/resolve?account_number=${account_number}&bank_code=${bank_code}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-          "Content-Type": "application/json",
-        },
-      },
+    const result = await PaystackApi.get(
+      `/bank/resolve?account_number=${account_number}&bank_code=${bank_code}`,
     );
 
-    const result = await response.json();
-
-    if (!response.ok || !result.status) {
+    if (!result.success) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "ACCOUNT_VERIFICATION_FAILED",
+          error: result.error || "ACCOUNT_VERIFICATION_FAILED",
+          error_type: result.error_type,
           details: {
-            status_code: response.status,
-            paystack_message: result.message,
+            ...result.details,
             account_number: account_number,
             bank_code: bank_code,
             message: "Account verification failed",
           },
-          fix_instructions: "Check account number and bank code are valid",
+          fix_instructions:
+            result.error_type === "network"
+              ? "Network error occurred. Check connectivity and try again."
+              : "Check account number and bank code are valid",
         }),
         {
-          status: 400,
+          status: result.status_code || 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
