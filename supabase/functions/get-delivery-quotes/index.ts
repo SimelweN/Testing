@@ -7,9 +7,9 @@ const corsHeaders = {
 };
 
 interface DeliveryAddress {
-  streetAddress: string;
+  streetAddress?: string;
   suburb: string;
-  city: string;
+  city?: string;
   province: string;
   postalCode: string;
 }
@@ -28,6 +28,73 @@ serve(async (req) => {
   try {
     const { fromAddress, toAddress, weight }: QuoteRequest = await req.json();
 
+    // Enhanced validation with specific error messages
+    const validationErrors = [];
+    if (!fromAddress) validationErrors.push("fromAddress is required");
+    if (!toAddress) validationErrors.push("toAddress is required");
+    if (!weight) validationErrors.push("weight is required");
+
+    // Validate address structure
+    if (fromAddress) {
+      if (!fromAddress.suburb)
+        validationErrors.push("fromAddress.suburb is required");
+      if (!fromAddress.province)
+        validationErrors.push("fromAddress.province is required");
+      if (!fromAddress.postalCode)
+        validationErrors.push("fromAddress.postalCode is required");
+    }
+
+    if (toAddress) {
+      if (!toAddress.suburb)
+        validationErrors.push("toAddress.suburb is required");
+      if (!toAddress.province)
+        validationErrors.push("toAddress.province is required");
+      if (!toAddress.postalCode)
+        validationErrors.push("toAddress.postalCode is required");
+    }
+
+    // Validate weight
+    if (weight && (typeof weight !== "number" || weight <= 0 || weight > 50)) {
+      validationErrors.push("weight must be a number between 0.1 and 50 kg");
+    }
+
+    if (validationErrors.length > 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "VALIDATION_FAILED",
+          details: {
+            validation_errors: validationErrors,
+            provided_fields: Object.keys(await req.json()),
+            message: `Validation failed: ${validationErrors.join(", ")}`,
+            required_format: {
+              fromAddress: {
+                suburb: "String, pickup suburb",
+                province: "String, pickup province",
+                postalCode: "String, pickup postal code",
+                streetAddress: "String, optional street address",
+                city: "String, optional city",
+              },
+              toAddress: {
+                suburb: "String, delivery suburb",
+                province: "String, delivery province",
+                postalCode: "String, delivery postal code",
+                streetAddress: "String, optional street address",
+                city: "String, optional city",
+              },
+              weight: "Number, package weight in kg (0.1 - 50)",
+            },
+          },
+          fix_instructions:
+            "Provide valid fromAddress and toAddress objects with required fields (suburb, province, postalCode) and weight as a number between 0.1-50 kg",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
     console.log("Getting quotes for delivery:", {
       fromAddress,
       toAddress,
@@ -35,32 +102,17 @@ serve(async (req) => {
     });
 
     const quotes = [];
+    const providerErrors = [];
 
-    // Get Fastway quote
-    try {
-      const fastwayResponse = await getFastwayQuote(
-        fromAddress,
-        toAddress,
-        weight,
-      );
-      if (fastwayResponse) {
-        quotes.push({
-          courier: "fastway",
-          price: fastwayResponse.price,
-          estimatedDays: fastwayResponse.estimatedDays,
-          serviceName: "Fastway Standard",
-        });
-      }
-    } catch (error) {
-      console.error("Fastway API error:", error);
-      // Add fallback quote
-      quotes.push({
-        courier: "fastway",
-        price: 85,
-        estimatedDays: 3,
-        serviceName: "Fastway Standard",
-      });
-    }
+    // Always add self-collection option
+    quotes.push({
+      service: "Self Collection",
+      price: 0,
+      currency: "ZAR",
+      estimated_days: "Immediate",
+      service_code: "SELF",
+      provider: "self",
+    });
 
     // Get Courier Guy quote
     try {
@@ -71,51 +123,126 @@ serve(async (req) => {
       );
       if (courierGuyResponse) {
         quotes.push({
-          courier: "courier-guy",
+          service: "Courier Guy Express",
           price: courierGuyResponse.price,
-          estimatedDays: courierGuyResponse.estimatedDays,
-          serviceName: "Courier Guy Express",
+          currency: "ZAR",
+          estimated_days: courierGuyResponse.estimatedDays,
+          service_code: "CG_EXPRESS",
+          provider: "courier-guy",
         });
       }
     } catch (error) {
       console.error("Courier Guy API error:", error);
+      providerErrors.push({
+        provider: "courier-guy",
+        error: error.message,
+        fallback_used: true,
+      });
       // Add fallback quote
       quotes.push({
-        courier: "courier-guy",
+        service: "Courier Guy Express (Estimated)",
         price: 95,
-        estimatedDays: 2,
-        serviceName: "Courier Guy Express",
+        currency: "ZAR",
+        estimated_days: 2,
+        service_code: "CG_EXPRESS",
+        provider: "courier-guy",
+        fallback: true,
       });
     }
 
-    return new Response(JSON.stringify({ quotes }), {
-      headers: {
-        ...corsHeaders,
-        "Content-Type": "application/json",
-      },
-    });
-  } catch (error) {
-    console.error("Error in get-delivery-quotes:", error);
+    // Get Fastway quote
+    try {
+      const fastwayResponse = await getFastwayQuote(
+        fromAddress,
+        toAddress,
+        weight,
+      );
+      if (fastwayResponse) {
+        quotes.push({
+          service: "Fastway Standard",
+          price: fastwayResponse.price,
+          currency: "ZAR",
+          estimated_days: fastwayResponse.estimatedDays,
+          service_code: "FW_STANDARD",
+          provider: "fastway",
+        });
+      }
+    } catch (error) {
+      console.error("Fastway API error:", error);
+      providerErrors.push({
+        provider: "fastway",
+        error: error.message,
+        fallback_used: true,
+      });
+      // Add fallback quote
+      quotes.push({
+        service: "Fastway Standard (Estimated)",
+        price: 85,
+        currency: "ZAR",
+        estimated_days: 3,
+        service_code: "FW_STANDARD",
+        provider: "fastway",
+        fallback: true,
+      });
+    }
+
     return new Response(
       JSON.stringify({
-        error: error.message,
-        quotes: [
+        success: true,
+        quotes,
+        providers: ["self", "courier-guy", "fastway"],
+        total_quotes: quotes.length,
+        provider_errors: providerErrors.length > 0 ? providerErrors : undefined,
+        request_details: {
+          from: `${fromAddress.suburb}, ${fromAddress.province} ${fromAddress.postalCode}`,
+          to: `${toAddress.suburb}, ${toAddress.province} ${toAddress.postalCode}`,
+          weight: `${weight}kg`,
+        },
+      }),
+      {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+  } catch (error) {
+    console.error("Error in get-delivery-quotes:", error);
+
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "UNEXPECTED_ERROR",
+        details: {
+          error_message: error.message,
+          error_stack: error.stack,
+          error_type: error.constructor.name,
+          timestamp: new Date().toISOString(),
+        },
+        fix_instructions:
+          "This is an unexpected server error. Check the server logs for more details and contact support if the issue persists.",
+        fallback_quotes: [
           {
-            courier: "fastway",
-            price: 85,
-            estimatedDays: 3,
-            serviceName: "Fastway Standard",
+            service: "Self Collection",
+            price: 0,
+            currency: "ZAR",
+            estimated_days: "Immediate",
+            service_code: "SELF",
+            provider: "self",
           },
           {
-            courier: "courier-guy",
-            price: 95,
-            estimatedDays: 2,
-            serviceName: "Courier Guy Express",
+            service: "Standard Delivery (Estimated)",
+            price: 90,
+            currency: "ZAR",
+            estimated_days: 3,
+            service_code: "STANDARD",
+            provider: "fallback",
+            fallback: true,
           },
         ],
       }),
       {
-        status: 200,
+        status: 500,
         headers: {
           ...corsHeaders,
           "Content-Type": "application/json",
@@ -125,51 +252,6 @@ serve(async (req) => {
   }
 });
 
-async function getFastwayQuote(
-  fromAddress: DeliveryAddress,
-  toAddress: DeliveryAddress,
-  weight: number,
-) {
-  const apiKey = Deno.env.get("FASTWAY_API_KEY");
-  if (!apiKey) throw new Error("Fastway API key not configured");
-
-  console.log("Calling Fastway API with key:", apiKey.substring(0, 8) + "...");
-
-  const response = await fetch("https://api.fastway.org/v2/quotes", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      from_postcode: fromAddress.postalCode,
-      to_postcode: toAddress.postalCode,
-      weight: weight,
-    }),
-  });
-
-  if (!response.ok) {
-    console.error(
-      "Fastway API response not ok:",
-      response.status,
-      response.statusText,
-    );
-    throw new Error(`Fastway API error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  console.log("Fastway response:", data);
-
-  if (!data.quotes || data.quotes.length === 0)
-    throw new Error("No quotes returned");
-
-  const quote = data.quotes[0];
-  return {
-    price: quote.price,
-    estimatedDays: quote.estimated_days,
-  };
-}
-
 async function getCourierGuyQuote(
   fromAddress: DeliveryAddress,
   toAddress: DeliveryAddress,
@@ -177,62 +259,107 @@ async function getCourierGuyQuote(
 ) {
   const apiKey = Deno.env.get("COURIER_GUY_API_KEY");
   if (!apiKey) {
-    throw new Error("Courier Guy API key not configured");
-  }
-
-  console.log(
-    "Calling Courier Guy API with key:",
-    apiKey.substring(0, 8) + "...",
-  );
-
-  const response = await fetch("https://api.courierguy.co.za/v1/quotes", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      collection_address: {
-        suburb: fromAddress.suburb,
-        city: fromAddress.city,
-        province: fromAddress.province,
-        postal_code: fromAddress.postalCode,
-        street_address: fromAddress.streetAddress,
-      },
-      delivery_address: {
-        suburb: toAddress.suburb,
-        city: toAddress.city,
-        province: toAddress.province,
-        postal_code: toAddress.postalCode,
-        street_address: toAddress.streetAddress,
-      },
-      parcel: {
-        weight: weight,
-      },
-    }),
-  });
-
-  if (!response.ok) {
-    console.error(
-      "Courier Guy API response not ok:",
-      response.status,
-      response.statusText,
+    throw new Error(
+      "Courier Guy API key not configured - contact administrator",
     );
-    throw new Error(`Courier Guy API error: ${response.status}`);
   }
 
-  const data = await response.json();
-  console.log("Courier Guy response:", data);
+  console.log("Calling Courier Guy API...");
 
-  // Assuming the response has a 'quotes' array or similar structure:
-  if (!data.quotes || data.quotes.length === 0) {
-    throw new Error("No quotes returned from Courier Guy");
+  try {
+    const response = await fetch("https://api.courierguy.co.za/v1/quotes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        collection_address: {
+          suburb: fromAddress.suburb,
+          city: fromAddress.city || fromAddress.suburb,
+          province: fromAddress.province,
+          postal_code: fromAddress.postalCode,
+          street_address: fromAddress.streetAddress || "Unknown",
+        },
+        delivery_address: {
+          suburb: toAddress.suburb,
+          city: toAddress.city || toAddress.suburb,
+          province: toAddress.province,
+          postal_code: toAddress.postalCode,
+          street_address: toAddress.streetAddress || "Unknown",
+        },
+        parcel: {
+          weight: weight,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Courier Guy API HTTP ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("Courier Guy response:", data);
+
+    if (!data.quotes || data.quotes.length === 0) {
+      throw new Error("No quotes returned from Courier Guy API");
+    }
+
+    const quote = data.quotes[0];
+    return {
+      price: parseFloat(quote.price) || 95,
+      estimatedDays: parseInt(quote.estimated_days) || 2,
+    };
+  } catch (fetchError) {
+    throw new Error(`Courier Guy API connection failed: ${fetchError.message}`);
+  }
+}
+
+async function getFastwayQuote(
+  fromAddress: DeliveryAddress,
+  toAddress: DeliveryAddress,
+  weight: number,
+) {
+  const apiKey = Deno.env.get("FASTWAY_API_KEY");
+  if (!apiKey) {
+    throw new Error("Fastway API key not configured - contact administrator");
   }
 
-  const quote = data.quotes[0]; // Pick first quote or filter as needed
+  console.log("Calling Fastway API...");
 
-  return {
-    price: quote.price,
-    estimatedDays: quote.estimated_days,
-  };
+  try {
+    const response = await fetch("https://api.fastway.org/v2/quotes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        from_postcode: fromAddress.postalCode,
+        to_postcode: toAddress.postalCode,
+        weight: weight,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Fastway API HTTP ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("Fastway response:", data);
+
+    if (!data.quotes || data.quotes.length === 0) {
+      throw new Error("No quotes returned from Fastway API");
+    }
+
+    const quote = data.quotes[0];
+    return {
+      price: parseFloat(quote.price) || 85,
+      estimatedDays: parseInt(quote.estimated_days) || 3,
+    };
+  } catch (fetchError) {
+    throw new Error(`Fastway API connection failed: ${fetchError.message}`);
+  }
 }
