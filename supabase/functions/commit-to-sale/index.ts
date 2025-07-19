@@ -31,17 +31,7 @@ serve(async (req) => {
     // Get order details first
     const { data: order, error: orderError } = await supabase
       .from("orders")
-      .select(
-        `
-        *,
-        buyer:profiles!orders_buyer_id_fkey(id, name, email, phone),
-        seller:profiles!orders_seller_id_fkey(id, name, email, phone),
-        order_items(
-          *,
-          book:books(id, title, isbn, weight, dimensions)
-        )
-      `,
-      )
+      .select("*")
       .eq("id", order_id)
       .eq("seller_id", seller_id)
       .eq("status", "pending_commit")
@@ -60,6 +50,19 @@ serve(async (req) => {
       );
     }
 
+    // Get buyer and seller profiles separately for safety
+    const { data: buyer } = await supabase
+      .from("profiles")
+      .select("id, name, email, phone")
+      .eq("id", order.buyer_id)
+      .single();
+
+    const { data: seller } = await supabase
+      .from("profiles")
+      .select("id, name, email, phone")
+      .eq("id", order.seller_id)
+      .single();
+
     // Update order status to committed
     const { error: updateError } = await supabase
       .from("orders")
@@ -73,28 +76,35 @@ serve(async (req) => {
       throw new Error(`Failed to update order status: ${updateError.message}`);
     }
 
-    // Schedule automatic courier pickup by calling automate-delivery
+    // Schedule automatic courier pickup by calling automate-delivery (if possible)
     try {
-      await supabase.functions.invoke("automate-delivery", {
-        body: {
-          order_id: order_id,
-          seller_address: order.shipping_address,
-          buyer_address: order.shipping_address,
-          weight: order.order_items.reduce(
-            (total: number, item: any) => total + (item.book?.weight || 0.5),
-            0,
-          ),
+      await fetch(`${SUPABASE_URL}/functions/v1/automate-delivery`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
         },
+        body: JSON.stringify({
+          order_id: order_id,
+          seller_address: order.shipping_address || order.delivery_address,
+          buyer_address: order.shipping_address || order.delivery_address,
+          weight:
+            (order.items || []).reduce(
+              (total: number, item: any) => total + (item.weight || 0.5),
+              0,
+            ) || 1,
+        }),
       });
     } catch (deliveryError) {
       console.error("Failed to schedule automatic delivery:", deliveryError);
       // Continue anyway - delivery can be scheduled manually
     }
 
-    // Send notification emails using DIRECT HTML (the only correct way!)
+    // Send notification emails using DIRECT HTML
     try {
       // Notify buyer
-      const buyerHtml = `
+      if (buyer?.email) {
+        const buyerHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -151,14 +161,14 @@ serve(async (req) => {
       <h1>🎉 Order Confirmed!</h1>
     </div>
 
-    <h2>Great news, ${order.buyer.name}!</h2>
-    <p><strong>${order.seller.name}</strong> has confirmed your order and is preparing your book(s) for delivery.</p>
+    <h2>Great news, ${buyer.name || "Customer"}!</h2>
+    <p><strong>${seller?.name || "The seller"}</strong> has confirmed your order and is preparing your book(s) for delivery.</p>
 
     <div class="info-box">
       <h3>📚 Order Details</h3>
       <p><strong>Order ID:</strong> ${order_id}</p>
-      <p><strong>Book(s):</strong> ${order.order_items.map((item: any) => item.book?.title).join(", ")}</p>
-      <p><strong>Seller:</strong> ${order.seller.name}</p>
+      <p><strong>Book(s):</strong> ${(order.items || []).map((item: any) => item.title || "Book").join(", ")}</p>
+      <p><strong>Seller:</strong> ${seller?.name || "Seller"}</p>
       <p><strong>Estimated Delivery:</strong> 2-3 business days</p>
     </div>
 
@@ -176,17 +186,24 @@ serve(async (req) => {
 </body>
 </html>`;
 
-      await supabase.functions.invoke("send-email", {
-        body: {
-          to: order.buyer.email,
-          subject: "Order Confirmed - Pickup Scheduled",
-          html: buyerHtml,
-          text: `Order Confirmed!\n\nGreat news, ${order.buyer.name}!\n\n${order.seller.name} has confirmed your order and is preparing your book(s) for delivery.\n\nOrder ID: ${order_id}\nBook(s): ${order.order_items.map((item: any) => item.book?.title).join(", ")}\nSeller: ${order.seller.name}\nEstimated Delivery: 2-3 business days\n\nReBooked Solutions\nThis is an automated message from ReBooked Solutions.`,
-        },
-      });
+        await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+          },
+          body: JSON.stringify({
+            to: buyer.email,
+            subject: "Order Confirmed - Pickup Scheduled",
+            html: buyerHtml,
+            text: `Order Confirmed!\n\nGreat news, ${buyer.name || "Customer"}!\n\n${seller?.name || "The seller"} has confirmed your order and is preparing your book(s) for delivery.\n\nOrder ID: ${order_id}\nBook(s): ${(order.items || []).map((item: any) => item.title || "Book").join(", ")}\nSeller: ${seller?.name || "Seller"}\nEstimated Delivery: 2-3 business days\n\nReBooked Solutions`,
+          }),
+        });
+      }
 
       // Notify seller
-      const sellerHtml = `
+      if (seller?.email) {
+        const sellerHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -240,17 +257,17 @@ serve(async (req) => {
 <body>
   <div class="container">
     <div class="header">
-            <h1>Order Commitment Confirmed!</h1>
+      <h1>Order Commitment Confirmed!</h1>
     </div>
 
-    <h2>Thank you, ${order.seller.name}!</h2>
+    <h2>Thank you, ${seller.name || "Seller"}!</h2>
     <p>You've successfully committed to sell your book(s). The buyer has been notified and pickup has been scheduled.</p>
 
     <div class="info-box">
       <h3>📋 Order Details</h3>
       <p><strong>Order ID:</strong> ${order_id}</p>
-      <p><strong>Book(s):</strong> ${order.order_items.map((item: any) => item.book?.title).join(", ")}</p>
-      <p><strong>Buyer:</strong> ${order.buyer.name}</p>
+      <p><strong>Book(s):</strong> ${(order.items || []).map((item: any) => item.title || "Book").join(", ")}</p>
+      <p><strong>Buyer:</strong> ${buyer?.name || "Customer"}</p>
     </div>
 
     <p>A courier will contact you within 24 hours to arrange pickup.</p>
@@ -268,16 +285,23 @@ serve(async (req) => {
 </body>
 </html>`;
 
-      await supabase.functions.invoke("send-email", {
-        body: {
-          to: order.seller.email,
-          subject: "Order Commitment Confirmed - Prepare for Pickup",
-          html: sellerHtml,
-          text: `Order Commitment Confirmed!\n\nThank you, ${order.seller.name}!\n\nYou've successfully committed to sell your book(s). The buyer has been notified and pickup has been scheduled.\n\nOrder ID: ${order_id}\nBook(s): ${order.order_items.map((item: any) => item.book?.title).join(", ")}\nBuyer: ${order.buyer.name}\n\nA courier will contact you within 24 hours to arrange pickup.\n\nReBooked Solutions`,
-        },
-      });
+        await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+          },
+          body: JSON.stringify({
+            to: seller.email,
+            subject: "Order Commitment Confirmed - Prepare for Pickup",
+            html: sellerHtml,
+            text: `Order Commitment Confirmed!\n\nThank you, ${seller.name || "Seller"}!\n\nYou've successfully committed to sell your book(s). The buyer has been notified and pickup has been scheduled.\n\nOrder ID: ${order_id}\nBook(s): ${(order.items || []).map((item: any) => item.title || "Book").join(", ")}\nBuyer: ${buyer?.name || "Customer"}\n\nA courier will contact you within 24 hours to arrange pickup.\n\nReBooked Solutions`,
+          }),
+        });
+      }
     } catch (emailError) {
       console.error("Failed to send notification emails:", emailError);
+      // Don't fail the commit for email errors
     }
 
     return new Response(
