@@ -46,12 +46,14 @@ const suppressedErrorPatterns = [
 ];
 
 // Check if error should be suppressed
-const shouldSuppressError = (message: string): boolean => {
+const shouldSuppressError = (message: string, stack?: string): boolean => {
+  const fullErrorText = `${message} ${stack || ""}`;
+
   if (import.meta.env.PROD) {
     // In production, only suppress known third-party errors
     return suppressedErrorPatterns.some((pattern) => {
       if (pattern.includes("fullstory") || pattern.includes("fs.js")) {
-        return message.toLowerCase().includes(pattern.toLowerCase());
+        return fullErrorText.toLowerCase().includes(pattern.toLowerCase());
       }
       return false;
     });
@@ -59,15 +61,15 @@ const shouldSuppressError = (message: string): boolean => {
 
   // In development, suppress more network-related errors
   return suppressedErrorPatterns.some((pattern) => {
-    if (pattern.includes(".*")) {
+    if (pattern.includes(".*") || pattern.includes("\\")) {
       // Regex pattern
       try {
-        return new RegExp(pattern, "i").test(message);
+        return new RegExp(pattern, "i").test(fullErrorText);
       } catch {
-        return message.toLowerCase().includes(pattern.toLowerCase());
+        return fullErrorText.toLowerCase().includes(pattern.toLowerCase());
       }
     }
-    return message.toLowerCase().includes(pattern.toLowerCase());
+    return fullErrorText.toLowerCase().includes(pattern.toLowerCase());
   });
 };
 
