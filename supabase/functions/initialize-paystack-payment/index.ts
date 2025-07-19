@@ -11,34 +11,24 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  // Validate request method
-  if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "METHOD_NOT_ALLOWED",
-        details: {
-          provided_method: req.method,
-          required_method: "POST",
-          message: "Payment initialization endpoint only accepts POST requests",
-        },
-        fix_instructions:
-          "Send payment initialization requests using POST method only",
-      }),
-      {
-        status: 405,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
-  }
-
   try {
-    // Handle health check
+    // Handle health check first (allow GET and POST for health checks)
     const url = new URL(req.url);
-    if (
+    const isHealthCheck =
       url.pathname.endsWith("/health") ||
-      url.searchParams.get("health") === "true"
-    ) {
+      url.searchParams.get("health") === "true";
+
+    // Check for health check in POST body as well
+    let body = null;
+    if (req.method === "POST") {
+      try {
+        body = await req.json();
+      } catch {
+        // Ignore JSON parsing errors for health checks
+      }
+    }
+
+    if (isHealthCheck || body?.health === true) {
       return new Response(
         JSON.stringify({
           success: true,
@@ -54,6 +44,33 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
+    }
+
+    // Validate request method for non-health endpoints
+    if (req.method !== "POST") {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "METHOD_NOT_ALLOWED",
+          details: {
+            provided_method: req.method,
+            required_method: "POST",
+            message:
+              "Payment initialization endpoint only accepts POST requests",
+          },
+          fix_instructions:
+            "Send payment initialization requests using POST method only",
+        }),
+        {
+          status: 405,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Parse request body if not already parsed
+    if (!body) {
+      body = await req.json();
     }
 
     // Check environment configuration

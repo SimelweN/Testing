@@ -29,15 +29,31 @@ const suppressedErrorPatterns = [
   "window.fetch (eval at messageHandler", // Specific pattern from stack trace
   "at ping \\(https://.*/@vite/client", // Vite ping function
   "WebSocket\\.<anonymous>.*/@vite/client", // Vite WebSocket errors
+  // Enhanced patterns for the specific errors in the stack trace
+  "at e \\(https://edge\\.fullstory\\.com/s/fs\\.js:4:60118\\)",
+  "at m\\.<computed> \\(eval at <anonymous>",
+  "at window\\.fetch \\(eval at messageHandler",
+  "at window\\.fetch \\(https://.*\\.fly\\.dev/src/utils/suppressNetworkErrors\\.ts:",
+  "at ping \\(https://.*\\.fly\\.dev/@vite/client:",
+  "at waitForSuccessfulPing \\(https://.*\\.fly\\.dev/@vite/client:",
+  "at WebSocket\\.<anonymous> \\(https://.*\\.fly\\.dev/@vite/client:",
+  // Broader patterns for eval-based errors
+  "eval at <anonymous> \\(eval at messageHandler",
+  "\\.fly\\.dev/\\?reload=\\d+",
+  // Network connectivity patterns
+  "Failed to fetch.*edge\\.fullstory\\.com",
+  "TypeError: Failed to fetch.*fullstory",
 ];
 
 // Check if error should be suppressed
-const shouldSuppressError = (message: string): boolean => {
+const shouldSuppressError = (message: string, stack?: string): boolean => {
+  const fullErrorText = `${message} ${stack || ""}`;
+
   if (import.meta.env.PROD) {
     // In production, only suppress known third-party errors
     return suppressedErrorPatterns.some((pattern) => {
       if (pattern.includes("fullstory") || pattern.includes("fs.js")) {
-        return message.toLowerCase().includes(pattern.toLowerCase());
+        return fullErrorText.toLowerCase().includes(pattern.toLowerCase());
       }
       return false;
     });
@@ -45,22 +61,24 @@ const shouldSuppressError = (message: string): boolean => {
 
   // In development, suppress more network-related errors
   return suppressedErrorPatterns.some((pattern) => {
-    if (pattern.includes(".*")) {
+    if (pattern.includes(".*") || pattern.includes("\\")) {
       // Regex pattern
       try {
-        return new RegExp(pattern, "i").test(message);
+        return new RegExp(pattern, "i").test(fullErrorText);
       } catch {
-        return message.toLowerCase().includes(pattern.toLowerCase());
+        return fullErrorText.toLowerCase().includes(pattern.toLowerCase());
       }
     }
-    return message.toLowerCase().includes(pattern.toLowerCase());
+    return fullErrorText.toLowerCase().includes(pattern.toLowerCase());
   });
 };
 
 // Override console.error to filter out network warnings
 console.error = (...args: any[]) => {
   const message = args[0];
-  if (typeof message === "string" && shouldSuppressError(message)) {
+  const stack = args[1]?.stack || "";
+
+  if (typeof message === "string" && shouldSuppressError(message, stack)) {
     // Log to a separate namespace for debugging if needed
     if (import.meta.env.DEV) {
       console.debug("[Suppressed Network Error]:", message);
@@ -75,7 +93,7 @@ window.onunhandledrejection = (event: PromiseRejectionEvent) => {
   const message = event.reason?.message || event.reason?.toString() || "";
   const stack = event.reason?.stack || "";
 
-  if (shouldSuppressError(message) || shouldSuppressError(stack)) {
+  if (shouldSuppressError(message, stack)) {
     // Suppress the error
     event.preventDefault();
     if (import.meta.env.DEV) {
@@ -108,8 +126,7 @@ window.addEventListener(
       source.includes("googletagmanager.com") ||
       source.includes("@vite/client") ||
       source.includes(".fly.dev") ||
-      shouldSuppressError(message) ||
-      shouldSuppressError(stack)
+      shouldSuppressError(message, stack)
     ) {
       event.preventDefault();
       if (import.meta.env.DEV) {
@@ -155,7 +172,7 @@ window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
     const stack = error instanceof Error ? error.stack : "";
 
     // If it's a network error from third-party services or dev server, handle gracefully
-    if (shouldSuppressError(message) || shouldSuppressError(stack || "")) {
+    if (shouldSuppressError(message, stack || "")) {
       console.debug("[Network Error Handled]:", message);
       // Return a failed response instead of throwing
       return new Response(null, {
@@ -179,19 +196,50 @@ if (import.meta.env.DEV) {
   // Add window-level error listener specifically for development
   window.addEventListener("error", (event) => {
     const error = event.error;
-    if (error && error.stack) {
-      // Check for specific Vite HMR patterns in the stack trace
+    const message = error?.message || event.message || "";
+    const stack = error?.stack || "";
+
+    if (error && stack) {
+      // Check for specific patterns from the reported stack trace
       if (
-        error.stack.includes("@vite/client") ||
-        error.stack.includes("ping") ||
-        error.stack.includes("waitForSuccessfulPing") ||
-        error.stack.includes("WebSocket") ||
-        error.stack.includes(".fly.dev")
+        stack.includes("@vite/client") ||
+        stack.includes("ping") ||
+        stack.includes("waitForSuccessfulPing") ||
+        stack.includes("WebSocket") ||
+        stack.includes(".fly.dev") ||
+        stack.includes("edge.fullstory.com") ||
+        stack.includes("fs.js") ||
+        message.includes("Failed to fetch") ||
+        shouldSuppressError(message, stack)
       ) {
         event.preventDefault();
-        console.debug("[Dev Server Error Suppressed]:", error.message);
+        console.debug("[Dev Server/Third-party Error Suppressed]:", {
+          message: message.substring(0, 100),
+          source: stack.split("\n")[0],
+        });
         return false;
       }
+    }
+  });
+
+  // Enhanced error handler for uncaught errors
+  window.addEventListener("unhandledrejection", (event) => {
+    const error = event.reason;
+    const message = error?.message || error?.toString() || "";
+    const stack = error?.stack || "";
+
+    // Check for FullStory and Vite specific errors
+    if (
+      message.includes("Failed to fetch") &&
+      (stack.includes("edge.fullstory.com") ||
+        stack.includes("@vite/client") ||
+        stack.includes(".fly.dev"))
+    ) {
+      event.preventDefault();
+      console.debug("[Unhandled Rejection Suppressed]:", {
+        message: message.substring(0, 100),
+        type: "Network/Third-party error",
+      });
     }
   });
 

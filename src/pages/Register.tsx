@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Mail, Lock, User, Loader2 } from "lucide-react";
+import EmailConfirmationFix from "@/components/EmailConfirmationFix";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -16,6 +17,8 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showEmailFix, setShowEmailFix] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -118,12 +121,25 @@ const Register = () => {
         error instanceof Error ? error.message : String(error),
       );
 
-      // Show the error to the user
-      toast.error(
+      const errorMessage =
         error instanceof Error
           ? error.message
-          : "Registration failed. Please try again.",
-      );
+          : "Registration failed. Please try again.";
+
+      // Check if it's an email-related error
+      if (
+        errorMessage.toLowerCase().includes("email") ||
+        errorMessage.toLowerCase().includes("confirmation")
+      ) {
+        setUserEmail(email);
+        setShowEmailFix(true);
+        toast.error(
+          "Email confirmation issue detected. Please use the fix tool below.",
+        );
+      } else {
+        // Show the error to the user
+        toast.error(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -138,6 +154,25 @@ const Register = () => {
               <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
                 Create an Account
               </h1>
+
+              {showEmailFix && (
+                <div className="mb-6">
+                  <EmailConfirmationFix
+                    userEmail={userEmail}
+                    onSuccess={() => {
+                      setShowEmailFix(false);
+                      toast.success(
+                        "Email confirmation fixed! You can now log in.",
+                      );
+                      setTimeout(
+                        () =>
+                          navigate("/login", { state: { email: userEmail } }),
+                        1500,
+                      );
+                    }}
+                  />
+                </div>
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">

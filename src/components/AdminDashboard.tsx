@@ -29,6 +29,9 @@ import AdminUsageExamples from "@/components/admin/AdminUsageExamples";
 import CleanEmailTester from "@/components/admin/CleanEmailTester";
 import AdminEmailTestingTab from "@/components/admin/AdminEmailTestingTab";
 import AdminPaystackTestingTab from "@/components/admin/AdminPaystackTestingTab";
+import SignupEmailTest from "@/components/admin/SignupEmailTest";
+import EmailVerificationDiagnostic from "@/components/admin/EmailVerificationDiagnostic";
+import PaystackEdgeFunctionDiagnostic from "@/components/admin/PaystackEdgeFunctionDiagnostic";
 import DatabaseTableTester from "@/components/admin/DatabaseTableTester";
 import DemoDataGenerator from "@/components/admin/DemoDataGenerator";
 import EdgeFunctionTester from "@/components/admin/EdgeFunctionTester";
@@ -380,6 +383,20 @@ const AdminDashboard = () => {
       description: "Test all email templates",
     },
     {
+      value: "signup-email-test",
+      label: "Signup Email",
+      icon: ShieldCheck,
+      color: "text-emerald-600",
+      description: "Test signup email confirmation",
+    },
+    {
+      value: "email-verification",
+      label: "Email Verification",
+      icon: Mail,
+      color: "text-blue-600",
+      description: "Diagnose email verification during signup",
+    },
+    {
       value: "paystack-testing",
       label: "Paystack Testing",
       icon: CreditCard,
@@ -392,6 +409,13 @@ const AdminDashboard = () => {
       icon: ShieldCheck,
       color: "text-emerald-600",
       description: "Comprehensive system verification",
+    },
+    {
+      value: "paystack-edge-diagnostic",
+      label: "Paystack Edge Functions",
+      icon: TestTube,
+      color: "text-purple-600",
+      description: "Diagnose Edge Function connectivity issues",
     },
     {
       value: "split-management",
@@ -653,6 +677,18 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="signup-email-test" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+              <SignupEmailTest />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="email-verification" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+              <EmailVerificationDiagnostic />
+            </div>
+          </TabsContent>
+
           <TabsContent value="paystack-testing" className="space-y-4 mt-0">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
               <AdminPaystackTestingTab />
@@ -662,6 +698,15 @@ const AdminDashboard = () => {
           <TabsContent value="paystack-verification" className="space-y-4 mt-0">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
               <PaystackSystemTestComponent />
+            </div>
+          </TabsContent>
+
+          <TabsContent
+            value="paystack-edge-diagnostic"
+            className="space-y-4 mt-0"
+          >
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+              <PaystackEdgeFunctionDiagnostic />
             </div>
           </TabsContent>
 
