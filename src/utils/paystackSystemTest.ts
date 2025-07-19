@@ -345,9 +345,15 @@ export class PaystackSystemTester {
       } else {
         this.addResult(
           "Paystack API",
-          "warning",
-          "Paystack API test returned unexpected format",
-          result,
+          "error",
+          `Paystack API test failed - Exact response: ${JSON.stringify(result)}`,
+          {
+            actual_response: result,
+            expected_fields: ["success", "service"],
+            response_keys: result ? Object.keys(result) : [],
+            error_details:
+              result?.error || result?.message || "No error message provided",
+          },
           timing,
         );
       }
