@@ -126,8 +126,7 @@ window.addEventListener(
       source.includes("googletagmanager.com") ||
       source.includes("@vite/client") ||
       source.includes(".fly.dev") ||
-      shouldSuppressError(message) ||
-      shouldSuppressError(stack)
+      shouldSuppressError(message, stack)
     ) {
       event.preventDefault();
       if (import.meta.env.DEV) {
