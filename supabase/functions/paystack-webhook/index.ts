@@ -491,9 +491,28 @@ async function handleFailedPayment(supabase: any, paymentData: any) {
 
 async function handleSuccessfulTransfer(supabase: any, transferData: any) {
   try {
-    console.log("Transfer successful:", transferData.reference);
+    console.log(
+      "Transfer successful:",
+      transferData.reference || transferData.transfer_code,
+    );
 
-    // Update seller payout status if exists
+    // Update transfer status in transfers table
+    const { error: transferUpdateError } = await supabase
+      .from("transfers")
+      .update({
+        status: "success",
+        completed_at: new Date().toISOString(),
+        paystack_response: transferData,
+      })
+      .or(
+        `reference.eq.${transferData.reference},transfer_code.eq.${transferData.transfer_code}`,
+      );
+
+    if (transferUpdateError) {
+      console.warn("Could not update transfer status:", transferUpdateError);
+    }
+
+    // Update legacy seller payout status if exists (backward compatibility)
     const { error: payoutUpdateError } = await supabase
       .from("seller_payouts")
       .update({
@@ -504,13 +523,14 @@ async function handleSuccessfulTransfer(supabase: any, transferData: any) {
       .eq("transfer_reference", transferData.reference);
 
     if (payoutUpdateError) {
-      console.warn("Could not update payout status:", payoutUpdateError);
+      console.warn("Could not update legacy payout status:", payoutUpdateError);
     }
 
     return {
       success: true,
       message: "Transfer success processed",
       reference: transferData.reference,
+      transfer_code: transferData.transfer_code,
     };
   } catch (error) {
     console.error("Error handling successful transfer:", error);
@@ -526,11 +546,28 @@ async function handleFailedTransfer(supabase: any, transferData: any) {
   try {
     console.log(
       "Transfer failed:",
-      transferData.reference,
+      transferData.reference || transferData.transfer_code,
       transferData.failure_reason,
     );
 
-    // Update seller payout status if exists
+    // Update transfer status in transfers table
+    const { error: transferUpdateError } = await supabase
+      .from("transfers")
+      .update({
+        status: "failed",
+        failure_reason: transferData.failure_reason,
+        failed_at: new Date().toISOString(),
+        paystack_response: transferData,
+      })
+      .or(
+        `reference.eq.${transferData.reference},transfer_code.eq.${transferData.transfer_code}`,
+      );
+
+    if (transferUpdateError) {
+      console.warn("Could not update transfer status:", transferUpdateError);
+    }
+
+    // Update legacy seller payout status if exists (backward compatibility)
     const { error: payoutUpdateError } = await supabase
       .from("seller_payouts")
       .update({
@@ -541,13 +578,14 @@ async function handleFailedTransfer(supabase: any, transferData: any) {
       .eq("transfer_reference", transferData.reference);
 
     if (payoutUpdateError) {
-      console.warn("Could not update payout status:", payoutUpdateError);
+      console.warn("Could not update legacy payout status:", payoutUpdateError);
     }
 
     return {
       success: true,
       message: "Transfer failure processed",
       reference: transferData.reference,
+      transfer_code: transferData.transfer_code,
       failure_reason: transferData.failure_reason,
     };
   } catch (error) {
