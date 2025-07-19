@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Mail, Lock, User, Loader2 } from "lucide-react";
+import EmailConfirmationFix from "@/components/EmailConfirmationFix";
 
 const Register = () => {
   const [name, setName] = useState("");
