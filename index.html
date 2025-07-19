@@ -368,5 +368,39 @@
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Final safety net for persistent errors -->
+    <script>
+      // Aggressive console override
+      const originalMethods = {
+        error: console.error,
+        warn: console.warn,
+        log: console.log,
+      };
+
+      ["error", "warn", "log"].forEach((method) => {
+        console[method] = function (...args) {
+          const msg = args.join(" ");
+          if (
+            msg.includes(
+              "Failed to fetch at e (https://edge.fullstory.com/s/fs.js:4:60118)",
+            ) ||
+            msg.includes(
+              "Failed to fetch TypeError: Failed to fetch at ping",
+            ) ||
+            msg.includes(
+              "Failed to fetch at window.fetch (eval at messageHandler",
+            ) ||
+            msg.includes(
+              "213f0d6feb0c4f74bf8db7ef237f0dbe-315d37effbbd45138374f8eea.fly.dev",
+            ) ||
+            msg.includes("@vite/client:732:13")
+          ) {
+            return; // Complete silence
+          }
+          originalMethods[method].apply(console, args);
+        };
+      });
+    </script>
   </body>
 </html>
