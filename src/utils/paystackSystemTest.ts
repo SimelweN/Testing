@@ -1,6 +1,70 @@
 import { supabase } from "@/integrations/supabase/client";
 import { PAYSTACK_CONFIG } from "@/config/paystack";
 
+// Import comprehensive mock data for proper testing
+const PaystackMockData = {
+  initializePayment: {
+    user_id: "550e8400-e29b-41d4-a716-446655440000",
+    email: "test.user@example.com",
+    amount: 29999, // Amount in kobo (R299.99)
+    currency: "ZAR",
+    reference: "TXN_" + Date.now() + "_TEST",
+    callback_url: "https://rebookedsolutions.co.za/payment/callback",
+    metadata: {
+      book_id: "book-550e8400-e29b-41d4-a716-446655440001",
+      book_title: "Test Book for Payment",
+      seller_id: "550e8400-e29b-41d4-a716-446655440002",
+      buyer_id: "550e8400-e29b-41d4-a716-446655440000",
+      delivery_fee: 8500,
+      platform_fee: 1500,
+      seller_amount: 19999,
+    },
+  },
+  splitManagement: {
+    name: "Test Split " + Date.now(),
+    type: "percentage",
+    currency: "ZAR",
+    subaccounts: [
+      {
+        subaccount: "ACCT_test_seller_1",
+        share: 7000, // 70%
+      },
+      {
+        subaccount: "ACCT_test_seller_2",
+        share: 2000, // 20%
+      },
+    ],
+    bearer_type: "account",
+  },
+  subaccountCreation: {
+    business_name: "Test Business " + Date.now(),
+    bank_code: "058",
+    account_number: "1234567890",
+    account_name: "Test Account Holder",
+    phone: "+27123456789",
+    email: "test@example.com",
+    percentage_charge: 85.5,
+    description: "Test subaccount for automated testing",
+  },
+  transferManagement: {
+    amount: 10000, // R100.00 in kobo
+    currency: "ZAR",
+    reason: "test_transfer",
+    reference: "TRANSFER_TEST_" + Date.now(),
+    recipient_code: "RCP_test_recipient",
+  },
+  refundManagement: {
+    transaction: "TXN_test_transaction",
+    amount: 5000, // R50.00 in kobo
+    currency: "ZAR",
+    customer_note: "Test refund for automated testing",
+    merchant_note: "Automated test refund",
+  },
+  paymentVerification: {
+    reference: "TXN_" + Date.now() + "_VERIFY_TEST",
+  },
+};
+
 export interface PaystackTestResult {
   component: string;
   status: "success" | "error" | "warning" | "info";
