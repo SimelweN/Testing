@@ -389,6 +389,13 @@ const AdminDashboard = () => {
       description: "Test signup email confirmation",
     },
     {
+      value: "email-verification",
+      label: "Email Verification",
+      icon: Mail,
+      color: "text-blue-600",
+      description: "Diagnose email verification during signup",
+    },
+    {
       value: "paystack-testing",
       label: "Paystack Testing",
       icon: CreditCard,
