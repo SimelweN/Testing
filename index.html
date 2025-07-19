@@ -85,10 +85,26 @@
           "safari-extension",
         ];
 
-        // Check if message should be suppressed
+                // Check if message should be suppressed
         function shouldSuppress(msg) {
+          const msgLower = msg.toLowerCase();
+
+          // Exact error patterns to suppress
+          const exactPatterns = [
+            "typeerror: failed to fetch at e (https://edge.fullstory.com/s/fs.js:",
+            "failed to fetch typeerror: failed to fetch at ping",
+            "failed to fetch at window.fetch (eval at messagehandler",
+            "@vite/client:732:13"
+          ];
+
+          // Check exact patterns first
+          if (exactPatterns.some(pattern => msgLower.includes(pattern))) {
+            return true;
+          }
+
+          // Then check general patterns
           return suppressPatterns.some((pattern) =>
-            msg.toLowerCase().includes(pattern.toLowerCase()),
+            msgLower.includes(pattern.toLowerCase()),
           );
         }
 
