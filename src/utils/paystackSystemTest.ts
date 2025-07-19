@@ -396,9 +396,15 @@ export class PaystackSystemTester {
       } else {
         this.addResult(
           "Subaccount Management",
-          "warning",
-          "Subaccount function returned unexpected format",
-          result,
+          "error",
+          `Subaccount test failed - Exact response: ${JSON.stringify(result)}`,
+          {
+            actual_response: result,
+            expected_fields: ["success", "error"],
+            response_keys: result ? Object.keys(result) : [],
+            error_details:
+              result?.error || result?.message || "No error message provided",
+          },
           timing,
         );
       }
