@@ -609,12 +609,11 @@ async function handleCreateSubaccount(
 
 // Update existing subaccount
 async function handleUpdateSubaccount(
-  req: Request,
+  requestBody: any,
   user: any,
   subaccountId: string,
   supabase: any,
 ): Promise<Response> {
-  const requestBody = await req.json();
   const {
     business_name,
     settlement_bank,
