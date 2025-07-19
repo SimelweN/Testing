@@ -203,9 +203,9 @@ serve(async (req) => {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       },
-    );
+        );
   }
-};
+});
 
 async function handleGetSplits(req: Request): Promise<Response> {
   const url = new URL(req.url);
