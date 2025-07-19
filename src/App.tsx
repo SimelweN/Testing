@@ -11,7 +11,7 @@ import "./utils/suppressNetworkErrors";
 import "./utils/networkDebugger";
 // Test error suppression in development
 if (import.meta.env.DEV) {
-  import("./utils/testErrorSuppression");
+  import("./utils/verifyErrorSuppression");
 }
 // Loading state manager to prevent white screens
 import "./utils/loadingStateManager";
