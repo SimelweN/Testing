@@ -65,10 +65,9 @@ serve(async (req) => {
     let body = null;
     if (req.method === "POST" || req.method === "PUT") {
       try {
-        const text = await req.text();
-        if (text) {
-          body = JSON.parse(text);
-        }
+        // Clone the request to avoid consuming the body
+        const clonedReq = req.clone();
+        body = await clonedReq.json();
       } catch {
         // Ignore JSON parsing errors for health checks
       }
