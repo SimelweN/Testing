@@ -156,6 +156,48 @@
             throw error;
           }
         };
+
+        // LAYER 7: Nuclear XMLHttpRequest blocking
+        const origXHR = window.XMLHttpRequest;
+        window.XMLHttpRequest = function () {
+          const xhr = new origXHR();
+          const origOpen = xhr.open;
+          xhr.open = function (method, url, ...args) {
+            if (shouldBlock(url)) {
+              // Create a fake successful response
+              Object.defineProperty(xhr, "readyState", {
+                value: 4,
+                writable: false,
+              });
+              Object.defineProperty(xhr, "status", {
+                value: 200,
+                writable: false,
+              });
+              Object.defineProperty(xhr, "response", {
+                value: "{}",
+                writable: false,
+              });
+              Object.defineProperty(xhr, "responseText", {
+                value: "{}",
+                writable: false,
+              });
+              setTimeout(() => xhr.onload && xhr.onload(), 0);
+              return;
+            }
+            return origOpen.apply(xhr, arguments);
+          };
+          return xhr;
+        };
+
+        // LAYER 8: Complete URL blocking at window level
+        const origLocation = window.location;
+        Object.defineProperty(window, "location", {
+          get: () => origLocation,
+          set: (val) => {
+            if (shouldBlock(val)) return;
+            origLocation.href = val;
+          },
+        });
       })();
     </script>
     <meta charset="UTF-8" />
