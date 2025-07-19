@@ -91,24 +91,6 @@ serve(async (req) => {
       );
     }
 
-    // Authenticate user
-    const user = await getUserFromRequest(req);
-    if (!user) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "AUTHENTICATION_FAILED",
-          details: {
-            message: "User authentication required",
-          },
-        }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
     // Check environment variables
     if (!PAYSTACK_SECRET_KEY) {
       return new Response(
