@@ -177,7 +177,7 @@ async function handleGetSplits(req: Request): Promise<Response> {
       endpoint += `/${splitCode}`;
     }
 
-    const response = await fetch(endpoint, {
+    const response = await fetchWithTimeout(endpoint, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
