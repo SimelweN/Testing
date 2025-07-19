@@ -61,11 +61,14 @@ serve(async (req) => {
       url.pathname.endsWith("/health") ||
       url.searchParams.get("health") === "true";
 
-    // Check for health check in POST body as well
+    // Check for health check in request body as well (for POST/PUT methods)
     let body = null;
-    if (req.method === "POST") {
+    if (req.method === "POST" || req.method === "PUT") {
       try {
-        body = await req.json();
+        const text = await req.text();
+        if (text) {
+          body = JSON.parse(text);
+        }
       } catch {
         // Ignore JSON parsing errors for health checks
       }
