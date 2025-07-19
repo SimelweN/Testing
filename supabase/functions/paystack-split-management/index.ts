@@ -50,27 +50,62 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  // Validate request method
-  if (!["POST", "GET", "PUT", "DELETE"].includes(req.method)) {
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "METHOD_NOT_ALLOWED",
-        details: {
-          provided_method: req.method,
-          allowed_methods: ["POST", "GET", "PUT", "DELETE"],
-          message:
-            "Split management endpoint accepts POST, GET, PUT, DELETE requests",
+  try {
+    // Handle health check first
+    const url = new URL(req.url);
+    const isHealthCheck =
+      url.pathname.endsWith("/health") ||
+      url.searchParams.get("health") === "true";
+
+    // Check for health check in POST body as well
+    let body = null;
+    if (req.method === "POST") {
+      try {
+        body = await req.json();
+      } catch {
+        // Ignore JSON parsing errors for health checks
+      }
+    }
+
+    if (isHealthCheck || body?.health === true) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          service: "paystack-split-management",
+          status: "healthy",
+          timestamp: new Date().toISOString(),
+          environment: {
+            paystack_configured: !!PAYSTACK_SECRET_KEY,
+            supabase_configured: !!(SUPABASE_URL && SUPABASE_SERVICE_KEY),
+          },
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
-        fix_instructions:
-          "Use POST to create, GET to retrieve, PUT to update, DELETE to remove splits",
-      }),
-      {
-        status: 405,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
-  }
+      );
+    }
+
+    // Validate request method for non-health endpoints
+    if (!["POST", "GET", "PUT", "DELETE"].includes(req.method)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "METHOD_NOT_ALLOWED",
+          details: {
+            provided_method: req.method,
+            allowed_methods: ["POST", "GET", "PUT", "DELETE"],
+            message:
+              "Split management endpoint accepts POST, GET, PUT, DELETE requests",
+          },
+          fix_instructions:
+            "Use POST to create, GET to retrieve, PUT to update, DELETE to remove splits",
+        }),
+        {
+          status: 405,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
 
   try {
     // Check environment configuration
