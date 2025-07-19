@@ -196,9 +196,9 @@ serve(async (req) => {
           error_type: error.constructor.name,
           timestamp: new Date().toISOString(),
         },
-        fix_instructions:
+                fix_instructions:
           "This is an unexpected server error. Check server logs for details.",
-      }      ),
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
