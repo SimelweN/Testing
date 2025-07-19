@@ -94,25 +94,30 @@ serve(async (req) => {
       );
     }
 
+    // Use body if already parsed for health check, otherwise parse now
     let requestBody;
-    try {
-      requestBody = await req.json();
-    } catch (parseError) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "INVALID_JSON_PAYLOAD",
-          details: {
-            parse_error: parseError.message,
-            message: "Request body must be valid JSON",
+    if (body) {
+      requestBody = body;
+    } else {
+      try {
+        requestBody = await req.json();
+      } catch (parseError) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "INVALID_JSON_PAYLOAD",
+            details: {
+              parse_error: parseError.message,
+              message: "Request body must be valid JSON",
+            },
+            fix_instructions: "Ensure request body contains valid JSON format",
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
           },
-          fix_instructions: "Ensure request body contains valid JSON format",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+        );
+      }
     }
 
     const { reference } = requestBody;
