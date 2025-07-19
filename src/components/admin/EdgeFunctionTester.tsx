@@ -701,8 +701,9 @@ export default function EdgeFunctionTester() {
           {categories.map((category) => (
             <TabsTrigger key={category} value={category} className="capitalize">
               {category}{" "}
-              {category !== "all" &&
-                `(${edgeFunctions.filter((f) => f.category === category).length})`}
+              {category === "all"
+                ? `(${edgeFunctions.length})`
+                : `(${edgeFunctions.filter((f) => f.category === category).length})`}
             </TabsTrigger>
           ))}
         </TabsList>
