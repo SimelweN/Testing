@@ -259,6 +259,36 @@
           }
         };
 
+                // Additional aggressive suppression for persistent errors
+        const suppressSpecificErrors = (msg) => {
+          return (
+            msg.includes("Failed to fetch at e (https://edge.fullstory.com") ||
+            msg.includes("Failed to fetch TypeError: Failed to fetch at ping") ||
+            msg.includes("Failed to fetch at window.fetch (eval at messageHandler") ||
+            msg.includes("213f0d6feb0c4f74bf8db7ef237f0dbe-315d37effbbd45138374f8eea.fly.dev")
+          );
+        };
+
+        // Override console methods with aggressive suppression
+        const origConsoleError = console.error;
+        const origConsoleWarn = console.warn;
+
+        console.error = function(...args) {
+          const msg = args.join(" ");
+          if (suppressSpecificErrors(msg) || shouldSuppress(msg)) {
+            return; // Completely silent
+          }
+          return origConsoleError.apply(this, args);
+        };
+
+        console.warn = function(...args) {
+          const msg = args.join(" ");
+          if (suppressSpecificErrors(msg) || shouldSuppress(msg)) {
+            return; // Completely silent
+          }
+          return origConsoleWarn.apply(this, args);
+        };
+
         console.debug("🛡️ Immediate error suppression active");
       })();
     </script>
