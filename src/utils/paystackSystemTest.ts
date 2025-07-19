@@ -828,24 +828,12 @@ export class PaystackSystemTester {
 
   private async testScenarioRefundWithMockData() {
     try {
-      const mockRefundData = {
-        action: "scenario-refund",
-        type: "cancellation",
-        reason: "Order cancelled by customer during testing",
-        transaction: `mock_txn_${Date.now()}`,
-        customer_note: "Mock refund for system testing",
-        merchant_note: "System test - mock refund scenario",
-        order_id: "mock-order-123",
-        user_id: "test-user-456",
-        test_mode: true,
-      };
-
       const { result, timing } = await this.measureTime(async () => {
         const { data, error } = await supabase.functions.invoke(
           "paystack-refund-management",
           {
             method: "POST",
-            body: mockRefundData,
+            body: PaystackMockData.refundManagement,
           },
         );
         if (error) throw error;
