@@ -477,6 +477,12 @@ const edgeFunctions: EdgeFunction[] = [
   },
 ];
 
+// Verify we have all 24 functions
+console.log(`EdgeFunctionTester: ${edgeFunctions.length} functions loaded`);
+if (edgeFunctions.length !== 24) {
+  console.warn(`Expected 24 functions but got ${edgeFunctions.length}`);
+}
+
 interface TestResult {
   function: string;
   status: "idle" | "loading" | "success" | "error";
