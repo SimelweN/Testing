@@ -76,7 +76,9 @@ const shouldSuppressError = (message: string, stack?: string): boolean => {
 // Override console.error to filter out network warnings
 console.error = (...args: any[]) => {
   const message = args[0];
-  if (typeof message === "string" && shouldSuppressError(message)) {
+  const stack = args[1]?.stack || "";
+
+  if (typeof message === "string" && shouldSuppressError(message, stack)) {
     // Log to a separate namespace for debugging if needed
     if (import.meta.env.DEV) {
       console.debug("[Suppressed Network Error]:", message);
