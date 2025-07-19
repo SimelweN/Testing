@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { PaystackApi } from "../_shared/paystack-api.ts";
 
 const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -182,38 +183,32 @@ async function handleGetBanks(req: Request): Promise<Response> {
     const country = url.searchParams.get("country") || "south-africa";
     const currency = url.searchParams.get("currency") || "ZAR";
 
-    const response = await fetch(
-      `https://api.paystack.co/bank?country=${country}&currency=${currency}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-          "Content-Type": "application/json",
-        },
-      },
+    const result = await PaystackApi.get(
+      `/bank?country=${country}&currency=${currency}`,
     );
 
-    if (!response.ok) {
+    if (!result.success) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "PAYSTACK_BANKS_FETCH_FAILED",
+          error: result.error || "PAYSTACK_BANKS_FETCH_FAILED",
+          error_type: result.error_type,
           details: {
-            status_code: response.status,
-            status_text: response.statusText,
+            ...result.details,
             message: "Failed to fetch banks from Paystack",
           },
           fix_instructions:
-            "Check Paystack API access and country/currency parameters",
+            result.error_type === "network"
+              ? "Network error occurred. Check connectivity and try again."
+              : "Check Paystack API access and country/currency parameters",
         }),
         {
-          status: response.status,
+          status: result.status_code || 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
     }
 
-    const result = await response.json();
     return new Response(
       JSON.stringify({
         success: true,
