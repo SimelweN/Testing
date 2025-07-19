@@ -11,7 +11,76 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // Validate request method
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "METHOD_NOT_ALLOWED",
+        details: {
+          provided_method: req.method,
+          required_method: "POST",
+          message: "Payment initialization endpoint only accepts POST requests",
+        },
+        fix_instructions:
+          "Send payment initialization requests using POST method only",
+      }),
+      {
+        status: 405,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
+  }
+
   try {
+    // Check environment configuration
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    const missingEnvVars = [];
+    if (!supabaseUrl) missingEnvVars.push("SUPABASE_URL");
+    if (!supabaseServiceKey) missingEnvVars.push("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (missingEnvVars.length > 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "ENVIRONMENT_CONFIG_ERROR",
+          details: {
+            missing_env_vars: missingEnvVars,
+            message: "Required environment variables are not configured",
+          },
+          fix_instructions:
+            "Configure missing environment variables in deployment settings",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (parseError) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "INVALID_JSON_PAYLOAD",
+          details: {
+            parse_error: parseError.message,
+            message: "Request body must be valid JSON",
+          },
+          fix_instructions: "Ensure request body contains valid JSON format",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
     const {
       user_id,
       items,
@@ -19,13 +88,86 @@ serve(async (req) => {
       shipping_address,
       email,
       metadata = {},
-    } = await req.json();
+    } = requestBody;
 
-    if (!user_id || !items || !total_amount || !email) {
+    // Validate required fields
+    const missingFields = [];
+    if (!user_id) missingFields.push("user_id");
+    if (!items) missingFields.push("items");
+    if (!total_amount) missingFields.push("total_amount");
+    if (!email) missingFields.push("email");
+
+    if (missingFields.length > 0) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "Missing required fields: user_id, items, total_amount, email",
+          error: "MISSING_REQUIRED_FIELDS",
+          details: {
+            missing_fields: missingFields,
+            provided_fields: Object.keys(requestBody || {}),
+            message: "Required fields are missing for payment initialization",
+          },
+          fix_instructions:
+            "Provide all required fields: user_id, items, total_amount, email",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Validate field formats
+    if (!Array.isArray(items) || items.length === 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "INVALID_ITEMS_FORMAT",
+          details: {
+            items_type: typeof items,
+            items_length: Array.isArray(items) ? items.length : "N/A",
+            message: "Items must be a non-empty array",
+          },
+          fix_instructions: "Provide items as an array with at least one item",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    if (typeof total_amount !== "number" || total_amount <= 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "INVALID_AMOUNT_FORMAT",
+          details: {
+            amount_type: typeof total_amount,
+            amount_value: total_amount,
+            message: "Total amount must be a positive number",
+          },
+          fix_instructions: "Provide total_amount as a positive number",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "INVALID_EMAIL_FORMAT",
+          details: {
+            email: email,
+            message: "Email address format is invalid",
+          },
+          fix_instructions: "Provide a valid email address",
         }),
         {
           status: 400,
@@ -69,6 +211,23 @@ serve(async (req) => {
       console.warn(
         "Failed to fetch sellers, proceeding without splits:",
         sellersError.message,
+      );
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "SELLER_DATA_FETCH_FAILED",
+          details: {
+            database_error: sellersError.message,
+            seller_ids: sellerIds,
+            message: "Unable to fetch seller information from database",
+          },
+          fix_instructions:
+            "Check database connectivity and seller data integrity",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -122,22 +281,101 @@ serve(async (req) => {
     }
 
     try {
-      const paystackResponse = await fetch(
-        "https://api.paystack.co/transaction/initialize",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-            "Content-Type": "application/json",
+      let paystackResponse;
+      try {
+        paystackResponse = await fetch(
+          "https://api.paystack.co/transaction/initialize",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(paystackData),
           },
-          body: JSON.stringify(paystackData),
-        },
-      );
+        );
+      } catch (fetchError) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "PAYSTACK_API_CONNECTION_FAILED",
+            details: {
+              fetch_error: fetchError.message,
+              api_endpoint: "https://api.paystack.co/transaction/initialize",
+              message: "Unable to connect to Paystack API",
+            },
+            fix_instructions:
+              "Check network connectivity and Paystack API status",
+          }),
+          {
+            status: 502,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
 
-      const paystackResult = await paystackResponse.json();
+      if (!paystackResponse.ok) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "PAYSTACK_API_ERROR",
+            details: {
+              status_code: paystackResponse.status,
+              status_text: paystackResponse.statusText,
+              message: "Paystack API returned error response",
+            },
+            fix_instructions:
+              "Check Paystack API key and payment data validity",
+          }),
+          {
+            status: 502,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      let paystackResult;
+      try {
+        paystackResult = await paystackResponse.json();
+      } catch (parseError) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "PAYSTACK_RESPONSE_PARSE_ERROR",
+            details: {
+              parse_error: parseError.message,
+              message: "Unable to parse Paystack API response",
+            },
+            fix_instructions:
+              "This indicates an issue with Paystack API response format",
+          }),
+          {
+            status: 502,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
 
       if (!paystackResult.status) {
-        throw new Error(`Paystack error: ${paystackResult.message}`);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "PAYSTACK_INITIALIZATION_FAILED",
+            details: {
+              paystack_message: paystackResult.message,
+              paystack_data: paystackResult.data || null,
+              payment_amount: total_amount,
+              customer_email: email,
+              message: "Paystack payment initialization was unsuccessful",
+            },
+            fix_instructions:
+              "Check payment amount, customer email, and Paystack account configuration",
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
       // Store transaction reference in database
@@ -156,7 +394,24 @@ serve(async (req) => {
 
       if (insertError) {
         console.error("Failed to store transaction:", insertError);
-        // Continue anyway as Paystack payment is initialized
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "TRANSACTION_STORAGE_FAILED",
+            details: {
+              database_error: insertError.message,
+              paystack_reference: paystackResult.data.reference,
+              message:
+                "Payment initialized but failed to store transaction record",
+            },
+            fix_instructions:
+              "Check database connectivity and payment_transactions table structure",
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
       return new Response(
@@ -195,7 +450,15 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || "Failed to initialize payment",
+        error: "UNEXPECTED_PAYMENT_INITIALIZATION_ERROR",
+        details: {
+          error_message: error.message,
+          error_stack: error.stack,
+          error_type: error.constructor.name,
+          timestamp: new Date().toISOString(),
+        },
+        fix_instructions:
+          "This is an unexpected server error during payment initialization. Check server logs for details.",
       }),
       {
         status: 500,
