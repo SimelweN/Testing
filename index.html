@@ -111,6 +111,63 @@
           throw error;
         });
       };
+
+      // PRIORITY 3: Add event listeners immediately
+      document.addEventListener(
+        "error",
+        function (e) {
+          if (
+            isBlockedError(e.message) ||
+            isBlockedError(e.filename) ||
+            isBlockedError(e.error?.message) ||
+            isBlockedError(e.error?.stack)
+          ) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+            return false;
+          }
+        },
+        true,
+      );
+
+      document.addEventListener("unhandledrejection", function (e) {
+        if (
+          isBlockedError(e.reason?.message) ||
+          isBlockedError(e.reason?.toString()) ||
+          isBlockedError(e.reason?.stack)
+        ) {
+          e.preventDefault();
+          return false;
+        }
+      });
+
+      window.addEventListener(
+        "error",
+        function (e) {
+          if (
+            isBlockedError(e.message) ||
+            isBlockedError(e.filename) ||
+            isBlockedError(e.error?.message) ||
+            isBlockedError(e.error?.stack)
+          ) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+            return false;
+          }
+        },
+        true,
+      );
+
+      window.addEventListener("unhandledrejection", function (e) {
+        if (
+          isBlockedError(e.reason?.message) ||
+          isBlockedError(e.reason?.toString()) ||
+          isBlockedError(e.reason?.stack)
+        ) {
+          e.preventDefault();
+          return false;
+        }
+      });
     </script>
     <!-- IMMEDIATE NUCLEAR ERROR SUPPRESSION - FIRST PRIORITY -->
     <script>
