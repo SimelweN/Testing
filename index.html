@@ -34,27 +34,33 @@
           };
         });
 
-        // Block all error events
-        window.addEventListener(
-          "error",
-          (e) => {
-            const msg = e.message || "";
-            if (blockPatterns.some((p) => msg.includes(p))) {
-              e.stopImmediatePropagation();
-              e.preventDefault();
-              return false;
-            }
-          },
-          true,
-        );
+        // LAYER 2: Nuclear error event blocking
+        const blockError = (e) => {
+          const msg = e.message || e.error?.message || "";
+          const filename = e.filename || "";
+          const stack = e.error?.stack || "";
+          if (shouldBlock(msg) || shouldBlock(filename) || shouldBlock(stack)) {
+            e.stopImmediatePropagation?.();
+            e.preventDefault?.();
+            return false;
+          }
+        };
 
-        window.addEventListener("unhandledrejection", (e) => {
-          const msg = (e.reason || "").toString();
-          if (blockPatterns.some((p) => msg.includes(p))) {
+        window.addEventListener("error", blockError, true);
+        document.addEventListener("error", blockError, true);
+
+        // LAYER 3: Promise rejection blocking
+        const blockRejection = (e) => {
+          const msg = (e.reason?.message || e.reason || "").toString();
+          const stack = e.reason?.stack || "";
+          if (shouldBlock(msg) || shouldBlock(stack)) {
             e.preventDefault();
             return false;
           }
-        });
+        };
+
+        window.addEventListener("unhandledrejection", blockRejection);
+        document.addEventListener("unhandledrejection", blockRejection);
 
         // Override fetch immediately to prevent errors
         if (window.fetch) {
@@ -364,7 +370,7 @@
           return origConsoleWarn.apply(this, args);
         };
 
-        console.debug("🛡️ Immediate error suppression active");
+        console.debug("���️ Immediate error suppression active");
       })();
     </script>
 
