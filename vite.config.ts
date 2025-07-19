@@ -12,14 +12,29 @@ export default defineConfig(({ mode }) => ({
       overlay: false, // Disable error overlay that might interfere
       clientPort: 8080, // Ensure client connects to correct port
       // Add timeout and retry configuration
-      timeout: 30000, // 30 second timeout
+      timeout: 60000, // 60 second timeout for better stability
       // Handle connection errors gracefully
       skipErrors: true,
+      // Improve error handling
+      errorHandler: (err, context) => {
+        console.debug("[HMR] Error handled gracefully:", err.message);
+      },
     },
     // Add CORS headers for better cross-origin support
-    cors: true,
+    cors: {
+      origin: true,
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    },
     // Improve connection stability
     strictPort: false,
+    // Add headers for better development experience
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    },
   },
   plugins: [react()],
   resolve: {
