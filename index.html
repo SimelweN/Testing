@@ -1,6 +1,46 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- NUCLEAR SCRIPT BLOCKING - PREVENT PROBLEMATIC SCRIPTS FROM LOADING -->
+    <script>
+      // Block script loading completely
+      const originalCreateElement = document.createElement;
+      document.createElement = function (tagName) {
+        const element = originalCreateElement.call(this, tagName);
+        if (tagName.toLowerCase() === "script") {
+          const originalSetAttribute = element.setAttribute;
+          element.setAttribute = function (name, value) {
+            if (
+              name === "src" &&
+              (value.includes("edge.fullstory.com") ||
+                value.includes("fs.js") ||
+                value.includes("fullstory.com"))
+            ) {
+              console.debug("🚫 Blocked script:", value);
+              return; // Don't set the src
+            }
+            return originalSetAttribute.call(this, name, value);
+          };
+        }
+        return element;
+      };
+
+      // Block dynamic script injection
+      const originalAppendChild = Node.prototype.appendChild;
+      Node.prototype.appendChild = function (child) {
+        if (
+          child.tagName === "SCRIPT" &&
+          child.src &&
+          (child.src.includes("edge.fullstory.com") ||
+            child.src.includes("fs.js") ||
+            child.src.includes("fullstory.com"))
+        ) {
+          console.debug("🚫 Blocked dynamic script:", child.src);
+          return child; // Return but don't append
+        }
+        return originalAppendChild.call(this, child);
+      };
+    </script>
     <!-- IMMEDIATE ERROR SUPPRESSION - MUST BE FIRST -->
     <script>
       (function () {
