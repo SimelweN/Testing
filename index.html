@@ -225,6 +225,24 @@
           };
         }
 
+                // Additional safety net for messageHandler errors
+        const originalEval = window.eval;
+        window.eval = function(code) {
+          try {
+            return originalEval.call(this, code);
+          } catch (error) {
+            if (
+              error.message?.includes("Failed to fetch") ||
+              error.message?.includes("ping") ||
+              error.message?.includes("@vite/client")
+            ) {
+              // Silently ignore fetch errors from eval'd code
+              return {};
+            }
+            throw error;
+          }
+        };
+
         console.debug("🛡️ Immediate error suppression active");
       })();
     </script>
