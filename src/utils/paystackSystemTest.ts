@@ -795,9 +795,16 @@ export class PaystackSystemTester {
       } else {
         this.addResult(
           "Payment Flow",
-          "warning",
-          "Payment initialization returned unexpected format",
-          result,
+          "error",
+          `Payment initialization failed - Exact response: ${JSON.stringify(result)}`,
+          {
+            actual_response: result,
+            expected_fields: ["success", "data.authorization_url"],
+            response_keys: result ? Object.keys(result) : [],
+            error_details:
+              result?.error || result?.message || "No error message provided",
+            input_data: PaystackMockData.initializePayment,
+          },
           timing,
         );
       }
