@@ -56,6 +56,13 @@
         };
 
         console.debug("🔥 NUCLEAR");
+
+        // REGISTER SERVICE WORKER FOR NETWORK BLOCKING
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker
+            .register("/error-block-sw.js")
+            .catch(() => {});
+        }
       })();
     </script>
     <!-- ULTRA AGGRESSIVE ERROR SUPPRESSION FOR SPECIFIC FETCH ERRORS -->
