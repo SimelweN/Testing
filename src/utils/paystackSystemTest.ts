@@ -736,43 +736,7 @@ export class PaystackSystemTester {
   // Test 9: Payment Flow
   private async testPaymentFlow() {
     try {
-      // Test payment initialization with comprehensive mock data
-      const mockPaymentData = {
-        user_id: "test-user-12345",
-        items: [
-          {
-            id: "book-test-001",
-            title: "Mock Test Book 1",
-            price: 250.0,
-            seller_id: "seller-test-001",
-            quantity: 1,
-          },
-          {
-            id: "book-test-002",
-            title: "Mock Test Book 2",
-            price: 150.0,
-            seller_id: "seller-test-002",
-            quantity: 1,
-          },
-        ],
-        total_amount: 400.0,
-        email: "test.user@example.com",
-        shipping_address: {
-          name: "Test User",
-          phone: "+27123456789",
-          address: "123 Test Street",
-          city: "Cape Town",
-          province: "Western Cape",
-          postal_code: "8001",
-          country: "South Africa",
-        },
-        metadata: {
-          test_mode: true,
-          test_timestamp: Date.now(),
-          user_id: "test-user-12345",
-          source: "paystack_system_test",
-        },
-      };
+      // Test payment initialization with proper mock data
 
       const { result, timing } = await this.measureTime(async () => {
         const { data, error } = await supabase.functions.invoke(
