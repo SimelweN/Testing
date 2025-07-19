@@ -22,7 +22,9 @@ serve(async (req) => {
     let body = null;
     if (req.method === "POST") {
       try {
-        body = await req.json();
+        // Clone the request to avoid consuming the body
+        const clonedReq = req.clone();
+        body = await clonedReq.json();
       } catch {
         // Ignore JSON parsing errors for health checks
       }
