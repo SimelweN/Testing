@@ -99,6 +99,29 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+    // Handle health check
+    const url = new URL(req.url);
+    if (
+      url.pathname.endsWith("/health") ||
+      url.searchParams.get("health") === "true"
+    ) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          service: "paystack-split-management",
+          status: "healthy",
+          timestamp: new Date().toISOString(),
+          environment: {
+            paystack_configured: !!PAYSTACK_SECRET_KEY,
+            supabase_configured: !!(SUPABASE_URL && SUPABASE_SERVICE_KEY),
+          },
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
     // Handle different HTTP methods
     switch (req.method) {
       case "GET":
