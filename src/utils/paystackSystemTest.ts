@@ -847,8 +847,8 @@ export class PaystackSystemTester {
           ? "Refund scenarios working"
           : "Refund scenario test completed",
         {
-          type: mockRefundData.type,
-          reason: mockRefundData.reason,
+          transaction: PaystackMockData.refundManagement.transaction,
+          amount: PaystackMockData.refundManagement.amount,
           result: result?.success || result?.error,
         },
         timing,
