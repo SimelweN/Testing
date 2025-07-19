@@ -9,6 +9,10 @@ import "./utils/suppressResizeObserverError";
 import "./utils/suppressNetworkErrors";
 // Network debugging utility for development
 import "./utils/networkDebugger";
+// Test error suppression in development
+if (import.meta.env.DEV) {
+  import("./utils/testErrorSuppression");
+}
 // Loading state manager to prevent white screens
 import "./utils/loadingStateManager";
 
