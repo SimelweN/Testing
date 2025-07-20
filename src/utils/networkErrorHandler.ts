@@ -87,6 +87,11 @@ window.fetch = async function (...args) {
     return originalFetch.apply(this, args);
   }
 
+  // Debug logging for intercepted URLs in development
+  if (import.meta.env.DEV) {
+    console.debug(`Network handler intercepting: ${url}`);
+  }
+
   try {
     const response = await originalFetch.apply(this, args);
     return response;
