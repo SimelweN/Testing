@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import OrderActionsPanel from "./OrderActionsPanel";
 import { Order } from "@/services/orderCancellationService";
+import { logError, getUserFriendlyErrorMessage } from "@/utils/errorLogging";
 
 interface OrderManagementViewProps {
   initialFilter?: "all" | "pending" | "active" | "completed" | "cancelled";
