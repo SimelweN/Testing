@@ -90,7 +90,8 @@ serve(async (req) => {
       throw new Error(`Failed to update order status: ${updateError.message}`);
     }
 
-    // Schedule automatic courier pickup by calling automate-delivery (if possible)
+        // Schedule automatic courier pickup by calling automate-delivery (if possible)
+    let deliveryError = null;
     try {
       await fetch(`${SUPABASE_URL}/functions/v1/automate-delivery`, {
         method: "POST",
@@ -109,8 +110,9 @@ serve(async (req) => {
             ) || 1,
         }),
       });
-    } catch (deliveryError) {
-      console.error("Failed to schedule automatic delivery:", deliveryError);
+    } catch (error) {
+      deliveryError = error;
+      console.error("Failed to schedule automatic delivery:", error);
       // Continue anyway - delivery can be scheduled manually
     }
 
