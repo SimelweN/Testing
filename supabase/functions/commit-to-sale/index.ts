@@ -57,9 +57,9 @@ serve(async (req) => {
       .eq("id", order.buyer_id)
       .single();
 
-    const { data: seller } = await supabase
+        const { data: seller } = await supabase
       .from("profiles")
-      .select("id, name, email, phone")
+      .select("id, name, email, phone, pickup_address")
       .eq("id", order.seller_id)
       .single();
 
