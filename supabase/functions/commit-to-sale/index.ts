@@ -105,10 +105,24 @@ serve(async (req) => {
       throw new Error(`Failed to update order status: ${updateError.message}`);
     }
 
-        // Schedule automatic courier pickup by calling automate-delivery (if possible)
+            // Schedule automatic courier pickup by calling automate-delivery (if possible)
     let deliveryError = null;
-    try {
-      await fetch(`${SUPABASE_URL}/functions/v1/automate-delivery`, {
+
+    // Validate addresses before attempting delivery automation
+    const hasSellerAddress = seller?.pickup_address &&
+      typeof seller.pickup_address === 'object' &&
+      seller.pickup_address.streetAddress;
+    const hasBuyerAddress = order.shipping_address || order.delivery_address;
+
+    if (!hasSellerAddress) {
+      deliveryError = new Error("Seller pickup address not configured");
+      console.warn("Skipping delivery automation: seller pickup address missing");
+    } else if (!hasBuyerAddress) {
+      deliveryError = new Error("Buyer delivery address not available");
+      console.warn("Skipping delivery automation: buyer address missing");
+    } else {
+      try {
+        await fetch(`${SUPABASE_URL}/functions/v1/automate-delivery`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
