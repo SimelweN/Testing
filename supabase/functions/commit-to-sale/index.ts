@@ -365,8 +365,7 @@ serve(async (req) => {
       // Don't fail the commit for email errors
     }
 
-        return new Response(
-      JSON.stringify({
+                return json({
         success: true,
         message: "Order committed successfully",
         order_id,
@@ -375,11 +374,9 @@ serve(async (req) => {
         email_sent: !emailError,
         ...(deliveryError && { delivery_warning: "Automatic pickup scheduling failed - will need manual arrangement" }),
         ...(emailError && { email_warning: "Notification emails failed to send" })
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+      }, {
+        headers: corsHeaders,
+      });
   } catch (error) {
     console.error("Commit to sale error:", error);
 
