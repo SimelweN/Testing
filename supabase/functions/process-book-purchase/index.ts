@@ -2,35 +2,48 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { parseRequestBody } from "../_shared/safe-body-parser.ts";
+import { extractSafeErrorMessage, safeErrorLog, createErrorResponse } from "../_shared/error-utils.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 serve(async (req) => {
+  console.log("🚀 Process-book-purchase function called:", {
+    method: req.method,
+    url: req.url,
+    timestamp: new Date().toISOString(),
+    headers: Object.fromEntries(req.headers.entries())
+  });
+
   if (req.method === "OPTIONS") {
+    console.log("✅ Handling OPTIONS request");
     return new Response("ok", { headers: corsHeaders });
   }
 
-  // Read request body ONCE at the start (ChatGPT's advice)
-  let requestBody;
-  try {
-    console.log("🔍 bodyUsed before read:", req.bodyUsed);
-    requestBody = await req.json();
-    console.log("✅ Body read successfully");
-  } catch (error) {
-    console.error("❌ Body read failed:", error.message);
+  if (req.method !== "POST") {
+    console.log("❌ Invalid method:", req.method);
     return new Response(
       JSON.stringify({
         success: false,
-        error: "BODY_READ_ERROR",
-        details: { error: error.message, bodyUsed: req.bodyUsed },
+        error: "METHOD_NOT_ALLOWED",
+        details: { method: req.method, expected: "POST" }
       }),
       {
-        status: 400,
+        status: 405,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   }
+
+    // Use safe body parser to prevent body consumption errors
+  const bodyParseResult = await parseRequestBody(req, corsHeaders);
+  if (!bodyParseResult.success) {
+    console.error("❌ Body parsing failed");
+    return bodyParseResult.errorResponse!;
+  }
+
+  const requestBody = bodyParseResult.data;
+  console.log("✅ Body parsed successfully using safe parser");
 
   try {
     const {
@@ -298,35 +311,37 @@ serve(async (req) => {
       );
     }
 
-    // Generate unique order ID
-    const orderId = `ORD_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-    // Create order
+        // Create order with correct schema
     const orderData = {
-      id: orderId,
-      buyer_id: user_id,
+      buyer_email: email,
       seller_id: book.seller_id,
-      status: "pending_commit",
-      total_amount: total_amount || book.price,
+      amount: Math.round((total_amount || book.price) * 100), // Convert to kobo
+      paystack_ref: payment_reference,
+      status: "pending", // Use valid status value
       items: [
         {
+          type: "book",
           book_id: book.id,
-          title: book.title,
+          book_title: book.title,
           author: book.author,
-          price: book.price,
+          price: Math.round(book.price * 100), // Convert to kobo
           condition: book.condition,
           seller_id: book.seller_id,
+          quantity: 1,
         },
       ],
       shipping_address,
-      payment_reference,
-      buyer_name: buyer.name,
-      buyer_email: buyer.email,
-      seller_name: seller.name,
-      seller_email: seller.email,
-      delivery_details: delivery_details || {},
-      expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48 hours
-      created_at: new Date().toISOString(),
+      delivery_data: delivery_details || {},
+      metadata: {
+        buyer_id: user_id,
+        buyer_name: buyer.name,
+        seller_name: seller.name,
+        seller_email: seller.email,
+        expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48 hours
+        order_type: "book_purchase",
+        platform_fee: Math.round(book.price * 0.1 * 100), // 10% platform fee in kobo
+        seller_amount: Math.round(book.price * 0.9 * 100), // 90% to seller in kobo
+      },
     };
 
     const { data: order, error: orderError } = await supabase
@@ -353,7 +368,7 @@ serve(async (req) => {
             details: {
               error_code: orderError.code,
               error_message: orderError.message,
-              order_id: orderId,
+                            payment_reference: payment_reference,
               message: "Order with this ID already exists",
             },
             fix_instructions:
@@ -442,7 +457,7 @@ serve(async (req) => {
 
     try {
       // Email to seller
-      const sellerHtml = `
+            const sellerHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -470,16 +485,16 @@ serve(async (req) => {
 
     <div class="info-box">
       <h3>📋 Order Details</h3>
-      <p><strong>Order ID:</strong> ${orderId}</p>
+      <p><strong>Order ID:</strong> ${order.id}</p>
       <p><strong>Book:</strong> ${book.title}</p>
       <p><strong>Author:</strong> ${book.author}</p>
       <p><strong>Buyer:</strong> ${buyer.name} (${email})</p>
-      <p><strong>Total Amount:</strong> R${orderData.total_amount.toFixed(2)}</p>
+      <p><strong>Total Amount:</strong> R${(orderData.amount / 100).toFixed(2)}</p>
     </div>
 
     <div class="warning">
       <h3>⏰ Action Required Within 48 Hours</h3>
-      <p><strong>Expires:</strong> ${new Date(orderData.expires_at).toLocaleString()}</p>
+      <p><strong>Expires:</strong> ${new Date(orderData.metadata.expires_at).toLocaleString()}</p>
       <p>You must commit to this order within 48 hours or it will be automatically cancelled and refunded.</p>
     </div>
 
@@ -509,7 +524,7 @@ serve(async (req) => {
             to: seller.email,
             subject: "📚 New Order - Action Required (48 hours)",
             html: sellerHtml,
-            text: `New Order - Action Required!\n\nHi ${seller.name}!\n\nGreat news! You have a new order from ${buyer.name}.\n\nOrder Details:\n- Order ID: ${orderId}\n- Book: ${book.title}\n- Author: ${book.author}\n- Buyer: ${buyer.name} (${email})\n- Total Amount: R${orderData.total_amount.toFixed(2)}\n\n⏰ Action Required Within 48 Hours\nExpires: ${new Date(orderData.expires_at).toLocaleString()}\n\nYou must commit to this order within 48 hours or it will be automatically cancelled.\n\nCommit to order: https://rebookedsolutions.co.za/activity\n\nReBooked Solutions`,
+                        text: `New Order - Action Required!\n\nHi ${seller.name}!\n\nGreat news! You have a new order from ${buyer.name}.\n\nOrder Details:\n- Order ID: ${order.id}\n- Book: ${book.title}\n- Author: ${book.author}\n- Buyer: ${buyer.name} (${email})\n- Total Amount: R${(orderData.amount / 100).toFixed(2)}\n\n⏰ Action Required Within 48 Hours\nExpires: ${new Date(orderData.metadata.expires_at).toLocaleString()}\n\nYou must commit to this order within 48 hours or it will be automatically cancelled.\n\nCommit to order: https://rebookedsolutions.co.za/activity\n\nReBooked Solutions`,
           }),
         })
           .then(() => {
@@ -550,13 +565,13 @@ serve(async (req) => {
     <h2>Thank you, ${buyer.name}!</h2>
     <p>Your order has been confirmed and <strong>${seller.name}</strong> has been notified.</p>
 
-    <div class="info-box">
+        <div class="info-box">
       <h3>📋 Order Details</h3>
-      <p><strong>Order ID:</strong> ${orderId}</p>
+      <p><strong>Order ID:</strong> ${order.id}</p>
       <p><strong>Book:</strong> ${book.title}</p>
       <p><strong>Author:</strong> ${book.author}</p>
       <p><strong>Seller:</strong> ${seller.name}</p>
-      <p><strong>Total Amount:</strong> R${orderData.total_amount.toFixed(2)}</p>
+      <p><strong>Total Amount:</strong> R${(orderData.amount / 100).toFixed(2)}</p>
       <p><strong>Payment Reference:</strong> ${payment_reference}</p>
     </div>
 
@@ -596,7 +611,7 @@ serve(async (req) => {
             to: buyer.email,
             subject: "🎉 Order Confirmed - Thank You!",
             html: buyerHtml,
-            text: `Order Confirmed!\n\nThank you, ${buyer.name}!\n\nYour order has been confirmed and ${seller.name} has been notified.\n\nOrder Details:\n- Order ID: ${orderId}\n- Book: ${book.title}\n- Author: ${book.author}\n- Seller: ${seller.name}\n- Total Amount: R${orderData.total_amount.toFixed(2)}\n- Payment Reference: ${payment_reference}\n\nWhat happens next?\n- The seller has 48 hours to commit to your order\n- Once committed, we'll arrange pickup and delivery\n- You'll receive tracking information via email\n- Your book will be delivered within 2-3 business days\n\nTrack your order: https://rebookedsolutions.co.za/activity\n\nReBooked Solutions`,
+                        text: `Order Confirmed!\n\nThank you, ${buyer.name}!\n\nYour order has been confirmed and ${seller.name} has been notified.\n\nOrder Details:\n- Order ID: ${order.id}\n- Book: ${book.title}\n- Author: ${book.author}\n- Seller: ${seller.name}\n- Total Amount: R${(orderData.amount / 100).toFixed(2)}\n- Payment Reference: ${payment_reference}\n\nWhat happens next?\n- The seller has 48 hours to commit to your order\n- Once committed, we'll arrange pickup and delivery\n- You'll receive tracking information via email\n- Your book will be delivered within 2-3 business days\n\nTrack your order: https://rebookedsolutions.co.za/activity\n\nReBooked Solutions`,
           }),
         })
           .then(() => {
@@ -617,8 +632,8 @@ serve(async (req) => {
       emailResults.errors.push({ general: emailError.message });
     }
 
-    console.log("✅ Book purchase processed successfully:", {
-      order_id: orderId,
+        console.log("✅ Book purchase processed successfully:", {
+      order_id: order.id,
       book_title: book.title,
       buyer: buyer.name,
       seller: seller.name,
@@ -628,8 +643,9 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         message: "Order created successfully",
+        order_id: order.id,
         details: {
-          order_id: orderId,
+          order_id: order.id,
           book: {
             id: book.id,
             title: book.title,
@@ -647,21 +663,21 @@ serve(async (req) => {
             email: seller.email,
           },
           order: {
-            id: orderId,
-            status: "pending_commit",
-            total_amount: orderData.total_amount,
-            expires_at: orderData.expires_at,
-            created_at: orderData.created_at,
+            id: order.id,
+            status: order.status,
+            total_amount: order.amount / 100, // Convert back to rands
+            expires_at: orderData.metadata.expires_at,
+            created_at: order.created_at,
           },
           notifications: emailResults,
         },
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
-  } catch (error) {
-    console.error("💥 Process book purchase error:", {
-      error: error.message,
-      stack: error.stack,
+    } catch (error) {
+    const safeError = extractSafeErrorMessage(error, "Failed to process book purchase");
+
+    safeErrorLog("Process Book Purchase", error, {
       timestamp: new Date().toISOString(),
     });
 
@@ -670,9 +686,10 @@ serve(async (req) => {
         success: false,
         error: "UNEXPECTED_ERROR",
         details: {
-          error_message: error.message,
-          error_stack: error.stack,
-          error_type: error.constructor.name,
+          error_message: safeError.message,
+          error_stack: safeError.stack || 'No stack trace available',
+          error_type: safeError.type,
+          error_code: safeError.code,
           timestamp: new Date().toISOString(),
         },
         fix_instructions:

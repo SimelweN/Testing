@@ -37,8 +37,9 @@ const DatabaseCleanup: React.FC = () => {
       }
     } catch (error) {
       console.error("Cleanup error:", error);
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      toast.error("Failed to cleanup mock data: " + errorMsg);
+            const errorMsg = error instanceof Error ? error.message : String(error);
+      const safeMsg = errorMsg === '[object Object]' ? 'Cleanup operation failed' : errorMsg;
+      toast.error(`Failed to cleanup mock data: ${safeMsg}`);
     } finally {
       setIsCleaningUp(false);
     }
@@ -66,8 +67,9 @@ const DatabaseCleanup: React.FC = () => {
       }
     } catch (error) {
       console.error("Reset error:", error);
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      toast.error("Failed to reset books: " + errorMsg);
+            const errorMsg = error instanceof Error ? error.message : String(error);
+      const safeMsg = errorMsg === '[object Object]' ? 'Reset operation failed' : errorMsg;
+      toast.error(`Failed to reset books: ${safeMsg}`);
     } finally {
       setIsResettingBooks(false);
     }

@@ -45,14 +45,16 @@ export type Database = {
           grade: string | null;
           id: string;
           image_url: string;
-          inside_pages: string | null;
-          paystack_subaccount_code: string | null;
+                    inside_pages: string | null;
+          seller_subaccount_code: string | null;
           pickup_address: Json | null;
           price: number;
           province: string | null;
           requires_banking_setup: boolean | null;
           seller_id: string;
           sold: boolean;
+          availability: string | null; // 'available' | 'sold' | 'reserved' | 'unavailable'
+          sold_at: string | null;
           title: string;
           university_year: string | null;
         };
@@ -67,14 +69,16 @@ export type Database = {
           grade?: string | null;
           id?: string;
           image_url: string;
-          inside_pages?: string | null;
-          paystack_subaccount_code?: string | null;
+                    inside_pages?: string | null;
+          seller_subaccount_code?: string | null;
           pickup_address?: Json | null;
           price: number;
           province?: string | null;
           requires_banking_setup?: boolean | null;
           seller_id: string;
           sold?: boolean;
+          availability?: string | null;
+          sold_at?: string | null;
           title: string;
           university_year?: string | null;
         };
@@ -89,14 +93,16 @@ export type Database = {
           grade?: string | null;
           id?: string;
           image_url?: string;
-          inside_pages?: string | null;
-          paystack_subaccount_code?: string | null;
+                    inside_pages?: string | null;
+          seller_subaccount_code?: string | null;
           pickup_address?: Json | null;
           price?: number;
           province?: string | null;
           requires_banking_setup?: boolean | null;
           seller_id?: string;
           sold?: boolean;
+          availability?: string | null;
+          sold_at?: string | null;
           title?: string;
           university_year?: string | null;
         };
@@ -474,7 +480,289 @@ export type Database = {
           id?: string;
           notified?: boolean;
         };
-        Relationships: [];
+                        Relationships: [];
+      };
+      banking_subaccounts: {
+        Row: {
+          id: string;
+          user_id: string;
+          subaccount_code: string;
+          business_name: string;
+          business_description: string | null;
+          bank_code: string;
+          account_number: string;
+          account_name: string | null;
+          percentage_charge: number;
+          settlement_bank: string | null;
+          is_verified: boolean;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          subaccount_code: string;
+          business_name: string;
+          business_description?: string | null;
+          bank_code: string;
+          account_number: string;
+          account_name?: string | null;
+          percentage_charge?: number;
+          settlement_bank?: string | null;
+          is_verified?: boolean;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          subaccount_code?: string;
+          business_name?: string;
+          business_description?: string | null;
+          bank_code?: string;
+          account_number?: string;
+          account_name?: string | null;
+          percentage_charge?: number;
+          settlement_bank?: string | null;
+          is_verified?: boolean;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "banking_subaccounts_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+                ];
+      };
+      payment_transactions: {
+        Row: {
+          id: string;
+          order_id: string | null;
+          paystack_reference: string;
+          amount: number; // in kobo
+          status: string; // 'pending' | 'success' | 'failed' | 'abandoned'
+          payment_method: string | null;
+          currency: string;
+          customer_email: string;
+          customer_name: string | null;
+          metadata: Json | null;
+          gateway_response: Json | null;
+          paid_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          order_id?: string | null;
+          paystack_reference: string;
+          amount: number;
+          status?: string;
+          payment_method?: string | null;
+          currency?: string;
+          customer_email: string;
+          customer_name?: string | null;
+          metadata?: Json | null;
+          gateway_response?: Json | null;
+          paid_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          order_id?: string | null;
+          paystack_reference?: string;
+          amount?: number;
+          status?: string;
+          payment_method?: string | null;
+          currency?: string;
+          customer_email?: string;
+          customer_name?: string | null;
+          metadata?: Json | null;
+          gateway_response?: Json | null;
+          paid_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          }
+                ];
+      };
+      refund_transactions: {
+        Row: {
+          id: string;
+          order_id: string | null;
+          payment_reference: string;
+          refund_reference: string | null;
+          amount: number; // in kobo
+          reason: string | null;
+          status: string; // 'pending' | 'processing' | 'success' | 'failed'
+          gateway_response: Json | null;
+          initiated_by: string | null;
+          initiated_at: string;
+          processed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          order_id?: string | null;
+          payment_reference: string;
+          refund_reference?: string | null;
+          amount: number;
+          reason?: string | null;
+          status?: string;
+          gateway_response?: Json | null;
+          initiated_by?: string | null;
+          initiated_at?: string;
+          processed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          order_id?: string | null;
+          payment_reference?: string;
+          refund_reference?: string | null;
+          amount?: number;
+          reason?: string | null;
+          status?: string;
+          gateway_response?: Json | null;
+          initiated_by?: string | null;
+          initiated_at?: string;
+          processed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "refund_transactions_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      orders: {
+        Row: {
+          id: string;
+          buyer_email: string;
+          seller_id: string;
+          amount: number; // in kobo (cents)
+          paystack_ref: string;
+          status: string; // 'pending' | 'paid' | 'cancelled' | 'refunded'
+          items: Json; // JSONB array of order items
+          shipping_address: Json | null; // JSONB shipping address
+          delivery_data: Json | null; // JSONB delivery information
+          metadata: Json | null; // JSONB additional metadata
+          paid_at: string | null; // TIMESTAMP WITH TIME ZONE
+          payment_held: boolean | null;
+          created_at: string; // TIMESTAMP WITH TIME ZONE
+          updated_at: string; // TIMESTAMP WITH TIME ZONE
+          // Additional columns from order cancellation migration
+          delivery_status: string | null;
+          courier_booking_id: string | null;
+          courier_service: string | null;
+          pickup_scheduled_at: string | null;
+          pickup_failed_at: string | null;
+          pickup_failure_reason: string | null;
+          rescheduled_at: string | null;
+          cancelled_at: string | null;
+          cancellation_reason: string | null;
+          declined_at: string | null;
+          decline_reason: string | null;
+          delivery_info: Json | null;
+          refund_status: string | null;
+          refund_reference: string | null;
+          refunded_at: string | null;
+          total_refunded: number | null;
+        };
+        Insert: {
+          id?: string;
+          buyer_email: string;
+          seller_id: string;
+          amount: number;
+          paystack_ref: string;
+          status?: string;
+          items?: Json;
+          shipping_address?: Json | null;
+          delivery_data?: Json | null;
+          metadata?: Json | null;
+          paid_at?: string | null;
+          payment_held?: boolean | null;
+          created_at?: string;
+          updated_at?: string;
+          delivery_status?: string | null;
+          courier_booking_id?: string | null;
+          courier_service?: string | null;
+          pickup_scheduled_at?: string | null;
+          pickup_failed_at?: string | null;
+          pickup_failure_reason?: string | null;
+          rescheduled_at?: string | null;
+          cancelled_at?: string | null;
+          cancellation_reason?: string | null;
+          declined_at?: string | null;
+          decline_reason?: string | null;
+          delivery_info?: Json | null;
+          refund_status?: string | null;
+          refund_reference?: string | null;
+          refunded_at?: string | null;
+          total_refunded?: number | null;
+        };
+        Update: {
+          id?: string;
+          buyer_email?: string;
+          seller_id?: string;
+          amount?: number;
+          paystack_ref?: string;
+          status?: string;
+          items?: Json;
+          shipping_address?: Json | null;
+          delivery_data?: Json | null;
+          metadata?: Json | null;
+          paid_at?: string | null;
+          payment_held?: boolean | null;
+          created_at?: string;
+          updated_at?: string;
+          delivery_status?: string | null;
+          courier_booking_id?: string | null;
+          courier_service?: string | null;
+          pickup_scheduled_at?: string | null;
+          pickup_failed_at?: string | null;
+          pickup_failure_reason?: string | null;
+          rescheduled_at?: string | null;
+          cancelled_at?: string | null;
+          cancellation_reason?: string | null;
+          declined_at?: string | null;
+          decline_reason?: string | null;
+          delivery_info?: Json | null;
+          refund_status?: string | null;
+          refund_reference?: string | null;
+          refunded_at?: string | null;
+          total_refunded?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "orders_seller_id_fkey";
+            columns: ["seller_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
       };
     };
     Views: {

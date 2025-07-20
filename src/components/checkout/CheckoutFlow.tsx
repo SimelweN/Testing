@@ -228,8 +228,10 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
     goToStep(4);
   };
 
-  const handlePaymentError = (error: string) => {
-    toast.error("Payment failed: " + error);
+    const handlePaymentError = (error: string) => {
+    const errorMessage = typeof error === 'string' ? error : String(error || 'Unknown error');
+    const safeMessage = errorMessage === '[object Object]' ? 'Payment processing failed' : errorMessage;
+    toast.error(`Payment failed: ${safeMessage}`);
     setCheckoutState((prev) => ({
       ...prev,
       error: "Payment failed. Please try again.",

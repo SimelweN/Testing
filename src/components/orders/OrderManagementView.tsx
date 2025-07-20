@@ -20,6 +20,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import OrderActionsPanel from "./OrderActionsPanel";
 import { Order } from "@/services/orderCancellationService";
+import { logError, getUserFriendlyErrorMessage } from "@/utils/errorLogging";
+import { runOrdersTableDiagnostics } from "@/utils/testOrdersTable";
+import { debugOrdersError, runComprehensiveDiagnostics } from "@/utils/databaseDiagnostics";
 
 interface OrderManagementViewProps {
   initialFilter?: "all" | "pending" | "active" | "completed" | "cancelled";
@@ -39,22 +42,29 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
     }
   }, [user, activeTab]);
 
-  const fetchOrders = async () => {
-    if (!user) return;
+    const fetchOrders = async () => {
+    if (!user) {
+      console.log("🔍 No user found for order fetching");
+      return;
+    }
+
+    console.log("🔍 Fetching orders for user:", {
+      userId: user.id,
+      userEmail: user.email,
+      activeTab
+    });
 
     setLoading(true);
     try {
-      let query = supabase
+            let query = supabase
         .from("orders")
         .select(
           `
           *,
-          buyer:profiles!buyer_id(id, name, email),
-          seller:profiles!seller_id(id, name, email),
-          book:books(title, isbn, price)
+          seller:profiles!seller_id(id, name, email)
         `,
         )
-        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+        .or(`buyer_email.eq.${user?.email},seller_id.eq.${user.id}`)
         .order("created_at", { ascending: false });
 
       // Apply filters based on active tab
@@ -75,20 +85,62 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
             "cancelled_by_seller_after_missed_pickup",
           ]);
           break;
-      }
+            }
 
+      console.log("🔍 About to execute orders query for activeTab:", activeTab);
       const { data, error } = await query;
+      console.log("🔍 Orders query result:", { data, error, dataLength: data?.length });
 
-      if (error) {
-        console.error("Error fetching orders:", error);
-        toast.error("Failed to load orders");
+                                    if (error) {
+        // Direct error logging for debugging
+        console.log("🔍 ORDER FETCH ERROR - Type:", typeof error);
+        console.log("🔍 ORDER FETCH ERROR - Constructor:", error?.constructor?.name);
+        console.log("🔍 ORDER FETCH ERROR - Raw:", error);
+        console.log("🔍 ORDER FETCH ERROR - Message:", error?.message);
+        console.log("🔍 ORDER FETCH ERROR - Details:", error?.details);
+
+        logError("Error fetching orders (Supabase query)", error, { activeTab });
+
+                // Run comprehensive diagnostics for any orders error
+        console.log("🔍 Running comprehensive orders diagnostics...");
+        debugOrdersError(error).then(diagnosticResult => {
+          console.log("🔍 Complete diagnostic result:", diagnosticResult);
+        }).catch(diagError => {
+          console.error("Failed to run comprehensive diagnostics:", diagError);
+        });
+
+        // Simple error message extraction
+        let errorMsg = 'Failed to load orders';
+        if (error?.message) {
+          errorMsg = error.message;
+        } else if (error?.details) {
+          errorMsg = error.details;
+        } else if (typeof error === 'string') {
+          errorMsg = error;
+        }
+
+        toast.error(errorMsg);
         return;
       }
 
       setOrders(data || []);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-      toast.error("Failed to load orders");
+        } catch (error) {
+      // Direct error logging for debugging
+      console.log("🔍 ORDER FETCH CATCH ERROR - Type:", typeof error);
+      console.log("🔍 ORDER FETCH CATCH ERROR - Raw:", error);
+      console.log("🔍 ORDER FETCH CATCH ERROR - Message:", error?.message);
+
+      logError("Error fetching orders (catch block)", error, { activeTab });
+
+      // Simple error message extraction
+      let errorMsg = 'Failed to load orders';
+      if (error?.message) {
+        errorMsg = error.message;
+      } else if (typeof error === 'string') {
+        errorMsg = error;
+      }
+
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

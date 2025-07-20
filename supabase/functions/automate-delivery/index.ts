@@ -225,12 +225,12 @@ serve(async (req) => {
       },
     );
   } catch (error) {
-    console.error("Automate delivery error:", error);
+        console.error("Automate delivery error:", error?.message || error);
 
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || "Failed to automate delivery",
+                error: error?.message || String(error) || "Failed to automate delivery",
       }),
       {
         status: 500,

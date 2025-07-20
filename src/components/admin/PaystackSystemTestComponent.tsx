@@ -68,7 +68,9 @@ const PaystackSystemTestComponent: React.FC = () => {
       console.log("✅ Paystack system test completed");
     } catch (error) {
       console.error("System test error:", error);
-      toast.error("System test failed to run: " + error.message);
+            const errorMessage = error?.message || String(error) || 'Unknown error';
+      const safeErrorMessage = errorMessage === '[object Object]' ? 'System test execution failed' : errorMessage;
+      toast.error(`System test failed to run: ${safeErrorMessage}`);
       setTestReport(
         `❌ TEST EXECUTION FAILED\n\nError: ${error.message}\n\nTime: ${new Date().toLocaleString()}`,
       );

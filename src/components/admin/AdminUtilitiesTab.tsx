@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import DatabaseDiagnosticsPanel from "@/components/admin/DatabaseDiagnosticsPanel";
 import {
   Card,
   CardContent,
@@ -278,8 +279,11 @@ const AdminUtilitiesTab = ({ className }: AdminUtilitiesTabProps) => {
             )}
             Refresh Stats
           </Button>
-        </div>
+                </div>
       </div>
+
+      {/* Database Diagnostics */}
+      <DatabaseDiagnosticsPanel />
 
       {/* Database Status */}
       <Card

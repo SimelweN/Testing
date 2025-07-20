@@ -556,12 +556,12 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Create order error:", error);
+        console.error("Create order error:", error?.message || error);
 
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || "Failed to create orders",
+                error: error?.message || String(error) || "Failed to create orders",
         timestamp: new Date().toISOString(),
       }),
       {

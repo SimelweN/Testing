@@ -513,15 +513,15 @@ serve(async (req) => {
       );
     }
   } catch (error) {
-    console.error("Process multi-seller purchase error:", error);
+        console.error("Process multi-seller purchase error:", error?.message || error);
     return new Response(
       JSON.stringify({
         success: false,
         error: "UNEXPECTED_ERROR",
         details: {
-          error_message: error.message,
-          error_stack: error.stack,
-          error_type: error.constructor.name,
+                    error_message: error?.message || String(error),
+          error_stack: error?.stack || 'No stack trace available',
+          error_type: error?.constructor?.name || 'Unknown',
           timestamp: new Date().toISOString(),
         },
         fix_instructions:
