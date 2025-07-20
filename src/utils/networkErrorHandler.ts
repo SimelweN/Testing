@@ -9,6 +9,8 @@ const THIRD_PARTY_SERVICES = [
   "edge.fullstory.com",
   "google-analytics.com",
   "googletagmanager.com",
+  "maps.googleapis.com",
+  "maps.google.com",
 ];
 
 const DEVELOPMENT_SERVICES = [
