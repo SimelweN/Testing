@@ -34,6 +34,12 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // 🧪 TEST MODE: Check if this is a test request with mock data
+  const testResult = await testFunction("create-order", req);
+  if (testResult.isTest) {
+    return testResult.response;
+  }
+
   try {
     const {
       buyer_id,
