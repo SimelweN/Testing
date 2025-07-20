@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { parseRequestBody } from "../_shared/safe-body-parser.ts";
+import { extractSafeErrorMessage, safeErrorLog, createErrorResponse } from "../_shared/error-utils.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -673,10 +674,10 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
-  } catch (error) {
-    console.error("💥 Process book purchase error:", {
-      error: error.message,
-      stack: error.stack,
+    } catch (error) {
+    const safeError = extractSafeErrorMessage(error, "Failed to process book purchase");
+
+    safeErrorLog("Process Book Purchase", error, {
       timestamp: new Date().toISOString(),
     });
 
@@ -685,9 +686,10 @@ serve(async (req) => {
         success: false,
         error: "UNEXPECTED_ERROR",
         details: {
-          error_message: error.message,
-          error_stack: error.stack,
-          error_type: error.constructor.name,
+          error_message: safeError.message,
+          error_stack: safeError.stack || 'No stack trace available',
+          error_type: safeError.type,
+          error_code: safeError.code,
           timestamp: new Date().toISOString(),
         },
         fix_instructions:
