@@ -615,7 +615,7 @@ export default function APIFunctionTester() {
         body: JSON.stringify(body),
       });
 
-      // Capture response properties before reading the body
+            // Capture response properties before reading the body
       const status = fetchResponse.status;
       const statusText = fetchResponse.statusText;
       const isOk = fetchResponse.ok;
@@ -623,21 +623,23 @@ export default function APIFunctionTester() {
       // Handle different response types
       let result;
       try {
-        const responseText = await fetchResponse.text();
+        // Clone the response to avoid "body stream already read" error
+        const responseClone = fetchResponse.clone();
 
-        // Try to parse as JSON if possible
-        if (responseText) {
+        // First, try to read as JSON
+        try {
+          result = await fetchResponse.json();
+        } catch {
+          // If JSON parsing fails, try reading as text from the clone
           try {
-            result = JSON.parse(responseText);
+            const responseText = await responseClone.text();
+            result = responseText ? { message: responseText } : { message: "Empty response" };
           } catch {
-            // If not JSON, return the text
-            result = { message: responseText };
+            result = { message: "Failed to read response" };
           }
-        } else {
-          result = { message: "Empty response" };
         }
-      } catch {
-        result = { message: "Failed to read response" };
+      } catch (error) {
+        result = { message: "Failed to read response", error: error.message };
       }
 
       return {
