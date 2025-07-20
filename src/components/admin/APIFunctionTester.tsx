@@ -21,10 +21,12 @@ interface APIEndpoint {
   samplePayload: object;
 }
 
+const SUPABASE_FUNCTIONS_BASE_URL = "https://kbpjqzaqbqukutflwixf.supabase.co/functions/v1";
+
 const apiEndpoints: APIEndpoint[] = [
   {
     name: "Create Order",
-    path: "/api/create-order",
+    path: `${SUPABASE_FUNCTIONS_BASE_URL}/create-order`,
     method: "POST",
     description: "Create a new order for books",
     requiredFields: ["user_id", "items", "total_amount", "payment_reference"],
@@ -38,7 +40,7 @@ const apiEndpoints: APIEndpoint[] = [
   },
   {
     name: "Initialize Paystack Payment",
-    path: "/api/initialize-paystack-payment",
+    path: `${SUPABASE_FUNCTIONS_BASE_URL}/initialize-paystack-payment`,
     method: "POST",
     description: "Initialize a Paystack payment with split configuration",
     requiredFields: ["user_id", "items", "total_amount", "email"],
@@ -52,7 +54,7 @@ const apiEndpoints: APIEndpoint[] = [
   },
   {
     name: "Verify Paystack Payment",
-    path: "/api/verify-paystack-payment",
+    path: `${SUPABASE_FUNCTIONS_BASE_URL}/verify-paystack-payment`,
     method: "POST",
     description: "Verify a Paystack payment transaction",
     requiredFields: ["reference"],
@@ -60,7 +62,7 @@ const apiEndpoints: APIEndpoint[] = [
   },
   {
     name: "Create Paystack Subaccount",
-    path: "/api/create-paystack-subaccount",
+    path: `${SUPABASE_FUNCTIONS_BASE_URL}/create-paystack-subaccount`,
     method: "POST",
     description: "Create a seller subaccount for split payments",
     requiredFields: ["user_id", "business_name", "bank_code", "account_number"],
@@ -74,7 +76,7 @@ const apiEndpoints: APIEndpoint[] = [
   },
   {
     name: "Mark Order Collected",
-    path: "/api/mark-collected",
+    path: `${SUPABASE_FUNCTIONS_BASE_URL}/mark-collected`,
     method: "POST",
     description: "Mark an order as collected from seller",
     requiredFields: ["order_id"],
@@ -82,15 +84,15 @@ const apiEndpoints: APIEndpoint[] = [
   },
   {
     name: "Pay Seller",
-    path: "/api/pay-seller",
+    path: `${SUPABASE_FUNCTIONS_BASE_URL}/pay-seller`,
     method: "POST",
     description: "Process payment to seller after delivery",
     requiredFields: ["order_id"],
     samplePayload: { order_id: "ORD_1234567890", payment_notes: "Payment processed" }
   },
   {
-    name: "Process Refund",
-    path: "/api/process-refund",
+    name: "Paystack Refund Management",
+    path: `${SUPABASE_FUNCTIONS_BASE_URL}/paystack-refund-management`,
     method: "POST",
     description: "Process a refund for a transaction",
     requiredFields: ["transaction_id", "reason"],
@@ -98,7 +100,7 @@ const apiEndpoints: APIEndpoint[] = [
   },
   {
     name: "Auto Expire Commits",
-    path: "/api/auto-expire-commits",
+    path: `${SUPABASE_FUNCTIONS_BASE_URL}/auto-expire-commits`,
     method: "POST",
     description: "Automatically expire old order commits",
     requiredFields: [],
@@ -106,7 +108,7 @@ const apiEndpoints: APIEndpoint[] = [
   },
   {
     name: "Check Expired Orders",
-    path: "/api/check-expired-orders",
+    path: `${SUPABASE_FUNCTIONS_BASE_URL}/check-expired-orders`,
     method: "POST",
     description: "Check and handle expired orders",
     requiredFields: [],
@@ -114,7 +116,7 @@ const apiEndpoints: APIEndpoint[] = [
   },
   {
     name: "Process Multi-Seller Purchase",
-    path: "/api/process-multi-seller-purchase",
+    path: `${SUPABASE_FUNCTIONS_BASE_URL}/process-multi-seller-purchase`,
     method: "POST",
     description: "Process a purchase with multiple sellers",
     requiredFields: ["payment_reference", "user_id"],
@@ -125,7 +127,7 @@ const apiEndpoints: APIEndpoint[] = [
   },
   {
     name: "Paystack Webhook",
-    path: "/api/paystack-webhook",
+    path: `${SUPABASE_FUNCTIONS_BASE_URL}/paystack-webhook`,
     method: "POST",
     description: "Handle Paystack webhook events",
     requiredFields: ["event"],
@@ -140,7 +142,7 @@ const apiEndpoints: APIEndpoint[] = [
   },
   {
     name: "Paystack Split Management",
-    path: "/api/paystack-split-management",
+    path: `${SUPABASE_FUNCTIONS_BASE_URL}/paystack-split-management`,
     method: "POST",
     description: "Manage Paystack split payment configurations",
     requiredFields: ["action"],
@@ -155,6 +157,94 @@ const apiEndpoints: APIEndpoint[] = [
           share: 80
         }
       ]
+    }
+  },
+  {
+    name: "Commit to Sale",
+    path: `${SUPABASE_FUNCTIONS_BASE_URL}/commit-to-sale`,
+    method: "POST",
+    description: "Commit seller to an order",
+    requiredFields: ["order_id", "seller_id"],
+    samplePayload: {
+      order_id: "ORD_1234567890",
+      seller_id: "seller-uuid-here"
+    }
+  },
+  {
+    name: "Decline Commit",
+    path: `${SUPABASE_FUNCTIONS_BASE_URL}/decline-commit`,
+    method: "POST",
+    description: "Decline an order commitment",
+    requiredFields: ["order_id"],
+    samplePayload: {
+      order_id: "ORD_1234567890",
+      reason: "Item no longer available"
+    }
+  },
+  {
+    name: "Automate Delivery",
+    path: `${SUPABASE_FUNCTIONS_BASE_URL}/automate-delivery`,
+    method: "POST",
+    description: "Schedule automatic courier pickup and delivery",
+    requiredFields: ["order_id", "seller_address", "buyer_address"],
+    samplePayload: {
+      order_id: "ORD_1234567890",
+      seller_address: {
+        streetAddress: "123 Seller Street",
+        suburb: "Rosebank",
+        city: "Johannesburg",
+        province: "Gauteng",
+        postalCode: "2196"
+      },
+      buyer_address: {
+        streetAddress: "456 Buyer Ave",
+        suburb: "Sandton",
+        city: "Johannesburg",
+        province: "Gauteng",
+        postalCode: "2146"
+      },
+      weight: 0.5
+    }
+  },
+  {
+    name: "Get Delivery Quotes",
+    path: `${SUPABASE_FUNCTIONS_BASE_URL}/get-delivery-quotes`,
+    method: "POST",
+    description: "Get delivery quotes from multiple courier services",
+    requiredFields: ["from_address", "to_address"],
+    samplePayload: {
+      from_address: {
+        streetAddress: "123 Pickup Street",
+        suburb: "Rosebank",
+        city: "Johannesburg",
+        province: "Gauteng",
+        postalCode: "2196"
+      },
+      to_address: {
+        streetAddress: "456 Delivery Ave",
+        suburb: "Sandton",
+        city: "Johannesburg",
+        province: "Gauteng",
+        postalCode: "2146"
+      },
+      weight: 0.5,
+      length: 20,
+      width: 15,
+      height: 10
+    }
+  },
+  {
+    name: "Send Email",
+    path: `${SUPABASE_FUNCTIONS_BASE_URL}/send-email`,
+    method: "POST",
+    description: "Send transactional emails",
+    requiredFields: ["to", "subject", "html"],
+    samplePayload: {
+      to: "test@example.com",
+      from: "noreply@rebookedsolutions.co.za",
+      subject: "Test Email",
+      html: "<h1>Test Email</h1><p>This is a test email.</p>",
+      text: "Test Email\n\nThis is a test email."
     }
   }
 ];
