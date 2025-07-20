@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import {
   Package,
   Clock,
@@ -24,23 +24,19 @@ import { logError, getUserFriendlyErrorMessage } from "@/utils/errorLogging";
 import { runOrdersTableDiagnostics } from "@/utils/testOrdersTable";
 import { debugOrdersError, runComprehensiveDiagnostics } from "@/utils/databaseDiagnostics";
 
-interface OrderManagementViewProps {
-  initialFilter?: "all" | "pending" | "active" | "completed" | "cancelled";
-}
+interface OrderManagementViewProps {}
 
-const OrderManagementView: React.FC<OrderManagementViewProps> = ({
-  initialFilter = "all",
-}) => {
+const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState(initialFilter);
+  
 
-  useEffect(() => {
+    useEffect(() => {
     if (user) {
       fetchOrders();
     }
-  }, [user, activeTab]);
+  }, [user]);
 
     const fetchOrders = async () => {
     if (!user) {
@@ -48,41 +44,20 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
       return;
     }
 
-    console.log("🔍 Fetching orders for user:", {
+        console.log("🔍 Fetching orders for user:", {
       userId: user.id,
-      userEmail: user.email,
-      activeTab
+      userEmail: user.email
     });
 
     setLoading(true);
     try {
-            let query = supabase
+                  let query = supabase
         .from("orders")
-                        .select("*")
+        .select("*")
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
         .order("created_at", { ascending: false });
 
-      // Apply filters based on active tab
-      switch (activeTab) {
-        case "pending":
-          query = query.in("status", ["pending", "confirmed"]);
-          break;
-        case "active":
-          query = query.in("status", ["confirmed", "dispatched"]);
-          break;
-        case "completed":
-          query = query.eq("status", "delivered");
-          break;
-        case "cancelled":
-          query = query.in("status", [
-            "cancelled_by_buyer",
-            "declined_by_seller",
-            "cancelled_by_seller_after_missed_pickup",
-          ]);
-          break;
-            }
-
-      console.log("🔍 About to execute orders query for activeTab:", activeTab);
+      console.log("🔍 About to execute orders query");
       const { data, error } = await query;
       console.log("🔍 Orders query result:", { data, error, dataLength: data?.length });
 
@@ -94,7 +69,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
         console.log("🔍 ORDER FETCH ERROR - Message:", error?.message);
         console.log("🔍 ORDER FETCH ERROR - Details:", error?.details);
 
-        logError("Error fetching orders (Supabase query)", error, { activeTab });
+                logError("Error fetching orders (Supabase query)", error);
 
                 // Run comprehensive diagnostics for any orders error
         console.log("🔍 Running comprehensive orders diagnostics...");
@@ -125,7 +100,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
       console.log("🔍 ORDER FETCH CATCH ERROR - Raw:", error);
       console.log("🔍 ORDER FETCH CATCH ERROR - Message:", error?.message);
 
-      logError("Error fetching orders (catch block)", error, { activeTab });
+            logError("Error fetching orders (catch block)", error);
 
       // Simple error message extraction
       let errorMsg = 'Failed to load orders';
@@ -342,52 +317,26 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
         </Card>
       </div>
 
-      {/* Orders Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="all">All Orders</TabsTrigger>
-          <TabsTrigger value="pending">
-            Pending
-            {stats.pending > 0 && (
-              <Badge variant="secondary" className="ml-1">
-                {stats.pending}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="active">
-            Active
-            {stats.active > 0 && (
-              <Badge variant="secondary" className="ml-1">
-                {stats.active}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
-          <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value={activeTab} className="mt-6">
-          {orders.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Package className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-semibold mb-2">No orders found</h3>
-                <p className="text-gray-600">
-                  {activeTab === "all"
-                    ? "You haven't made any orders yet."
-                    : `No ${activeTab} orders at the moment.`}
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {orders.map((order) => (
-                <OrderCard key={order.id} order={order} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+            {/* Orders List */}
+      <div className="mt-6">
+        {orders.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Package className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <h3 className="text-lg font-semibold mb-2">No orders found</h3>
+              <p className="text-gray-600">
+                You haven't made any orders yet.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {orders.map((order) => (
+              <OrderCard key={order.id} order={order} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -3,6 +3,18 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { handleRequestBody } from "../_shared/request-utils.ts";
 
+// Helper to create JSON responses without body stream issues
+const jsonResponse = (data: any, options: { status?: number; headers?: Record<string, string> } = {}) => {
+  return new Response(JSON.stringify(data), {
+    status: options.status || 200,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+      ...options.headers
+    }
+  });
+};
+
 const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -19,23 +31,17 @@ serve(async (req) => {
       url.pathname.endsWith("/health") ||
       url.searchParams.get("health") === "true";
 
-    if (isHealthCheck) {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          service: "initialize-paystack-payment",
-          status: "healthy",
-          timestamp: new Date().toISOString(),
-          environment: {
-            paystack_configured: !!PAYSTACK_SECRET_KEY,
-            supabase_configured: !!(SUPABASE_URL && SUPABASE_SERVICE_KEY),
-          },
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+        if (isHealthCheck) {
+      return jsonResponse({
+        success: true,
+        service: "initialize-paystack-payment",
+        status: "healthy",
+        timestamp: new Date().toISOString(),
+        environment: {
+          paystack_configured: !!PAYSTACK_SECRET_KEY,
+          supabase_configured: !!(SUPABASE_URL && SUPABASE_SERVICE_KEY),
+        },
+      });
     }
 
     // Read request body ONCE (ChatGPT's advice)
@@ -46,39 +52,27 @@ serve(async (req) => {
       console.log("✅ Body read successfully");
     } catch (error) {
       console.error("❌ Body read failed:", error.message);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "BODY_READ_ERROR",
-          details: { error: error.message, bodyUsed: req.bodyUsed },
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+            return jsonResponse({
+        success: false,
+        error: "BODY_READ_ERROR",
+        details: { error: error.message, bodyUsed: req.bodyUsed },
+      }, { status: 400 });
     }
 
     // Validate request method for non-health endpoints
-    if (req.method !== "POST") {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "METHOD_NOT_ALLOWED",
-          details: {
-            provided_method: req.method,
-            required_method: "POST",
-            message:
-              "Payment initialization endpoint only accepts POST requests",
-          },
-          fix_instructions:
-            "Send payment initialization requests using POST method only",
-        }),
-        {
-          status: 405,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        if (req.method !== "POST") {
+      return jsonResponse({
+        success: false,
+        error: "METHOD_NOT_ALLOWED",
+        details: {
+          provided_method: req.method,
+          required_method: "POST",
+          message:
+            "Payment initialization endpoint only accepts POST requests",
         },
-      );
+        fix_instructions:
+          "Send payment initialization requests using POST method only",
+      }, { status: 405 });
     }
 
     // Parse request body if not already parsed
@@ -150,24 +144,18 @@ serve(async (req) => {
     if (!total_amount) missingFields.push("total_amount");
     if (!email) missingFields.push("email");
 
-    if (missingFields.length > 0) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "MISSING_REQUIRED_FIELDS",
-          details: {
-            missing_fields: missingFields,
-            provided_fields: Object.keys(requestBody || {}),
-            message: "Required fields are missing for payment initialization",
-          },
-          fix_instructions:
-            "Provide all required fields: user_id, items, total_amount, email",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        if (missingFields.length > 0) {
+      return jsonResponse({
+        success: false,
+        error: "MISSING_REQUIRED_FIELDS",
+        details: {
+          missing_fields: missingFields,
+          provided_fields: Object.keys(requestBody || {}),
+          message: "Required fields are missing for payment initialization",
         },
-      );
+        fix_instructions:
+          "Provide all required fields: user_id, items, total_amount, email",
+      }, { status: 400 });
     }
 
     // Validate field formats
@@ -239,18 +227,15 @@ serve(async (req) => {
 
       const mockReference = `test_ref_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          data: {
-            authorization_url: `https://checkout.paystack.com/mock/${mockReference}`,
-            reference: mockReference,
-            access_code: `mock_access_${Date.now()}`,
-          },
-          mock: true,
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+            return jsonResponse({
+        success: true,
+        data: {
+          authorization_url: `https://checkout.paystack.com/mock/${mockReference}`,
+          reference: mockReference,
+          access_code: `mock_access_${Date.now()}`,
+        },
+        mock: true,
+      });
     }
 
     // Check if we need to create a split for multiple sellers
@@ -457,36 +442,30 @@ serve(async (req) => {
         );
       }
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          data: {
-            authorization_url: paystackResult.data.authorization_url,
-            reference: paystackResult.data.reference,
-            access_code: paystackResult.data.access_code,
-          },
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+            return jsonResponse({
+        success: true,
+        data: {
+          authorization_url: paystackResult.data.authorization_url,
+          reference: paystackResult.data.reference,
+          access_code: paystackResult.data.access_code,
+        },
+      });
     } catch (paystackError) {
       console.error("Paystack API error:", paystackError);
 
       // Return mock response if Paystack fails
       const mockReference = `fallback_ref_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          data: {
-            authorization_url: `https://checkout.paystack.com/mock/${mockReference}`,
-            reference: mockReference,
-            access_code: `fallback_access_${Date.now()}`,
-          },
-          fallback: true,
-          paystack_error: paystackError.message,
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+            return jsonResponse({
+        success: true,
+        data: {
+          authorization_url: `https://checkout.paystack.com/mock/${mockReference}`,
+          reference: mockReference,
+          access_code: `fallback_access_${Date.now()}`,
+        },
+        fallback: true,
+        paystack_error: paystackError.message,
+      });
     }
   } catch (error) {
     console.error("Initialize payment error:", error);

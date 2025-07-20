@@ -22,10 +22,12 @@ import {
   Loader2,
   ArrowLeftRight,
   Eye,
-  TestTube,
+    TestTube,
+  ExternalLink,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import SystemHealthChecker from "./SystemHealthChecker";
 
 interface TestResult {
@@ -35,6 +37,7 @@ interface TestResult {
 }
 
 const AdminPaystackTestingTab: React.FC = () => {
+  const navigate = useNavigate();
   const [refundOrderId, setRefundOrderId] = useState("");
   const [refundReason, setRefundReason] = useState("");
   const [refundAmount, setRefundAmount] = useState("");
@@ -286,7 +289,7 @@ const AdminPaystackTestingTab: React.FC = () => {
     }
   };
 
-  return (
+    return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold mb-2">Paystack & Refund Testing</h2>
@@ -294,6 +297,39 @@ const AdminPaystackTestingTab: React.FC = () => {
           Test payment processing, refunds, and system health
         </p>
       </div>
+
+      {/* Comprehensive Demo Page Link */}
+      <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-800">
+            <TestTube className="h-5 w-5" />
+            Comprehensive Paystack Demo Testing
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-blue-700 mb-2">
+                Access the complete demo testing environment with test cards, webhook simulation,
+                subaccount creation, and transfer testing - all with proper demo data.
+              </p>
+              <div className="flex items-center gap-2 text-xs text-blue-600">
+                <Badge variant="outline">Test Cards</Badge>
+                <Badge variant="outline">Webhook Events</Badge>
+                <Badge variant="outline">Subaccounts</Badge>
+                <Badge variant="outline">Transfers</Badge>
+              </div>
+            </div>
+            <Button
+              onClick={() => navigate('/paystack-demo')}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Open Demo Page
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* System Health Check */}
       <SystemHealthChecker />
