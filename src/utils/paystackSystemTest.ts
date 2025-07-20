@@ -140,6 +140,39 @@ export class PaystackSystemTester {
     }
   }
 
+  private getDetailedErrorInfo(error: any, functionName?: string) {
+    return {
+      message: error.message || "Unknown error",
+      status: error.status || error.statusCode || error.code || "unknown",
+      statusText: error.statusText || error.details || "unknown",
+      name: error.name || "Error",
+      functionName: functionName || "unknown",
+      timestamp: new Date().toISOString(),
+      stack: error.stack
+        ? error.stack.split("\n").slice(0, 3).join(" | ")
+        : "no stack",
+      context: error.context || "test execution",
+      // Try to extract more details from common error formats
+      details: this.extractErrorDetails(error),
+    };
+  }
+
+  private extractErrorDetails(error: any) {
+    // Try to extract useful information from different error types
+    if (typeof error === "string") {
+      return error;
+    }
+
+    if (error.details) return error.details;
+    if (error.hint) return error.hint;
+    if (error.code) return `Code: ${error.code}`;
+    if (error.statusCode && error.statusText) {
+      return `HTTP ${error.statusCode}: ${error.statusText}`;
+    }
+
+    return "No additional details available";
+  }
+
   private async measureTime<T>(
     fn: () => Promise<T>,
   ): Promise<{ result: T; timing: number }> {
