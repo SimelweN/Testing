@@ -34,6 +34,16 @@ const isThirdPartyError = (url: string): boolean => {
   return THIRD_PARTY_SERVICES.some((service) => url.includes(service));
 };
 
+// Check if a URL is a Supabase URL that we should never intercept
+const isSupabaseUrl = (url: string): boolean => {
+  return (
+    url.includes("supabase.co") ||
+    url.includes("/functions/v1/") ||
+    url.includes("/rest/v1/") ||
+    url.includes("/auth/v1/")
+  );
+};
+
 // Check if an error is from development tools (Vite HMR)
 const isDevelopmentError = (message: string, stack?: string): boolean => {
   const fullText = `${message} ${stack || ""}`;
