@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { MapPin, Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { useGoogleMaps } from "@/contexts/GoogleMapsContext";
 
 export interface AddressData {
   formattedAddress: string;
