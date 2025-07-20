@@ -570,8 +570,16 @@ const Profile = () => {
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
+                </Tabs>
       </div>
+
+      <ShareProfileDialog
+        isOpen={isShareDialogOpen}
+        onClose={() => setIsShareDialogOpen(false)}
+        userId={user?.id || ""}
+        userName={profile?.name || "Anonymous User"}
+        isOwnProfile={true}
+      />
     </Layout>
   );
 };
