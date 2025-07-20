@@ -11,26 +11,15 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  // Read request body ONCE at the start (ChatGPT's advice)
-  let requestBody;
-  try {
-    console.log("🔍 bodyUsed before read:", req.bodyUsed);
-    requestBody = await req.json();
-    console.log("✅ Body read successfully");
-  } catch (error) {
-    console.error("❌ Body read failed:", error.message);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "BODY_READ_ERROR",
-        details: { error: error.message, bodyUsed: req.bodyUsed },
-      }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    // Use safe body parser to prevent body consumption errors
+  const bodyParseResult = await parseRequestBody(req, corsHeaders);
+  if (!bodyParseResult.success) {
+    console.error("❌ Body parsing failed");
+    return bodyParseResult.errorResponse!;
   }
+
+  const requestBody = bodyParseResult.data;
+  console.log("✅ Body parsed successfully using safe parser");
 
   try {
     const {
