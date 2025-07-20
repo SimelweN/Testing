@@ -342,52 +342,26 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
         </Card>
       </div>
 
-      {/* Orders Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="all">All Orders</TabsTrigger>
-          <TabsTrigger value="pending">
-            Pending
-            {stats.pending > 0 && (
-              <Badge variant="secondary" className="ml-1">
-                {stats.pending}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="active">
-            Active
-            {stats.active > 0 && (
-              <Badge variant="secondary" className="ml-1">
-                {stats.active}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
-          <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value={activeTab} className="mt-6">
-          {orders.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Package className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-semibold mb-2">No orders found</h3>
-                <p className="text-gray-600">
-                  {activeTab === "all"
-                    ? "You haven't made any orders yet."
-                    : `No ${activeTab} orders at the moment.`}
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {orders.map((order) => (
-                <OrderCard key={order.id} order={order} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+            {/* Orders List */}
+      <div className="mt-6">
+        {orders.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Package className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <h3 className="text-lg font-semibold mb-2">No orders found</h3>
+              <p className="text-gray-600">
+                You haven't made any orders yet.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {orders.map((order) => (
+              <OrderCard key={order.id} order={order} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
