@@ -58,13 +58,14 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
     try {
             let query = supabase
         .from("orders")
-        .select(
+                .select(
           `
           *,
+          buyer:profiles!buyer_id(id, name, email),
           seller:profiles!seller_id(id, name, email)
         `,
         )
-        .or(`buyer_email.eq.${user?.email},seller_id.eq.${user.id}`)
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
         .order("created_at", { ascending: false });
 
       // Apply filters based on active tab
