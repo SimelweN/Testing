@@ -7,8 +7,31 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 serve(async (req) => {
+  console.log("🚀 Process-book-purchase function called:", {
+    method: req.method,
+    url: req.url,
+    timestamp: new Date().toISOString(),
+    headers: Object.fromEntries(req.headers.entries())
+  });
+
   if (req.method === "OPTIONS") {
+    console.log("✅ Handling OPTIONS request");
     return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (req.method !== "POST") {
+    console.log("❌ Invalid method:", req.method);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "METHOD_NOT_ALLOWED",
+        details: { method: req.method, expected: "POST" }
+      }),
+      {
+        status: 405,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   }
 
     // Use safe body parser to prevent body consumption errors
