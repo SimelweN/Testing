@@ -138,9 +138,23 @@ window.fetch = async function (...args) {
       });
     }
 
-    // For our own services, log the error properly and re-throw
-    console.error(`Network request failed: ${url}`, error);
-    throw error;
+        // For any other intercepted requests, return a graceful error response instead of throwing
+    if (import.meta.env.DEV) {
+      console.debug(`Network request failed: ${url}`, error);
+    }
+
+    return new Response(
+      JSON.stringify({
+        error: "Network request failed",
+        message: errorMessage,
+        url: url,
+      }),
+      {
+        status: 500,
+        statusText: "Network Error",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 };
 
