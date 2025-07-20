@@ -82,11 +82,21 @@ window.fetch = async function (...args) {
 window.addEventListener("unhandledrejection", (event) => {
   const error = event.reason;
   const message = error?.message || error?.toString() || "";
+  const stack = error?.stack || "";
 
-  // Only suppress third-party service errors
+  // Suppress third-party service errors
   if (isThirdPartyError(message)) {
     if (import.meta.env.DEV) {
       console.debug("Third-party service rejection suppressed:", message);
+    }
+    event.preventDefault();
+    return;
+  }
+
+  // Suppress development tool errors (Vite HMR)
+  if (isDevelopmentError(message, stack)) {
+    if (import.meta.env.DEV) {
+      console.debug("Development tool rejection suppressed:", message);
     }
     event.preventDefault();
     return;
