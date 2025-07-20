@@ -11,15 +11,29 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-      try {
-    // Use safe body parser to prevent stream errors
-    const bodyResult = await parseRequestBody(req, corsHeaders);
+        // Read request body ONCE at the start (ChatGPT's advice)
+  let requestBody;
+  try {
+    console.log("🔍 bodyUsed before read:", req.bodyUsed);
+    requestBody = await req.json();
+    console.log("✅ Body read successfully");
+  } catch (error) {
+    console.error("❌ Body read failed:", error.message);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "BODY_READ_ERROR",
+        details: { error: error.message, bodyUsed: req.bodyUsed },
+      }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
 
-    if (!bodyResult.success) {
-      return bodyResult.errorResponse!;
-    }
-
-    const { user_id, cart_items, shipping_address, email } = bodyResult.data;
+  try {
+    const { user_id, cart_items, shipping_address, email } = requestBody;
 
     // Enhanced validation with specific error messages
     const validationErrors = [];
