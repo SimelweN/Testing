@@ -80,8 +80,8 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
 
       const { data, error } = await query;
 
-                  if (error) {
-        logError("Error fetching orders (Supabase query)", error, { filter });
+                        if (error) {
+        logError("Error fetching orders (Supabase query)", error, { activeTab });
         const errorMsg = getUserFriendlyErrorMessage(error, 'Failed to load orders');
         toast.error(errorMsg);
         return;
@@ -89,7 +89,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
 
       setOrders(data || []);
     } catch (error) {
-      logError("Error fetching orders (catch block)", error, { filter });
+      logError("Error fetching orders (catch block)", error, { activeTab });
       const errorMsg = getUserFriendlyErrorMessage(error, 'Failed to load orders');
       toast.error(errorMsg);
     } finally {
