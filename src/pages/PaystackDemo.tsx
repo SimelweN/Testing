@@ -897,29 +897,56 @@ const PaystackDemo = () => {
                 </div>
               </div>
 
-              {Object.keys(functionStatus).length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4">
-                                    {Object.entries(functionStatus).map(([funcName, status]: [string, any]) => (
-                    <div
-                      key={funcName}
-                      className={`flex items-center gap-2 p-2 rounded text-xs ${
-                        status.actuallyWorking
-                          ? 'bg-green-100 text-green-800 border border-green-200'
-                          : status.available
-                            ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
-                            : 'bg-red-100 text-red-800 border border-red-200'
-                      }`}
-                    >
-                      {status.actuallyWorking ? (
-                        <CheckCircle className="h-3 w-3" />
-                      ) : status.available ? (
-                        <AlertTriangle className="h-3 w-3" />
-                      ) : (
-                        <XCircle className="h-3 w-3" />
-                      )}
-                      <span className="truncate">{funcName.replace('paystack-', '')}</span>
+                            {Object.keys(functionStatus).length > 0 && (
+                <div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4">
+                    {Object.entries(functionStatus).map(([funcName, status]: [string, any]) => {
+                      const hasMock = mockPaystackFunctions[funcName];
+                      const isDeployed = status.actuallyWorking || status.available;
+
+                      return (
+                        <div
+                          key={funcName}
+                          className={`flex items-center gap-2 p-2 rounded text-xs ${
+                            isDeployed
+                              ? 'bg-green-100 text-green-800 border border-green-200'
+                              : hasMock
+                                ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                                : 'bg-red-100 text-red-800 border border-red-200'
+                          }`}
+                        >
+                          {isDeployed ? (
+                            <CheckCircle className="h-3 w-3" />
+                          ) : hasMock ? (
+                            <TestTube className="h-3 w-3" />
+                          ) : (
+                            <XCircle className="h-3 w-3" />
+                          )}
+                          <span className="truncate">{funcName.replace('paystack-', '')}</span>
+                          {hasMock && !isDeployed && (
+                            <Badge variant="outline" className="text-xs">MOCK</Badge>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-4 text-xs text-gray-600">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                        <span>Deployed</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <TestTube className="h-3 w-3 text-blue-600" />
+                        <span>Mock</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <XCircle className="h-3 w-3 text-red-600" />
+                        <span>Missing</span>
+                      </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
               )}
 
