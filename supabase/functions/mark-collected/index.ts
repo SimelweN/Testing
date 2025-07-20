@@ -15,20 +15,12 @@ serve(async (req) => {
     // Safety check for body consumption
     console.log("Body used before consumption:", req.bodyUsed);
 
-    let requestData;
-    try {
-      requestData = await req.json();
-    } catch (bodyError) {
-      console.error("Body consumption error:", bodyError.message);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "BODY_CONSUMPTION_ERROR",
-          details: {
-            error_message: bodyError.message,
-            body_used: req.bodyUsed,
-            timestamp: new Date().toISOString()
-          },
+        // Use safe body parser
+    const bodyParseResult = await parseRequestBody(req, corsHeaders);
+    if (!bodyParseResult.success) {
+      return bodyParseResult.errorResponse!;
+    }
+    const requestData = bodyParseResult.data;
           fix_instructions: "Request body may have been consumed already. Check for duplicate body reads."
         }),
         {
