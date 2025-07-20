@@ -912,7 +912,9 @@ Time: ${new Date().toISOString()}
           "Payment setup error. Please refresh the page and try again.",
         );
       } else {
-        toast.error("Payment failed: " + errorMessage);
+                const safeErrorMessage = typeof errorMessage === 'string' ? errorMessage : String(errorMessage || 'Unknown error');
+        const finalSafeMessage = safeErrorMessage === '[object Object]' ? 'Payment processing failed' : safeErrorMessage;
+        toast.error(`Payment failed: ${finalSafeMessage}`);
       }
     } finally {
       setProcessing(false);
