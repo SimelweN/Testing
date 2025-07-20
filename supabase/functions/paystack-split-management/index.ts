@@ -269,7 +269,7 @@ async function handleUpdateSplit(req: Request, updateData: any): Promise<Respons
       );
     }
 
-        const updateData = req; // This is actually the parsed body now
+            // updateData is passed as parameter - no need to read body again
 
     const response = await fetch(`https://api.paystack.co/split/${splitCode}`, {
       method: "PUT",
