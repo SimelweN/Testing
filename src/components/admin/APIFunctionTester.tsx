@@ -366,7 +366,7 @@ export default function APIFunctionTester() {
     }
   };
 
-      const testSingleFunction = async (endpoint: APIEndpoint, payload?: any): Promise<TestResult> => {
+        const testSingleFunction = async (endpoint: APIEndpoint, payload?: any): Promise<TestResult> => {
     try {
       const body = payload || endpoint.samplePayload;
 
@@ -380,14 +380,37 @@ export default function APIFunctionTester() {
         body: JSON.stringify(body),
       });
 
-      const result = await fetchResponse.json();
+      // Capture response properties before reading the body
+      const status = fetchResponse.status;
+      const statusText = fetchResponse.statusText;
+      const isOk = fetchResponse.ok;
+
+      // Handle different response types
+      let result;
+      try {
+        const responseText = await fetchResponse.text();
+
+        // Try to parse as JSON if possible
+        if (responseText) {
+          try {
+            result = JSON.parse(responseText);
+          } catch {
+            // If not JSON, return the text
+            result = { message: responseText };
+          }
+        } else {
+          result = { message: "Empty response" };
+        }
+      } catch {
+        result = { message: "Failed to read response" };
+      }
 
       return {
         endpoint: endpoint.name,
-        status: fetchResponse.status,
-        statusText: fetchResponse.statusText,
+        status,
+        statusText,
         data: result,
-        success: fetchResponse.ok
+        success: isOk
       };
     } catch (err: any) {
       return {
