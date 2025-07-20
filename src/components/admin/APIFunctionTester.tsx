@@ -101,6 +101,59 @@ const apiEndpoints: APIEndpoint[] = [
     description: "Automatically expire old order commits",
     requiredFields: [],
     samplePayload: {}
+  },
+  {
+    name: "Check Expired Orders",
+    path: "/api/check-expired-orders",
+    method: "POST",
+    description: "Check and handle expired orders",
+    requiredFields: [],
+    samplePayload: {}
+  },
+  {
+    name: "Process Multi-Seller Purchase",
+    path: "/api/process-multi-seller-purchase",
+    method: "POST",
+    description: "Process a purchase with multiple sellers",
+    requiredFields: ["payment_reference", "user_id"],
+    samplePayload: {
+      payment_reference: "PAY_1234567890",
+      user_id: "user-uuid-here"
+    }
+  },
+  {
+    name: "Paystack Webhook",
+    path: "/api/paystack-webhook",
+    method: "POST",
+    description: "Handle Paystack webhook events",
+    requiredFields: ["event"],
+    samplePayload: {
+      event: "charge.success",
+      data: {
+        reference: "paystack-reference-here",
+        amount: 15000,
+        status: "success"
+      }
+    }
+  },
+  {
+    name: "Paystack Split Management",
+    path: "/api/paystack-split-management",
+    method: "POST",
+    description: "Manage Paystack split payment configurations",
+    requiredFields: ["action"],
+    samplePayload: {
+      action: "create",
+      name: "Multi-seller Split",
+      type: "percentage",
+      currency: "ZAR",
+      subaccounts: [
+        {
+          subaccount: "ACCT_xxx",
+          share: 80
+        }
+      ]
+    }
   }
 ];
 
