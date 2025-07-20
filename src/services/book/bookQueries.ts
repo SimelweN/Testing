@@ -155,15 +155,19 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
         }
 
         throw networkError;
-      }
+            }
+    };
 
-      if (!booksData || booksData.length === 0) {
-        console.log("No books found");
-        return [];
-      }
+    // Execute the books query with retry logic
+    const booksData = await fetchBooksOperation();
 
-      // Get unique seller IDs
-      const sellerIds = [...new Set(booksData.map((book) => book.seller_id))];
+    if (!booksData || booksData.length === 0) {
+      console.log("No books found");
+      return [];
+    }
+
+    // Get unique seller IDs
+    const sellerIds = [...new Set(booksData.map((book) => book.seller_id))];
 
       // Fetch seller profiles separately with error handling
       let profilesMap = new Map();
