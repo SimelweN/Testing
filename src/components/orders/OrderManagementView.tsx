@@ -90,7 +90,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
       const { data, error } = await query;
       console.log("🔍 Orders query result:", { data, error, dataLength: data?.length });
 
-                              if (error) {
+                                    if (error) {
         // Direct error logging for debugging
         console.log("🔍 ORDER FETCH ERROR - Type:", typeof error);
         console.log("🔍 ORDER FETCH ERROR - Constructor:", error?.constructor?.name);
@@ -99,6 +99,14 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
         console.log("🔍 ORDER FETCH ERROR - Details:", error?.details);
 
         logError("Error fetching orders (Supabase query)", error, { activeTab });
+
+        // Run diagnostics if it's a table-related error
+        if (error?.message?.includes("does not exist") || error?.message?.includes("relation") || error?.code === "42P01") {
+          console.log("🔍 Running orders table diagnostics due to table-related error...");
+          runOrdersTableDiagnostics().catch(diagError => {
+            console.error("Failed to run diagnostics:", diagError);
+          });
+        }
 
         // Simple error message extraction
         let errorMsg = 'Failed to load orders';
