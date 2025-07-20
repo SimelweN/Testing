@@ -259,25 +259,28 @@ const PaystackDemo = () => {
     }
   };
 
-    // Helper function for better error handling
+      // Helper function for better error handling
   const debugFunctionCall = async (functionName: string, payload: any) => {
     console.log(`🔍 Calling function: ${functionName}`);
     console.log(`📤 Payload:`, payload);
 
     try {
-      // First, try a health check
-      const healthResponse = await supabase.functions.invoke(functionName, {
-        body: { health: true }
-      });
-
-      console.log(`🏥 Health check for ${functionName}:`, healthResponse);
-
-      // Now try the actual call
+      // Skip health check for now and go straight to the actual call
       const response = await supabase.functions.invoke(functionName, {
         body: payload
       });
 
       console.log(`📥 Response from ${functionName}:`, response);
+
+      // Log additional debug info
+      console.log(`🔍 Debug info:`, {
+        functionName,
+        hasError: !!response.error,
+        hasData: !!response.data,
+        errorType: response.error?.name,
+        errorContext: response.error?.context
+      });
+
       return response;
     } catch (error) {
       console.error(`❌ Error calling ${functionName}:`, error);
