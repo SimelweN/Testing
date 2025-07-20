@@ -109,14 +109,23 @@
 
         console.error = function (...args) {
           const message = args.join(" ");
-          if (!isThirdPartyExtensionError(message)) {
+          if (!shouldSuppressError(message)) {
             originalError.apply(this, args);
+          } else if (
+            message.toLowerCase().includes("@vite") ||
+            message.toLowerCase().includes(".fly.dev")
+          ) {
+            // Log development server issues as debug info
+            console.debug(
+              "[DEV] Suppressed:",
+              message.substring(0, 100) + "...",
+            );
           }
         };
 
         console.warn = function (...args) {
           const message = args.join(" ");
-          if (!isThirdPartyExtensionError(message)) {
+          if (!shouldSuppressError(message)) {
             originalWarn.apply(this, args);
           }
         };
