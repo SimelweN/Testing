@@ -116,7 +116,8 @@ serve(async (req) => {
       // Continue anyway - delivery can be scheduled manually
     }
 
-    // Send notification emails using DIRECT HTML
+        // Send notification emails using DIRECT HTML
+    let emailError = null;
     try {
       // Notify buyer
       if (buyer?.email) {
