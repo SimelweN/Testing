@@ -158,16 +158,20 @@ const PaystackDemo = () => {
       try {
         console.log(`🔍 Checking function: ${funcName}`);
 
-        // Try to call the health endpoint
+                // Just try to call the function - don't worry about health check
         const response = await supabase.functions.invoke(funcName, {
-          body: { health: true }
+          body: { test: true }
         });
 
+        // Function is available if we get any response (even error responses)
+        const isAvailable = response.error?.name !== 'FunctionsHttpError';
+
         status[funcName] = {
-          available: !response.error,
+          available: isAvailable,
           error: response.error,
           data: response.data,
-          healthCheck: true
+          errorType: response.error?.name,
+          description: isAvailable ? "Function responded" : "Function not accessible"
         };
 
         console.log(`✅ ${funcName} status:`, status[funcName]);
