@@ -94,24 +94,8 @@ export class OrderCancellationService {
         message: "Failed to cancel order",
         error: error.message,
       };
-    }
+        }
   }
-
-      if (updateError) {
-        throw new Error("Failed to update order status");
-      }
-
-      // Send notifications
-      await this.notifyBuyerCancellation(order);
-      await this.notifySellerOfBuyerCancellation(order);
-
-      // Log activity
-      await this.logCancellationActivity(orderId, "buyer_cancelled", {
-        reason,
-        refund_amount: order.total_amount,
-      });
-
-      console.log(`✅ Buyer cancellation completed for order ${orderId}`);
 
       return {
         success: true,
