@@ -13,11 +13,25 @@ serve(async (req) => {
   try {
     const { order_id, seller_id } = await req.json();
 
-    if (!order_id || !seller_id) {
+        if (!order_id || !seller_id) {
       return new Response(
         JSON.stringify({
           success: false,
           error: "Missing required fields: order_id, seller_id",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Validate parameter types
+    if (typeof order_id !== 'string' || typeof seller_id !== 'string') {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "order_id and seller_id must be valid strings",
         }),
         {
           status: 400,
