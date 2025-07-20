@@ -123,23 +123,60 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
 
       // Fetch seller profiles separately with error handling
       let profilesMap = new Map();
-      try {
-        const { data: profilesData, error: profilesError } = await supabase
-          .from("profiles")
-          .select("id, name, email")
-          .in("id", sellerIds);
+            try {
+        // Add retry logic for profile fetching
+        const fetchProfiles = async (retryCount = 0): Promise<void> => {
+          try {
+            const { data: profilesData, error: profilesError } = await supabase
+              .from("profiles")
+              .select("id, name, email")
+              .in("id", sellerIds);
 
-        if (profilesError) {
-          logDetailedError("Error fetching profiles", profilesError);
-          // Continue without profile data rather than failing completely
-        } else if (profilesData) {
-          profilesData.forEach((profile) => {
-            profilesMap.set(profile.id, profile);
-          });
-        }
+            if (profilesError) {
+              logDetailedError("Error fetching profiles", {
+                error: profilesError,
+                sellerIds: sellerIds.length,
+                retryCount,
+                timestamp: new Date().toISOString()
+              });
+
+              // If it's a connection error and we haven't retried too many times, try again
+              if (retryCount < 2 && (
+                profilesError.message?.includes('fetch') ||
+                profilesError.message?.includes('network') ||
+                profilesError.message?.includes('Failed to fetch')
+              )) {
+                console.log(`Retrying profile fetch (attempt ${retryCount + 1}/3)...`);
+                await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+                return fetchProfiles(retryCount + 1);
+              }
+
+              console.warn(`Continuing without profile data due to error: ${profilesError.message}`);
+            } else if (profilesData) {
+              profilesData.forEach((profile) => {
+                profilesMap.set(profile.id, profile);
+              });
+              console.log(`Successfully fetched ${profilesData.length} profiles`);
+            }
+          } catch (innerError) {
+            if (retryCount < 2) {
+              console.log(`Retrying profile fetch after exception (attempt ${retryCount + 1}/3)...`);
+              await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+              return fetchProfiles(retryCount + 1);
+            }
+            throw innerError;
+          }
+        };
+
+        await fetchProfiles();
       } catch (profileFetchError) {
-        logDetailedError("Exception fetching profiles", profileFetchError);
-        // Continue with empty profiles map
+        logDetailedError("Critical exception in profile fetching", {
+          error: profileFetchError,
+          sellerIds,
+          timestamp: new Date().toISOString()
+        });
+
+        console.warn("Profile fetching failed completely, books will be returned without seller information");
       }
 
       // Combine books with profile data
