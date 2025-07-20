@@ -1,6 +1,9 @@
 // Environment debugging (development only)
 import "./utils/environmentDebug";
 
+// Proper network error handling (not suppression)
+import "./utils/networkErrorHandler";
+
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
