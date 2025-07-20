@@ -681,18 +681,32 @@ const PaystackDemo = () => {
                     </div>
                   )}
                 </div>
-                <Button
-                  onClick={checkAllFunctions}
-                  disabled={loading["function-check"]}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  {loading["function-check"] ? (
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <TestTube className="h-4 w-4 mr-2" />
-                  )}
-                  Check All Functions
-                </Button>
+                                <div className="flex gap-2">
+                  <Button
+                    onClick={checkAllFunctions}
+                    disabled={loading["function-check"]}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {loading["function-check"] ? (
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <TestTube className="h-4 w-4 mr-2" />
+                    )}
+                    Check Functions
+                  </Button>
+                  <Button
+                    onClick={testDirectHTTP}
+                    disabled={loading["direct-http"]}
+                    variant="outline"
+                  >
+                    {loading["direct-http"] ? (
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Zap className="h-4 w-4 mr-2" />
+                    )}
+                    Direct HTTP Test
+                  </Button>
+                </div>
               </div>
 
               {Object.keys(functionStatus).length > 0 && (
