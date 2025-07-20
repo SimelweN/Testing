@@ -199,13 +199,12 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           toast.success("Payment completed successfully! (Fallback mode)");
           return; // Exit early on fallback success
 
-        } catch (fallbackError) {
-          console.error("❌ Fallback order creation also failed:", fallbackError);
+                } catch (fallbackError) {
+          logError("Fallback order creation failed", fallbackError);
           // Fall through to original error throwing
         }
 
-                const errorMessage = error?.message || error?.details || JSON.stringify(error) || "Failed to process purchase";
-        throw new Error(`Edge Function Error: ${errorMessage}`);
+        throw new Error(`Edge Function Error: ${userFriendlyMessage}`);
       }
 
       console.log("✅ Edge Function Success Response:", data);
