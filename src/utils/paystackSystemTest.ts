@@ -296,7 +296,7 @@ export class PaystackSystemTester {
           this.addResult(
             `Edge Function: ${funcName}`,
             "error",
-            `Health check failed - Response: ${JSON.stringify(result)}`,
+            `Health check failed - Response: ${JSON.stringify(result)} | Type: ${typeof result} | Has success: ${!!result?.success} | Has service: ${!!result?.service}`,
             {
               actual_response: result,
               expected_fields: ["success", "service"],
@@ -308,10 +308,20 @@ export class PaystackSystemTester {
           );
         }
       } catch (error) {
+        const errorDetails = {
+          message: error.message,
+          status: error.status || error.statusCode || "unknown",
+          statusText: error.statusText || "unknown",
+          cause: error.cause || "unknown",
+          details: error.details || "no details",
+          context: error.context || "no context",
+        };
+
         this.addResult(
           `Edge Function: ${funcName}`,
           "error",
-          `Health check failed: ${error.message}`,
+          `Health check failed: ${error.message} | Status: ${errorDetails.status} | Details: ${JSON.stringify(errorDetails)}`,
+          errorDetails,
         );
       }
     }
