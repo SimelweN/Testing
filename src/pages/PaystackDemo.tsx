@@ -731,7 +731,7 @@ const PaystackDemo = () => {
                 </div>
               )}
 
-              {Object.keys(functionStatus).length > 0 && (
+                            {Object.keys(functionStatus).length > 0 && (
                 <Alert className="mt-4">
                   <AlertDescription>
                     <details>
@@ -743,6 +743,8 @@ const PaystackDemo = () => {
                   </AlertDescription>
                 </Alert>
               )}
+
+              <TestResultCard testKey="direct-http" title="Direct HTTP Test" />
             </CardContent>
           </Card>
 
