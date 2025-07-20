@@ -116,6 +116,15 @@ window.addEventListener("unhandledrejection", (event) => {
     return;
   }
 
+  // Suppress Google Maps retry messages
+  if (isGoogleMapsRetryError(message)) {
+    if (import.meta.env.DEV) {
+      console.debug("Google Maps retry message suppressed:", message);
+    }
+    event.preventDefault();
+    return;
+  }
+
   // Log all other unhandled rejections properly
   console.error("Unhandled promise rejection:", error);
 });
