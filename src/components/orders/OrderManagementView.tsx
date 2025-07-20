@@ -40,8 +40,17 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
     }
   }, [user, activeTab]);
 
-  const fetchOrders = async () => {
-    if (!user) return;
+    const fetchOrders = async () => {
+    if (!user) {
+      console.log("🔍 No user found for order fetching");
+      return;
+    }
+
+    console.log("🔍 Fetching orders for user:", {
+      userId: user.id,
+      userEmail: user.email,
+      activeTab
+    });
 
     setLoading(true);
     try {
