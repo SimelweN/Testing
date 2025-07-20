@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { Code, Play, AlertCircle, CheckCircle, Copy, PlayCircle, Zap, Database, RefreshCw } from "lucide-react";
+import { Code, Play, AlertCircle, CheckCircle, Copy, PlayCircle, Zap, Database, RefreshCw, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
