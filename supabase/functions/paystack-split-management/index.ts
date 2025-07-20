@@ -116,14 +116,14 @@ serve(async (req) => {
       }
     }
 
-    // Handle different HTTP methods
+        // Handle different HTTP methods
     switch (req.method) {
       case "POST":
-        return await handleCreateSplit(req);
+        return await handleCreateSplit(requestBody);
       case "GET":
         return await handleGetSplits(req);
       case "PUT":
-        return await handleUpdateSplit(req);
+        return await handleUpdateSplit(requestBody);
       case "DELETE":
         return await handleDeleteSplit(req);
       default:
