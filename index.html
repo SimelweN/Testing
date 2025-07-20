@@ -87,15 +87,23 @@
         const originalError = console.error;
         const originalWarn = console.warn;
 
-        const isThirdPartyExtensionError = (message) => {
+        const shouldSuppressError = (message) => {
           const msg = String(message || "").toLowerCase();
           return (
+            // Browser extensions
             msg.includes("chrome-extension") ||
             msg.includes("moz-extension") ||
             msg.includes("safari-extension") ||
-            // Only suppress specific ResizeObserver errors that are known browser quirks
+            // ResizeObserver browser quirks
             (msg.includes("resizeobserver") &&
-              msg.includes("loop limit exceeded"))
+              msg.includes("loop limit exceeded")) ||
+            // Development tool errors (Vite HMR)
+            msg.includes("@vite/client") ||
+            msg.includes(".fly.dev") ||
+            msg.includes("ping") ||
+            msg.includes("waitforsuccessfulping") ||
+            msg.includes("messagehandler") ||
+            (msg.includes("failed to fetch") && msg.includes("eval at"))
           );
         };
 
