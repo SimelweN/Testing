@@ -101,7 +101,7 @@ window.fetch = async function (...args) {
     console.debug(`Network handler intercepting: ${url}`);
   }
 
-    try {
+  try {
     const response = await originalFetch.apply(this, args);
     return response;
   } catch (error) {
