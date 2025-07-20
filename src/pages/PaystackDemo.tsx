@@ -174,7 +174,7 @@ const PaystackDemo = () => {
           description: isAvailable ? "Function responded" : "Function not accessible"
         };
 
-        console.log(`✅ ${funcName} status:`, status[funcName]);
+                console.log(`${isAvailable ? '✅' : '❌'} ${funcName} status:`, status[funcName]);
       } catch (error) {
         status[funcName] = {
           available: false,
