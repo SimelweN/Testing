@@ -21,6 +21,12 @@ const DEVELOPMENT_SERVICES = [
   "waitForSuccessfulPing",
 ];
 
+const GOOGLE_MAPS_RETRY_PATTERNS = [
+  "failed to load google maps script",
+  "google maps script, retrying",
+  "retrying in",
+];
+
 // Check if an error is from a third-party service
 const isThirdPartyError = (url: string): boolean => {
   return THIRD_PARTY_SERVICES.some((service) => url.includes(service));
