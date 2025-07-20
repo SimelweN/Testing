@@ -115,7 +115,19 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           orderSummary: orderSummary.book.id
         });
 
-        const userFriendlyMessage = getUserFriendlyErrorMessage(error, "Failed to process purchase");
+                // Simple error message extraction
+        let userFriendlyMessage = "Failed to process purchase";
+        if (error?.message) {
+          userFriendlyMessage = error.message;
+        } else if (error?.details) {
+          userFriendlyMessage = error.details;
+        } else if (typeof error === 'string') {
+          userFriendlyMessage = error;
+        } else if (error) {
+          userFriendlyMessage = String(error);
+        }
+
+        console.log("🔍 USER FRIENDLY MESSAGE:", userFriendlyMessage);
 
         // Fallback: Create order directly in database when Edge Function fails
         console.log("🔄 Attempting fallback order creation...");
@@ -1003,7 +1015,7 @@ Time: ${new Date().toISOString()}
           <div className="text-sm text-gray-600 space-y-2">
             <p>• Payment will be processed immediately</p>
             <p>• You'll receive an email confirmation</p>
-            <p>��� Seller will be notified to prepare shipment</p>
+            <p>• Seller will be notified to prepare shipment</p>
             <p>• You can track your order in your account</p>
           </div>
         </CardContent>
