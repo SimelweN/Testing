@@ -395,8 +395,8 @@ const DevDashboard = () => {
         case "books":
           await supabase.from("books").delete().ilike("title", "Test Book%");
           break;
-        case "orders":
-          await supabase.from("orders").delete().eq("buyer_id", user?.id);
+                case "orders":
+          await supabase.from("orders").delete().eq("buyer_email", user?.email);
           break;
         case "notifications":
           await supabase
