@@ -243,12 +243,12 @@ ReBooked Solutions - Pre-Loved Pages, New Adventures`
     });
 
   } catch (error) {
-    console.error("[ReBooked Auto-Expire] Critical error:", error);
+        console.error("[ReBooked Auto-Expire] Critical error:", error?.message || error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: "Failed to process book order expiry",
-        details: error.message
+                error: "Failed to process book order expiry",
+        details: error?.message || String(error)
       }),
       {
         status: 500,
