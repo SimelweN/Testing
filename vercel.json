@@ -1,7 +1,47 @@
 {
+  "version": 2,
   "functions": {
     "api/**/*.js": {
+      "memory": 512,
+      "maxDuration": 30
+    },
+    "api/**/*.ts": {
+      "memory": 512,
       "maxDuration": 30
     }
-  }
+  },
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "authorization, x-client-info, apikey, content-type"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/api",
+      "destination": "/api/health",
+      "permanent": false
+    }
+  ]
 }
