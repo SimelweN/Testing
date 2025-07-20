@@ -552,13 +552,13 @@ serve(async (req) => {
     <h2>Thank you, ${buyer.name}!</h2>
     <p>Your order has been confirmed and <strong>${seller.name}</strong> has been notified.</p>
 
-    <div class="info-box">
+        <div class="info-box">
       <h3>📋 Order Details</h3>
-      <p><strong>Order ID:</strong> ${orderId}</p>
+      <p><strong>Order ID:</strong> ${order.id}</p>
       <p><strong>Book:</strong> ${book.title}</p>
       <p><strong>Author:</strong> ${book.author}</p>
       <p><strong>Seller:</strong> ${seller.name}</p>
-      <p><strong>Total Amount:</strong> R${orderData.total_amount.toFixed(2)}</p>
+      <p><strong>Total Amount:</strong> R${(orderData.amount / 100).toFixed(2)}</p>
       <p><strong>Payment Reference:</strong> ${payment_reference}</p>
     </div>
 
