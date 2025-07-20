@@ -433,13 +433,27 @@ export default function APIFunctionTester() {
     try {
       const parsedBody = JSON.parse(requestBody);
       
-      const fetchResponse = await fetch(selectedEndpoint.path, {
+            const fetchResponse = await fetch(selectedEndpoint.path, {
         method: selectedEndpoint.method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(parsedBody),
       });
 
-      const result = await fetchResponse.json();
+      // Handle response reading safely
+      let result;
+      try {
+        result = await fetchResponse.json();
+      } catch {
+        // If JSON parsing fails, try reading as text
+        const responseClone = fetchResponse.clone();
+        try {
+          const responseText = await responseClone.text();
+          result = { message: responseText || "Empty response" };
+        } catch {
+          result = { message: "Failed to read response" };
+        }
+      }
+
       setResponse({
         status: fetchResponse.status,
         statusText: fetchResponse.statusText,
