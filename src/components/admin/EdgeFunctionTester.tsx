@@ -544,17 +544,27 @@ export default function EdgeFunctionTester() {
 
       const duration = Date.now() - startTime;
 
-      // Parse response regardless of status code
+            // Parse response regardless of status code - clone first to avoid stream issues
+      const responseClone = response.clone();
       let responseData;
       try {
         responseData = await response.json();
       } catch (parseError) {
-        responseData = {
-          error: "Failed to parse response",
-          raw_response: await response.text(),
-          status: response.status,
-          statusText: response.statusText,
-        };
+        try {
+          const rawText = await responseClone.text();
+          responseData = {
+            error: "Failed to parse response",
+            raw_response: rawText,
+            status: response.status,
+            statusText: response.statusText,
+          };
+        } catch {
+          responseData = {
+            error: "Failed to read response",
+            status: response.status,
+            statusText: response.statusText,
+          };
+        }
       }
 
       if (!response.ok) {
