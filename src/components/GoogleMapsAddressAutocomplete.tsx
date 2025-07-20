@@ -166,13 +166,10 @@ const GoogleMapsAddressAutocomplete: React.FC<
   };
 
   useEffect(() => {
-    loadGoogleMaps();
-
     // Set default value if provided
     if (defaultValue?.formattedAddress) {
       setInputValue(defaultValue.formattedAddress);
       setSelectedAddress(defaultValue as AddressData);
-      setIsLoading(false); // Don't show loading if we have a default value
     }
 
     return () => {
@@ -184,6 +181,13 @@ const GoogleMapsAddressAutocomplete: React.FC<
       }
     };
   }, []);
+
+  // Initialize Google Maps when context is ready
+  useEffect(() => {
+    if (mapsLoaded) {
+      initializeGoogleMaps();
+    }
+  }, [mapsLoaded]);
 
   const handleRetry = () => {
     setIsLoading(true);
