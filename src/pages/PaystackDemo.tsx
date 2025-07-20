@@ -85,6 +85,8 @@ const DEMO_DATA = {
 const PaystackDemo = () => {
   const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
   const [results, setResults] = useState<{ [key: string]: any }>({});
+  const [functionStatus, setFunctionStatus] = useState<{ [key: string]: any }>({});
+  const [environmentStatus, setEnvironmentStatus] = useState<any>(null);
 
   // Form states for different functions
   const [paymentForm, setPaymentForm] = useState({
