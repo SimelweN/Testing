@@ -122,8 +122,8 @@ serve(async (req) => {
         return await handleCreateSplit(requestBody);
       case "GET":
         return await handleGetSplits(req);
-      case "PUT":
-        return await handleUpdateSplit(requestBody);
+            case "PUT":
+        return await handleUpdateSplit(req, requestBody);
       case "DELETE":
         return await handleDeleteSplit(req);
       default:
