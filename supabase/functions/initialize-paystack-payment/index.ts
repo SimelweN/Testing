@@ -239,18 +239,15 @@ serve(async (req) => {
 
       const mockReference = `test_ref_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          data: {
-            authorization_url: `https://checkout.paystack.com/mock/${mockReference}`,
-            reference: mockReference,
-            access_code: `mock_access_${Date.now()}`,
-          },
-          mock: true,
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+            return jsonResponse({
+        success: true,
+        data: {
+          authorization_url: `https://checkout.paystack.com/mock/${mockReference}`,
+          reference: mockReference,
+          access_code: `mock_access_${Date.now()}`,
+        },
+        mock: true,
+      });
     }
 
     // Check if we need to create a split for multiple sellers
