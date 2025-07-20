@@ -533,6 +533,65 @@ export type Database = {
             referencedRelation: "users";
             referencedColumns: ["id"];
           }
+                ];
+      };
+      payment_transactions: {
+        Row: {
+          id: string;
+          order_id: string | null;
+          paystack_reference: string;
+          amount: number; // in kobo
+          status: string; // 'pending' | 'success' | 'failed' | 'abandoned'
+          payment_method: string | null;
+          currency: string;
+          customer_email: string;
+          customer_name: string | null;
+          metadata: Json | null;
+          gateway_response: Json | null;
+          paid_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          order_id?: string | null;
+          paystack_reference: string;
+          amount: number;
+          status?: string;
+          payment_method?: string | null;
+          currency?: string;
+          customer_email: string;
+          customer_name?: string | null;
+          metadata?: Json | null;
+          gateway_response?: Json | null;
+          paid_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          order_id?: string | null;
+          paystack_reference?: string;
+          amount?: number;
+          status?: string;
+          payment_method?: string | null;
+          currency?: string;
+          customer_email?: string;
+          customer_name?: string | null;
+          metadata?: Json | null;
+          gateway_response?: Json | null;
+          paid_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          }
         ];
       };
       orders: {
