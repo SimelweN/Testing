@@ -162,9 +162,8 @@ serve(async (req) => {
   }
 });
 
-async function handleCreateSplit(req: Request): Promise<Response> {
+async function handleCreateSplit(splitData: SplitRequest): Promise<Response> {
   try {
-    const splitData: SplitRequest = await req.json();
 
     const response = await fetch("https://api.paystack.co/split", {
       method: "POST",
