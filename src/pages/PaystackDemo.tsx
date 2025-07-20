@@ -593,12 +593,85 @@ const PaystackDemo = () => {
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-8">
+                    <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Complete Paystack Functions Demo</h1>
             <p className="text-gray-600">
               Test all Paystack functionality with demo data and live edge function calls
             </p>
           </div>
+
+          {/* Environment Diagnostics */}
+          <Card className="mb-6 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TestTube className="h-5 w-5" />
+                Environment Diagnostics
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">
+                    Check if all Paystack edge functions are deployed and accessible
+                  </p>
+                  {environmentStatus && (
+                    <div className="text-xs text-gray-500 space-y-1">
+                      <div>Supabase URL: {environmentStatus.supabaseUrl}</div>
+                      <div>API Key: {environmentStatus.supabaseKey}</div>
+                      <div>Last Check: {new Date(environmentStatus.timestamp).toLocaleString()}</div>
+                    </div>
+                  )}
+                </div>
+                <Button
+                  onClick={checkAllFunctions}
+                  disabled={loading["function-check"]}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {loading["function-check"] ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <TestTube className="h-4 w-4 mr-2" />
+                  )}
+                  Check All Functions
+                </Button>
+              </div>
+
+              {Object.keys(functionStatus).length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4">
+                  {Object.entries(functionStatus).map(([funcName, status]: [string, any]) => (
+                    <div
+                      key={funcName}
+                      className={`flex items-center gap-2 p-2 rounded text-xs ${
+                        status.available
+                          ? 'bg-green-100 text-green-800 border border-green-200'
+                          : 'bg-red-100 text-red-800 border border-red-200'
+                      }`}
+                    >
+                      {status.available ? (
+                        <CheckCircle className="h-3 w-3" />
+                      ) : (
+                        <XCircle className="h-3 w-3" />
+                      )}
+                      <span className="truncate">{funcName}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {Object.keys(functionStatus).length > 0 && (
+                <Alert className="mt-4">
+                  <AlertDescription>
+                    <details>
+                      <summary className="cursor-pointer font-semibold">Function Status Details</summary>
+                      <pre className="text-xs mt-2 bg-gray-50 p-2 rounded overflow-auto max-h-40">
+                        {JSON.stringify(functionStatus, null, 2)}
+                      </pre>
+                    </details>
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
 
           <Tabs defaultValue="payment" className="space-y-6">
             <TabsList className="grid w-full grid-cols-6">
