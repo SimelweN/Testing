@@ -201,10 +201,68 @@ const PaystackDemo = () => {
     const availableCount = Object.values(status).filter((s: any) => s.available).length;
     const totalCount = functions.length;
 
-                if (availableCount === totalCount) {
-      toast.success(`✅ All ${totalCount} functions are accessible!`);
+                    const workingCount = Object.values(status).filter((s: any) => s.actuallyWorking).length;
+
+    if (workingCount === totalCount) {
+      toast.success(`✅ All ${totalCount} functions are working properly!`);
+    } else if (availableCount === totalCount) {
+      toast.success(`✅ All ${totalCount} functions are deployed (${workingCount} confirmed working)`);
     } else {
-      toast.error(`❌ Only ${availableCount}/${totalCount} functions are accessible`);
+      toast.error(`❌ Only ${availableCount}/${totalCount} functions are accessible, ${workingCount} confirmed working`);
+    }
+  };
+
+  // Test function with real payload to confirm it's actually working
+  const testRealFunction = async () => {
+    setTestLoading("real-test", true);
+    try {
+      console.log("🧪 Testing initialize-paystack-payment with real payload");
+
+      const payload = {
+        email: "test@example.com",
+        amount: 50,
+        user_id: "test-user-123",
+        items: [{
+          book_id: "test-book-456",
+          title: "Test Book",
+          price: 50,
+          seller_id: "test-seller-789"
+        }],
+        metadata: { test: true }
+      };
+
+      const response = await supabase.functions.invoke("initialize-paystack-payment", {
+        body: payload
+      });
+
+      console.log("🧪 Real function test response:", response);
+
+      setTestResult("real-test", {
+        success: !response.error || response.error?.name !== 'FunctionsHttpError',
+        data: response.data,
+        error: response.error,
+        payload,
+        description: response.data ? "Function working!" :
+                   response.error?.name === 'FunctionsHttpError' ? "Function not deployed" :
+                   "Function deployed but has parameter/config issues"
+      });
+
+      if (response.data) {
+        toast.success("✅ Function is working perfectly!");
+      } else if (response.error?.name !== 'FunctionsHttpError') {
+        toast.success("✅ Function is deployed (has config/parameter issues)");
+      } else {
+        toast.error("❌ Function not deployed");
+      }
+    } catch (error) {
+      setTestResult("real-test", {
+        success: false,
+        error: error.message,
+        description: "Failed to test function"
+      });
+      toast.error("Test failed: " + error.message);
+    } finally {
+      setTestLoading("real-test", false);
     }
   };
 
