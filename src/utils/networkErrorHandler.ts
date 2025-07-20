@@ -76,8 +76,14 @@ const originalFetch = window.fetch;
 window.fetch = async function (...args) {
   const url = args[0]?.toString() || "";
 
-  // Never intercept Supabase URLs
+  // Never intercept Supabase URLs - let them fail naturally for debugging
   if (isSupabaseUrl(url)) {
+    return originalFetch.apply(this, args);
+  }
+
+  // Never intercept if it's a debugging request (has __original__ in the stack)
+  const stack = new Error().stack || "";
+  if (stack.includes("edgeFunctionDebugger") || stack.includes("EdgeFunctionDebugger")) {
     return originalFetch.apply(this, args);
   }
 
@@ -95,7 +101,7 @@ window.fetch = async function (...args) {
     console.debug(`Network handler intercepting: ${url}`);
   }
 
-  try {
+    try {
     const response = await originalFetch.apply(this, args);
     return response;
   } catch (error) {
@@ -132,11 +138,36 @@ window.fetch = async function (...args) {
       });
     }
 
-    // For our own services, log the error properly and re-throw
-    console.error(`Network request failed: ${url}`, error);
-    throw error;
+        // For any other intercepted requests, return a graceful error response instead of throwing
+    if (import.meta.env.DEV) {
+      console.debug(`Network request failed: ${url}`, error);
+    }
+
+    return new Response(
+      JSON.stringify({
+        error: "Network request failed",
+        message: errorMessage,
+        url: url,
+      }),
+      {
+        status: 500,
+        statusText: "Network Error",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 };
+
+// Global error handler for script loading errors (including Google Maps)
+window.addEventListener("error", (event) => {
+  const message = event.message || event.error?.message || "";
+
+  // Suppress Google Maps script loading errors
+  if (isGoogleMapsRetryError(message) || message.toLowerCase().includes("google maps")) {
+    event.preventDefault();
+    return false;
+  }
+});
 
 // Handle unhandled promise rejections
 window.addEventListener("unhandledrejection", (event) => {

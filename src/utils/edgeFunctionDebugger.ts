@@ -77,7 +77,7 @@ export class EdgeFunctionDebugger {
     }
   }
 
-  private async testWithDirectFetch(
+    private async testWithDirectFetch(
     functionName: string,
     startTime: number,
   ): Promise<EdgeFunctionDiagnostic> {
@@ -86,6 +86,11 @@ export class EdgeFunctionDebugger {
     try {
       // Use native fetch to bypass our error handler completely
       const nativeFetch = window.fetch.__original__ || window.fetch;
+
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
       const response = await nativeFetch(url, {
         method: "POST",
         headers: {
@@ -94,7 +99,10 @@ export class EdgeFunctionDebugger {
           Accept: "application/json",
         },
         body: JSON.stringify({ health: true, debug: true }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       const timing = performance.now() - startTime;
       const responseHeaders: Record<string, string> = {};
@@ -120,8 +128,23 @@ export class EdgeFunctionDebugger {
         url,
         headers: responseHeaders,
       };
-    } catch (error) {
+        } catch (error) {
       const timing = performance.now() - startTime;
+
+      // Handle different types of errors more specifically
+      if (error.name === "AbortError") {
+        return {
+          functionName,
+          status: "timeout",
+          error: {
+            message: "Function call timed out after 10 seconds",
+            name: "AbortError",
+            details: "The function may be taking too long to respond or may not be deployed",
+          },
+          timing,
+          url,
+        };
+      }
 
       if (error.name === "TypeError" && error.message.includes("fetch")) {
         return {

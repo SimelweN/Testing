@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { parseRequestBody } from "../_shared/safe-body-parser.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -10,8 +11,29 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+        // Read request body ONCE at the start (ChatGPT's advice)
+  let requestBody;
   try {
-    const { user_id, cart_items, shipping_address, email } = await req.json();
+    console.log("🔍 bodyUsed before read:", req.bodyUsed);
+    requestBody = await req.json();
+    console.log("✅ Body read successfully");
+  } catch (error) {
+    console.error("❌ Body read failed:", error.message);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "BODY_READ_ERROR",
+        details: { error: error.message, bodyUsed: req.bodyUsed },
+      }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  try {
+    const { user_id, cart_items, shipping_address, email } = requestBody;
 
     // Enhanced validation with specific error messages
     const validationErrors = [];
@@ -38,7 +60,7 @@ serve(async (req) => {
           error: "VALIDATION_FAILED",
           details: {
             validation_errors: validationErrors,
-            provided_fields: Object.keys(await req.json()),
+                        provided_fields: Object.keys({ user_id, cart_items, shipping_address, email }),
             message: `Validation failed: ${validationErrors.join(", ")}`,
             required_format: {
               user_id: "String, authenticated user ID",

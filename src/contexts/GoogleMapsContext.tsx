@@ -35,7 +35,7 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
 }) => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-  // Aggressive Google Maps error suppression
+    // Aggressive Google Maps error suppression
   useEffect(() => {
     const originalConsoleError = console.error;
     const originalConsoleWarn = console.warn;
@@ -45,9 +45,12 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
       return (
         msg.includes("failed to load google maps script") ||
         msg.includes("google maps script, retrying") ||
+        msg.includes("google maps script") ||
         msg.includes("retrying in") ||
         msg.includes("maps api") ||
-        msg.includes("places api")
+        msg.includes("places api") ||
+        msg.includes("google.maps") ||
+        msg.includes("googleapis.com")
       );
     };
 

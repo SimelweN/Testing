@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { parseRequestBody } from "../_shared/safe-body-parser.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -8,6 +9,27 @@ const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
+  }
+
+  // Read request body ONCE at the start (ChatGPT's advice)
+  let requestBody;
+  try {
+    console.log("🔍 bodyUsed before read:", req.bodyUsed);
+    requestBody = await req.json();
+    console.log("✅ Body read successfully");
+  } catch (error) {
+    console.error("❌ Body read failed:", error.message);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "BODY_READ_ERROR",
+        details: { error: error.message, bodyUsed: req.bodyUsed },
+      }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   }
 
   try {
@@ -19,7 +41,7 @@ serve(async (req) => {
       payment_reference,
       total_amount,
       delivery_details,
-    } = await req.json();
+    } = requestBody;
 
     console.log("�� Processing book purchase confirmation:", {
       user_id,
@@ -43,7 +65,15 @@ serve(async (req) => {
           error: "VALIDATION_FAILED",
           details: {
             missing_fields: validationErrors,
-            provided_fields: Object.keys(await req.json()),
+                        provided_fields: Object.keys({
+              user_id,
+              book_id,
+              email,
+              shipping_address,
+              payment_reference,
+              total_amount,
+              delivery_details,
+            }),
             message: `Missing required fields: ${validationErrors.join(", ")}`,
           },
           fix_instructions:

@@ -35,7 +35,7 @@ serve(async (req) => {
           error: "VALIDATION_FAILED",
           details: {
             missing_or_invalid_fields: validationErrors,
-            provided_fields: Object.keys(await req.json()),
+                        provided_fields: Object.keys({ order_id, seller_id, amount, trigger }),
             message: `Validation failed: ${validationErrors.join(", ")}`,
           },
           fix_instructions:

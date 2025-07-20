@@ -26,25 +26,13 @@ serve(async (req) => {
   }
 
   try {
-    // Handle health check first
+    // Handle health check first (no body consumption)
     const url = new URL(req.url);
     const isHealthCheck =
       url.pathname.endsWith("/health") ||
       url.searchParams.get("health") === "true";
 
-    // Check for health check in POST body as well
-    let body = null;
-    if (req.method === "POST" || req.method === "PUT") {
-      try {
-        // Clone the request to avoid consuming the body
-        const clonedReq = req.clone();
-        body = await clonedReq.json();
-      } catch {
-        // Ignore JSON parsing errors for health checks
-      }
-    }
-
-    if (isHealthCheck || body?.health === true) {
+    if (isHealthCheck) {
       return new Response(
         JSON.stringify({
           success: true,
@@ -103,16 +91,39 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
+        }
+
+    // Read request body ONCE for POST/PUT methods (ChatGPT's advice)
+    let requestBody = null;
+    if (req.method === "POST" || req.method === "PUT") {
+      try {
+        console.log("🔍 bodyUsed before read:", req.bodyUsed);
+        requestBody = await req.json();
+        console.log("✅ Body read successfully");
+      } catch (error) {
+        console.error("❌ Body read failed:", error.message);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "BODY_READ_ERROR",
+            details: { error: error.message, bodyUsed: req.bodyUsed },
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
     }
 
-    // Handle different HTTP methods
+        // Handle different HTTP methods
     switch (req.method) {
       case "POST":
-        return await handleCreateSplit(req);
+        return await handleCreateSplit(requestBody);
       case "GET":
         return await handleGetSplits(req);
-      case "PUT":
-        return await handleUpdateSplit(req);
+            case "PUT":
+        return await handleUpdateSplit(req, requestBody);
       case "DELETE":
         return await handleDeleteSplit(req);
       default:
@@ -151,9 +162,8 @@ serve(async (req) => {
   }
 });
 
-async function handleCreateSplit(req: Request): Promise<Response> {
+async function handleCreateSplit(splitData: SplitRequest): Promise<Response> {
   try {
-    const splitData: SplitRequest = await req.json();
 
     const response = await fetch("https://api.paystack.co/split", {
       method: "POST",
@@ -238,7 +248,7 @@ async function handleGetSplits(req: Request): Promise<Response> {
   }
 }
 
-async function handleUpdateSplit(req: Request): Promise<Response> {
+async function handleUpdateSplit(req: Request, updateData: any): Promise<Response> {
   try {
     const url = new URL(req.url);
     const splitCode = url.searchParams.get("split_code");
@@ -259,7 +269,7 @@ async function handleUpdateSplit(req: Request): Promise<Response> {
       );
     }
 
-    const updateData = await req.json();
+            // updateData is passed as parameter - no need to read body again
 
     const response = await fetch(`https://api.paystack.co/split/${splitCode}`, {
       method: "PUT",

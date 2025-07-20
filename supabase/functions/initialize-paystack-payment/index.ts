@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { handleRequestBody } from "../_shared/request-utils.ts";
 
 const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -11,26 +12,14 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  try {
-    // Handle health check first (allow GET and POST for health checks)
+      try {
+    // Handle health check first (no body consumption)
     const url = new URL(req.url);
     const isHealthCheck =
       url.pathname.endsWith("/health") ||
       url.searchParams.get("health") === "true";
 
-    // Check for health check in POST body as well
-    let body = null;
-    if (req.method === "POST") {
-      try {
-        // Clone the request to avoid consuming the body
-        const clonedReq = req.clone();
-        body = await clonedReq.json();
-      } catch {
-        // Ignore JSON parsing errors for health checks
-      }
-    }
-
-    if (isHealthCheck || body?.health === true) {
+    if (isHealthCheck) {
       return new Response(
         JSON.stringify({
           success: true,
@@ -45,7 +34,28 @@ serve(async (req) => {
         {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        }
+      );
+    }
+
+    // Read request body ONCE (ChatGPT's advice)
+    let requestBody;
+    try {
+      console.log("🔍 bodyUsed before read:", req.bodyUsed);
+      requestBody = await req.json();
+      console.log("✅ Body read successfully");
+    } catch (error) {
+      console.error("❌ Body read failed:", error.message);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "BODY_READ_ERROR",
+          details: { error: error.message, bodyUsed: req.bodyUsed },
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 

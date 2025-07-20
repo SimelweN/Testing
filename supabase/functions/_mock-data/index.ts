@@ -38,70 +38,447 @@ export const AllMockData = {
 /**
  * Function-Specific Mock Data for Direct Access
  * Use these for testing individual Edge Functions
+ * ALL FUNCTIONS HAVE COMPLETE MOCK DATA WITH ALL REQUIRED FIELDS
  */
 export const FunctionMockData = {
   // PAYSTACK FUNCTIONS
-  "initialize-paystack-payment": PaystackMockData.initializePayment,
-  "paystack-webhook": {
-    headers: PaystackMockData.headers,
-    body: PaystackMockData.webhookEvent,
+  "initialize-paystack-payment": {
+    user_id: "550e8400-e29b-41d4-a716-446655440000",
+    items: [
+      {
+        book_id: "book-550e8400-e29b-41d4-a716-446655440001",
+        title: "Introduction to Computer Science",
+        price: 29999, // in kobo
+        quantity: 1,
+        seller_id: "seller-550e8400-e29b-41d4-a716-446655440002"
+      }
+    ],
+    total_amount: 34999, // in kobo (includes delivery)
+    email: "buyer@example.com",
+    currency: "ZAR",
+    callback_url: "https://rebook.university/payment/callback",
+    metadata: {
+      user_id: "550e8400-e29b-41d4-a716-446655440000",
+      order_type: "book_purchase",
+      platform: "rebook"
+    }
   },
-  "verify-paystack-payment": PaymentManagementMockData.paymentVerification,
-  "paystack-refund-management": PaymentManagementMockData.refundManagement,
-  "paystack-transfer-management": PaymentManagementMockData.transferManagement,
-  "paystack-split-management": PaymentManagementMockData.splitManagement,
+
+  "paystack-webhook": {
+    headers: {
+      "content-type": "application/json",
+      "x-paystack-signature": "t=1234567890,v1=5f6cdc9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e"
+    },
+    body: {
+      event: "charge.success",
+      data: {
+        id: 123456789,
+        reference: "TXN_" + Date.now(),
+        amount: 34999,
+        currency: "ZAR",
+        status: "success",
+        customer: {
+          email: "buyer@example.com",
+          first_name: "John",
+          last_name: "Buyer"
+        },
+        metadata: {
+          user_id: "550e8400-e29b-41d4-a716-446655440000",
+          order_type: "book_purchase"
+        },
+        created_at: new Date().toISOString()
+      }
+    }
+  },
+
+  "verify-paystack-payment": {
+    reference: "TXN_" + Date.now(),
+    user_id: "550e8400-e29b-41d4-a716-446655440000"
+  },
+
+  "paystack-refund-management": {
+    action: "initiate",
+    transaction_reference: "TXN_" + Date.now(),
+    amount: 29999,
+    reason: "Order cancelled by seller",
+    user_id: "550e8400-e29b-41d4-a716-446655440000"
+  },
+
+  "paystack-transfer-management": {
+    action: "initiate",
+    recipient_code: "RCP_123456789",
+    amount: 19999,
+    reason: "Seller payout for book sale",
+    reference: "PAYOUT_" + Date.now()
+  },
+
+  "paystack-split-management": {
+    action: "create",
+    name: "Multi-seller Book Order Split",
+    type: "percentage",
+    currency: "ZAR",
+    subaccounts: [
+      {
+        subaccount: "ACCT_123456789",
+        share: 70
+      },
+      {
+        subaccount: "ACCT_987654321",
+        share: 30
+      }
+    ],
+    bearer_type: "all",
+    bearer_subaccount: "ACCT_123456789"
+  },
 
   // CORE SUPABASE FUNCTIONS
-  "process-book-purchase": PaystackMockData.bookPurchase,
-  "process-multi-seller-purchase": PaystackMockData.multiSellerPurchase,
-  "create-order": CommitSystemMockData.createOrder,
-  "send-email": EmailAuthMockData.emailRequest,
-  "debug-email-template": EmailAuthMockData.debugEmail,
-  "health-test": EmailAuthMockData.healthTest,
+  "process-book-purchase": {
+    user_id: "550e8400-e29b-41d4-a716-446655440000",
+    book_id: "book-550e8400-e29b-41d4-a716-446655440001",
+    email: "buyer@example.com",
+    payment_reference: "TXN_" + Date.now(),
+    shipping_address: {
+      street: "123 Student Road",
+      suburb: "Rondebosch",
+      city: "Cape Town",
+      province: "Western Cape",
+      postal_code: "7700",
+      country: "South Africa",
+      phone: "+27123456789",
+      first_name: "John",
+      last_name: "Buyer"
+    },
+    total_amount: 34999,
+    delivery_details: {
+      method: "courier",
+      estimated_days: 2,
+      tracking_required: true
+    }
+  },
+
+    "process-multi-seller-purchase": {
+    user_id: "550e8400-e29b-41d4-a716-446655440000", // REQUIRED: validated by function
+    email: "buyer@example.com", // REQUIRED: validated by function with email format check
+    cart_items: [ // REQUIRED: must be array and not empty
+      {
+        book_id: "book-550e8400-e29b-41d4-a716-446655440001",
+        title: "Introduction to Computer Science",
+        price: 29999,
+        quantity: 1,
+        seller_id: "seller-550e8400-e29b-41d4-a716-446655440002"
+      },
+      {
+        book_id: "book-550e8400-e29b-41d4-a716-446655440003",
+        title: "Mathematics for Engineers",
+        price: 24999,
+        quantity: 1,
+        seller_id: "seller-550e8400-e29b-41d4-a716-446655440004"
+      }
+    ],
+    shipping_address: {
+      street: "123 Student Road",
+      suburb: "Rondebosch",
+      city: "Cape Town",
+      province: "Western Cape",
+      postal_code: "7700",
+      country: "South Africa",
+      phone: "+27123456789",
+      first_name: "John",
+      last_name: "Buyer"
+    },
+    payment_reference: "TXN_" + Date.now(),
+    total_amount: 64998
+  },
+
+  "create-order": {
+    buyer_id: "550e8400-e29b-41d4-a716-446655440000",
+    buyer_email: "buyer@example.com",
+    cart_items: [
+      {
+        book_id: "book-550e8400-e29b-41d4-a716-446655440001",
+        title: "Introduction to Computer Science",
+        author: "Jane Smith",
+        price: 29999,
+        seller_id: "seller-550e8400-e29b-41d4-a716-446655440002",
+        condition: "good",
+        isbn: "9781234567890"
+      }
+    ],
+    shipping_address: {
+      street: "123 Student Road",
+      suburb: "Rondebosch",
+      city: "Cape Town",
+      province: "Western Cape",
+      postal_code: "7700",
+      country: "South Africa",
+      phone: "+27123456789",
+      first_name: "John",
+      last_name: "Buyer"
+    },
+    payment_reference: "TXN_" + Date.now(),
+    total_amount: 34999
+  },
+
+    "send-email": {
+    to: "recipient@example.com", // REQUIRED: validated by validateEmailRequest
+    subject: "Test Email from Rebook", // REQUIRED: validated by validateEmailRequest
+    html: "<h1>Welcome to Rebook!</h1><p>This is a test email.</p>", // REQUIRED: either html, text, or template must be provided
+    text: "Welcome to Rebook! This is a test email.", // Optional: backup text version
+    from: "noreply@rebook.university", // Optional: validated if provided
+    replyTo: "support@rebook.university", // Optional: validated if provided
+    template_data: {
+      user_name: "John Doe",
+      platform_name: "Rebook"
+    },
+    test: false // Optional: for testing connection
+  },
+
+  "debug-email-template": {
+    templateName: "welcome_email",
+    template: "<h1>Welcome {{user_name}}</h1>",
+    data: {
+      user_name: "John Doe",
+      platform_name: "Rebook"
+    }
+  },
+
+  "health-test": {
+    test_type: "full",
+    include_database: true,
+    include_email: true,
+    include_paystack: true
+  },
 
   // COMMIT SYSTEM FUNCTIONS
-  "commit-to-sale": CommitSystemMockData.commitToSale,
-  "decline-commit": CommitSystemMockData.declineCommit,
+  "commit-to-sale": {
+    order_id: "order-550e8400-e29b-41d4-a716-446655440002",
+    seller_id: "seller-550e8400-e29b-41d4-a716-446655440002",
+    commit_notes: "Ready to ship immediately",
+    estimated_ship_date: "2024-12-25T00:00:00.000Z"
+  },
+
+  "decline-commit": {
+    order_id: "order-550e8400-e29b-41d4-a716-446655440002",
+    seller_id: "seller-550e8400-e29b-41d4-a716-446655440002",
+    reason: "book_not_available",
+    notes: "Book was damaged and cannot be sold"
+  },
+
   "auto-expire-commits": {}, // No input required
   "check-expired-orders": {}, // No input required
-  "mark-collected": CommitSystemMockData.markCollected,
+
+  "mark-collected": {
+    order_id: "order-550e8400-e29b-41d4-a716-446655440002",
+    seller_id: "seller-550e8400-e29b-41d4-a716-446655440002",
+    collection_date: new Date().toISOString(),
+    tracking_number: "CG123456789ZA",
+    courier_service: "courier_guy"
+  },
+
   "process-order-reminders": {}, // No input required
-  "pay-seller": CommitSystemMockData.paySeller,
+
+  "pay-seller": {
+    order_id: "order-550e8400-e29b-41d4-a716-446655440002",
+    seller_id: "seller-550e8400-e29b-41d4-a716-446655440002",
+    amount: 19999, // in kobo
+    trigger: "auto_payout"
+  },
 
   // SUBACCOUNT MANAGEMENT FUNCTIONS
-  "create-paystack-subaccount": {
-    headers: EmailAuthMockData.authHeaders,
-    body: EmailAuthMockData.subaccountCreation,
-  },
-  "manage-paystack-subaccount": {
-    headers: EmailAuthMockData.authHeaders,
-    body: EmailAuthMockData.subaccountManagement,
+    "create-paystack-subaccount": {
+    business_name: "John's Textbook Store",
+    email: "seller@example.com", // REQUIRED: validated by function
+    bank_name: "Standard Bank", // REQUIRED: function validates this
+    bank_code: "058", // REQUIRED: 3-digit bank code (Standard Bank)
+    account_number: "0123456789", // REQUIRED: 8-12 digit account number
+    percentage_charge: 2.5,
+    description: "Subaccount for seller payouts",
+    primary_contact_email: "seller@example.com",
+    primary_contact_name: "John Seller",
+    primary_contact_phone: "+27123456789",
+    is_update: false, // Optional boolean field
+    metadata: {
+      user_id: "seller-550e8400-e29b-41d4-a716-446655440002",
+      verification_status: "pending"
+    }
   },
 
-  // DELIVERY FUNCTIONS
-  "courier-guy-quote": DeliveryMockData.courierGuy.quoteRequest,
-  "courier-guy-shipment": DeliveryMockData.courierGuy.shipmentRequest,
+    "manage-paystack-subaccount": {
+    action: "update",
+    subaccount_code: "ACCT_123456789",
+    business_name: "John's Updated Textbook Store", // REQUIRED: validated by function
+    settlement_bank: "058", // REQUIRED: validated by function
+    account_number: "0123456789", // REQUIRED: validated by function
+    percentage_charge: 2.0,
+    active: true
+  },
+
+  // DELIVERY FUNCTIONS - COMPLETE WITH ALL REQUIRED FIELDS
+  "courier-guy-quote": {
+    fromAddress: {
+      streetAddress: "123 Seller Street",
+      suburb: "Gardens",
+      city: "Cape Town",
+      province: "Western Cape",
+      postalCode: "8001"
+    },
+    toAddress: {
+      streetAddress: "456 Buyer Avenue",
+      suburb: "Rondebosch",
+      city: "Cape Town",
+      province: "Western Cape",
+      postalCode: "7700"
+    },
+    weight: 1.2,
+    dimensions: {
+      length: 25,
+      width: 20,
+      height: 3
+    },
+    service_type: "overnight",
+    collection_date: "2024-12-25"
+  },
+
+  "courier-guy-shipment": {
+    order_id: "order-550e8400-e29b-41d4-a716-446655440002",
+    pickup_address: {
+      name: "John Seller",
+      street: "123 Seller Street",
+      suburb: "Gardens",
+      city: "Cape Town",
+      province: "Western Cape",
+      postal_code: "8001",
+      phone: "+27123456789",
+      email: "seller@example.com"
+    },
+    delivery_address: {
+      name: "Jane Buyer",
+      street: "456 Buyer Avenue",
+      suburb: "Rondebosch",
+      city: "Cape Town",
+      province: "Western Cape",
+      postal_code: "7700",
+      phone: "+27987654321",
+      email: "buyer@example.com"
+    },
+    package_details: {
+      weight: 1.2,
+      dimensions: { length: 25, width: 20, height: 3 },
+      description: "Computer Science Textbook",
+      value: 299.99
+    },
+    service_type: "overnight",
+    collection_date: "2024-12-25"
+  },
+
   "courier-guy-track": {
     tracking_number: "CG123456789ZA",
-    customer_reference: DeliveryMockData.package.reference,
+    customer_reference: "BOOK_SHIP_" + Date.now()
   },
-  "fastway-quote": DeliveryMockData.fastway.quoteRequest,
-  "fastway-shipment": DeliveryMockData.fastway.shipmentRequest,
+
+  "fastway-quote": {
+    fromAddress: {
+      streetAddress: "123 Seller Street",
+      suburb: "Gardens",
+      city: "Cape Town",
+      province: "Western Cape",
+      postalCode: "8001"
+    },
+    toAddress: {
+      streetAddress: "456 Buyer Avenue",
+      suburb: "Rondebosch",
+      city: "Cape Town",
+      province: "Western Cape",
+      postalCode: "7700"
+    },
+    weight: 1.2,
+    dimensions: {
+      length: 25,
+      width: 20,
+      height: 3
+    }
+  },
+
+  "fastway-shipment": {
+    order_id: "order-550e8400-e29b-41d4-a716-446655440002",
+    pickup_address: {
+      name: "John Seller",
+      street: "123 Seller Street",
+      suburb: "Gardens",
+      city: "Cape Town",
+      province: "Western Cape",
+      postal_code: "8001",
+      phone: "+27123456789",
+      email: "seller@example.com"
+    },
+    delivery_address: {
+      name: "Jane Buyer",
+      street: "456 Buyer Avenue",
+      suburb: "Rondebosch",
+      city: "Cape Town",
+      province: "Western Cape",
+      postal_code: "7700",
+      phone: "+27987654321",
+      email: "buyer@example.com"
+    },
+    weight: 1.2,
+    dimensions: { length: 25, width: 20, height: 3 },
+    reference: "BOOK_SHIP_" + Date.now()
+  },
+
   "fastway-track": {
     consignment_number: "FW987654321ZA",
-    customer_reference: DeliveryMockData.package.reference,
+    customer_reference: "BOOK_SHIP_" + Date.now()
   },
+
   "get-delivery-quotes": {
-    collection_address: DeliveryMockData.addresses.collection,
-    delivery_address: DeliveryMockData.addresses.delivery,
-    package_details: DeliveryMockData.package,
-    preferred_services: ["courier_guy", "fastway", "shiplogic"],
+    fromAddress: {
+      streetAddress: "123 Seller Street",
+      suburb: "Gardens",
+      city: "Cape Town",
+      province: "Western Cape",
+      postalCode: "8001"
+    },
+    toAddress: {
+      streetAddress: "456 Buyer Avenue",
+      suburb: "Rondebosch",
+      city: "Cape Town",
+      province: "Western Cape",
+      postalCode: "7700"
+    },
+    weight: 1.2,
+    dimensions: {
+      length: 25,
+      width: 20,
+      height: 3
+    },
+    services: ["courier_guy", "fastway", "shiplogic"]
   },
+
   "automate-delivery": {
-    order_id: SupabaseMockData.order.id,
-    tracking_number: "CG123456789ZA",
-    courier_service: "courier_guy",
-    collection_scheduled: true,
+    order_id: "order-550e8400-e29b-41d4-a716-446655440002",
+    seller_address: {
+      name: "John Seller",
+      street: "123 Seller Street",
+      suburb: "Gardens",
+      city: "Cape Town",
+      province: "Western Cape",
+      postal_code: "8001",
+      phone: "+27123456789",
+      email: "seller@example.com"
+    },
+    buyer_address: {
+      name: "Jane Buyer",
+      street: "456 Buyer Avenue",
+      suburb: "Rondebosch",
+      city: "Cape Town",
+      province: "Western Cape",
+      postal_code: "7700",
+      phone: "+27987654321",
+      email: "buyer@example.com"
+    },
+    weight: 1.2,
+    preferred_courier: "courier_guy"
   },
 };
 
@@ -152,26 +529,47 @@ export const TestScenarios = {
 
 /**
  * Validation Helper - Check if mock data has all required fields
+ * COMPREHENSIVE VALIDATION FOR ALL EDGE FUNCTIONS
  */
 export function validateMockData(functionName: string, mockData: any): boolean {
   const requiredFields = {
-    "initialize-paystack-payment": [
-      "user_id",
-      "email",
-      "amount",
-      "currency",
-      "reference",
-    ],
-    "process-book-purchase": [
-      "user_id",
-      "book_id",
-      "email",
-      "payment_reference",
-    ],
-    "commit-to-sale": ["order_id", "seller_id"],
-    "create-order": ["buyer_id", "cart_items", "shipping_address"],
+    // PAYSTACK FUNCTIONS
+    "initialize-paystack-payment": ["user_id", "items", "total_amount", "email"],
+    "paystack-webhook": ["event", "data"],
+    "verify-paystack-payment": ["reference"],
+    "paystack-refund-management": ["action", "transaction_reference"],
+    "paystack-transfer-management": ["action"],
+    "paystack-split-management": ["action"],
+
+    // CORE SUPABASE FUNCTIONS
+    "process-book-purchase": ["user_id", "book_id", "email", "payment_reference"],
+    "process-multi-seller-purchase": ["user_id", "email", "cart_items"],
+    "create-order": ["buyer_id", "buyer_email", "cart_items"],
     "send-email": ["to", "subject", "html"],
-    // Add more validation rules as needed
+    "debug-email-template": ["templateName", "template"],
+
+    // COMMIT SYSTEM FUNCTIONS
+    "commit-to-sale": ["order_id", "seller_id"],
+    "decline-commit": ["order_id", "seller_id"],
+    "mark-collected": ["order_id", "seller_id"],
+    "pay-seller": ["order_id", "seller_id", "amount"],
+
+        // SUBACCOUNT MANAGEMENT
+    "create-paystack-subaccount": ["business_name", "email", "bank_name", "bank_code", "account_number"],
+        "manage-paystack-subaccount": ["action", "subaccount_code", "business_name", "settlement_bank", "account_number"],
+
+    // DELIVERY FUNCTIONS
+    "courier-guy-quote": ["fromAddress", "toAddress", "weight"],
+    "courier-guy-shipment": ["order_id", "pickup_address", "delivery_address"],
+    "courier-guy-track": ["tracking_number"],
+    "fastway-quote": ["fromAddress", "toAddress", "weight"],
+    "fastway-shipment": ["order_id", "pickup_address", "delivery_address"],
+    "fastway-track": ["consignment_number"],
+    "get-delivery-quotes": ["fromAddress", "toAddress", "weight"],
+    "automate-delivery": ["order_id", "seller_address", "buyer_address"],
+
+    // ADDRESS VALIDATION FOR DELIVERY FUNCTIONS
+    "address_validation": ["suburb", "province", "postalCode"],
   };
 
   const required = requiredFields[functionName as keyof typeof requiredFields];

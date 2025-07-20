@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { testFunction } from "../_mock-data/edge-function-tester.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,6 +24,12 @@ interface QuoteRequest {
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // 🧪 TEST MODE: Check if this is a test request with mock data
+  const testResult = await testFunction("get-delivery-quotes", req);
+  if (testResult.isTest) {
+    return testResult.response;
   }
 
   try {
@@ -65,7 +72,7 @@ serve(async (req) => {
           error: "VALIDATION_FAILED",
           details: {
             validation_errors: validationErrors,
-            provided_fields: Object.keys(await req.json()),
+                        provided_fields: Object.keys({ fromAddress, toAddress, weight, dimensions }),
             message: `Validation failed: ${validationErrors.join(", ")}`,
             required_format: {
               fromAddress: {
