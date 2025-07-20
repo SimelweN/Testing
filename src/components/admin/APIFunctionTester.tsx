@@ -605,7 +605,7 @@ export default function APIFunctionTester() {
     try {
       const body = payload || endpoint.samplePayload;
 
-      const fetchResponse = await fetch(endpoint.path, {
+            const result = await safeFetch(endpoint.path, {
         method: endpoint.method,
         headers: {
           'Content-Type': 'application/json',
@@ -615,39 +615,12 @@ export default function APIFunctionTester() {
         body: JSON.stringify(body),
       });
 
-            // Capture response properties before reading the body
-      const status = fetchResponse.status;
-      const statusText = fetchResponse.statusText;
-      const isOk = fetchResponse.ok;
-
-      // Handle different response types
-      let result;
-      try {
-        // Clone the response to avoid "body stream already read" error
-        const responseClone = fetchResponse.clone();
-
-        // First, try to read as JSON
-        try {
-          result = await fetchResponse.json();
-        } catch {
-          // If JSON parsing fails, try reading as text from the clone
-          try {
-            const responseText = await responseClone.text();
-            result = responseText ? { message: responseText } : { message: "Empty response" };
-          } catch {
-            result = { message: "Failed to read response" };
-          }
-        }
-      } catch (error) {
-        result = { message: "Failed to read response", error: error.message };
-      }
-
       return {
         endpoint: endpoint.name,
-        status,
-        statusText,
-        data: result,
-        success: isOk
+        status: result.status,
+        statusText: result.statusText,
+        data: result.data,
+        success: result.ok
       };
     } catch (err: any) {
       return {
