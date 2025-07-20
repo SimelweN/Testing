@@ -225,19 +225,11 @@ function App() {
                           </AdminProtectedRoute>
                         }
                       />
-                      <Route
+                                            <Route
                         path="/admin/reports"
                         element={
                           <AdminProtectedRoute>
                             <AdminReports />
-                          </AdminProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/admin/api-testing"
-                        element={
-                          <AdminProtectedRoute>
-                            <APITesting />
                           </AdminProtectedRoute>
                         }
                       />
