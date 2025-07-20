@@ -31,23 +31,17 @@ serve(async (req) => {
       url.pathname.endsWith("/health") ||
       url.searchParams.get("health") === "true";
 
-    if (isHealthCheck) {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          service: "initialize-paystack-payment",
-          status: "healthy",
-          timestamp: new Date().toISOString(),
-          environment: {
-            paystack_configured: !!PAYSTACK_SECRET_KEY,
-            supabase_configured: !!(SUPABASE_URL && SUPABASE_SERVICE_KEY),
-          },
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+        if (isHealthCheck) {
+      return jsonResponse({
+        success: true,
+        service: "initialize-paystack-payment",
+        status: "healthy",
+        timestamp: new Date().toISOString(),
+        environment: {
+          paystack_configured: !!PAYSTACK_SECRET_KEY,
+          supabase_configured: !!(SUPABASE_URL && SUPABASE_SERVICE_KEY),
+        },
+      });
     }
 
     // Read request body ONCE (ChatGPT's advice)
