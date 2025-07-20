@@ -76,8 +76,14 @@ const originalFetch = window.fetch;
 window.fetch = async function (...args) {
   const url = args[0]?.toString() || "";
 
-  // Never intercept Supabase URLs
+  // Never intercept Supabase URLs - let them fail naturally for debugging
   if (isSupabaseUrl(url)) {
+    return originalFetch.apply(this, args);
+  }
+
+  // Never intercept if it's a debugging request (has __original__ in the stack)
+  const stack = new Error().stack || "";
+  if (stack.includes("edgeFunctionDebugger") || stack.includes("EdgeFunctionDebugger")) {
     return originalFetch.apply(this, args);
   }
 
