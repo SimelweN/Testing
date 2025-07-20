@@ -30,9 +30,29 @@ const ShareProfileDialog = ({
 }: ShareProfileDialogProps) => {
   const profileUrl = `${window.location.origin}/user/${userId}`;
 
-    const copyProfileLink = () => {
-    navigator.clipboard.writeText(profileUrl);
-    toast.success("Profile link copied! 📋 Share it everywhere to sell faster!");
+      const copyProfileLink = () => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(profileUrl);
+        toast.success("Profile link copied! 📋 Share it everywhere to sell faster!");
+      } else {
+        // Fallback for environments where clipboard API is restricted
+        const textArea = document.createElement('textarea');
+        textArea.value = profileUrl;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        textArea.remove();
+        toast.success("Profile link copied! 📋 Share it everywhere to sell faster!");
+      }
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+      toast.error("Couldn't copy link automatically. Please copy it manually from the input field.");
+    }
   };
 
   const shareToSocial = (platform: string) => {
