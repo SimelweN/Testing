@@ -93,8 +93,8 @@ export class OrderCancellationService {
         success: false,
         message: "Failed to cancel order",
         error: error.message,
-      };
-        }
+            };
+    }
   }
 
   /**
