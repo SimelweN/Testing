@@ -196,7 +196,7 @@ const PaystackDemo = () => {
     }
   };
 
-  // Direct HTTP test (bypass Supabase client)
+    // Direct HTTP test (bypass Supabase client)
   const testDirectHTTP = async () => {
     setTestLoading("direct-http", true);
     try {
@@ -205,20 +205,23 @@ const PaystackDemo = () => {
 
       console.log(`🔗 Testing direct HTTP call to: ${functionUrl}`);
 
-      const response = await fetch(functionUrl, {
-        method: 'POST',
+      // Try health check with proper health parameter
+      const healthResponse = await fetch(`${functionUrl}?health=true`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${supabase.supabaseKey}`
-        },
-        body: JSON.stringify({ health: true })
+        }
       });
 
-      const responseText = await response.text();
-      console.log(`📡 Direct HTTP response:`, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
+      // Clone the response to read it multiple times if needed
+      const responseClone = healthResponse.clone();
+      const responseText = await responseClone.text();
+
+      console.log(`📡 Direct HTTP health response:`, {
+        status: healthResponse.status,
+        statusText: healthResponse.statusText,
+        headers: Object.fromEntries(healthResponse.headers.entries()),
         body: responseText
       });
 
@@ -230,17 +233,18 @@ const PaystackDemo = () => {
       }
 
       setTestResult("direct-http", {
-        success: response.ok,
-        status: response.status,
-        statusText: response.statusText,
+        success: healthResponse.ok,
+        status: healthResponse.status,
+        statusText: healthResponse.statusText,
         data: responseData,
-        url: functionUrl
+        url: functionUrl,
+        method: 'GET with health=true'
       });
 
-      if (response.ok) {
-        toast.success("✅ Direct HTTP call successful!");
+      if (healthResponse.ok) {
+        toast.success("✅ Direct HTTP health check successful!");
       } else {
-        toast.error(`❌ Direct HTTP call failed: ${response.status} ${response.statusText}`);
+        toast.error(`❌ Direct HTTP failed: ${healthResponse.status} ${healthResponse.statusText}`);
       }
     } catch (error) {
       console.error("Direct HTTP test failed:", error);
