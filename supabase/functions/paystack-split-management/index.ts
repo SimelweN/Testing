@@ -91,6 +91,29 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
+        }
+
+    // Read request body ONCE for POST/PUT methods (ChatGPT's advice)
+    let requestBody = null;
+    if (req.method === "POST" || req.method === "PUT") {
+      try {
+        console.log("🔍 bodyUsed before read:", req.bodyUsed);
+        requestBody = await req.json();
+        console.log("✅ Body read successfully");
+      } catch (error) {
+        console.error("❌ Body read failed:", error.message);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "BODY_READ_ERROR",
+            details: { error: error.message, bodyUsed: req.bodyUsed },
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
     }
 
     // Handle different HTTP methods
