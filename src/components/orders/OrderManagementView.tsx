@@ -80,9 +80,26 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
 
       const { data, error } = await query;
 
-                        if (error) {
+                              if (error) {
+        // Direct error logging for debugging
+        console.log("🔍 ORDER FETCH ERROR - Type:", typeof error);
+        console.log("🔍 ORDER FETCH ERROR - Constructor:", error?.constructor?.name);
+        console.log("🔍 ORDER FETCH ERROR - Raw:", error);
+        console.log("🔍 ORDER FETCH ERROR - Message:", error?.message);
+        console.log("🔍 ORDER FETCH ERROR - Details:", error?.details);
+
         logError("Error fetching orders (Supabase query)", error, { activeTab });
-        const errorMsg = getUserFriendlyErrorMessage(error, 'Failed to load orders');
+
+        // Simple error message extraction
+        let errorMsg = 'Failed to load orders';
+        if (error?.message) {
+          errorMsg = error.message;
+        } else if (error?.details) {
+          errorMsg = error.details;
+        } else if (typeof error === 'string') {
+          errorMsg = error;
+        }
+
         toast.error(errorMsg);
         return;
       }
