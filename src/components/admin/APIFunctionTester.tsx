@@ -574,6 +574,16 @@ export default function APIFunctionTester() {
         </Badge>
       </div>
 
+            {/* Deployment Warning */}
+      <Alert className="border-yellow-500 bg-yellow-50 text-yellow-800">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          <strong>Deployment Notice:</strong> The `/api` functions are designed for Vercel but this appears to be a Fly.dev deployment.
+          These endpoints will return 404 errors. <strong>Use "Mock Mode" below</strong> to test the interface with simulated responses,
+          or deploy the functions to Supabase Edge Functions for real testing.
+        </AlertDescription>
+      </Alert>
+
       {/* Real Data Controls */}
       <Card className="border-blue-200 bg-blue-50">
         <CardHeader className="pb-3">
