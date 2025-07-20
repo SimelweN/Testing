@@ -12,25 +12,52 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+      try {
+    // Handle health check first (no body consumption)
+    const url = new URL(req.url);
+    const isHealthCheck =
+      url.pathname.endsWith("/health") ||
+      url.searchParams.get("health") === "true";
+
+    if (isHealthCheck) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          service: "initialize-paystack-payment",
+          status: "healthy",
+          timestamp: new Date().toISOString(),
+          environment: {
+            paystack_configured: !!PAYSTACK_SECRET_KEY,
+            supabase_configured: !!(SUPABASE_URL && SUPABASE_SERVICE_KEY),
+          },
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Read request body ONCE (ChatGPT's advice)
+    let requestBody;
     try {
-    // Handle request body and health checks safely
-    const requestResult = await handleRequestBody(req, "initialize-paystack-payment", {
-      environment: {
-        paystack_configured: !!PAYSTACK_SECRET_KEY,
-        supabase_configured: !!(SUPABASE_URL && SUPABASE_SERVICE_KEY),
-      },
-    });
-
-    if (requestResult.isHealthCheck) {
-      return requestResult.response!;
+      console.log("🔍 bodyUsed before read:", req.bodyUsed);
+      requestBody = await req.json();
+      console.log("✅ Body read successfully");
+    } catch (error) {
+      console.error("❌ Body read failed:", error.message);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "BODY_READ_ERROR",
+          details: { error: error.message, bodyUsed: req.bodyUsed },
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
-
-    if (requestResult.response) {
-      // Error occurred during body parsing
-      return requestResult.response;
-    }
-
-    const requestBody = requestResult.body;
 
     // Validate request method for non-health endpoints
     if (req.method !== "POST") {
