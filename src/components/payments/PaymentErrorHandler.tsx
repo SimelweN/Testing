@@ -225,7 +225,13 @@ export const classifyPaymentError = (error: any): PaymentError => {
     };
   }
 
-    const errorMessage = error.message || (typeof error === 'string' ? error : 'Payment error occurred');
+      let errorMessage = error.message || (typeof error === 'string' ? error : 'Payment error occurred');
+
+  // Prevent [object Object] from being used
+  if (errorMessage === '[object Object]') {
+    errorMessage = 'Payment processing error occurred';
+  }
+
   const errorLower = errorMessage.toLowerCase();
 
   // Network errors
