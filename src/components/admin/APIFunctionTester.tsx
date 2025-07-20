@@ -581,14 +581,27 @@ export default function APIFunctionTester() {
             <div className="flex items-center gap-2">
               <Database className="h-4 w-4 text-blue-600" />
               <CardTitle className="text-base">Data Source</CardTitle>
-              <Badge variant={useRealData ? "default" : "secondary"}>
+                            <Badge variant={useRealData ? "default" : "secondary"}>
                 {useRealData ? "Real Database Data" : "Mock Test Data"}
               </Badge>
+              {useMockMode && (
+                <Badge variant="destructive" className="ml-2">
+                  Mock API Mode
+                </Badge>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <Button
+                onClick={() => setUseMockMode(!useMockMode)}
+                variant={useMockMode ? "destructive" : "outline"}
+                size="sm"
+                className="border-orange-300"
+              >
+                {useMockMode ? "Disable Mock Mode" : "Enable Mock Mode"}
+              </Button>
+              <Button
                 onClick={fetchRealData}
-                disabled={loadingRealData}
+                disabled={loadingRealData || useMockMode}
                 variant="outline"
                 size="sm"
                 className="border-blue-300"
@@ -598,7 +611,7 @@ export default function APIFunctionTester() {
               </Button>
               <Button
                 onClick={() => setUseRealData(!useRealData)}
-                disabled={realData.users.length === 0}
+                disabled={realData.users.length === 0 || useMockMode}
                 variant={useRealData ? "default" : "outline"}
                 size="sm"
               >
