@@ -235,7 +235,7 @@ const GoogleMapsAddressAutocomplete: React.FC<
           <AlertCircle className="h-4 w-4 text-red-600" />
           <AlertDescription className="text-red-800">
             <div className="flex items-center justify-between">
-              <span>{loadError}</span>
+              <span>{displayError}</span>
               <Button
                 variant="outline"
                 size="sm"
