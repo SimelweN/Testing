@@ -275,7 +275,7 @@ const PaystackDemo = () => {
 
       console.log(`🔗 Testing direct HTTP call to: ${functionUrl}`);
 
-            // Try health check with proper health parameter using POST
+                  // Try health check with proper health parameter using POST
       const healthResponse = await fetch(functionUrl, {
         method: 'POST',
         headers: {
@@ -285,9 +285,8 @@ const PaystackDemo = () => {
         body: JSON.stringify({ health: true })
       });
 
-      // Clone the response to read it multiple times if needed
-      const responseClone = healthResponse.clone();
-      const responseText = await responseClone.text();
+      // Read the response text only once
+      const responseText = await healthResponse.text();
 
       console.log(`📡 Direct HTTP health response:`, {
         status: healthResponse.status,
