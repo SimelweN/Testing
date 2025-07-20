@@ -739,16 +739,18 @@ export default function APIFunctionTester() {
             </CardContent>
           </Card>
 
-          {/* Quick Tips */}
+                    {/* Quick Tips */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Testing Tips</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-xs text-muted-foreground">
-              <p>• Replace placeholder UUIDs with actual user IDs from your database</p>
-              <p>• Ensure required environment variables are set (PAYSTACK_SECRET_KEY, etc.)</p>
-              <p>• Some functions require valid database records to work properly</p>
-              <p>• Check browser console for additional debug information</p>
+              <p>• <strong>Load Real Data</strong> first to get actual database IDs</p>
+              <p>• <strong>Use Real Data</strong> toggle for realistic test scenarios</p>
+              <p>• Functions send X-Test-Mode header to indicate admin testing</p>
+              <p>• Some functions may still fail due to missing environment variables</p>
+              <p>• Check browser console for detailed error information</p>
+              <p>• 500 errors usually indicate missing env vars or database issues</p>
             </CardContent>
           </Card>
         </div>
