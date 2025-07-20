@@ -15,7 +15,6 @@ const THIRD_PARTY_SERVICES = [
 
 const DEVELOPMENT_SERVICES = [
   "@vite/client",
-  ".fly.dev",
   "ping",
   "messageHandler",
   "waitForSuccessfulPing",
