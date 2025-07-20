@@ -17,7 +17,7 @@ serve(async (req) => {
           error: "VALIDATION_FAILED",
           details: {
             missing_fields: ["tracking_number"],
-            provided_fields: Object.keys(await req.json()),
+                        provided_fields: Object.keys({ tracking_number }),
             message: "tracking_number is required",
           },
           fix_instructions:
