@@ -366,13 +366,17 @@ export default function APIFunctionTester() {
     }
   };
 
-    const testSingleFunction = async (endpoint: APIEndpoint, payload?: any): Promise<TestResult> => {
+      const testSingleFunction = async (endpoint: APIEndpoint, payload?: any): Promise<TestResult> => {
     try {
       const body = payload || endpoint.samplePayload;
 
       const fetchResponse = await fetch(endpoint.path, {
         method: endpoint.method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Test-Mode': 'true', // Add test mode header
+          'X-Admin-Test': user?.id || 'admin-test'
+        },
         body: JSON.stringify(body),
       });
 
