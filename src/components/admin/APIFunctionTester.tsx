@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { Code, Play, AlertCircle, CheckCircle, Copy } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Code, Play, AlertCircle, CheckCircle, Copy, PlayCircle, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 interface APIEndpoint {
