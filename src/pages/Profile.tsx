@@ -311,7 +311,30 @@ const Profile = () => {
                   </div>
                 </CardContent>
               </Card>
-            </div>
+                        </div>
+
+            {/* Share Your Profile */}
+            <Card className="bg-gradient-to-r from-book-50 to-book-100 border-book-200">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-book-800">
+                      Share Your ReBooked Mini Page
+                    </h3>
+                    <p className="text-book-700 text-sm">
+                      Share your profile to help your books sell faster! Post it on social media, send to classmates, or share in study groups.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => setIsShareDialogOpen(true)}
+                    className="bg-book-600 hover:bg-book-700 text-white"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share Profile
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Recent Activity */}
             <Card>
