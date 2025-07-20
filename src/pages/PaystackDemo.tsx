@@ -267,70 +267,93 @@ const PaystackDemo = () => {
   };
 
     // Direct HTTP test (bypass Supabase client)
-  const testDirectHTTP = async () => {
+    const testDirectHTTP = async () => {
     setTestLoading("direct-http", true);
+
     try {
       const supabaseUrl = supabase.supabaseUrl;
+      const authKey = supabase.supabaseKey;
       const functionUrl = `${supabaseUrl}/functions/v1/initialize-paystack-payment`;
 
       console.log(`🔗 Testing direct HTTP call to: ${functionUrl}`);
+      console.log(`🔑 Auth key available: ${!!authKey}`);
 
-                        // Try health check with proper health parameter using POST
-      const healthResponse = await fetch(functionUrl, {
+      if (!authKey) {
+        throw new Error("Supabase auth key not available");
+      }
+
+      // Create a completely new fetch request
+      const fetchResponse = await fetch(functionUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.supabaseKey}`
+          'Authorization': `Bearer ${authKey}`
         },
         body: JSON.stringify({ health: true })
       });
 
-      // Collect response metadata BEFORE reading the body
-      const responseMetadata = {
-        status: healthResponse.status,
-        statusText: healthResponse.statusText,
-        headers: Object.fromEntries(healthResponse.headers.entries()),
-        ok: healthResponse.ok
-      };
+      // Extract all data safely
+      const status = fetchResponse.status;
+      const statusText = fetchResponse.statusText;
+      const ok = fetchResponse.ok;
 
-      // Now read the response text
-      const responseText = await healthResponse.text();
-
-      console.log(`📡 Direct HTTP health response:`, {
-        ...responseMetadata,
-        body: responseText
-      });
-
-      let responseData;
+      // Extract headers safely
+      let responseHeaders = {};
       try {
-        responseData = JSON.parse(responseText);
-      } catch {
-        responseData = responseText;
+        responseHeaders = Object.fromEntries(fetchResponse.headers.entries());
+      } catch (e) {
+        responseHeaders = { error: "Could not read headers" };
       }
 
-            setTestResult("direct-http", {
-        success: responseMetadata.ok,
-        status: responseMetadata.status,
-        statusText: responseMetadata.statusText,
-        data: responseData,
+      // Read the body once and only once
+      let bodyText = "";
+      try {
+        bodyText = await fetchResponse.text();
+      } catch (e) {
+        bodyText = `Error reading body: ${e.message}`;
+      }
+
+      // Parse the response
+      let parsedData = null;
+      try {
+        parsedData = JSON.parse(bodyText);
+      } catch (e) {
+        parsedData = { raw: bodyText, parseError: e.message };
+      }
+
+      console.log(`📡 Direct HTTP response:`, {
+        status,
+        statusText,
+        ok,
+        headers: responseHeaders,
+        bodyPreview: bodyText.substring(0, 200)
+      });
+
+      setTestResult("direct-http", {
+        success: ok,
+        status,
+        statusText,
+        data: parsedData,
         url: functionUrl,
         method: 'POST with health=true',
-        headers: responseMetadata.headers
+        headers: responseHeaders
       });
 
-      if (responseMetadata.ok) {
-        toast.success("✅ Direct HTTP health check successful!");
+      if (ok) {
+        toast.success("✅ Direct HTTP call successful!");
       } else {
-        toast.error(`❌ Direct HTTP failed: ${responseMetadata.status} ${responseMetadata.statusText}`);
+        toast.error(`❌ Direct HTTP failed: ${status} ${statusText}`);
       }
+
     } catch (error) {
       console.error("Direct HTTP test failed:", error);
       setTestResult("direct-http", {
         success: false,
-        error: error.message,
-        errorType: error.constructor.name
+        error: String(error?.message || error),
+        errorType: error?.constructor?.name || "Unknown",
+        stack: error?.stack
       });
-      toast.error("Direct HTTP test failed: " + error.message);
+      toast.error("Direct HTTP test failed: " + String(error?.message || error));
     } finally {
       setTestLoading("direct-http", false);
     }
