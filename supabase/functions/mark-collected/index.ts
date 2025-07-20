@@ -10,14 +10,40 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  try {
+    try {
+    // Safety check for body consumption
+    console.log("Body used before consumption:", req.bodyUsed);
+
+    let requestData;
+    try {
+      requestData = await req.json();
+    } catch (bodyError) {
+      console.error("Body consumption error:", bodyError.message);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "BODY_CONSUMPTION_ERROR",
+          details: {
+            error_message: bodyError.message,
+            body_used: req.bodyUsed,
+            timestamp: new Date().toISOString()
+          },
+          fix_instructions: "Request body may have been consumed already. Check for duplicate body reads."
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
     const {
       order_id,
       collected_by = "courier",
       collection_notes = "",
       tracking_reference = "",
       collected_at = new Date().toISOString(),
-    } = await req.json();
+    } = requestData;
 
     // Enhanced validation with specific error messages
     if (!order_id) {
