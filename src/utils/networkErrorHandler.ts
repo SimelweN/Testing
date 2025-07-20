@@ -25,6 +25,9 @@ const GOOGLE_MAPS_RETRY_PATTERNS = [
   "failed to load google maps script",
   "google maps script, retrying",
   "retrying in",
+  "failed to load google maps script, retrying in",
+  "google maps script error",
+  "maps api error",
 ];
 
 // Check if an error is from a third-party service
