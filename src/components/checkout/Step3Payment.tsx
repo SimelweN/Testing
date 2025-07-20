@@ -100,7 +100,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       console.log("📦 Raw Edge Function Response:", { data, error });
 
-            if (error) {
+                  if (error) {
         console.error("❌ Edge Function Error Details:", {
           error,
           errorMessage: error.message,
@@ -109,6 +109,102 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           errorHint: error.hint,
           fullError: JSON.stringify(error, null, 2)
         });
+
+        // Fallback: Create order directly in database when Edge Function fails
+        console.log("🔄 Attempting fallback order creation...");
+
+        try {
+          const fallbackOrderData = {
+            buyer_email: userData.user.email,
+            seller_id: orderSummary.book.seller_id,
+            amount: Math.round(orderSummary.total_price * 100), // Convert to kobo
+            paystack_ref: paystackResponse.reference,
+            status: "pending",
+            items: [
+              {
+                type: "book",
+                book_id: orderSummary.book.id,
+                book_title: orderSummary.book.title,
+                price: Math.round(orderSummary.book_price * 100),
+                condition: orderSummary.book.condition,
+                seller_id: orderSummary.book.seller_id,
+                quantity: 1,
+              },
+            ],
+            shipping_address: orderSummary.buyer_address,
+            delivery_data: {
+              method: orderSummary.delivery.service_name,
+              courier: orderSummary.delivery.courier,
+              price: orderSummary.delivery_price,
+              estimated_days: orderSummary.delivery.estimated_days,
+            },
+            metadata: {
+              buyer_id: userId,
+              fallback_creation: true,
+              edge_function_error: error.message,
+              platform_fee: Math.round(orderSummary.book_price * 0.1 * 100),
+              seller_amount: Math.round(orderSummary.book_price * 0.9 * 100),
+            },
+          };
+
+          const { data: fallbackOrder, error: fallbackError } = await supabase
+            .from("orders")
+            .insert(fallbackOrderData)
+            .select()
+            .single();
+
+          if (fallbackError) {
+            throw new Error(`Fallback order creation failed: ${fallbackError.message}`);
+          }
+
+          console.log("✅ Fallback order created successfully:", fallbackOrder);
+
+          // Mark book as sold
+          await supabase
+            .from("books")
+            .update({
+              sold: true,
+              sold_at: new Date().toISOString(),
+              availability: "sold",
+            })
+            .eq("id", orderSummary.book.id);
+
+          // Use fallback order data for success handler
+          const fallbackData = {
+            order_id: fallbackOrder.id,
+            success: true,
+            details: {
+              order: fallbackOrder,
+              fallback_used: true,
+            },
+          };
+
+          console.log("✅ Using fallback order data:", fallbackData);
+
+          // Continue with success flow using fallback data
+          onPaymentSuccess({
+            order_id: fallbackOrder.id,
+            payment_reference: paystackResponse.reference,
+            book_id: orderSummary.book.id,
+            seller_id: orderSummary.book.seller_id,
+            buyer_id: userId,
+            book_title: orderSummary.book.title,
+            book_price: orderSummary.book_price,
+            delivery_method: orderSummary.delivery.service_name,
+            delivery_price: orderSummary.delivery_price,
+            total_paid: orderSummary.total_price,
+            created_at: fallbackOrder.created_at,
+            status: "completed",
+          });
+
+          toast.success("Payment completed successfully! (Fallback mode)");
+          return; // Exit early on fallback success
+
+        } catch (fallbackError) {
+          console.error("❌ Fallback order creation also failed:", fallbackError);
+          // Fall through to original error throwing
+        }
+
         throw new Error(error.message || "Failed to process purchase");
       }
 
