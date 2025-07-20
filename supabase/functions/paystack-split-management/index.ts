@@ -269,7 +269,7 @@ async function handleUpdateSplit(req: Request): Promise<Response> {
       );
     }
 
-    const updateData = await req.json();
+        const updateData = req; // This is actually the parsed body now
 
     const response = await fetch(`https://api.paystack.co/split/${splitCode}`, {
       method: "PUT",
