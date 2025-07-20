@@ -49,55 +49,44 @@ export class OrderCancellationService {
   /**
    * Buyer cancels delivery before courier pickup
    */
-  static async cancelDeliveryByBuyer(
+    static async cancelDeliveryByBuyer(
     orderId: string,
     reason?: string,
   ): Promise<CancellationResult> {
     try {
       console.log(`🔁 Processing buyer cancellation for order ${orderId}`);
 
-      // Get order details with all related data
-      const { data: order, error: fetchError } = await supabase
-        .from("orders")
-        .select(
-          `
-          *,
-          buyer:profiles!buyer_id(id, name, email),
-          seller:profiles!seller_id(id, name, email),
-          book:books(title, isbn)
-        `,
-        )
-        .eq("id", orderId)
-        .single();
-
-      if (fetchError || !order) {
-        throw new Error("Order not found");
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
       }
 
-      // Check if cancellation is allowed
-      const canCancel = await this.canBuyerCancelDelivery(order);
-      if (!canCancel.allowed) {
+      // Use the new edge function for comprehensive cancellation handling
+      const { data, error } = await supabase.functions.invoke('cancel-order', {
+        body: {
+          order_id: orderId,
+          buyer_id: user.id,
+          cancellation_reason: reason,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data.success) {
         return {
           success: false,
-          message: canCancel.reason || "Cancellation not allowed at this time",
+          message: data.error || "Cancellation failed",
         };
       }
 
-      // Cancel courier booking if exists
-      if (order.courier_booking_id) {
-        await this.cancelCourierBooking(
-          order.courier_service,
-          order.courier_booking_id,
-        );
-      }
-
-      // Process refund
-      const refundResult = await this.processRefund(
-        order.id,
-        order.total_amount,
-      );
-      if (!refundResult.success) {
-        throw new Error(`Refund failed: ${refundResult.error}`);
+      return {
+        success: true,
+        message: data.message || "Order cancelled successfully",
+        refund_amount: data.refund_amount,
+      };
       }
 
       // Update order status
