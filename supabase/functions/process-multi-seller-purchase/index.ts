@@ -11,34 +11,15 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-    try {
-    // Safety check for body consumption
-    console.log("Body used before consumption:", req.bodyUsed);
+      try {
+    // Use safe body parser to prevent stream errors
+    const bodyResult = await parseRequestBody(req, corsHeaders);
 
-    let requestData;
-    try {
-      requestData = await req.json();
-    } catch (bodyError) {
-      console.error("Body consumption error:", bodyError.message);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "BODY_CONSUMPTION_ERROR",
-          details: {
-            error_message: bodyError.message,
-            body_used: req.bodyUsed,
-            timestamp: new Date().toISOString()
-          },
-          fix_instructions: "Request body may have been consumed already. Check for duplicate body reads."
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+    if (!bodyResult.success) {
+      return bodyResult.errorResponse!;
     }
 
-    const { user_id, cart_items, shipping_address, email } = requestData;
+    const { user_id, cart_items, shipping_address, email } = bodyResult.data;
 
     // Enhanced validation with specific error messages
     const validationErrors = [];
