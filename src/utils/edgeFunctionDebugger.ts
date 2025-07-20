@@ -84,7 +84,9 @@ export class EdgeFunctionDebugger {
     const url = `${this.supabaseUrl}/functions/v1/${functionName}`;
 
     try {
-      const response = await fetch(url, {
+      // Use native fetch to bypass our error handler completely
+      const nativeFetch = window.fetch.__original__ || window.fetch;
+      const response = await nativeFetch(url, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${this.supabaseAnonKey}`,
