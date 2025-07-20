@@ -30,18 +30,15 @@ serve(async (req) => {
       });
     }
 
-        // Validate parameter types
+            // Validate parameter types
     if (typeof order_id !== 'string' || typeof seller_id !== 'string') {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "order_id and seller_id must be valid strings",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return json({
+        success: false,
+        error: "order_id and seller_id must be valid strings",
+      }, {
+        status: 400,
+        headers: corsHeaders,
+      });
     }
 
     // UUID format validation (allow test IDs for testing)
