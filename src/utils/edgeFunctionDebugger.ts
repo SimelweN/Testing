@@ -77,30 +77,40 @@ export class EdgeFunctionDebugger {
     }
   }
 
-    private async testWithDirectFetch(
+      private async testWithDirectFetch(
     functionName: string,
     startTime: number,
   ): Promise<EdgeFunctionDiagnostic> {
     const url = `${this.supabaseUrl}/functions/v1/${functionName}`;
 
     try {
-      // Use native fetch to bypass our error handler completely
-      const nativeFetch = window.fetch.__original__ || window.fetch;
+      // Create a completely clean fetch to avoid any interceptors
+      const originalFetch = globalThis.fetch;
 
       // Add timeout to prevent hanging
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
 
-      const response = await nativeFetch(url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${this.supabaseAnonKey}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ health: true, debug: true }),
-        signal: controller.signal,
-      });
+      const response = await Promise.race([
+        originalFetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${this.supabaseAnonKey}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            // Add CORS headers to help with cross-origin requests
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Authorization, Content-Type",
+          },
+          body: JSON.stringify({ health: true, debug: true }),
+          signal: controller.signal,
+          // Add no-cors mode as fallback
+          mode: "cors",
+        }),
+        new Promise<Response>((_, reject) =>
+          setTimeout(() => reject(new Error("Request timeout")), 8000)
+        )
+      ]);
 
       clearTimeout(timeoutId);
 
@@ -114,7 +124,8 @@ export class EdgeFunctionDebugger {
       try {
         const responseText = await response.text();
         responseData = responseText ? JSON.parse(responseText) : null;
-      } catch {
+      } catch (parseError) {
+        // If JSON parsing fails, just return the text
         responseData = await response.text();
       }
 
