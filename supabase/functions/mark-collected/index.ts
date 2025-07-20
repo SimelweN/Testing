@@ -27,7 +27,13 @@ serve(async (req) => {
           error: "VALIDATION_FAILED",
           details: {
             missing_fields: ["order_id"],
-            provided_fields: Object.keys(await req.json()),
+                        provided_fields: Object.keys({
+              order_id,
+              collected_by,
+              collection_notes,
+              tracking_reference,
+              collected_at,
+            }),
             message: "order_id is required",
           },
           fix_instructions:
