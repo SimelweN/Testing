@@ -94,11 +94,7 @@ export class OrderCancellationService {
         message: "Failed to cancel order",
         error: error.message,
       };
-    }
-  }
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
+        }
   }
 
   /**
