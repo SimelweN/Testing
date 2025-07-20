@@ -158,6 +158,17 @@ window.fetch = async function (...args) {
   }
 };
 
+// Global error handler for script loading errors (including Google Maps)
+window.addEventListener("error", (event) => {
+  const message = event.message || event.error?.message || "";
+
+  // Suppress Google Maps script loading errors
+  if (isGoogleMapsRetryError(message) || message.toLowerCase().includes("google maps")) {
+    event.preventDefault();
+    return false;
+  }
+});
+
 // Handle unhandled promise rejections
 window.addEventListener("unhandledrejection", (event) => {
   const error = event.reason;
