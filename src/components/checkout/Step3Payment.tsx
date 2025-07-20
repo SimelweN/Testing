@@ -100,15 +100,20 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       console.log("📦 Raw Edge Function Response:", { data, error });
 
-                  if (error) {
+                        if (error) {
         console.error("❌ Edge Function Error Details:", {
-          error,
-          errorMessage: error.message,
-          errorCode: error.code,
-          errorDetails: error.details,
-          errorHint: error.hint,
-          fullError: JSON.stringify(error, null, 2)
+          error: error,
+          errorMessage: error?.message || 'No message available',
+          errorCode: error?.code || 'No code available',
+          errorDetails: error?.details || 'No details available',
+          errorHint: error?.hint || 'No hint available',
+          errorType: typeof error,
+          fullError: JSON.stringify(error, Object.getOwnPropertyNames(error), 2)
         });
+
+        // Display user-friendly error message
+        const errorMsg = error?.message || error?.details || error || 'Unknown error occurred';
+        console.error("❌ User-friendly error:", errorMsg);
 
         // Fallback: Create order directly in database when Edge Function fails
         console.log("🔄 Attempting fallback order creation...");
