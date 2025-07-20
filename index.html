@@ -103,7 +103,11 @@
             msg.includes("ping") ||
             msg.includes("waitforsuccessfulping") ||
             msg.includes("messagehandler") ||
-            (msg.includes("failed to fetch") && msg.includes("eval at"))
+            (msg.includes("failed to fetch") && msg.includes("eval at")) ||
+            // Google Maps retry messages
+            (msg.includes("failed to load google maps script") &&
+              msg.includes("retrying")) ||
+            msg.includes("google maps script, retrying")
           );
         };
 
