@@ -219,16 +219,18 @@ export const FunctionMockData = {
     total_amount: 34999
   },
 
-  "send-email": {
-    to: "recipient@example.com",
-    subject: "Test Email from Rebook",
-    html: "<h1>Welcome to Rebook!</h1><p>This is a test email.</p>",
-    text: "Welcome to Rebook! This is a test email.",
-    from: "noreply@rebook.university",
+    "send-email": {
+    to: "recipient@example.com", // REQUIRED: validated by validateEmailRequest
+    subject: "Test Email from Rebook", // REQUIRED: validated by validateEmailRequest
+    html: "<h1>Welcome to Rebook!</h1><p>This is a test email.</p>", // REQUIRED: either html, text, or template must be provided
+    text: "Welcome to Rebook! This is a test email.", // Optional: backup text version
+    from: "noreply@rebook.university", // Optional: validated if provided
+    replyTo: "support@rebook.university", // Optional: validated if provided
     template_data: {
       user_name: "John Doe",
       platform_name: "Rebook"
-    }
+    },
+    test: false // Optional: for testing connection
   },
 
   "debug-email-template": {
@@ -283,15 +285,18 @@ export const FunctionMockData = {
   },
 
   // SUBACCOUNT MANAGEMENT FUNCTIONS
-  "create-paystack-subaccount": {
+    "create-paystack-subaccount": {
     business_name: "John's Textbook Store",
-    settlement_bank: "058", // Standard Bank
-    account_number: "0123456789",
+    email: "seller@example.com", // REQUIRED: validated by function
+    bank_name: "Standard Bank", // REQUIRED: function validates this
+    bank_code: "058", // REQUIRED: 3-digit bank code (Standard Bank)
+    account_number: "0123456789", // REQUIRED: 8-12 digit account number
     percentage_charge: 2.5,
     description: "Subaccount for seller payouts",
     primary_contact_email: "seller@example.com",
     primary_contact_name: "John Seller",
     primary_contact_phone: "+27123456789",
+    is_update: false, // Optional boolean field
     metadata: {
       user_id: "seller-550e8400-e29b-41d4-a716-446655440002",
       verification_status: "pending"
@@ -549,8 +554,8 @@ export function validateMockData(functionName: string, mockData: any): boolean {
     "mark-collected": ["order_id", "seller_id"],
     "pay-seller": ["order_id", "seller_id", "amount"],
 
-    // SUBACCOUNT MANAGEMENT
-    "create-paystack-subaccount": ["business_name", "settlement_bank", "account_number"],
+        // SUBACCOUNT MANAGEMENT
+    "create-paystack-subaccount": ["business_name", "email", "bank_name", "bank_code", "account_number"],
     "manage-paystack-subaccount": ["action", "subaccount_code"],
 
     // DELIVERY FUNCTIONS
