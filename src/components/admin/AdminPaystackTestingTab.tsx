@@ -37,6 +37,7 @@ interface TestResult {
 }
 
 const AdminPaystackTestingTab: React.FC = () => {
+  const navigate = useNavigate();
   const [refundOrderId, setRefundOrderId] = useState("");
   const [refundReason, setRefundReason] = useState("");
   const [refundAmount, setRefundAmount] = useState("");
