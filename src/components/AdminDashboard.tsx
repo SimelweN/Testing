@@ -777,9 +777,15 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="transfer-management" className="space-y-4 mt-0">
+                    <TabsContent value="transfer-management" className="space-y-4 mt-0">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
               <PaystackTransferManagement />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="network-debug" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+              <NetworkConnectivityDebug />
             </div>
           </TabsContent>
         </div>
