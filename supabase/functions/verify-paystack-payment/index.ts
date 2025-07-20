@@ -86,30 +86,25 @@ serve(async (req) => {
       );
     }
 
-    // Use body if already parsed for health check, otherwise parse now
+        // Read request body ONCE (ChatGPT's advice)
     let requestBody;
-    if (body) {
-      requestBody = body;
-    } else {
-      try {
-        requestBody = await req.json();
-      } catch (parseError) {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: "INVALID_JSON_PAYLOAD",
-            details: {
-              parse_error: parseError.message,
-              message: "Request body must be valid JSON",
-            },
-            fix_instructions: "Ensure request body contains valid JSON format",
-          }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
-      }
+    try {
+      console.log("🔍 bodyUsed before read:", req.bodyUsed);
+      requestBody = await req.json();
+      console.log("✅ Body read successfully");
+    } catch (error) {
+      console.error("❌ Body read failed:", error.message);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "BODY_READ_ERROR",
+          details: { error: error.message, bodyUsed: req.bodyUsed },
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     const { reference } = requestBody;
