@@ -82,22 +82,20 @@ export class OrderCancellationService {
         };
       }
 
-      return {
+            return {
         success: true,
         message: data.message || "Order cancelled successfully",
         refund_amount: data.refund_amount,
       };
-      }
-
-      // Update order status
-      const { error: updateError } = await supabase
-        .from("orders")
-        .update({
-          status: "cancelled_by_buyer",
-          cancelled_at: new Date().toISOString(),
-          cancellation_reason: reason || "Buyer requested cancellation",
-        })
-        .eq("id", orderId);
+    } catch (error) {
+      console.error("Order cancellation failed:", error);
+      return {
+        success: false,
+        message: "Failed to cancel order",
+        error: error.message,
+      };
+    }
+  }
 
       if (updateError) {
         throw new Error("Failed to update order status");
