@@ -1,12 +1,3 @@
-// IMMEDIATE error suppression - must load first
-import "./utils/immediateErrorSuppression";
-
-// Targeted fetch error suppression
-import "./utils/fetchErrorSuppression";
-
-// Enhanced network error handling
-import "./utils/networkErrorHandler";
-
 // Environment debugging (development only)
 import "./utils/environmentDebug";
 
@@ -16,7 +7,7 @@ import App from "./App.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
 import "./index.css";
 
-// Suppress ResizeObserver errors immediately
+// Minimal ResizeObserver error suppression
 import "./utils/suppressResizeObserverError";
 
 // Database cleanup disabled to prevent refresh loops
