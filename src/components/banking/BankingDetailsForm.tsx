@@ -342,8 +342,9 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
           errorMessage =
             "Network error. Please check your internet connection and try again.";
         } else if (msg.includes("validation") || msg.includes("invalid")) {
-          errorMessage =
-            "Please check your details and try again. " + error.message;
+                    const errorMsg = error?.message || String(error) || 'Details validation failed';
+          const safeMsg = errorMsg === '[object Object]' ? 'Details validation failed' : errorMsg;
+          errorMessage = `Please check your details and try again. ${safeMsg}`;
         } else if (msg.includes("account number")) {
           errorMessage =
             "Invalid account number. Please check your account number and try again.";
