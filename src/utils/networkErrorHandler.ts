@@ -1,203 +1,217 @@
 /**
- * Comprehensive Network Error Handler
- * Handles fetch errors, network timeouts, and third-party service failures
+ * Network Error Handler
+ * Provides proper error handling and debugging for network issues
  */
 
-// Network error patterns that should be suppressed
-const SUPPRESSED_ERROR_PATTERNS = [
-  // FullStory related
-  "edge.fullstory.com",
-  "fs.js",
-  "fullstory.com",
-
-  // Browser extensions
-  "chrome-extension",
-  "moz-extension",
-  "safari-extension",
-
-  // Development client issues
-  "@vite/client",
-  "ping",
-  "waitForSuccessfulPing",
-
-  // Network infrastructure
-  ".fly.dev",
-  "eval at messageHandler",
-
-  // Common fetch errors
-  "Failed to fetch",
-  "TypeError: Failed to fetch",
-  "NetworkError",
-  "ERR_NETWORK",
-];
-
-// Third-party domains that should fail silently
-const THIRD_PARTY_DOMAINS = [
+// Known third-party services and development tools that might fail
+const THIRD_PARTY_SERVICES = [
   "fullstory.com",
   "edge.fullstory.com",
   "google-analytics.com",
   "googletagmanager.com",
-  "hotjar.com",
-  "intercom.io",
+  "maps.googleapis.com",
+  "maps.google.com",
 ];
 
-/**
- * Enhanced fetch wrapper with comprehensive error handling
- */
-export const enhancedFetch = (originalFetch: typeof fetch) => {
-  return async (...args: Parameters<typeof fetch>): Promise<Response> => {
-    const url = args[0];
-    const urlString = typeof url === "string" ? url : url?.toString() || "";
+const DEVELOPMENT_SERVICES = [
+  "@vite/client",
+  "ping",
+  "messageHandler",
+  "waitForSuccessfulPing",
+];
 
-    try {
-      // Check if this is a third-party service
-      const isThirdParty = THIRD_PARTY_DOMAINS.some((domain) =>
-        urlString.includes(domain),
-      );
+const GOOGLE_MAPS_RETRY_PATTERNS = [
+  "failed to load google maps script",
+  "google maps script, retrying",
+  "retrying in",
+  "failed to load google maps script, retrying in",
+  "google maps script error",
+  "maps api error",
+];
 
-      if (isThirdParty) {
-        // Add timeout for third-party services
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-        const options = args[1] || {};
-        const enhancedOptions = {
-          ...options,
-          signal: controller.signal,
-        };
-
-        try {
-          const response = await originalFetch(args[0], enhancedOptions);
-          clearTimeout(timeoutId);
-          return response;
-        } catch (error) {
-          clearTimeout(timeoutId);
-          // Return a mock successful response for third-party failures
-          console.debug(
-            `[Network] Third-party service unavailable: ${urlString}`,
-          );
-          return new Response("", {
-            status: 204,
-            statusText: "Service Unavailable",
-            headers: { "Content-Type": "text/plain" },
-          });
-        }
-      }
-
-      // For development client connections, handle gracefully
-      if (
-        urlString.includes("@vite/client") ||
-        urlString.includes(".fly.dev")
-      ) {
-        try {
-          return await originalFetch(...args);
-        } catch (error) {
-          if (process.env.NODE_ENV === "development") {
-            console.debug(
-              "[Dev] Vite client connection issue:",
-              (error as Error).message,
-            );
-            return new Response("{}", {
-              status: 200,
-              statusText: "OK",
-              headers: { "Content-Type": "application/json" },
-            });
-          }
-          throw error;
-        }
-      }
-
-      // Normal fetch for application APIs
-      return await originalFetch(...args);
-    } catch (error) {
-      const errorMessage = (error as Error).message || "";
-
-      // Check if error should be suppressed
-      const shouldSuppress = SUPPRESSED_ERROR_PATTERNS.some(
-        (pattern) =>
-          errorMessage.toLowerCase().includes(pattern.toLowerCase()) ||
-          urlString.toLowerCase().includes(pattern.toLowerCase()),
-      );
-
-      if (shouldSuppress) {
-        console.debug(
-          `[Network] Suppressed error for ${urlString}:`,
-          errorMessage,
-        );
-        return new Response("", {
-          status: 204,
-          statusText: "Suppressed Error",
-        });
-      }
-
-      // Re-throw non-suppressed errors
-      throw error;
-    }
-  };
+// Check if an error is from a third-party service
+const isThirdPartyError = (url: string): boolean => {
+  return THIRD_PARTY_SERVICES.some((service) => url.includes(service));
 };
 
-/**
- * Check if an error should be suppressed from console output
- */
-export const shouldSuppressError = (
-  message: string,
-  filename?: string,
-): boolean => {
-  const messageCheck = SUPPRESSED_ERROR_PATTERNS.some((pattern) =>
-    message.toLowerCase().includes(pattern.toLowerCase()),
+// Check if a URL is a Supabase URL that we should never intercept
+const isSupabaseUrl = (url: string): boolean => {
+  return (
+    url.includes("supabase.co") ||
+    url.includes("/functions/v1/") ||
+    url.includes("/rest/v1/") ||
+    url.includes("/auth/v1/")
+  );
+};
+
+// Check if an error is from development tools (Vite HMR)
+const isDevelopmentError = (message: string, stack?: string): boolean => {
+  const fullText = `${message} ${stack || ""}`;
+
+  // Check for Vite-specific development errors only
+  const isViteError = DEVELOPMENT_SERVICES.some((service) =>
+    fullText.includes(service),
   );
 
-  const filenameCheck = filename
-    ? SUPPRESSED_ERROR_PATTERNS.some((pattern) =>
-        filename.toLowerCase().includes(pattern.toLowerCase()),
-      )
-    : false;
+  // Also check for specific Vite development server patterns on fly.dev
+  const isViteDevServer =
+    fullText.includes(".fly.dev/@vite/client") ||
+    fullText.includes(".fly.dev/?reload=") ||
+    (fullText.includes(".fly.dev") && fullText.includes("ping"));
 
-  return messageCheck || filenameCheck;
+  return isViteError || isViteDevServer;
 };
 
-/**
- * Initialize network error handling
- */
-export const initializeNetworkErrorHandling = (): void => {
-  // Override global fetch
-  if (typeof window !== "undefined" && window.fetch) {
-    const originalFetch = window.fetch;
-    window.fetch = enhancedFetch(originalFetch);
+// Check if an error is from Google Maps retry logic
+const isGoogleMapsRetryError = (message: string): boolean => {
+  const msg = message.toLowerCase();
+  return GOOGLE_MAPS_RETRY_PATTERNS.some((pattern) => msg.includes(pattern));
+};
+
+// Override fetch to provide better error handling
+const originalFetch = window.fetch;
+// Save original fetch for debugging tools
+(window.fetch as any).__original__ = originalFetch;
+
+window.fetch = async function (...args) {
+  const url = args[0]?.toString() || "";
+
+  // Never intercept Supabase URLs
+  if (isSupabaseUrl(url)) {
+    return originalFetch.apply(this, args);
   }
 
-  // Enhanced error event handling
-  if (typeof window !== "undefined") {
-    window.addEventListener(
-      "error",
-      (event) => {
-        const message = event.message || event.error?.message || "";
-        const filename = event.filename || "";
+  // Only intercept known problematic URLs to avoid interfering with normal requests
+  const isKnownProblematicUrl =
+    isThirdPartyError(url) || (import.meta.env.DEV && isDevelopmentError(url));
 
-        if (shouldSuppressError(message, filename)) {
-          event.stopPropagation();
-          event.preventDefault();
-          return false;
-        }
-      },
-      true,
-    );
+  if (!isKnownProblematicUrl) {
+    // For all other requests, just pass through without any error handling
+    return originalFetch.apply(this, args);
+  }
 
-    // Enhanced unhandled rejection handling
-    window.addEventListener("unhandledrejection", (event) => {
-      const message = event.reason?.message || event.reason?.toString() || "";
+  // Debug logging for intercepted URLs in development
+  if (import.meta.env.DEV) {
+    console.debug(`Network handler intercepting: ${url}`);
+  }
 
-      if (shouldSuppressError(message)) {
-        event.preventDefault();
-        return false;
+  try {
+    const response = await originalFetch.apply(this, args);
+    return response;
+  } catch (error) {
+    const errorMessage = error?.message || error?.toString() || "";
+    const errorStack = error?.stack || "";
+
+    // For third-party services, fail silently but log in development
+    if (isThirdPartyError(url)) {
+      if (import.meta.env.DEV) {
+        console.debug(`Third-party service unavailable: ${url}`, error);
       }
-    });
-  }
+      return new Response("{}", {
+        status: 200,
+        statusText: "Service Unavailable",
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
-  console.debug("🛡️ Enhanced network error handling initialized");
+    // For Vite development client errors, handle gracefully
+    if (
+      isDevelopmentError(errorMessage, errorStack) ||
+      isDevelopmentError(url)
+    ) {
+      if (import.meta.env.DEV) {
+        console.debug(
+          `Development server connection issue: ${url}`,
+          errorMessage,
+        );
+      }
+      return new Response("{}", {
+        status: 200,
+        statusText: "Development Server Unavailable",
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // For our own services, log the error properly and re-throw
+    console.error(`Network request failed: ${url}`, error);
+    throw error;
+  }
 };
 
-// Auto-initialize if in browser environment
-if (typeof window !== "undefined") {
-  initializeNetworkErrorHandling();
-}
+// Handle unhandled promise rejections
+window.addEventListener("unhandledrejection", (event) => {
+  const error = event.reason;
+  const message = error?.message || error?.toString() || "";
+  const stack = error?.stack || "";
+
+  // Suppress third-party service errors
+  if (isThirdPartyError(message)) {
+    if (import.meta.env.DEV) {
+      console.debug("Third-party service rejection suppressed:", message);
+    }
+    event.preventDefault();
+    return;
+  }
+
+  // Suppress development tool errors (Vite HMR)
+  if (isDevelopmentError(message, stack)) {
+    if (import.meta.env.DEV) {
+      console.debug("Development tool rejection suppressed:", message);
+    }
+    event.preventDefault();
+    return;
+  }
+
+  // Suppress Google Maps retry messages
+  if (isGoogleMapsRetryError(message)) {
+    if (import.meta.env.DEV) {
+      console.debug("Google Maps retry message suppressed:", message);
+    }
+    event.preventDefault();
+    return;
+  }
+
+  // Log all other unhandled rejections properly
+  console.error("Unhandled promise rejection:", error);
+});
+
+// Handle global errors
+window.addEventListener("error", (event) => {
+  const { message, filename, error } = event;
+  const stack = error?.stack || "";
+
+  // Suppress errors from third-party services
+  if (filename && isThirdPartyError(filename)) {
+    if (import.meta.env.DEV) {
+      console.debug("Third-party script error suppressed:", message);
+    }
+    event.preventDefault();
+    return;
+  }
+
+  // Suppress development tool errors
+  if (
+    isDevelopmentError(message || "", stack) ||
+    (filename && isDevelopmentError(filename))
+  ) {
+    if (import.meta.env.DEV) {
+      console.debug("Development tool error suppressed:", message);
+    }
+    event.preventDefault();
+    return;
+  }
+
+  // Suppress Google Maps retry messages
+  if (isGoogleMapsRetryError(message || "")) {
+    if (import.meta.env.DEV) {
+      console.debug("Google Maps retry message suppressed:", message);
+    }
+    event.preventDefault();
+    return;
+  }
+
+  // Log all other errors properly
+  console.error("Global error:", { message, filename, error });
+});
+
+export {};

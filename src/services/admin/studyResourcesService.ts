@@ -398,32 +398,16 @@ export const getStudyResources = async (): Promise<StudyResource[]> => {
     // Check if table exists first
     const tableExists = await checkTableExists("study_resources");
     if (!tableExists) {
-      console.warn(
-        "Study resources table does not exist. Creating a sample entry to initialize.",
-      );
+      console.warn("Study resources table does not exist.");
       // Return empty array but don't fail
       return [];
     }
 
-    // Query only columns that exist in the actual table
+    // First, let's try a simple query to see what columns exist
     const { data, error } = await supabase
       .from("study_resources")
-      .select(
-        `
-        id,
-        title,
-        description,
-        type,
-        category,
-        difficulty,
-        url,
-        rating,
-        tags,
-        sponsored,
-        created_at,
-        updated_at
-      `,
-      )
+      .select("*")
+      .limit(10)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -454,25 +438,26 @@ export const getStudyResources = async (): Promise<StudyResource[]> => {
     }
 
     return (data || []).map((item) => ({
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      type: item.type,
-      category: item.category,
-      difficulty: item.difficulty,
-      url: item.url,
-      rating: item.rating,
-      provider: "", // Not in table
-      duration: "", // Not in table
+      id: item.id || "",
+      title: item.title || "Untitled Resource",
+      description:
+        item.description || item.content || "No description available",
+      type: item.type || item.resource_type || "website",
+      category: item.category || "General",
+      difficulty: item.difficulty || "Beginner",
+      url: item.url || item.link || "",
+      rating: item.rating || 0,
+      provider: item.provider || "",
+      duration: item.duration || "",
       tags: item.tags || [],
-      downloadUrl: "", // Not in table
-      isActive: true, // Default since not in table
-      isFeatured: false, // Not in table
-      isSponsored: item.sponsored || false,
-      sponsorName: "", // Not in table
-      sponsorLogo: "", // Not in table
-      sponsorUrl: "", // Not in table
-      sponsorCta: "", // Not in table
+      downloadUrl: item.download_url || item.downloadUrl || "",
+      isActive: item.is_active !== undefined ? item.is_active : true,
+      isFeatured: item.is_featured || false,
+      isSponsored: item.sponsored || item.is_sponsored || false,
+      sponsorName: item.sponsor_name || "",
+      sponsorLogo: item.sponsor_logo || "",
+      sponsorUrl: item.sponsor_url || "",
+      sponsorCta: item.sponsor_cta || "",
       createdAt: item.created_at,
       updatedAt: item.updated_at,
     }));
@@ -490,27 +475,16 @@ export const getStudyTips = async (): Promise<StudyTip[]> => {
     // Check if table exists first
     const tableExists = await checkTableExists("study_tips");
     if (!tableExists) {
-      console.warn(
-        "Study tips table does not exist. Creating a sample entry to initialize.",
-      );
+      console.warn("Study tips table does not exist.");
       // Return empty array but don't fail
       return [];
     }
 
-    // Query only columns that exist in the actual table
+    // First, let's try a simple query to see what columns exist
     const { data, error } = await supabase
       .from("study_tips")
-      .select(
-        `
-        id,
-        title,
-        description,
-        is_active,
-        created_at,
-        updated_at
-      `,
-      )
-      .eq("is_active", true)
+      .select("*")
+      .limit(10)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -540,21 +514,25 @@ export const getStudyTips = async (): Promise<StudyTip[]> => {
     }
 
     return (data || []).map((item) => ({
-      id: item.id,
-      title: item.title,
-      content: item.description, // Map description to content for frontend
-      category: "General", // Default since not in table
-      difficulty: "Beginner", // Default since not in table
-      tags: [], // Not in table
-      isActive: item.is_active,
-      author: "", // Not in table
-      estimatedTime: "", // Not in table
-      effectiveness: 0, // Not in table
-      isSponsored: false, // Not in table
-      sponsorName: "", // Not in table
-      sponsorLogo: "", // Not in table
-      sponsorUrl: "", // Not in table
-      sponsorCta: "", // Not in table
+      id: item.id || "",
+      title: item.title || "Untitled Tip",
+      content:
+        item.description ||
+        item.content ||
+        item.tip_content ||
+        "No content available",
+      category: item.category || "General",
+      difficulty: item.difficulty || "Beginner",
+      tags: item.tags || [],
+      isActive: item.is_active !== undefined ? item.is_active : true,
+      author: item.author || "",
+      estimatedTime: item.estimated_time || item.estimatedTime || "",
+      effectiveness: item.effectiveness || 0,
+      isSponsored: item.is_sponsored || false,
+      sponsorName: item.sponsor_name || "",
+      sponsorLogo: item.sponsor_logo || "",
+      sponsorUrl: item.sponsor_url || "",
+      sponsorCta: item.sponsor_cta || "",
       createdAt: item.created_at,
       updatedAt: item.updated_at,
     }));

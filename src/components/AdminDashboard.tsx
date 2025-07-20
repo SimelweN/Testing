@@ -35,6 +35,8 @@ import PaystackEdgeFunctionDiagnostic from "@/components/admin/PaystackEdgeFunct
 import DatabaseTableTester from "@/components/admin/DatabaseTableTester";
 import DemoDataGenerator from "@/components/admin/DemoDataGenerator";
 import EdgeFunctionTester from "@/components/admin/EdgeFunctionTester";
+import EdgeFunctionDebugPanel from "@/components/admin/EdgeFunctionDebugPanel";
+import DatabaseSchemaDiagnostic from "@/components/admin/DatabaseSchemaDiagnostic";
 import PaystackSplitManagement from "@/components/admin/PaystackSplitManagement";
 import PaystackTransferManagement from "@/components/admin/PaystackTransferManagement";
 import PaystackSystemTestComponent from "@/components/admin/PaystackSystemTestComponent";
@@ -446,6 +448,13 @@ const AdminDashboard = () => {
       description: "Test all database tables",
     },
     {
+      value: "database-schema",
+      label: "Database Schema",
+      icon: Database,
+      color: "text-blue-600",
+      description: "Check table schemas and columns",
+    },
+    {
       value: "cleanup",
       label: "Cleanup",
       icon: Trash2,
@@ -662,8 +671,13 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="functions" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-              <EdgeFunctionTester />
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+                <EdgeFunctionDebugPanel />
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+                <EdgeFunctionTester />
+              </div>
             </div>
           </TabsContent>
 
@@ -719,6 +733,12 @@ const AdminDashboard = () => {
           <TabsContent value="database-testing" className="space-y-4 mt-0">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
               <DatabaseTableTester />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="database-schema" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+              <DatabaseSchemaDiagnostic />
             </div>
           </TabsContent>
 

@@ -140,6 +140,39 @@ export class PaystackSystemTester {
     }
   }
 
+  private getDetailedErrorInfo(error: any, functionName?: string) {
+    return {
+      message: error.message || "Unknown error",
+      status: error.status || error.statusCode || error.code || "unknown",
+      statusText: error.statusText || error.details || "unknown",
+      name: error.name || "Error",
+      functionName: functionName || "unknown",
+      timestamp: new Date().toISOString(),
+      stack: error.stack
+        ? error.stack.split("\n").slice(0, 3).join(" | ")
+        : "no stack",
+      context: error.context || "test execution",
+      // Try to extract more details from common error formats
+      details: this.extractErrorDetails(error),
+    };
+  }
+
+  private extractErrorDetails(error: any) {
+    // Try to extract useful information from different error types
+    if (typeof error === "string") {
+      return error;
+    }
+
+    if (error.details) return error.details;
+    if (error.hint) return error.hint;
+    if (error.code) return `Code: ${error.code}`;
+    if (error.statusCode && error.statusText) {
+      return `HTTP ${error.statusCode}: ${error.statusText}`;
+    }
+
+    return "No additional details available";
+  }
+
   private async measureTime<T>(
     fn: () => Promise<T>,
   ): Promise<{ result: T; timing: number }> {
@@ -280,7 +313,17 @@ export class PaystackSystemTester {
           const { data, error } = await supabase.functions.invoke(funcName, {
             body: { health: true },
           });
-          if (error) throw error;
+
+          // Enhanced error details
+          if (error) {
+            const enhancedError = {
+              ...error,
+              functionName: funcName,
+              context: "health_check",
+              timestamp: new Date().toISOString(),
+            };
+            throw enhancedError;
+          }
           return data;
         });
 
@@ -296,7 +339,7 @@ export class PaystackSystemTester {
           this.addResult(
             `Edge Function: ${funcName}`,
             "error",
-            `Health check failed - Response: ${JSON.stringify(result)}`,
+            `Health check failed - Response: ${JSON.stringify(result)} | Type: ${typeof result} | Has success: ${!!result?.success} | Has service: ${!!result?.service}`,
             {
               actual_response: result,
               expected_fields: ["success", "service"],
@@ -308,10 +351,13 @@ export class PaystackSystemTester {
           );
         }
       } catch (error) {
+        const errorDetails = this.getDetailedErrorInfo(error, funcName);
+
         this.addResult(
           `Edge Function: ${funcName}`,
           "error",
-          `Health check failed: ${error.message}`,
+          `Health check failed: ${errorDetails.message} | Status: ${errorDetails.status} | StatusText: ${errorDetails.statusText} | Details: ${errorDetails.details} | Stack: ${errorDetails.stack}`,
+          errorDetails,
         );
       }
     }
@@ -346,7 +392,7 @@ export class PaystackSystemTester {
         this.addResult(
           "Paystack API",
           "error",
-          `Paystack API test failed - Exact response: ${JSON.stringify(result)}`,
+          `Paystack API test failed - Response: ${JSON.stringify(result)} | Keys: ${result ? Object.keys(result).join(", ") : "none"} | Error: ${result?.error || result?.message || "No error provided"}`,
           {
             actual_response: result,
             expected_fields: ["success", "service"],
@@ -358,10 +404,19 @@ export class PaystackSystemTester {
         );
       }
     } catch (error) {
+      const errorDetails = {
+        message: error.message,
+        status: error.status || error.statusCode || "unknown",
+        statusText: error.statusText || "unknown",
+        name: error.name || "unknown",
+        stack: error.stack ? error.stack.split("\n")[0] : "no stack",
+      };
+
       this.addResult(
         "Paystack API",
         "error",
-        `Paystack API connectivity failed: ${error.message}`,
+        `Paystack API connectivity failed: ${error.message} | Status: ${errorDetails.status} | Name: ${errorDetails.name} | Details: ${JSON.stringify(errorDetails)}`,
+        errorDetails,
       );
     }
   }
@@ -461,10 +516,19 @@ export class PaystackSystemTester {
         );
       }
     } catch (error) {
+      const errorDetails = {
+        message: error.message,
+        status: error.status || error.statusCode || "unknown",
+        statusText: error.statusText || "unknown",
+        functionName: "create-paystack-subaccount",
+        inputData: PaystackMockData.subaccountCreation,
+      };
+
       this.addResult(
         "Subaccount Creation",
         "error",
-        `Subaccount creation test failed: ${error.message}`,
+        `Subaccount creation test failed: ${error.message} | Status: ${errorDetails.status} | Function: ${errorDetails.functionName} | Details: ${JSON.stringify(errorDetails)}`,
+        errorDetails,
       );
     }
   }

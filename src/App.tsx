@@ -5,14 +5,6 @@ import { Analytics } from "@vercel/analytics/react";
 
 // Suppress harmless ResizeObserver warnings
 import "./utils/suppressResizeObserverError";
-// Suppress harmless network and third-party script errors
-import "./utils/suppressNetworkErrors";
-// Network debugging utility for development
-import "./utils/networkDebugger";
-// Test error suppression in development
-if (import.meta.env.DEV) {
-  import("./utils/verifyErrorSuppression");
-}
 // Loading state manager to prevent white screens
 import "./utils/loadingStateManager";
 

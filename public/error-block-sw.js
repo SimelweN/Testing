@@ -1,32 +1,22 @@
-// Service Worker for Network-Level Error Blocking
+// Minimal Service Worker - Only blocks actual problematic network requests
 const BLOCKED_DOMAINS = [
+  // Block known problematic third-party domains that cause fetch errors
   "edge.fullstory.com",
   "fullstory.com",
-  "213f0d6feb0c4f74bf8db7ef237f0dbe-315d37effbbd45138374f8eea.fly.dev",
 ];
 
-const BLOCKED_PATHS = ["fs.js", "@vite/client"];
-
-self.addEventListener("install", () => {
-  console.debug("🛡️ Error blocking service worker installed");
-  self.skipWaiting();
-});
-
-self.addEventListener("activate", () => {
-  console.debug("🛡️ Error blocking service worker activated");
-  return self.clients.claim();
-});
+const BLOCKED_PATHS = ["fs.js"];
 
 self.addEventListener("fetch", (event) => {
   const url = event.request.url;
 
-  // Block problematic domains and paths
+  // Check if this is a blocked domain or path
   const shouldBlock =
     BLOCKED_DOMAINS.some((domain) => url.includes(domain)) ||
     BLOCKED_PATHS.some((path) => url.includes(path));
 
   if (shouldBlock) {
-    console.debug("🚫 Blocked network request:", url);
+    // Return a successful empty response instead of letting the request fail
     event.respondWith(
       new Response("{}", {
         status: 200,
@@ -34,9 +24,14 @@ self.addEventListener("fetch", (event) => {
         headers: { "Content-Type": "application/json" },
       }),
     );
-    return;
   }
+  // Let all other requests proceed normally
+});
 
-  // Let other requests proceed normally
-  event.respondWith(fetch(event.request));
+self.addEventListener("install", () => {
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
 });

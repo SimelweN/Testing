@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { MapPin, Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { useGoogleMaps } from "@/contexts/GoogleMapsContext";
 
 export interface AddressData {
   formattedAddress: string;
@@ -54,13 +55,13 @@ const GoogleMapsAddressAutocomplete: React.FC<
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  // Use Google Maps context instead of manual loading
+  const { isLoaded: mapsLoaded, loadError: mapsLoadError } = useGoogleMaps();
+
   const [selectedAddress, setSelectedAddress] = useState<AddressData | null>(
     null,
   );
   const [inputValue, setInputValue] = useState("");
-  const [scriptLoaded, setScriptLoaded] = useState(false);
 
   // Check if Google Maps is already loaded
   const checkGoogleMapsLoaded = () => {
@@ -154,89 +155,21 @@ const GoogleMapsAddressAutocomplete: React.FC<
     }
   };
 
-  // Load Google Maps script
-  const loadGoogleMaps = () => {
-    // Check if already loaded
-    if (checkGoogleMapsLoaded()) {
-      console.log("Google Maps already loaded, initializing...");
-      setScriptLoaded(true);
-      initializeAutocomplete();
-      return;
-    }
-
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    if (!apiKey) {
-      setLoadError("Google Maps API key not found");
-      setIsLoading(false);
-      return;
-    }
-
-    // Check if script is already being loaded
-    const existingScript = document.querySelector(
-      'script[src*="maps.googleapis.com"]',
-    );
-    if (existingScript) {
+  // Initialize autocomplete when Google Maps is ready
+  const initializeGoogleMaps = () => {
+    if (mapsLoaded && checkGoogleMapsLoaded()) {
       console.log(
-        "Google Maps script already exists, waiting for it to load...",
+        "Google Maps loaded via context, initializing autocomplete...",
       );
-
-      // Poll for Google Maps to be ready
-      const pollInterval = setInterval(() => {
-        if (checkGoogleMapsLoaded()) {
-          clearInterval(pollInterval);
-          setScriptLoaded(true);
-          initializeAutocomplete();
-        }
-      }, 100);
-
-      // Stop polling after 10 seconds
-      setTimeout(() => {
-        clearInterval(pollInterval);
-        if (!checkGoogleMapsLoaded()) {
-          setLoadError("Google Maps failed to load within timeout");
-          setIsLoading(false);
-        }
-      }, 10000);
-      return;
+      initializeAutocomplete();
     }
-
-    console.log("Loading Google Maps script...");
-
-    // Create and load script
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-
-    script.onload = () => {
-      console.log("Google Maps script loaded successfully");
-      setScriptLoaded(true);
-
-      // Small delay to ensure Places library is ready
-      setTimeout(() => {
-        if (initializeAutocomplete()) {
-          console.log("Autocomplete initialized successfully");
-        }
-      }, 100);
-    };
-
-    script.onerror = () => {
-      // Silently handle Google Maps loading errors
-      setLoadError("Google Maps unavailable");
-      setIsLoading(false);
-    };
-
-    document.head.appendChild(script);
   };
 
   useEffect(() => {
-    loadGoogleMaps();
-
     // Set default value if provided
     if (defaultValue?.formattedAddress) {
       setInputValue(defaultValue.formattedAddress);
       setSelectedAddress(defaultValue as AddressData);
-      setIsLoading(false); // Don't show loading if we have a default value
     }
 
     return () => {
@@ -249,14 +182,23 @@ const GoogleMapsAddressAutocomplete: React.FC<
     };
   }, []);
 
+  // Initialize Google Maps when context is ready
+  useEffect(() => {
+    if (mapsLoaded) {
+      initializeGoogleMaps();
+    }
+  }, [mapsLoaded]);
+
   const handleRetry = () => {
-    setIsLoading(true);
-    setLoadError(null);
-    loadGoogleMaps();
+    // Retry by attempting to initialize again
+    if (mapsLoaded) {
+      initializeGoogleMaps();
+    }
   };
 
-  // Don't show loading state if we have a default value
-  const shouldShowLoading = isLoading && !defaultValue?.formattedAddress;
+  // Show loading state while Google Maps is loading from context
+  const shouldShowLoading =
+    !mapsLoaded && !mapsLoadError && !defaultValue?.formattedAddress;
 
   if (shouldShowLoading) {
     return (
@@ -277,7 +219,10 @@ const GoogleMapsAddressAutocomplete: React.FC<
     );
   }
 
-  if (loadError) {
+  // Show error from context or local error
+  const displayError = mapsLoadError?.message || error;
+
+  if (displayError) {
     return (
       <div className={`space-y-4 ${className}`}>
         {label && (
@@ -290,7 +235,7 @@ const GoogleMapsAddressAutocomplete: React.FC<
           <AlertCircle className="h-4 w-4 text-red-600" />
           <AlertDescription className="text-red-800">
             <div className="flex items-center justify-between">
-              <span>{loadError}</span>
+              <span>{displayError}</span>
               <Button
                 variant="outline"
                 size="sm"
