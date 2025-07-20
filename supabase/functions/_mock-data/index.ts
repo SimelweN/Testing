@@ -156,10 +156,10 @@ export const FunctionMockData = {
     }
   },
 
-  "process-multi-seller-purchase": {
-    user_id: "550e8400-e29b-41d4-a716-446655440000",
-    email: "buyer@example.com",
-    cart_items: [
+    "process-multi-seller-purchase": {
+    user_id: "550e8400-e29b-41d4-a716-446655440000", // REQUIRED: validated by function
+    email: "buyer@example.com", // REQUIRED: validated by function with email format check
+    cart_items: [ // REQUIRED: must be array and not empty
       {
         book_id: "book-550e8400-e29b-41d4-a716-446655440001",
         title: "Introduction to Computer Science",
@@ -303,12 +303,12 @@ export const FunctionMockData = {
     }
   },
 
-  "manage-paystack-subaccount": {
+    "manage-paystack-subaccount": {
     action: "update",
     subaccount_code: "ACCT_123456789",
-    business_name: "John's Updated Textbook Store",
-    settlement_bank: "058",
-    account_number: "0123456789",
+    business_name: "John's Updated Textbook Store", // REQUIRED: validated by function
+    settlement_bank: "058", // REQUIRED: validated by function
+    account_number: "0123456789", // REQUIRED: validated by function
     percentage_charge: 2.0,
     active: true
   },
@@ -556,7 +556,7 @@ export function validateMockData(functionName: string, mockData: any): boolean {
 
         // SUBACCOUNT MANAGEMENT
     "create-paystack-subaccount": ["business_name", "email", "bank_name", "bank_code", "account_number"],
-    "manage-paystack-subaccount": ["action", "subaccount_code"],
+        "manage-paystack-subaccount": ["action", "subaccount_code", "business_name", "settlement_bank", "account_number"],
 
     // DELIVERY FUNCTIONS
     "courier-guy-quote": ["fromAddress", "toAddress", "weight"],
