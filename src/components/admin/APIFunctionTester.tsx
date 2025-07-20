@@ -223,6 +223,68 @@ export default function APIFunctionTester() {
     }
   };
 
+    const testSingleFunction = async (endpoint: APIEndpoint, payload?: any): Promise<TestResult> => {
+    try {
+      const body = payload || endpoint.samplePayload;
+
+      const fetchResponse = await fetch(endpoint.path, {
+        method: endpoint.method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      const result = await fetchResponse.json();
+
+      return {
+        endpoint: endpoint.name,
+        status: fetchResponse.status,
+        statusText: fetchResponse.statusText,
+        data: result,
+        success: fetchResponse.ok
+      };
+    } catch (err: any) {
+      return {
+        endpoint: endpoint.name,
+        status: 0,
+        statusText: "Network Error",
+        data: null,
+        success: false,
+        error: err.message
+      };
+    }
+  };
+
+  const testAllFunctions = async () => {
+    setTestingAll(true);
+    setTestAllResults([]);
+    setTestAllProgress(0);
+    setResponse(null);
+    setError("");
+
+    const results: TestResult[] = [];
+
+    for (let i = 0; i < apiEndpoints.length; i++) {
+      const endpoint = apiEndpoints[i];
+      setCurrentlyTesting(endpoint.name);
+      setTestAllProgress(((i + 1) / apiEndpoints.length) * 100);
+
+      const result = await testSingleFunction(endpoint);
+      results.push(result);
+      setTestAllResults([...results]);
+
+      // Small delay between requests to avoid overwhelming the server
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    setCurrentlyTesting("");
+    setTestingAll(false);
+
+    const successCount = results.filter(r => r.success).length;
+    const failCount = results.length - successCount;
+
+    toast.success(`Test All completed: ${successCount} passed, ${failCount} failed`);
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard");
