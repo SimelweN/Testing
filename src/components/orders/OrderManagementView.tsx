@@ -105,9 +105,22 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
       }
 
       setOrders(data || []);
-    } catch (error) {
+        } catch (error) {
+      // Direct error logging for debugging
+      console.log("🔍 ORDER FETCH CATCH ERROR - Type:", typeof error);
+      console.log("🔍 ORDER FETCH CATCH ERROR - Raw:", error);
+      console.log("🔍 ORDER FETCH CATCH ERROR - Message:", error?.message);
+
       logError("Error fetching orders (catch block)", error, { activeTab });
-      const errorMsg = getUserFriendlyErrorMessage(error, 'Failed to load orders');
+
+      // Simple error message extraction
+      let errorMsg = 'Failed to load orders';
+      if (error?.message) {
+        errorMsg = error.message;
+      } else if (typeof error === 'string') {
+        errorMsg = error;
+      }
+
       toast.error(errorMsg);
     } finally {
       setLoading(false);
