@@ -35,22 +35,39 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
 }) => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-  // If no API key, don't attempt to load Google Maps
+  // Check if API key is valid (not empty, undefined, or placeholder)
+  const isValidApiKey =
+    apiKey &&
+    apiKey.trim() !== "" &&
+    apiKey !== "your_google_maps_api_key" &&
+    apiKey.startsWith("AIza");
+
+  // Only attempt to load Google Maps if we have a valid API key
+  const shouldLoadMaps = isValidApiKey;
+
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: apiKey || "",
     libraries,
     preventGoogleFontsLoading: true,
-    // Skip loading if no API key to prevent errors
-    ...(apiKey ? {} : { loadingElement: null }),
+    // Conditional loading - only load if we have a valid API key
+    skipLoadingLibrary: !shouldLoadMaps,
   });
 
   const value: GoogleMapsContextType = {
-    isLoaded: apiKey ? isLoaded : false,
-    loadError: apiKey
+    isLoaded: shouldLoadMaps ? isLoaded : false,
+    loadError: shouldLoadMaps
       ? loadError
-      : new Error("Google Maps API key not configured"),
+      : new Error("Google Maps API key not configured or invalid"),
   };
+
+  // Log warning in development if API key is missing or invalid
+  if (import.meta.env.DEV && !isValidApiKey) {
+    console.warn(
+      "Google Maps API key is missing or invalid. Google Maps features will be disabled.",
+      { providedKey: apiKey ? `${apiKey.substring(0, 10)}...` : "none" },
+    );
+  }
 
   return (
     <GoogleMapsContext.Provider value={value}>
