@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { testFunction } from "../_mock-data/edge-function-tester.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
