@@ -247,11 +247,12 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           // Fall through to original error throwing
         }
 
-                // Ensure we never throw an error with [object Object]
-        const safeErrorMessage = (typeof userFriendlyMessage === 'string' && userFriendlyMessage !== '[object Object]')
-          ? userFriendlyMessage
-          : "An unexpected error occurred";
-        throw new Error(`Edge Function Error: ${safeErrorMessage}`);
+                        // Final safety check and throw
+        const finalMessage = String(userFriendlyMessage || 'Unknown error');
+        const safeMessage = finalMessage === '[object Object]' ? 'Edge Function failed' : finalMessage;
+
+        console.log("🔍 FINAL ERROR MESSAGE:", safeMessage);
+        throw new Error(`Edge Function Error: ${safeMessage}`);
       }
 
       console.log("✅ Edge Function Success Response:", data);
