@@ -14,6 +14,7 @@ import {
   Clock,
   Search,
   RefreshCw,
+  WifiOff,
 } from "lucide-react";
 import {
   EdgeFunctionDebugger,
