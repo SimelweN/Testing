@@ -20,15 +20,7 @@ serve(async (req) => {
     if (!bodyParseResult.success) {
       return bodyParseResult.errorResponse!;
     }
-    const requestData = bodyParseResult.data;
-          fix_instructions: "Request body may have been consumed already. Check for duplicate body reads."
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
+        const requestData = bodyParseResult.data;
 
     const {
       order_id,
