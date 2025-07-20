@@ -157,12 +157,27 @@ const apiEndpoints: APIEndpoint[] = [
   }
 ];
 
+interface TestResult {
+  endpoint: string;
+  status: number;
+  statusText: string;
+  data: any;
+  success: boolean;
+  error?: string;
+}
+
 export default function APIFunctionTester() {
   const [selectedEndpoint, setSelectedEndpoint] = useState<APIEndpoint>(apiEndpoints[0]);
   const [requestBody, setRequestBody] = useState<string>(JSON.stringify(apiEndpoints[0].samplePayload, null, 2));
   const [response, setResponse] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
+
+  // Test All functionality
+  const [testingAll, setTestingAll] = useState(false);
+  const [testAllResults, setTestAllResults] = useState<TestResult[]>([]);
+  const [testAllProgress, setTestAllProgress] = useState(0);
+  const [currentlyTesting, setCurrentlyTesting] = useState<string>("");
 
   const handleEndpointChange = (endpointName: string) => {
     const endpoint = apiEndpoints.find(e => e.name === endpointName);
