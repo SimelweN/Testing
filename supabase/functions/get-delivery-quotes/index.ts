@@ -72,7 +72,7 @@ serve(async (req) => {
           error: "VALIDATION_FAILED",
           details: {
             validation_errors: validationErrors,
-            provided_fields: Object.keys(await req.json()),
+                        provided_fields: Object.keys({ fromAddress, toAddress, weight, dimensions }),
             message: `Validation failed: ${validationErrors.join(", ")}`,
             required_format: {
               fromAddress: {
