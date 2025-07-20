@@ -226,6 +226,83 @@ export default function NetworkConnectivityDebug() {
         details: error
       });
     }
+        setResults([...testResults]);
+
+    // Test 6: API Endpoints Deployment Check
+    try {
+      // Test a few key API endpoints to see if they're deployed
+      const apiEndpoints = [
+        "/api/create-order",
+        "/api/initialize-paystack-payment",
+        "/api/auto-expire-commits"
+      ];
+
+      let workingEndpoints = 0;
+      let totalEndpoints = apiEndpoints.length;
+      const endpointResults: string[] = [];
+
+      for (const endpoint of apiEndpoints) {
+        try {
+          const response = await fetch(endpoint, {
+            method: "OPTIONS", // Use OPTIONS to avoid triggering the actual function
+          });
+
+          if (response.status !== 404) {
+            workingEndpoints++;
+            endpointResults.push(`✅ ${endpoint}: ${response.status}`);
+          } else {
+            endpointResults.push(`❌ ${endpoint}: 404 Not Found`);
+          }
+        } catch {
+          endpointResults.push(`❌ ${endpoint}: Network Error`);
+        }
+      }
+
+      if (workingEndpoints === totalEndpoints) {
+        testResults.push({
+          name: "API Endpoints Deployment",
+          status: "success",
+          message: `All ${totalEndpoints} API endpoints are accessible`,
+          details: {
+            workingEndpoints,
+            totalEndpoints,
+            endpointResults
+          }
+        });
+      } else if (workingEndpoints > 0) {
+        testResults.push({
+          name: "API Endpoints Deployment",
+          status: "warning",
+          message: `${workingEndpoints}/${totalEndpoints} API endpoints are accessible`,
+          details: {
+            workingEndpoints,
+            totalEndpoints,
+            endpointResults,
+            suggestion: "Some API functions may not be deployed properly"
+          }
+        });
+      } else {
+        testResults.push({
+          name: "API Endpoints Deployment",
+          status: "error",
+          message: "No API endpoints are accessible - deployment issue",
+          details: {
+            workingEndpoints,
+            totalEndpoints,
+            endpointResults,
+            explanation: "This appears to be a Fly.dev deployment, but /api functions are designed for Vercel",
+            solution: "Use Mock Mode in API Testing or deploy functions to Supabase Edge Functions"
+          }
+        });
+      }
+    } catch (error) {
+      testResults.push({
+        name: "API Endpoints Deployment",
+        status: "error",
+        message: "Failed to test API endpoints",
+        details: error
+      });
+    }
     setResults([...testResults]);
 
     setTesting(false);
