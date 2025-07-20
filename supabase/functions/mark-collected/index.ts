@@ -30,14 +30,25 @@ serve(async (req) => {
       collected_at = new Date().toISOString(),
     } = requestData;
 
-    // Enhanced validation with specific error messages
-    if (!order_id) {
+        // Enhanced validation with specific error messages
+    const validationErrors = [];
+    if (!order_id) validationErrors.push("order_id is required");
+
+    // UUID format validation (allow test IDs)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const isTestMode = order_id?.startsWith('ORD_test');
+
+    if (order_id && !isTestMode && !uuidRegex.test(order_id)) {
+      validationErrors.push("order_id must be a valid UUID");
+    }
+
+    if (validationErrors.length > 0) {
       return new Response(
         JSON.stringify({
           success: false,
           error: "VALIDATION_FAILED",
           details: {
-            missing_fields: ["order_id"],
+            missing_fields: validationErrors,
                         provided_fields: Object.keys({
               order_id,
               collected_by,
@@ -273,7 +284,7 @@ serve(async (req) => {
     </div>
 
     <div class="info-box">
-      <h3>📍 Delivery Address</h3>
+      <h3>�� Delivery Address</h3>
       <p>${order.shipping_address?.address_line_1 || order.delivery_address?.address_line_1 || "Address on file"}<br>
       ${order.shipping_address?.address_line_2 || order.delivery_address?.address_line_2 || ""}<br>
       ${order.shipping_address?.city || order.delivery_address?.city || ""}, ${order.shipping_address?.postal_code || order.delivery_address?.postal_code || ""}</p>
