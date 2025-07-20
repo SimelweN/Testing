@@ -322,13 +322,16 @@ serve(async (req) => {
       // Don't fail the commit for email errors
     }
 
-    return new Response(
+        return new Response(
       JSON.stringify({
         success: true,
         message: "Order committed successfully",
         order_id,
         status: "committed",
-        pickup_scheduled: true,
+        pickup_scheduled: !deliveryError,
+        email_sent: !emailError,
+        ...(deliveryError && { delivery_warning: "Automatic pickup scheduling failed - will need manual arrangement" }),
+        ...(emailError && { email_warning: "Notification emails failed to send" })
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
