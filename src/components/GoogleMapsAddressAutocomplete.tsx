@@ -190,13 +190,15 @@ const GoogleMapsAddressAutocomplete: React.FC<
   }, [mapsLoaded]);
 
   const handleRetry = () => {
-    setIsLoading(true);
-    setLoadError(null);
-    loadGoogleMaps();
+    // Retry by attempting to initialize again
+    if (mapsLoaded) {
+      initializeGoogleMaps();
+    }
   };
 
-  // Don't show loading state if we have a default value
-  const shouldShowLoading = isLoading && !defaultValue?.formattedAddress;
+  // Show loading state while Google Maps is loading from context
+  const shouldShowLoading =
+    !mapsLoaded && !mapsLoadError && !defaultValue?.formattedAddress;
 
   if (shouldShowLoading) {
     return (
@@ -217,7 +219,10 @@ const GoogleMapsAddressAutocomplete: React.FC<
     );
   }
 
-  if (loadError) {
+  // Show error from context or local error
+  const displayError = mapsLoadError?.message || error;
+
+  if (displayError) {
     return (
       <div className={`space-y-4 ${className}`}>
         {label && (
