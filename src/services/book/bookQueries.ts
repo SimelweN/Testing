@@ -13,6 +13,7 @@ import {
 } from "@/utils/errorUtils";
 import { safeLogError } from "@/utils/errorHandling";
 import { retryWithConnection } from "@/utils/connectionHealthCheck";
+import { getFallbackBooks } from "@/utils/fallbackBooksData";
 
 // Circuit breaker to prevent error spam
 let bookQueryErrorCount = 0;
