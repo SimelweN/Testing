@@ -30,9 +30,9 @@ const ShareProfileDialog = ({
 }: ShareProfileDialogProps) => {
   const profileUrl = `${window.location.origin}/user/${userId}`;
 
-  const copyProfileLink = () => {
+    const copyProfileLink = () => {
     navigator.clipboard.writeText(profileUrl);
-    toast.success("Profile link copied to clipboard!");
+    toast.success("Profile link copied! 📋 Share it everywhere to sell faster!");
   };
 
   const shareToSocial = (platform: string) => {
