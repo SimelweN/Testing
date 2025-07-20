@@ -315,8 +315,8 @@ serve(async (req) => {
           }),
         });
       }
-    } catch (emailError) {
-      console.error("Failed to send notification emails:", emailError);
+        } catch (error) {
+      console.error("Failed to send notification emails:", error);
       // Don't fail the commit for email errors
     }
 
