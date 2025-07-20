@@ -11,6 +11,7 @@ import { Code, Play, AlertCircle, CheckCircle, Copy, PlayCircle, Zap, Database, 
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { safeFetch } from "@/utils/safeFetch";
 
 interface APIEndpoint {
   name: string;
