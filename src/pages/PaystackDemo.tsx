@@ -128,8 +128,72 @@ const PaystackDemo = () => {
     setLoading(prev => ({ ...prev, [key]: value }));
   };
 
-  const setTestResult = (key: string, value: any) => {
+    const setTestResult = (key: string, value: any) => {
     setResults(prev => ({ ...prev, [key]: value }));
+  };
+
+  // Function to check all Paystack functions availability
+  const checkAllFunctions = async () => {
+    setTestLoading("function-check", true);
+    const functions = [
+      "initialize-paystack-payment",
+      "verify-paystack-payment",
+      "create-paystack-subaccount",
+      "manage-paystack-subaccount",
+      "pay-seller",
+      "paystack-refund-management",
+      "paystack-transfer-management",
+      "paystack-split-management",
+      "paystack-webhook"
+    ];
+
+    const status = {};
+    const environmentData = {
+      supabaseUrl: supabase.supabaseUrl,
+      supabaseKey: supabase.supabaseKey?.substring(0, 20) + "...",
+      timestamp: new Date().toISOString()
+    };
+
+    for (const funcName of functions) {
+      try {
+        console.log(`🔍 Checking function: ${funcName}`);
+
+        // Try to call the health endpoint
+        const response = await supabase.functions.invoke(funcName, {
+          body: { health: true }
+        });
+
+        status[funcName] = {
+          available: !response.error,
+          error: response.error,
+          data: response.data,
+          healthCheck: true
+        };
+
+        console.log(`✅ ${funcName} status:`, status[funcName]);
+      } catch (error) {
+        status[funcName] = {
+          available: false,
+          error: error,
+          healthCheck: false,
+          errorMessage: error.message
+        };
+        console.error(`❌ ${funcName} failed:`, error);
+      }
+    }
+
+    setFunctionStatus(status);
+    setEnvironmentStatus(environmentData);
+    setTestLoading("function-check", false);
+
+    const availableCount = Object.values(status).filter((s: any) => s.available).length;
+    const totalCount = functions.length;
+
+    if (availableCount === totalCount) {
+      toast.success(`✅ All ${totalCount} functions are available!`);
+    } else {
+      toast.error(`❌ Only ${availableCount}/${totalCount} functions are available`);
+    }
   };
 
     // Helper function for better error handling
