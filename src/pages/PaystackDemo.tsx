@@ -828,11 +828,20 @@ const PaystackDemo = () => {
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-                    <div className="mb-8">
+                              <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Complete Paystack Functions Demo</h1>
             <p className="text-gray-600">
               Test all Paystack functionality with demo data and live edge function calls
             </p>
+
+            <Alert className="mt-4 border-blue-200 bg-blue-50">
+              <TestTube className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                <strong>Smart Testing:</strong> This demo automatically uses mock implementations for functions
+                that aren't deployed, while using real edge functions for those that are deployed.
+                This allows you to test all Paystack functionality regardless of deployment status.
+              </AlertDescription>
+            </Alert>
           </div>
 
           {/* Environment Diagnostics */}
