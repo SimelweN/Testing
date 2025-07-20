@@ -101,7 +101,15 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       console.log("📦 Raw Edge Function Response:", { data, error });
 
-                              if (error) {
+                                    if (error) {
+        // Direct error logging for debugging
+        console.log("🔍 DIRECT ERROR LOG - Type:", typeof error);
+        console.log("🔍 DIRECT ERROR LOG - Constructor:", error?.constructor?.name);
+        console.log("🔍 DIRECT ERROR LOG - Raw:", error);
+        console.log("🔍 DIRECT ERROR LOG - Message:", error?.message);
+        console.log("🔍 DIRECT ERROR LOG - Details:", error?.details);
+        console.log("🔍 DIRECT ERROR LOG - Stringified:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+
         const errorDetails = logError("Edge Function Error", error, {
           requestBody,
           orderSummary: orderSummary.book.id
@@ -995,7 +1003,7 @@ Time: ${new Date().toISOString()}
           <div className="text-sm text-gray-600 space-y-2">
             <p>• Payment will be processed immediately</p>
             <p>• You'll receive an email confirmation</p>
-            <p>• Seller will be notified to prepare shipment</p>
+            <p>��� Seller will be notified to prepare shipment</p>
             <p>• You can track your order in your account</p>
           </div>
         </CardContent>
