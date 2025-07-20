@@ -128,8 +128,23 @@ export class EdgeFunctionDebugger {
         url,
         headers: responseHeaders,
       };
-    } catch (error) {
+        } catch (error) {
       const timing = performance.now() - startTime;
+
+      // Handle different types of errors more specifically
+      if (error.name === "AbortError") {
+        return {
+          functionName,
+          status: "timeout",
+          error: {
+            message: "Function call timed out after 10 seconds",
+            name: "AbortError",
+            details: "The function may be taking too long to respond or may not be deployed",
+          },
+          timing,
+          url,
+        };
+      }
 
       if (error.name === "TypeError" && error.message.includes("fetch")) {
         return {
