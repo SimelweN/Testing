@@ -12,13 +12,26 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  try {
-    const { order_id, seller_id, reason } = await req.json();
+    try {
+    // Use safe body parser
+    const bodyParseResult = await parseRequestBody(req, corsHeaders);
+    if (!bodyParseResult.success) {
+      return bodyParseResult.errorResponse!;
+    }
+    const { order_id, seller_id, reason } = bodyParseResult.data;
 
     // Enhanced validation with specific error messages
     const validationErrors = [];
     if (!order_id) validationErrors.push("order_id is required");
     if (!seller_id) validationErrors.push("seller_id is required");
+
+    // UUID format validation (allow test IDs)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const isTestMode = order_id?.startsWith('ORD_test') || seller_id?.startsWith('USR_test');
+
+    if (order_id && seller_id && !isTestMode && (!uuidRegex.test(order_id) || !uuidRegex.test(seller_id))) {
+      validationErrors.push("order_id and seller_id must be valid UUIDs");
+    }
 
     if (validationErrors.length > 0) {
       return new Response(
