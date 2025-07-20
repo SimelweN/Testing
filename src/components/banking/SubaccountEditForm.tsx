@@ -307,8 +307,9 @@ const SubaccountEditForm: React.FC<SubaccountEditFormProps> = ({
           errorMessage =
             "Network error. Please check your internet connection and try again.";
         } else if (msg.includes("validation") || msg.includes("invalid")) {
-          errorMessage =
-            "Please check your details and try again. " + error.message;
+                    const errorMsg = error?.message || String(error) || 'Details validation failed';
+          const safeMsg = errorMsg === '[object Object]' ? 'Details validation failed' : errorMsg;
+          errorMessage = `Please check your details and try again. ${safeMsg}`;
         } else if (error.message && error.message.length > 0) {
           errorMessage = error.message;
         }
