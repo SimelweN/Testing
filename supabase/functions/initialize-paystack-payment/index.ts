@@ -144,24 +144,18 @@ serve(async (req) => {
     if (!total_amount) missingFields.push("total_amount");
     if (!email) missingFields.push("email");
 
-    if (missingFields.length > 0) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "MISSING_REQUIRED_FIELDS",
-          details: {
-            missing_fields: missingFields,
-            provided_fields: Object.keys(requestBody || {}),
-            message: "Required fields are missing for payment initialization",
-          },
-          fix_instructions:
-            "Provide all required fields: user_id, items, total_amount, email",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        if (missingFields.length > 0) {
+      return jsonResponse({
+        success: false,
+        error: "MISSING_REQUIRED_FIELDS",
+        details: {
+          missing_fields: missingFields,
+          provided_fields: Object.keys(requestBody || {}),
+          message: "Required fields are missing for payment initialization",
         },
-      );
+        fix_instructions:
+          "Provide all required fields: user_id, items, total_amount, email",
+      }, { status: 400 });
     }
 
     // Validate field formats
