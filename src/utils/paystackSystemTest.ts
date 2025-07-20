@@ -356,7 +356,7 @@ export class PaystackSystemTester {
         this.addResult(
           "Paystack API",
           "error",
-          `Paystack API test failed - Exact response: ${JSON.stringify(result)}`,
+          `Paystack API test failed - Response: ${JSON.stringify(result)} | Keys: ${result ? Object.keys(result).join(", ") : "none"} | Error: ${result?.error || result?.message || "No error provided"}`,
           {
             actual_response: result,
             expected_fields: ["success", "service"],
@@ -368,10 +368,19 @@ export class PaystackSystemTester {
         );
       }
     } catch (error) {
+      const errorDetails = {
+        message: error.message,
+        status: error.status || error.statusCode || "unknown",
+        statusText: error.statusText || "unknown",
+        name: error.name || "unknown",
+        stack: error.stack ? error.stack.split("\n")[0] : "no stack",
+      };
+
       this.addResult(
         "Paystack API",
         "error",
-        `Paystack API connectivity failed: ${error.message}`,
+        `Paystack API connectivity failed: ${error.message} | Status: ${errorDetails.status} | Name: ${errorDetails.name} | Details: ${JSON.stringify(errorDetails)}`,
+        errorDetails,
       );
     }
   }
