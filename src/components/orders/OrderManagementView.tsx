@@ -79,16 +79,30 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
 
       const { data, error } = await query;
 
-      if (error) {
-        console.error("Error fetching orders:", error);
-        toast.error("Failed to load orders");
+            if (error) {
+        console.error("Error fetching orders:", {
+          error: error,
+          errorMessage: error?.message || 'No message available',
+          errorCode: error?.code || 'No code available',
+          errorDetails: error?.details || 'No details available',
+          errorHint: error?.hint || 'No hint available',
+          fullError: JSON.stringify(error, Object.getOwnPropertyNames(error), 2)
+        });
+        const errorMsg = error?.message || error?.details || 'Failed to load orders';
+        toast.error(errorMsg);
         return;
       }
 
       setOrders(data || []);
     } catch (error) {
-      console.error("Error fetching orders:", error);
-      toast.error("Failed to load orders");
+      console.error("Error fetching orders (catch block):", {
+        error: error,
+        errorMessage: error?.message || 'No message available',
+        errorType: typeof error,
+        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error), 2)
+      });
+      const errorMsg = error?.message || 'Failed to load orders';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
