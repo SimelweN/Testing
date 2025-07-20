@@ -38,6 +38,12 @@ const isDevelopmentError = (message: string, stack?: string): boolean => {
   return DEVELOPMENT_SERVICES.some((service) => fullText.includes(service));
 };
 
+// Check if an error is from Google Maps retry logic
+const isGoogleMapsRetryError = (message: string): boolean => {
+  const msg = message.toLowerCase();
+  return GOOGLE_MAPS_RETRY_PATTERNS.some((pattern) => msg.includes(pattern));
+};
+
 // Override fetch to provide better error handling
 const originalFetch = window.fetch;
 window.fetch = async function (...args) {
