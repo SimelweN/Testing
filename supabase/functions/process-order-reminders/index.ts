@@ -26,8 +26,8 @@ serve(async (req) => {
       .select(
         `
         *,
-        seller:profiles!orders_seller_id_fkey(id, name, email, phone),
-        buyer:profiles!orders_buyer_id_fkey(id, name, email)
+                seller:profiles!seller_id(id, name, email, phone),
+        buyer:profiles!buyer_id(id, name, email)
       `,
       )
       .eq("status", "pending_commit")
@@ -168,7 +168,7 @@ serve(async (req) => {
     </div>
 
     <div class="order-details">
-      <h3>📋 Order Details</h3>
+      <h3>�� Order Details</h3>
       <p><strong>Order ID:</strong> #${order.id}</p>
       <p><strong>Buyer:</strong> ${order.buyer.name}</p>
       <p><strong>Total Amount:</strong> R${order.total_amount.toFixed(2)}</p>
