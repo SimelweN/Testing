@@ -51,7 +51,7 @@ serve(async (req) => {
       .eq("status", "pending_commit")
       .single();
 
-    if (orderError || !order) {
+        if (orderError || !order) {
       return new Response(
         JSON.stringify({
           success: false,
@@ -62,6 +62,21 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
+    }
+
+    // Ensure order.items is properly parsed if it's stored as JSONB
+    if (order.items && typeof order.items === 'string') {
+      try {
+        order.items = JSON.parse(order.items);
+      } catch (parseError) {
+        console.warn("Failed to parse order.items:", parseError);
+        order.items = [];
+      }
+    }
+
+    // Ensure items is an array
+    if (!Array.isArray(order.items)) {
+      order.items = [];
     }
 
     // Get buyer and seller profiles separately for safety
