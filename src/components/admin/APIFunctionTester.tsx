@@ -194,15 +194,143 @@ export default function APIFunctionTester() {
   const [loadingRealData, setLoadingRealData] = useState(false);
   const [useRealData, setUseRealData] = useState(false);
 
+    const fetchRealData = async () => {
+    setLoadingRealData(true);
+    try {
+      // Fetch real users (profiles)
+      const { data: users } = await supabase
+        .from('profiles')
+        .select('*')
+        .limit(5);
+
+      // Fetch real orders
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('*')
+        .limit(5);
+
+      // Fetch real books
+      const { data: books } = await supabase
+        .from('books')
+        .select('*')
+        .limit(5);
+
+      // Fetch real transactions
+      const { data: transactions } = await supabase
+        .from('payment_transactions')
+        .select('*')
+        .limit(5);
+
+      setRealData({
+        users: users || [],
+        orders: orders || [],
+        books: books || [],
+        transactions: transactions || []
+      });
+
+      toast.success("Real data loaded successfully");
+    } catch (error: any) {
+      toast.error(`Failed to load real data: ${error.message}`);
+    } finally {
+      setLoadingRealData(false);
+    }
+  };
+
+  const generateRealisticPayload = (endpoint: APIEndpoint) => {
+    if (!useRealData || realData.users.length === 0) {
+      return endpoint.samplePayload;
+    }
+
+    const realUser = realData.users[0];
+    const realOrder = realData.orders[0];
+    const realBook = realData.books[0];
+    const realTransaction = realData.transactions[0];
+
+    switch (endpoint.name) {
+      case "Create Order":
+        return {
+          user_id: realUser.id,
+          items: realBook ? [{
+            book_id: realBook.id,
+            seller_id: realBook.seller_id,
+            price: realBook.price || 150,
+            title: realBook.title || "Real Book"
+          }] : endpoint.samplePayload.items,
+          total_amount: realBook?.price || 150,
+          shipping_address: {
+            street: "123 Real Test St",
+            city: "Cape Town",
+            province: "Western Cape",
+            postal_code: "8001"
+          },
+          payment_reference: "PAY_" + Date.now()
+        };
+
+      case "Initialize Paystack Payment":
+        return {
+          user_id: realUser.id,
+          email: realUser.email,
+          total_amount: realBook?.price || 150,
+          items: realBook ? [{
+            book_id: realBook.id,
+            seller_id: realBook.seller_id,
+            price: realBook.price || 150
+          }] : endpoint.samplePayload.items,
+          shipping_address: { street: "123 Real Test St", city: "Cape Town" }
+        };
+
+      case "Mark Order Collected":
+      case "Pay Seller":
+        return {
+          order_id: realOrder?.id || "ORD_test_" + Date.now(),
+          collection_notes: "Test collection/payment"
+        };
+
+      case "Process Refund":
+        return {
+          transaction_id: realTransaction?.id || "TXN_test_" + Date.now(),
+          reason: "Test refund",
+          amount: 150
+        };
+
+      case "Process Multi-Seller Purchase":
+        return {
+          payment_reference: realTransaction?.reference || "PAY_test_" + Date.now(),
+          user_id: realUser.id
+        };
+
+      case "Create Paystack Subaccount":
+        return {
+          user_id: realUser.id,
+          business_name: `${realUser.name || 'Test'} Books`,
+          bank_code: "044",
+          account_number: "0123456789",
+          percentage_charge: 0.5
+        };
+
+      default:
+        return endpoint.samplePayload;
+    }
+  };
+
   const handleEndpointChange = (endpointName: string) => {
     const endpoint = apiEndpoints.find(e => e.name === endpointName);
     if (endpoint) {
       setSelectedEndpoint(endpoint);
-      setRequestBody(JSON.stringify(endpoint.samplePayload, null, 2));
+      const payload = generateRealisticPayload(endpoint);
+      setRequestBody(JSON.stringify(payload, null, 2));
       setResponse(null);
       setError("");
     }
   };
+
+  // Auto-update payload when useRealData changes
+  useEffect(() => {
+    if (selectedEndpoint) {
+      const payload = generateRealisticPayload(selectedEndpoint);
+      setRequestBody(JSON.stringify(payload, null, 2));
+    }
+  }, [useRealData, realData]);
 
   const testFunction = async () => {
     setLoading(true);
