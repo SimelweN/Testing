@@ -60,25 +60,19 @@ serve(async (req) => {
     }
 
     // Validate request method for non-health endpoints
-    if (req.method !== "POST") {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "METHOD_NOT_ALLOWED",
-          details: {
-            provided_method: req.method,
-            required_method: "POST",
-            message:
-              "Payment initialization endpoint only accepts POST requests",
-          },
-          fix_instructions:
-            "Send payment initialization requests using POST method only",
-        }),
-        {
-          status: 405,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        if (req.method !== "POST") {
+      return jsonResponse({
+        success: false,
+        error: "METHOD_NOT_ALLOWED",
+        details: {
+          provided_method: req.method,
+          required_method: "POST",
+          message:
+            "Payment initialization endpoint only accepts POST requests",
         },
-      );
+        fix_instructions:
+          "Send payment initialization requests using POST method only",
+      }, { status: 405 });
     }
 
     // Parse request body if not already parsed
