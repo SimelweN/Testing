@@ -87,12 +87,14 @@ export default function EdgeFunctionDebugPanel() {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+    const getStatusIcon = (status: string) => {
     switch (status) {
       case "success":
         return <CheckCircle className="h-4 w-4 text-green-500" />;
       case "error":
         return <AlertCircle className="h-4 w-4 text-red-500" />;
+      case "network_error":
+        return <WifiOff className="h-4 w-4 text-red-600" />;
       case "not_found":
         return <Search className="h-4 w-4 text-orange-500" />;
       case "timeout":
@@ -106,6 +108,7 @@ export default function EdgeFunctionDebugPanel() {
     const variants = {
       success: "default",
       error: "destructive",
+      network_error: "destructive",
       not_found: "secondary",
       timeout: "outline",
     } as const;
