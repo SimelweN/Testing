@@ -86,15 +86,15 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
   const shouldLoadMaps =
     isValidApiKey && !import.meta.env.VITE_DISABLE_GOOGLE_MAPS;
 
-  // Completely disable loading for now to stop retry messages
-  const { isLoaded, loadError } = shouldLoadMaps
-    ? useJsApiLoader({
-        id: "google-map-script",
-        googleMapsApiKey: apiKey,
-        libraries,
-        preventGoogleFontsLoading: true,
-      })
-    : { isLoaded: false, loadError: new Error("Google Maps disabled") };
+  // Temporarily disable Google Maps completely to stop retry messages
+  // TODO: Re-enable once Google Maps API issues are resolved
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: "", // Empty string to prevent loading
+    libraries,
+    preventGoogleFontsLoading: true,
+    loadingElement: null, // Prevent loading
+  });
 
   const value: GoogleMapsContextType = {
     isLoaded: shouldLoadMaps ? isLoaded : false,
