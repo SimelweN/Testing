@@ -435,13 +435,56 @@ export default function APIFunctionTester() {
 
   return (
     <div className="space-y-6">
-            <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center gap-2 mb-4">
         <Code className="h-5 w-5 text-yellow-600" />
         <h3 className="text-lg font-semibold">API Function Tester</h3>
         <Badge variant="outline" className="ml-auto">
           {apiEndpoints.length} Functions
         </Badge>
       </div>
+
+      {/* Real Data Controls */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Database className="h-4 w-4 text-blue-600" />
+              <CardTitle className="text-base">Data Source</CardTitle>
+              <Badge variant={useRealData ? "default" : "secondary"}>
+                {useRealData ? "Real Database Data" : "Mock Test Data"}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={fetchRealData}
+                disabled={loadingRealData}
+                variant="outline"
+                size="sm"
+                className="border-blue-300"
+              >
+                <RefreshCw className={`h-3 w-3 mr-2 ${loadingRealData ? 'animate-spin' : ''}`} />
+                Load Real Data
+              </Button>
+              <Button
+                onClick={() => setUseRealData(!useRealData)}
+                disabled={realData.users.length === 0}
+                variant={useRealData ? "default" : "outline"}
+                size="sm"
+              >
+                {useRealData ? "Using Real Data" : "Use Real Data"}
+              </Button>
+            </div>
+          </div>
+          {realData.users.length > 0 && (
+            <div className="flex gap-4 text-xs text-blue-700">
+              <span>{realData.users.length} Users</span>
+              <span>{realData.orders.length} Orders</span>
+              <span>{realData.books.length} Books</span>
+              <span>{realData.transactions.length} Transactions</span>
+            </div>
+          )}
+        </CardHeader>
+      </Card>
 
       {/* Test All Section */}
       <Card className="border-2 border-dashed border-yellow-200 bg-yellow-50">
