@@ -84,9 +84,9 @@ serve(async (req) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
         },
-        body: JSON.stringify({
+                body: JSON.stringify({
           order_id: order_id,
-          seller_address: order.shipping_address || order.delivery_address,
+          seller_address: seller?.pickup_address || null,
           buyer_address: order.shipping_address || order.delivery_address,
           weight:
             (order.items || []).reduce(
