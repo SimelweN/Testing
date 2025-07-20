@@ -39,15 +39,35 @@ window.fetch = async function (...args) {
     const response = await originalFetch.apply(this, args);
     return response;
   } catch (error) {
+    const errorMessage = error?.message || error?.toString() || "";
+    const errorStack = error?.stack || "";
+
     // For third-party services, fail silently but log in development
     if (isThirdPartyError(url)) {
       if (import.meta.env.DEV) {
         console.debug(`Third-party service unavailable: ${url}`, error);
       }
-      // Return a successful empty response to prevent application errors
       return new Response("{}", {
         status: 200,
         statusText: "Service Unavailable",
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // For Vite development client errors, handle gracefully
+    if (
+      isDevelopmentError(errorMessage, errorStack) ||
+      isDevelopmentError(url)
+    ) {
+      if (import.meta.env.DEV) {
+        console.debug(
+          `Development server connection issue: ${url}`,
+          errorMessage,
+        );
+      }
+      return new Response("{}", {
+        status: 200,
+        statusText: "Development Server Unavailable",
         headers: { "Content-Type": "application/json" },
       });
     }
