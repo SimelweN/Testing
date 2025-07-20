@@ -511,7 +511,7 @@ serve(async (req) => {
             to: seller.email,
             subject: "📚 New Order - Action Required (48 hours)",
             html: sellerHtml,
-            text: `New Order - Action Required!\n\nHi ${seller.name}!\n\nGreat news! You have a new order from ${buyer.name}.\n\nOrder Details:\n- Order ID: ${orderId}\n- Book: ${book.title}\n- Author: ${book.author}\n- Buyer: ${buyer.name} (${email})\n- Total Amount: R${orderData.total_amount.toFixed(2)}\n\n⏰ Action Required Within 48 Hours\nExpires: ${new Date(orderData.expires_at).toLocaleString()}\n\nYou must commit to this order within 48 hours or it will be automatically cancelled.\n\nCommit to order: https://rebookedsolutions.co.za/activity\n\nReBooked Solutions`,
+                        text: `New Order - Action Required!\n\nHi ${seller.name}!\n\nGreat news! You have a new order from ${buyer.name}.\n\nOrder Details:\n- Order ID: ${order.id}\n- Book: ${book.title}\n- Author: ${book.author}\n- Buyer: ${buyer.name} (${email})\n- Total Amount: R${(orderData.amount / 100).toFixed(2)}\n\n⏰ Action Required Within 48 Hours\nExpires: ${new Date(orderData.metadata.expires_at).toLocaleString()}\n\nYou must commit to this order within 48 hours or it will be automatically cancelled.\n\nCommit to order: https://rebookedsolutions.co.za/activity\n\nReBooked Solutions`,
           }),
         })
           .then(() => {
