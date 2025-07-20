@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import {
   Package,
   Clock,
@@ -24,17 +24,13 @@ import { logError, getUserFriendlyErrorMessage } from "@/utils/errorLogging";
 import { runOrdersTableDiagnostics } from "@/utils/testOrdersTable";
 import { debugOrdersError, runComprehensiveDiagnostics } from "@/utils/databaseDiagnostics";
 
-interface OrderManagementViewProps {
-  initialFilter?: "all" | "pending" | "active" | "completed" | "cancelled";
-}
+interface OrderManagementViewProps {}
 
-const OrderManagementView: React.FC<OrderManagementViewProps> = ({
-  initialFilter = "all",
-}) => {
+const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState(initialFilter);
+  
 
   useEffect(() => {
     if (user) {
