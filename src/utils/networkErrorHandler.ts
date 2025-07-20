@@ -52,6 +52,15 @@ const originalFetch = window.fetch;
 window.fetch = async function (...args) {
   const url = args[0]?.toString() || "";
 
+  // Only intercept known problematic URLs to avoid interfering with normal requests
+  const isKnownProblematicUrl =
+    isThirdPartyError(url) || (import.meta.env.DEV && isDevelopmentError(url));
+
+  if (!isKnownProblematicUrl) {
+    // For all other requests, just pass through without any error handling
+    return originalFetch.apply(this, args);
+  }
+
   try {
     const response = await originalFetch.apply(this, args);
     return response;
