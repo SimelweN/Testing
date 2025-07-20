@@ -139,18 +139,51 @@ export class EdgeFunctionDebugger {
         url,
         headers: responseHeaders,
       };
-        } catch (error) {
+                } catch (error: any) {
       const timing = performance.now() - startTime;
 
       // Handle different types of errors more specifically
-      if (error.name === "AbortError") {
+      if (error.name === "AbortError" || error.message === "Request timeout") {
         return {
           functionName,
           status: "timeout",
           error: {
-            message: "Function call timed out after 10 seconds",
-            name: "AbortError",
-            details: "The function may be taking too long to respond or may not be deployed",
+            message: "Function call timed out after 8 seconds",
+            name: "TimeoutError",
+            details: "The function may be taking too long to respond, not be deployed, or have connectivity issues",
+            possibleCauses: [
+              "Function not deployed to Supabase",
+              "Function is cold starting and taking too long",
+              "Network connectivity issues",
+              "Function has infinite loop or hanging operation"
+            ]
+          },
+          timing,
+          url,
+        };
+      }
+
+      if (error.name === "TypeError" && error.message.includes("Failed to fetch")) {
+        return {
+          functionName,
+          status: "network_error",
+          error: {
+            message: "Network request failed - likely CORS or connectivity issue",
+            name: "NetworkError",
+            details: "Unable to reach the Supabase Edge Function endpoint",
+            possibleCauses: [
+              "Function not deployed to Supabase",
+              "CORS configuration issue",
+              "Invalid Supabase URL or credentials",
+              "Network firewall blocking requests",
+              "Supabase project is paused or has issues"
+            ],
+            troubleshooting: [
+              "Check if function is deployed: supabase functions list",
+              "Verify Supabase URL is correct",
+              "Test function directly in Supabase dashboard",
+              "Check browser network tab for specific error"
+            ]
           },
           timing,
           url,
