@@ -369,7 +369,108 @@ export default function APIFunctionTester() {
     }
   };
 
-        const testSingleFunction = async (endpoint: APIEndpoint, payload?: any): Promise<TestResult> => {
+          const generateMockResponse = (endpoint: APIEndpoint): TestResult => {
+    // Generate realistic mock responses for each endpoint
+    const mockResponses: Record<string, any> = {
+      "Create Order": {
+        success: true,
+        orders: [{
+          id: "ORD_" + Date.now(),
+          buyer_id: "user-123",
+          seller_id: "seller-456",
+          status: "pending_commit",
+          total_amount: 150,
+          created_at: new Date().toISOString()
+        }],
+        message: "Created 1 order(s) successfully"
+      },
+      "Initialize Paystack Payment": {
+        success: true,
+        data: {
+          authorization_url: "https://checkout.paystack.com/mock-session",
+          reference: "PSK_" + Date.now(),
+          access_code: "mock_access_code"
+        }
+      },
+      "Verify Paystack Payment": {
+        success: true,
+        data: {
+          reference: "PSK_verified",
+          amount: 15000,
+          status: "success",
+          gateway_response: "Successful"
+        }
+      },
+      "Create Paystack Subaccount": {
+        success: true,
+        data: {
+          subaccount_code: "ACCT_mock_" + Date.now(),
+          business_name: "Mock Business",
+          account_number: "0123456789"
+        }
+      },
+      "Mark Order Collected": {
+        success: true,
+        message: "Order marked as collected successfully",
+        order_id: "ORD_collected_" + Date.now()
+      },
+      "Pay Seller": {
+        success: true,
+        message: "Payment processed successfully",
+        payment_reference: "PAY_" + Date.now()
+      },
+      "Process Refund": {
+        success: true,
+        message: "Refund processed successfully",
+        refund_reference: "REF_" + Date.now()
+      },
+      "Auto Expire Commits": {
+        success: true,
+        expired_orders: 3,
+        message: "Processed 3 expired orders"
+      },
+      "Check Expired Orders": {
+        success: true,
+        expired_orders: [{
+          id: "ORD_exp_" + Date.now(),
+          status: "expired"
+        }],
+        count: 1
+      },
+      "Process Multi-Seller Purchase": {
+        success: true,
+        orders_created: 2,
+        message: "Multi-seller purchase processed"
+      },
+      "Paystack Webhook": {
+        success: true,
+        event: "charge.success",
+        message: "Webhook processed successfully"
+      },
+      "Paystack Split Management": {
+        success: true,
+        split_code: "SPL_mock_" + Date.now(),
+        message: "Split payment configuration created"
+      }
+    };
+
+    return {
+      endpoint: endpoint.name,
+      status: 200,
+      statusText: "OK (Mock)",
+      data: mockResponses[endpoint.name] || { success: true, message: "Mock response" },
+      success: true
+    };
+  };
+
+  const testSingleFunction = async (endpoint: APIEndpoint, payload?: any): Promise<TestResult> => {
+    // If mock mode is enabled, return mock response immediately
+    if (useMockMode) {
+      // Add a small delay to simulate network request
+      await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200));
+      return generateMockResponse(endpoint);
+    }
+
     try {
       const body = payload || endpoint.samplePayload;
 
