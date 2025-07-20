@@ -72,7 +72,7 @@ serve(async (req) => {
           error: "VALIDATION_FAILED",
           details: {
             validation_errors: validationErrors,
-                        provided_fields: Object.keys({ fromAddress, toAddress, weight, dimensions }),
+                                    provided_fields: Object.keys({ fromAddress, toAddress, weight }),
             message: `Validation failed: ${validationErrors.join(", ")}`,
             required_format: {
               fromAddress: {
@@ -139,10 +139,10 @@ serve(async (req) => {
         });
       }
     } catch (error) {
-      console.error("Courier Guy API error:", error);
-      providerErrors.push({
+            console.error("Courier Guy API error:", error?.message || error);
+            providerErrors.push({
         provider: "courier-guy",
-        error: error.message,
+        error: error?.message || String(error),
         fallback_used: true,
       });
       // Add fallback quote
@@ -175,10 +175,10 @@ serve(async (req) => {
         });
       }
     } catch (error) {
-      console.error("Fastway API error:", error);
-      providerErrors.push({
+            console.error("Fastway API error:", error?.message || error);
+            providerErrors.push({
         provider: "fastway",
-        error: error.message,
+        error: error?.message || String(error),
         fallback_used: true,
       });
       // Add fallback quote
@@ -214,16 +214,16 @@ serve(async (req) => {
       },
     );
   } catch (error) {
-    console.error("Error in get-delivery-quotes:", error);
+        console.error("Error in get-delivery-quotes:", error?.message || error);
 
     return new Response(
       JSON.stringify({
         success: false,
         error: "UNEXPECTED_ERROR",
-        details: {
-          error_message: error.message,
-          error_stack: error.stack,
-          error_type: error.constructor.name,
+                details: {
+          error_message: error?.message || String(error),
+          error_stack: error?.stack || 'No stack trace available',
+          error_type: error?.constructor?.name || 'Unknown',
           timestamp: new Date().toISOString(),
         },
         fix_instructions:
