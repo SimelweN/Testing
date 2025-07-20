@@ -592,6 +592,62 @@ export type Database = {
             referencedRelation: "orders";
             referencedColumns: ["id"];
           }
+                ];
+      };
+      refund_transactions: {
+        Row: {
+          id: string;
+          order_id: string | null;
+          payment_reference: string;
+          refund_reference: string | null;
+          amount: number; // in kobo
+          reason: string | null;
+          status: string; // 'pending' | 'processing' | 'success' | 'failed'
+          gateway_response: Json | null;
+          initiated_by: string | null;
+          initiated_at: string;
+          processed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          order_id?: string | null;
+          payment_reference: string;
+          refund_reference?: string | null;
+          amount: number;
+          reason?: string | null;
+          status?: string;
+          gateway_response?: Json | null;
+          initiated_by?: string | null;
+          initiated_at?: string;
+          processed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          order_id?: string | null;
+          payment_reference?: string;
+          refund_reference?: string | null;
+          amount?: number;
+          reason?: string | null;
+          status?: string;
+          gateway_response?: Json | null;
+          initiated_by?: string | null;
+          initiated_at?: string;
+          processed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "refund_transactions_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          }
         ];
       };
       orders: {
