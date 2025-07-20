@@ -381,12 +381,19 @@ const AdminDashboard = () => {
       color: "text-yellow-600",
       description: "Test API folder functions",
     },
-    {
+        {
       value: "network-debug",
       label: "Network Debug",
       icon: Wifi,
       color: "text-blue-600",
       description: "Debug connectivity issues",
+    },
+    {
+      value: "env-debug",
+      label: "Environment Debug",
+      icon: Settings,
+      color: "text-gray-600",
+      description: "Check environment variables",
     },
     {
       value: "emails",
