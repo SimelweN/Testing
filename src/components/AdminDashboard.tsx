@@ -35,6 +35,7 @@ import PaystackEdgeFunctionDiagnostic from "@/components/admin/PaystackEdgeFunct
 import DatabaseTableTester from "@/components/admin/DatabaseTableTester";
 import DemoDataGenerator from "@/components/admin/DemoDataGenerator";
 import EdgeFunctionTester from "@/components/admin/EdgeFunctionTester";
+import EdgeFunctionDebugPanel from "@/components/admin/EdgeFunctionDebugPanel";
 import PaystackSplitManagement from "@/components/admin/PaystackSplitManagement";
 import PaystackTransferManagement from "@/components/admin/PaystackTransferManagement";
 import PaystackSystemTestComponent from "@/components/admin/PaystackSystemTestComponent";
