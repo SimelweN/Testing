@@ -73,26 +73,32 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         throw new Error("User authentication error");
       }
 
-      // Call the process-book-purchase function to finalize the order
+            // Call the process-book-purchase function to finalize the order
+      const requestBody = {
+        user_id: userId,
+        book_id: orderSummary.book.id,
+        email: userData.user.email,
+        shipping_address: orderSummary.buyer_address,
+        payment_reference: paystackResponse.reference,
+        total_amount: orderSummary.total_price,
+        delivery_details: {
+          method: orderSummary.delivery.service_name,
+          courier: orderSummary.delivery.courier,
+          price: orderSummary.delivery_price,
+          estimated_days: orderSummary.delivery.estimated_days,
+        },
+      };
+
+      console.log("🔍 Calling process-book-purchase with:", requestBody);
+
       const { data, error } = await supabase.functions.invoke(
         "process-book-purchase",
         {
-          body: {
-            user_id: userId,
-            book_id: orderSummary.book.id,
-            email: userData.user.email,
-            shipping_address: orderSummary.buyer_address,
-            payment_reference: paystackResponse.reference,
-            total_amount: orderSummary.total_price,
-            delivery_details: {
-              method: orderSummary.delivery.service_name,
-              courier: orderSummary.delivery.courier,
-              price: orderSummary.delivery_price,
-              estimated_days: orderSummary.delivery.estimated_days,
-            },
-          },
+          body: requestBody,
         },
       );
+
+      console.log("📦 Raw Edge Function Response:", { data, error });
 
             if (error) {
         console.error("❌ Edge Function Error Details:", {
