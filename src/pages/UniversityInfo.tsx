@@ -117,7 +117,9 @@ const UniversityInfo = () => {
       );
     } catch (error) {
       console.error("Error finding university:", error);
-      setError(`Error processing university data: ${error}`);
+            const errorMsg = error?.message || String(error) || 'University data processing failed';
+      const safeMsg = errorMsg === '[object Object]' ? 'University data processing failed' : errorMsg;
+      setError(`Error processing university data: ${safeMsg}`);
       return null;
     }
   }, [selectedUniversityId]);
