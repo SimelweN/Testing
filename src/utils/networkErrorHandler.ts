@@ -73,6 +73,11 @@ const originalFetch = window.fetch;
 window.fetch = async function (...args) {
   const url = args[0]?.toString() || "";
 
+  // Never intercept Supabase URLs
+  if (isSupabaseUrl(url)) {
+    return originalFetch.apply(this, args);
+  }
+
   // Only intercept known problematic URLs to avoid interfering with normal requests
   const isKnownProblematicUrl =
     isThirdPartyError(url) || (import.meta.env.DEV && isDevelopmentError(url));
