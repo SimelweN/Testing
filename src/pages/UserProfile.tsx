@@ -147,12 +147,21 @@ const UserProfile = () => {
           />
         </div>
 
-        {/* Active Listings */}
+                {/* Active Listings */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg md:text-xl lg:text-2xl">
               Active Listings ({userBooks.length})
             </CardTitle>
+            <Button
+              onClick={handleShareProfile}
+              variant="outline"
+              size="sm"
+              className="bg-book-50 border-book-200 text-book-700 hover:bg-book-100"
+            >
+              <Share2 className="h-4 w-4 mr-2" />
+              Share Page
+            </Button>
           </CardHeader>
           <CardContent>
             {userBooks.length === 0 ? (
