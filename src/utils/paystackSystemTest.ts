@@ -280,7 +280,17 @@ export class PaystackSystemTester {
           const { data, error } = await supabase.functions.invoke(funcName, {
             body: { health: true },
           });
-          if (error) throw error;
+
+          // Enhanced error details
+          if (error) {
+            const enhancedError = {
+              ...error,
+              functionName: funcName,
+              context: "health_check",
+              timestamp: new Date().toISOString(),
+            };
+            throw enhancedError;
+          }
           return data;
         });
 
