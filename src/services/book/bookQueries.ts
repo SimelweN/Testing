@@ -13,6 +13,7 @@ import {
 } from "@/utils/errorUtils";
 import { safeLogError } from "@/utils/errorHandling";
 import { retryWithConnection } from "@/utils/connectionHealthCheck";
+import { getFallbackBooks } from "@/utils/fallbackBooksData";
 
 // Circuit breaker to prevent error spam
 let bookQueryErrorCount = 0;
@@ -66,80 +67,165 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
   try {
     console.log("Fetching books with filters:", filters);
 
-    const fetchBooksOperation = async () => {
-      // First get books
-      let query = supabase
-        .from("books")
-        .select("*")
-        .eq("sold", false)
-        .order("created_at", { ascending: false });
+        const fetchBooksOperation = async (retryCount = 0): Promise<any[]> => {
+      try {
+        // First get books
+        let query = supabase
+          .from("books")
+          .select("*")
+          .eq("sold", false)
+          .order("created_at", { ascending: false });
 
-      // Apply filters if provided
-      if (filters) {
-        if (filters.search) {
-          query = query.or(
-            `title.ilike.%${filters.search}%,author.ilike.%${filters.search}%`,
+        // Apply filters if provided
+        if (filters) {
+          if (filters.search) {
+            query = query.or(
+              `title.ilike.%${filters.search}%,author.ilike.%${filters.search}%`,
+            );
+          }
+          if (filters.category) {
+            query = query.eq("category", filters.category);
+          }
+          if (filters.condition) {
+            query = query.eq("condition", filters.condition);
+          }
+          if (filters.grade) {
+            query = query.eq("grade", filters.grade);
+          }
+          if (filters.universityYear) {
+            query = query.eq("university_year", filters.universityYear);
+          }
+          if (filters.university) {
+            query = query.eq("university", filters.university);
+          }
+          if (filters.minPrice !== undefined) {
+            query = query.gte("price", filters.minPrice);
+          }
+          if (filters.maxPrice !== undefined) {
+            query = query.lte("price", filters.maxPrice);
+          }
+        }
+
+        const { data: booksData, error: booksError } = await query;
+
+        if (booksError) {
+          logDetailedError("Books query failed", {
+            error: booksError,
+            retryCount,
+            filters,
+            timestamp: new Date().toISOString()
+          });
+
+          // If it's a connection error and we haven't retried too many times, try again
+          if (retryCount < 3 && (
+            booksError.message?.includes('fetch') ||
+            booksError.message?.includes('network') ||
+            booksError.message?.includes('Failed to fetch') ||
+            booksError.message?.includes('timeout')
+          )) {
+            console.log(`Retrying books query (attempt ${retryCount + 1}/4)...`);
+            await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
+            return fetchBooksOperation(retryCount + 1);
+          }
+
+          throw new Error(
+            `Failed to fetch books after ${retryCount + 1} attempts: ${booksError.message || "Unknown database error"}`,
           );
         }
-        if (filters.category) {
-          query = query.eq("category", filters.category);
-        }
-        if (filters.condition) {
-          query = query.eq("condition", filters.condition);
-        }
-        if (filters.grade) {
-          query = query.eq("grade", filters.grade);
-        }
-        if (filters.universityYear) {
-          query = query.eq("university_year", filters.universityYear);
-        }
-        if (filters.university) {
-          query = query.eq("university", filters.university);
-        }
-        if (filters.minPrice !== undefined) {
-          query = query.gte("price", filters.minPrice);
-        }
-        if (filters.maxPrice !== undefined) {
-          query = query.lte("price", filters.maxPrice);
-        }
-      }
 
-      const { data: booksData, error: booksError } = await query;
+        if (!booksData) {
+          console.warn("Books query returned null data");
+          return [];
+        }
 
-      if (booksError) {
-        logDetailedError("Books query failed", booksError);
-        throw new Error(
-          `Failed to fetch books: ${booksError.message || "Unknown database error"}`,
-        );
-      }
+        console.log(`Successfully fetched ${booksData.length} books`);
+        return booksData;
+      } catch (networkError) {
+        logDetailedError("Network exception in books query", {
+          error: networkError,
+          retryCount,
+          filters,
+          timestamp: new Date().toISOString()
+        });
 
-      if (!booksData || booksData.length === 0) {
-        console.log("No books found");
-        return [];
-      }
+        // If it's a network error and we haven't retried too many times, try again
+        if (retryCount < 3) {
+          console.log(`Retrying books query after network exception (attempt ${retryCount + 1}/4)...`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+          return fetchBooksOperation(retryCount + 1);
+        }
 
-      // Get unique seller IDs
-      const sellerIds = [...new Set(booksData.map((book) => book.seller_id))];
+        throw networkError;
+            }
+    };
+
+    // Execute the books query with retry logic
+    const booksData = await fetchBooksOperation();
+
+    if (!booksData || booksData.length === 0) {
+      console.log("No books found");
+      return [];
+    }
+
+    // Get unique seller IDs
+    const sellerIds = [...new Set(booksData.map((book) => book.seller_id))];
 
       // Fetch seller profiles separately with error handling
       let profilesMap = new Map();
-      try {
-        const { data: profilesData, error: profilesError } = await supabase
-          .from("profiles")
-          .select("id, name, email")
-          .in("id", sellerIds);
+            try {
+        // Add retry logic for profile fetching
+        const fetchProfiles = async (retryCount = 0): Promise<void> => {
+          try {
+            const { data: profilesData, error: profilesError } = await supabase
+              .from("profiles")
+              .select("id, name, email")
+              .in("id", sellerIds);
 
-        if (profilesError) {
-          logDetailedError("Error fetching profiles", profilesError);
-          // Continue without profile data rather than failing completely
-        } else if (profilesData) {
-          profilesData.forEach((profile) => {
-            profilesMap.set(profile.id, profile);
-          });
-        }
+            if (profilesError) {
+              logDetailedError("Error fetching profiles", {
+                error: profilesError,
+                sellerIds: sellerIds.length,
+                retryCount,
+                timestamp: new Date().toISOString()
+              });
+
+              // If it's a connection error and we haven't retried too many times, try again
+              if (retryCount < 2 && (
+                profilesError.message?.includes('fetch') ||
+                profilesError.message?.includes('network') ||
+                profilesError.message?.includes('Failed to fetch')
+              )) {
+                console.log(`Retrying profile fetch (attempt ${retryCount + 1}/3)...`);
+                await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+                return fetchProfiles(retryCount + 1);
+              }
+
+              console.warn(`Continuing without profile data due to error: ${profilesError.message}`);
+            } else if (profilesData) {
+              profilesData.forEach((profile) => {
+                profilesMap.set(profile.id, profile);
+              });
+              console.log(`Successfully fetched ${profilesData.length} profiles`);
+            }
+          } catch (innerError) {
+            if (retryCount < 2) {
+              console.log(`Retrying profile fetch after exception (attempt ${retryCount + 1}/3)...`);
+              await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+              return fetchProfiles(retryCount + 1);
+            }
+            throw innerError;
+          }
+        };
+
+        await fetchProfiles();
       } catch (profileFetchError) {
-        logDetailedError("Exception fetching profiles", profileFetchError);
-        // Continue with empty profiles map
+        logDetailedError("Critical exception in profile fetching", {
+          error: profileFetchError,
+          sellerIds,
+          timestamp: new Date().toISOString()
+        });
+
+        console.warn("Profile fetching failed completely, books will be returned without seller information");
       }
 
       // Combine books with profile data
@@ -158,12 +244,8 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
         return mapBookFromDatabase(bookData);
       });
 
-      console.log("Processed books:", books.length);
+            console.log("Processed books:", books.length);
       return books;
-    };
-
-    // Use retry logic for network resilience
-    return await retryWithConnection(fetchBooksOperation, 2, 1000);
   } catch (error) {
     logDetailedError("Error in getBooks", error);
 
@@ -173,9 +255,19 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
         ? "Unable to connect to the book database. Please check your internet connection and try again."
         : "Failed to load books. Please try again later.";
 
-    console.warn(`[BookQueries] ${userMessage}`, error);
+        console.warn(`[BookQueries] ${userMessage}`, error);
 
-    // Return empty array instead of throwing to prevent app crashes
+    // If it's a network error, return fallback data instead of empty array
+    if (error instanceof Error && (
+      error.message.includes("Failed to fetch") ||
+      error.message.includes("fetch") ||
+      error.message.includes("network")
+    )) {
+      console.log("Using fallback books data due to network connectivity issues");
+      return getFallbackBooks();
+    }
+
+    // For other errors, return empty array to prevent app crashes
     return [];
   }
 };

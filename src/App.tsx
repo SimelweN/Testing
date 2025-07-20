@@ -216,7 +216,7 @@ function App() {
                         }
                       />
 
-                      {/* Admin Routes */}
+                                            {/* Admin Routes */}
                       <Route
                         path="/admin"
                         element={
@@ -225,7 +225,7 @@ function App() {
                           </AdminProtectedRoute>
                         }
                       />
-                      <Route
+                                            <Route
                         path="/admin/reports"
                         element={
                           <AdminProtectedRoute>

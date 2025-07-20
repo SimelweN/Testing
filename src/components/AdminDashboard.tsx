@@ -40,6 +40,9 @@ import DatabaseSchemaDiagnostic from "@/components/admin/DatabaseSchemaDiagnosti
 import PaystackSplitManagement from "@/components/admin/PaystackSplitManagement";
 import PaystackTransferManagement from "@/components/admin/PaystackTransferManagement";
 import PaystackSystemTestComponent from "@/components/admin/PaystackSystemTestComponent";
+import APIFunctionTester from "@/components/admin/APIFunctionTester";
+import NetworkConnectivityDebug from "@/components/admin/NetworkConnectivityDebug";
+import EnvironmentDebug from "@/components/admin/EnvironmentDebug";
 
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -61,8 +64,9 @@ import {
   CreditCard,
   Database,
   Split,
-  ArrowUpRight,
+    ArrowUpRight,
   ShieldCheck,
+  Wifi,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -363,12 +367,33 @@ const AdminDashboard = () => {
       color: "text-teal-600",
       description: "Code examples",
     },
-    {
+        {
       value: "functions",
       label: "Edge Functions",
       icon: TestTube,
       color: "text-blue-600",
       description: "Test all Supabase Edge Functions",
+    },
+        {
+      value: "api-testing",
+      label: "API Testing",
+      icon: Code,
+      color: "text-yellow-600",
+      description: "Test API folder functions",
+    },
+        {
+      value: "network-debug",
+      label: "Network Debug",
+      icon: Wifi,
+      color: "text-blue-600",
+      description: "Debug connectivity issues",
+    },
+    {
+      value: "env-debug",
+      label: "Environment Debug",
+      icon: Settings,
+      color: "text-gray-600",
+      description: "Check environment variables",
     },
     {
       value: "emails",
@@ -670,7 +695,7 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="functions" className="space-y-4 mt-0">
+                    <TabsContent value="functions" className="space-y-4 mt-0">
             <div className="space-y-6">
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
                 <EdgeFunctionDebugPanel />
@@ -678,6 +703,12 @@ const AdminDashboard = () => {
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
                 <EdgeFunctionTester />
               </div>
+            </div>
+          </TabsContent>
+
+                    <TabsContent value="api-testing" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+              <APIFunctionTester />
             </div>
           </TabsContent>
 
@@ -754,9 +785,21 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="transfer-management" className="space-y-4 mt-0">
+                    <TabsContent value="transfer-management" className="space-y-4 mt-0">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
               <PaystackTransferManagement />
+            </div>
+          </TabsContent>
+
+                    <TabsContent value="network-debug" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+              <NetworkConnectivityDebug />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="env-debug" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+              <EnvironmentDebug />
             </div>
           </TabsContent>
         </div>

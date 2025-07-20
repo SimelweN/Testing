@@ -21,10 +21,63 @@ export class EdgeFunctionDebugger {
   private supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   private supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+  private validateConfiguration(): { valid: boolean; error?: string } {
+    if (!this.supabaseUrl || this.supabaseUrl.trim() === "" || this.supabaseUrl === "undefined") {
+      return {
+        valid: false,
+        error: "VITE_SUPABASE_URL is not set or invalid"
+      };
+    }
+
+    if (!this.supabaseAnonKey || this.supabaseAnonKey.trim() === "" || this.supabaseAnonKey === "undefined") {
+      return {
+        valid: false,
+        error: "VITE_SUPABASE_ANON_KEY is not set or invalid"
+      };
+    }
+
+    try {
+      new URL(this.supabaseUrl);
+    } catch {
+      return {
+        valid: false,
+        error: `Invalid VITE_SUPABASE_URL format: ${this.supabaseUrl}`
+      };
+    }
+
+    return { valid: true };
+  }
+
   async diagnoseFunction(
     functionName: string,
   ): Promise<EdgeFunctionDiagnostic> {
     const startTime = performance.now();
+
+    // Validate configuration first
+    const configValidation = this.validateConfiguration();
+    if (!configValidation.valid) {
+      return {
+        functionName,
+        status: "error",
+        error: {
+          message: "Configuration Error",
+          name: "ConfigurationError",
+          details: configValidation.error!,
+          possibleCauses: [
+            "Environment variables not set in deployment",
+            "Invalid Supabase URL format",
+            "Missing VITE_ prefix in environment variables"
+          ],
+          troubleshooting: [
+            "Check .env file has VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY",
+            "Verify environment variables are set in production deployment",
+            "Ensure URL format: https://your-project.supabase.co"
+          ]
+        },
+        timing: performance.now() - startTime,
+        url: this.supabaseUrl || "undefined"
+      };
+    }
 
     try {
       // First try with Supabase client
@@ -77,30 +130,40 @@ export class EdgeFunctionDebugger {
     }
   }
 
-    private async testWithDirectFetch(
+      private async testWithDirectFetch(
     functionName: string,
     startTime: number,
   ): Promise<EdgeFunctionDiagnostic> {
     const url = `${this.supabaseUrl}/functions/v1/${functionName}`;
 
     try {
-      // Use native fetch to bypass our error handler completely
-      const nativeFetch = window.fetch.__original__ || window.fetch;
+      // Create a completely clean fetch to avoid any interceptors
+      const originalFetch = globalThis.fetch;
 
       // Add timeout to prevent hanging
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
 
-      const response = await nativeFetch(url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${this.supabaseAnonKey}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ health: true, debug: true }),
-        signal: controller.signal,
-      });
+      const response = await Promise.race([
+        originalFetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${this.supabaseAnonKey}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            // Add CORS headers to help with cross-origin requests
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Authorization, Content-Type",
+          },
+          body: JSON.stringify({ health: true, debug: true }),
+          signal: controller.signal,
+          // Add no-cors mode as fallback
+          mode: "cors",
+        }),
+        new Promise<Response>((_, reject) =>
+          setTimeout(() => reject(new Error("Request timeout")), 8000)
+        )
+      ]);
 
       clearTimeout(timeoutId);
 
@@ -114,7 +177,8 @@ export class EdgeFunctionDebugger {
       try {
         const responseText = await response.text();
         responseData = responseText ? JSON.parse(responseText) : null;
-      } catch {
+      } catch (parseError) {
+        // If JSON parsing fails, just return the text
         responseData = await response.text();
       }
 
@@ -128,18 +192,51 @@ export class EdgeFunctionDebugger {
         url,
         headers: responseHeaders,
       };
-        } catch (error) {
+                } catch (error: any) {
       const timing = performance.now() - startTime;
 
       // Handle different types of errors more specifically
-      if (error.name === "AbortError") {
+      if (error.name === "AbortError" || error.message === "Request timeout") {
         return {
           functionName,
           status: "timeout",
           error: {
-            message: "Function call timed out after 10 seconds",
-            name: "AbortError",
-            details: "The function may be taking too long to respond or may not be deployed",
+            message: "Function call timed out after 8 seconds",
+            name: "TimeoutError",
+            details: "The function may be taking too long to respond, not be deployed, or have connectivity issues",
+            possibleCauses: [
+              "Function not deployed to Supabase",
+              "Function is cold starting and taking too long",
+              "Network connectivity issues",
+              "Function has infinite loop or hanging operation"
+            ]
+          },
+          timing,
+          url,
+        };
+      }
+
+      if (error.name === "TypeError" && error.message.includes("Failed to fetch")) {
+        return {
+          functionName,
+          status: "network_error",
+          error: {
+            message: "Network request failed - likely CORS or connectivity issue",
+            name: "NetworkError",
+            details: "Unable to reach the Supabase Edge Function endpoint",
+            possibleCauses: [
+              "Function not deployed to Supabase",
+              "CORS configuration issue",
+              "Invalid Supabase URL or credentials",
+              "Network firewall blocking requests",
+              "Supabase project is paused or has issues"
+            ],
+            troubleshooting: [
+              "Check if function is deployed: supabase functions list",
+              "Verify Supabase URL is correct",
+              "Test function directly in Supabase dashboard",
+              "Check browser network tab for specific error"
+            ]
           },
           timing,
           url,
