@@ -225,7 +225,7 @@ export const classifyPaymentError = (error: any): PaymentError => {
     };
   }
 
-  const errorMessage = error.message || error.toString();
+    const errorMessage = error.message || (typeof error === 'string' ? error : 'Payment error occurred');
   const errorLower = errorMessage.toLowerCase();
 
   // Network errors
