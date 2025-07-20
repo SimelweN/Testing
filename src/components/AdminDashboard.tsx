@@ -42,6 +42,7 @@ import PaystackTransferManagement from "@/components/admin/PaystackTransferManag
 import PaystackSystemTestComponent from "@/components/admin/PaystackSystemTestComponent";
 import APIFunctionTester from "@/components/admin/APIFunctionTester";
 import NetworkConnectivityDebug from "@/components/admin/NetworkConnectivityDebug";
+import EnvironmentDebug from "@/components/admin/EnvironmentDebug";
 
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
