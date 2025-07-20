@@ -3,6 +3,18 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { handleRequestBody } from "../_shared/request-utils.ts";
 
+// Helper to create JSON responses without body stream issues
+const jsonResponse = (data: any, options: { status?: number; headers?: Record<string, string> } = {}) => {
+  return new Response(JSON.stringify(data), {
+    status: options.status || 200,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+      ...options.headers
+    }
+  });
+};
+
 const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
