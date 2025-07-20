@@ -838,7 +838,8 @@ const PaystackDemo = () => {
                 </Alert>
               )}
 
-              <TestResultCard testKey="direct-http" title="Direct HTTP Test" />
+                            <TestResultCard testKey="direct-http" title="Direct HTTP Test" />
+              <TestResultCard testKey="real-test" title="Real Function Test" />
             </CardContent>
           </Card>
 
