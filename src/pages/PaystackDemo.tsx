@@ -759,7 +759,7 @@ const PaystackDemo = () => {
                     </div>
                   )}
                 </div>
-                                <div className="flex gap-2">
+                                                <div className="flex gap-2 flex-wrap">
                   <Button
                     onClick={checkAllFunctions}
                     disabled={loading["function-check"]}
@@ -782,7 +782,19 @@ const PaystackDemo = () => {
                     ) : (
                       <Zap className="h-4 w-4 mr-2" />
                     )}
-                    Direct HTTP Test
+                    Direct HTTP
+                  </Button>
+                  <Button
+                    onClick={testRealFunction}
+                    disabled={loading["real-test"]}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    {loading["real-test"] ? (
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Play className="h-4 w-4 mr-2" />
+                    )}
+                    Real Test
                   </Button>
                 </div>
               </div>
