@@ -24,15 +24,52 @@ export default function EdgeFunctionDebugPanel() {
   const [diagnostics, setDiagnostics] = useState<EdgeFunctionDiagnostic[]>([]);
   const [isRunning, setIsRunning] = useState(false);
 
-    const runDiagnostics = async () => {
+        const runDiagnostics = async () => {
     setIsRunning(true);
+    setDiagnostics([]); // Clear previous results
+
     try {
       const debuggerTool = new EdgeFunctionDebugger();
-      const results = await debuggerTool.diagnoseAllFunctions();
+
+      // Add a timeout wrapper to prevent hanging
+      const diagnosticPromise = debuggerTool.diagnoseAllFunctions();
+      const timeoutPromise = new Promise<EdgeFunctionDiagnostic[]>((_, reject) =>
+        setTimeout(() => reject(new Error("Diagnostic timeout")), 30000)
+      );
+
+      const results = await Promise.race([diagnosticPromise, timeoutPromise]);
       setDiagnostics(results);
-    } catch (error) {
+
+      // Log summary
+      const successCount = results.filter(r => r.status === "success").length;
+      const errorCount = results.filter(r => r.status === "error").length;
+      const networkErrorCount = results.filter(r => r.status === "network_error").length;
+
+      console.log(`Diagnostics completed: ${successCount} success, ${errorCount} errors, ${networkErrorCount} network errors`);
+
+    } catch (error: any) {
       console.error("Failed to run diagnostics:", error);
-      // Add a diagnostic entry for the error itself
+
+      // Create a diagnostic entry for the critical error
+      const errorDiagnostic: EdgeFunctionDiagnostic = {
+        functionName: "DIAGNOSTIC_SYSTEM",
+        status: "error",
+        error: {
+          message: "Critical error in diagnostic system",
+          name: error.name || "UnknownError",
+          details: error.message || "Unknown error occurred",
+          possibleCauses: [
+            "Network connectivity issues",
+            "Supabase configuration problems",
+            "Browser security restrictions",
+            "Invalid environment variables"
+          ]
+        },
+        timing: 0,
+        url: "N/A"
+      };
+
+      setDiagnostics([errorDiagnostic]);
       setDiagnostics([
         {
           functionName: "diagnostics-error",
