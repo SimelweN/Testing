@@ -514,21 +514,25 @@ export const getStudyTips = async (): Promise<StudyTip[]> => {
     }
 
     return (data || []).map((item) => ({
-      id: item.id,
-      title: item.title,
-      content: item.description, // Map description to content for frontend
-      category: "General", // Default since not in table
-      difficulty: "Beginner", // Default since not in table
-      tags: [], // Not in table
-      isActive: item.is_active,
-      author: "", // Not in table
-      estimatedTime: "", // Not in table
-      effectiveness: 0, // Not in table
-      isSponsored: false, // Not in table
-      sponsorName: "", // Not in table
-      sponsorLogo: "", // Not in table
-      sponsorUrl: "", // Not in table
-      sponsorCta: "", // Not in table
+      id: item.id || "",
+      title: item.title || "Untitled Tip",
+      content:
+        item.description ||
+        item.content ||
+        item.tip_content ||
+        "No content available",
+      category: item.category || "General",
+      difficulty: item.difficulty || "Beginner",
+      tags: item.tags || [],
+      isActive: item.is_active !== undefined ? item.is_active : true,
+      author: item.author || "",
+      estimatedTime: item.estimated_time || item.estimatedTime || "",
+      effectiveness: item.effectiveness || 0,
+      isSponsored: item.is_sponsored || false,
+      sponsorName: item.sponsor_name || "",
+      sponsorLogo: item.sponsor_logo || "",
+      sponsorUrl: item.sponsor_url || "",
+      sponsorCta: item.sponsor_cta || "",
       createdAt: item.created_at,
       updatedAt: item.updated_at,
     }));
