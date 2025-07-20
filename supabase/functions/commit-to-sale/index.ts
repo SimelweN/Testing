@@ -20,17 +20,14 @@ serve(async (req) => {
     }
     const { order_id, seller_id } = bodyParseResult.data;
 
-        if (!order_id || !seller_id) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Missing required fields: order_id, seller_id",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+                if (!order_id || !seller_id) {
+      return json({
+        success: false,
+        error: "Missing required fields: order_id, seller_id",
+      }, {
+        status: 400,
+        headers: corsHeaders,
+      });
     }
 
         // Validate parameter types
