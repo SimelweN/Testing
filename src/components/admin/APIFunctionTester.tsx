@@ -189,10 +189,13 @@ export default function APIFunctionTester() {
   const [testAllProgress, setTestAllProgress] = useState(0);
   const [currentlyTesting, setCurrentlyTesting] = useState<string>("");
 
-  // Real data for testing
+    // Real data for testing
   const [realData, setRealData] = useState<RealData>({ users: [], orders: [], books: [], transactions: [] });
   const [loadingRealData, setLoadingRealData] = useState(false);
   const [useRealData, setUseRealData] = useState(false);
+
+  // Mock API mode for when real APIs are not available
+  const [useMockMode, setUseMockMode] = useState(false);
 
     const fetchRealData = async () => {
     setLoadingRealData(true);
