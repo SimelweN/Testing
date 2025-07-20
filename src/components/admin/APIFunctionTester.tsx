@@ -788,7 +788,7 @@ export default function APIFunctionTester() {
               className="border-yellow-300 hover:bg-yellow-100"
             >
               <PlayCircle className="h-4 w-4 mr-2" />
-              {testingAll ? "Testing..." : "Test All 12 Functions"}
+                            {testingAll ? "Testing..." : `Test All ${apiEndpoints.length} Functions`}
             </Button>
           </div>
           {testingAll && (
