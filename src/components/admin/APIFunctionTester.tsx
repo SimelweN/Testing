@@ -885,12 +885,12 @@ export default function APIFunctionTester() {
               <CardTitle className="text-base">Testing Tips</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-xs text-muted-foreground">
+                            <p>• <strong>Mock Mode:</strong> Use when API endpoints are not available (404 errors)</p>
               <p>• <strong>Load Real Data</strong> first to get actual database IDs</p>
               <p>• <strong>Use Real Data</strong> toggle for realistic test scenarios</p>
               <p>• Functions send X-Test-Mode header to indicate admin testing</p>
-              <p>• Some functions may still fail due to missing environment variables</p>
+              <p>• 404 errors mean API endpoints aren't deployed/configured properly</p>
               <p>• Check browser console for detailed error information</p>
-              <p>• 500 errors usually indicate missing env vars or database issues</p>
             </CardContent>
           </Card>
         </div>
