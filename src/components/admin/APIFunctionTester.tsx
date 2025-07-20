@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,8 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { Code, Play, AlertCircle, CheckCircle, Copy, PlayCircle, Zap } from "lucide-react";
+import { Code, Play, AlertCircle, CheckCircle, Copy, PlayCircle, Zap, Database, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface APIEndpoint {
   name: string;
