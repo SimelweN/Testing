@@ -43,9 +43,10 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [activeListings, setActiveListings] = useState<Book[]>([]);
   const [isLoadingListings, setIsLoadingListings] = useState(true);
-  const [addressData, setAddressData] = useState<AddressData | null>(null);
+    const [addressData, setAddressData] = useState<AddressData | null>(null);
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
   const [deletingBooks, setDeletingBooks] = useState<Set<string>>(new Set());
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
   const loadActiveListings = useCallback(async () => {
     if (!user?.id) return;
