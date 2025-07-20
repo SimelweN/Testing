@@ -298,35 +298,37 @@ serve(async (req) => {
       );
     }
 
-    // Generate unique order ID
-    const orderId = `ORD_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-    // Create order
+        // Create order with correct schema
     const orderData = {
-      id: orderId,
-      buyer_id: user_id,
+      buyer_email: email,
       seller_id: book.seller_id,
-      status: "pending_commit",
-      total_amount: total_amount || book.price,
+      amount: Math.round((total_amount || book.price) * 100), // Convert to kobo
+      paystack_ref: payment_reference,
+      status: "pending", // Use valid status value
       items: [
         {
+          type: "book",
           book_id: book.id,
-          title: book.title,
+          book_title: book.title,
           author: book.author,
-          price: book.price,
+          price: Math.round(book.price * 100), // Convert to kobo
           condition: book.condition,
           seller_id: book.seller_id,
+          quantity: 1,
         },
       ],
       shipping_address,
-      payment_reference,
-      buyer_name: buyer.name,
-      buyer_email: buyer.email,
-      seller_name: seller.name,
-      seller_email: seller.email,
-      delivery_details: delivery_details || {},
-      expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48 hours
-      created_at: new Date().toISOString(),
+      delivery_data: delivery_details || {},
+      metadata: {
+        buyer_id: user_id,
+        buyer_name: buyer.name,
+        seller_name: seller.name,
+        seller_email: seller.email,
+        expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48 hours
+        order_type: "book_purchase",
+        platform_fee: Math.round(book.price * 0.1 * 100), // 10% platform fee in kobo
+        seller_amount: Math.round(book.price * 0.9 * 100), // 90% to seller in kobo
+      },
     };
 
     const { data: order, error: orderError } = await supabase
