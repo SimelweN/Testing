@@ -44,9 +44,22 @@ serve(async (req) => {
     const processedOrders = [];
     const errors = [];
 
-    // Process each expired order
+        // Process each expired order
     for (const order of expiredOrders) {
       try {
+        // Fetch seller and buyer profiles separately
+        const { data: seller } = await supabase
+          .from("profiles")
+          .select("id, name, email")
+          .eq("id", order.seller_id)
+          .single();
+
+        const { data: buyer } = await supabase
+          .from("profiles")
+          .select("id, name, email")
+          .eq("id", order.buyer_id)
+          .single();
+
         // Call decline-commit function to handle the expiration
         const declineResponse = await fetch(
           `${SUPABASE_URL}/functions/v1/decline-commit`,
@@ -69,8 +82,8 @@ serve(async (req) => {
         if (declineResult.success) {
           processedOrders.push({
             order_id: order.id,
-            buyer_email: order.buyer.email,
-            seller_email: order.seller.email,
+            buyer_email: buyer?.email || "unknown",
+            seller_email: seller?.email || "unknown",
             amount: order.total_amount,
             expired_at: new Date().toISOString(),
           });
