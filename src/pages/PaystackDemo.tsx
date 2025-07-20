@@ -193,10 +193,10 @@ const PaystackDemo = () => {
     const availableCount = Object.values(status).filter((s: any) => s.available).length;
     const totalCount = functions.length;
 
-        if (availableCount === totalCount) {
-      toast.success(`✅ All ${totalCount} functions are available!`);
+                if (availableCount === totalCount) {
+      toast.success(`✅ All ${totalCount} functions are accessible!`);
     } else {
-      toast.error(`❌ Only ${availableCount}/${totalCount} functions are available`);
+      toast.error(`❌ Only ${availableCount}/${totalCount} functions are accessible`);
     }
   };
 
@@ -1275,7 +1275,7 @@ const PaystackDemo = () => {
                         <span>paystack-transfer-management</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline">✅</Badge>
+                        <Badge variant="outline">��</Badge>
                         <span>paystack-split-management</span>
                       </div>
                       <div className="flex items-center gap-2">
