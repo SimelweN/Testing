@@ -248,7 +248,7 @@ async function handleGetSplits(req: Request): Promise<Response> {
   }
 }
 
-async function handleUpdateSplit(req: Request): Promise<Response> {
+async function handleUpdateSplit(req: Request, updateData: any): Promise<Response> {
   try {
     const url = new URL(req.url);
     const splitCode = url.searchParams.get("split_code");
