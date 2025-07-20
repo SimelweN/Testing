@@ -83,9 +83,11 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
             "cancelled_by_seller_after_missed_pickup",
           ]);
           break;
-      }
+            }
 
+      console.log("🔍 About to execute orders query for activeTab:", activeTab);
       const { data, error } = await query;
+      console.log("🔍 Orders query result:", { data, error, dataLength: data?.length });
 
                               if (error) {
         // Direct error logging for debugging
