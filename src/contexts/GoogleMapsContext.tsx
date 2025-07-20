@@ -82,8 +82,9 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
     apiKey !== "your_google_maps_api_key" &&
     apiKey.startsWith("AIza");
 
-  // Only attempt to load Google Maps if we have a valid API key
-  const shouldLoadMaps = isValidApiKey;
+  // Only attempt to load Google Maps if we have a valid API key and it's not disabled
+  const shouldLoadMaps =
+    isValidApiKey && !import.meta.env.VITE_DISABLE_GOOGLE_MAPS;
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
