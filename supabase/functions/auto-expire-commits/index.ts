@@ -18,13 +18,13 @@ serve(async (req) => {
       Date.now() - 48 * 60 * 60 * 1000,
     ).toISOString();
 
-    const { data: expiredOrders, error: expiredError } = await supabase
+        const { data: expiredOrders, error: expiredError } = await supabase
       .from("orders")
       .select(
         `
         *,
-        seller:profiles!orders_seller_id_fkey(id, name, email),
-        buyer:profiles!orders_buyer_id_fkey(id, name, email)
+        seller:profiles!seller_id(id, name, email),
+        buyer:profiles!buyer_id(id, name, email)
       `,
       )
       .eq("status", "pending_commit")
