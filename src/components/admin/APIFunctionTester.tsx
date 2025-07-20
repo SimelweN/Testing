@@ -439,13 +439,14 @@ export default function APIFunctionTester() {
         body: JSON.stringify(parsedBody),
       });
 
-      // Handle response reading safely
+            // Handle response reading safely - clone first!
+      const responseClone = fetchResponse.clone();
       let result;
+
       try {
         result = await fetchResponse.json();
       } catch {
-        // If JSON parsing fails, try reading as text
-        const responseClone = fetchResponse.clone();
+        // If JSON parsing fails, try reading as text from the clone
         try {
           const responseText = await responseClone.text();
           result = { message: responseText || "Empty response" };
