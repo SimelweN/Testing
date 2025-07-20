@@ -155,6 +155,15 @@ window.addEventListener("error", (event) => {
     return;
   }
 
+  // Suppress Google Maps retry messages
+  if (isGoogleMapsRetryError(message || "")) {
+    if (import.meta.env.DEV) {
+      console.debug("Google Maps retry message suppressed:", message);
+    }
+    event.preventDefault();
+    return;
+  }
+
   // Log all other errors properly
   console.error("Global error:", { message, filename, error });
 });
