@@ -454,17 +454,14 @@ serve(async (req) => {
         );
       }
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          data: {
-            authorization_url: paystackResult.data.authorization_url,
-            reference: paystackResult.data.reference,
-            access_code: paystackResult.data.access_code,
-          },
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+            return jsonResponse({
+        success: true,
+        data: {
+          authorization_url: paystackResult.data.authorization_url,
+          reference: paystackResult.data.reference,
+          access_code: paystackResult.data.access_code,
+        },
+      });
     } catch (paystackError) {
       console.error("Paystack API error:", paystackError);
 
