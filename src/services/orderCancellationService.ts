@@ -86,7 +86,7 @@ export class OrderCancellationService {
         success: true,
         message: data.message || "Order cancelled successfully",
         refund_amount: data.refund_amount,
-      };
+            };
     } catch (error) {
       console.error("Order cancellation failed:", error);
       return {
@@ -94,20 +94,8 @@ export class OrderCancellationService {
         message: "Failed to cancel order",
         error: error.message,
       };
-        }
+    }
   }
-
-      return {
-        success: true,
-        message:
-          "Order cancelled successfully. Full refund will be processed within 3-5 business days.",
-        refund_amount: order.total_amount,
-      };
-    } catch (error) {
-      console.error("❌ Buyer cancellation failed:", error);
-      return {
-        success: false,
-        message: "Failed to cancel order. Please contact support.",
         error: error instanceof Error ? error.message : "Unknown error",
       };
     }
