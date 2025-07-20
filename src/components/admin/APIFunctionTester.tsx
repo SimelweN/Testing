@@ -292,13 +292,65 @@ export default function APIFunctionTester() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-4">
         <Code className="h-5 w-5 text-yellow-600" />
         <h3 className="text-lg font-semibold">API Function Tester</h3>
         <Badge variant="outline" className="ml-auto">
           {apiEndpoints.length} Functions
         </Badge>
       </div>
+
+      {/* Test All Section */}
+      <Card className="border-2 border-dashed border-yellow-200 bg-yellow-50">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-yellow-600" />
+              <CardTitle className="text-base">Test All Functions</CardTitle>
+            </div>
+            <Button
+              onClick={testAllFunctions}
+              disabled={testingAll || loading}
+              variant="outline"
+              size="sm"
+              className="border-yellow-300 hover:bg-yellow-100"
+            >
+              <PlayCircle className="h-4 w-4 mr-2" />
+              {testingAll ? "Testing..." : "Test All 12 Functions"}
+            </Button>
+          </div>
+          {testingAll && (
+            <div className="mt-3 space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span>Testing: {currentlyTesting}</span>
+                <span>{Math.round(testAllProgress)}%</span>
+              </div>
+              <Progress value={testAllProgress} className="h-2" />
+            </div>
+          )}
+        </CardHeader>
+        {testAllResults.length > 0 && (
+          <CardContent>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {testAllResults.map((result, index) => (
+                <div key={index} className="flex items-center justify-between p-2 bg-white rounded border text-sm">
+                  <span className="flex items-center gap-2">
+                    {result.success ? (
+                      <CheckCircle className="h-3 w-3 text-green-600" />
+                    ) : (
+                      <AlertCircle className="h-3 w-3 text-red-600" />
+                    )}
+                    {result.endpoint}
+                  </span>
+                  <Badge variant={result.success ? "default" : "destructive"} className="text-xs">
+                    {result.status || "ERR"}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        )}
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Function Selection & Configuration */}
