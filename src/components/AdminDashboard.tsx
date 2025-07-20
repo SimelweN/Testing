@@ -363,12 +363,19 @@ const AdminDashboard = () => {
       color: "text-teal-600",
       description: "Code examples",
     },
-    {
+        {
       value: "functions",
       label: "Edge Functions",
       icon: TestTube,
       color: "text-blue-600",
       description: "Test all Supabase Edge Functions",
+    },
+    {
+      value: "api-testing",
+      label: "API Testing",
+      icon: Code,
+      color: "text-yellow-600",
+      description: "Test API folder functions",
     },
     {
       value: "emails",
