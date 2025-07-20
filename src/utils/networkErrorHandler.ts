@@ -37,7 +37,19 @@ const isThirdPartyError = (url: string): boolean => {
 // Check if an error is from development tools (Vite HMR)
 const isDevelopmentError = (message: string, stack?: string): boolean => {
   const fullText = `${message} ${stack || ""}`;
-  return DEVELOPMENT_SERVICES.some((service) => fullText.includes(service));
+
+  // Check for Vite-specific development errors only
+  const isViteError = DEVELOPMENT_SERVICES.some((service) =>
+    fullText.includes(service),
+  );
+
+  // Also check for specific Vite development server patterns on fly.dev
+  const isViteDevServer =
+    fullText.includes(".fly.dev/@vite/client") ||
+    fullText.includes(".fly.dev/?reload=") ||
+    (fullText.includes(".fly.dev") && fullText.includes("ping"));
+
+  return isViteError || isViteDevServer;
 };
 
 // Check if an error is from Google Maps retry logic
