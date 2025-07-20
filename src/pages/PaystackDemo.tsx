@@ -275,7 +275,7 @@ const PaystackDemo = () => {
 
       console.log(`🔗 Testing direct HTTP call to: ${functionUrl}`);
 
-                  // Try health check with proper health parameter using POST
+                        // Try health check with proper health parameter using POST
       const healthResponse = await fetch(functionUrl, {
         method: 'POST',
         headers: {
@@ -285,13 +285,19 @@ const PaystackDemo = () => {
         body: JSON.stringify({ health: true })
       });
 
-      // Read the response text only once
-      const responseText = await healthResponse.text();
-
-      console.log(`📡 Direct HTTP health response:`, {
+      // Collect response metadata BEFORE reading the body
+      const responseMetadata = {
         status: healthResponse.status,
         statusText: healthResponse.statusText,
         headers: Object.fromEntries(healthResponse.headers.entries()),
+        ok: healthResponse.ok
+      };
+
+      // Now read the response text
+      const responseText = await healthResponse.text();
+
+      console.log(`📡 Direct HTTP health response:`, {
+        ...responseMetadata,
         body: responseText
       });
 
