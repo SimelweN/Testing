@@ -138,9 +138,26 @@ serve(async (req) => {
 
     console.log("Existing profile data:", existingProfile);
 
-    // Step 4: Parse request body
-    const requestBody = await req.json();
-    console.log("Request body received:", requestBody);
+        // Step 4: Parse request body ONCE (ChatGPT's advice)
+    let requestBody;
+    try {
+      console.log("🔍 bodyUsed before read:", req.bodyUsed);
+      requestBody = await req.json();
+      console.log("✅ Body read successfully");
+    } catch (error) {
+      console.error("❌ Body read failed:", error.message);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "BODY_READ_ERROR",
+          details: { error: error.message, bodyUsed: req.bodyUsed },
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     const {
       business_name,
