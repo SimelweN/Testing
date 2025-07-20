@@ -210,7 +210,8 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           // Fall through to original error throwing
         }
 
-        throw new Error(error.message || "Failed to process purchase");
+                const errorMessage = error?.message || error?.details || JSON.stringify(error) || "Failed to process purchase";
+        throw new Error(`Edge Function Error: ${errorMessage}`);
       }
 
       console.log("✅ Edge Function Success Response:", data);
