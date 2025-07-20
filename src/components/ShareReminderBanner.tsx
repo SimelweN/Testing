@@ -14,8 +14,13 @@ const ShareReminderBanner = ({ userId, userName, onShare }: ShareReminderBannerP
   const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
-    // Check if user has dismissed this banner recently
-    const dismissed = localStorage.getItem('shareReminderDismissed');
+        // Check if user has dismissed this banner recently
+    let dismissed;
+    try {
+      dismissed = localStorage.getItem('shareReminderDismissed');
+    } catch (error) {
+      dismissed = null;
+    }
     const now = Date.now();
     
     if (dismissed && now - parseInt(dismissed) < 86400000) { // 24 hours
