@@ -255,9 +255,19 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
         ? "Unable to connect to the book database. Please check your internet connection and try again."
         : "Failed to load books. Please try again later.";
 
-    console.warn(`[BookQueries] ${userMessage}`, error);
+        console.warn(`[BookQueries] ${userMessage}`, error);
 
-    // Return empty array instead of throwing to prevent app crashes
+    // If it's a network error, return fallback data instead of empty array
+    if (error instanceof Error && (
+      error.message.includes("Failed to fetch") ||
+      error.message.includes("fetch") ||
+      error.message.includes("network")
+    )) {
+      console.log("Using fallback books data due to network connectivity issues");
+      return getFallbackBooks();
+    }
+
+    // For other errors, return empty array to prevent app crashes
     return [];
   }
 };
