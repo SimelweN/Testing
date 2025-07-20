@@ -619,8 +619,8 @@ serve(async (req) => {
       emailResults.errors.push({ general: emailError.message });
     }
 
-    console.log("✅ Book purchase processed successfully:", {
-      order_id: orderId,
+        console.log("✅ Book purchase processed successfully:", {
+      order_id: order.id,
       book_title: book.title,
       buyer: buyer.name,
       seller: seller.name,
@@ -630,8 +630,9 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         message: "Order created successfully",
+        order_id: order.id,
         details: {
-          order_id: orderId,
+          order_id: order.id,
           book: {
             id: book.id,
             title: book.title,
@@ -649,11 +650,11 @@ serve(async (req) => {
             email: seller.email,
           },
           order: {
-            id: orderId,
-            status: "pending_commit",
-            total_amount: orderData.total_amount,
-            expires_at: orderData.expires_at,
-            created_at: orderData.created_at,
+            id: order.id,
+            status: order.status,
+            total_amount: order.amount / 100, // Convert back to rands
+            expires_at: orderData.metadata.expires_at,
+            created_at: order.created_at,
           },
           notifications: emailResults,
         },
