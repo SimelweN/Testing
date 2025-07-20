@@ -61,19 +61,8 @@ serve(async (req) => {
       url.pathname.endsWith("/health") ||
       url.searchParams.get("health") === "true";
 
-    // Check for health check in request body as well (for POST/PUT methods)
-    let body = null;
-    if (req.method === "POST" || req.method === "PUT") {
-      try {
-        // Clone the request to avoid consuming the body
-        const clonedReq = req.clone();
-        body = await clonedReq.json();
-      } catch {
-        // Ignore JSON parsing errors for health checks
-      }
-    }
-
-    if (isHealthCheck || body?.health === true) {
+        // For health checks, check URL params only (no body consumption)
+    if (isHealthCheck) {
       return new Response(
         JSON.stringify({
           success: true,
