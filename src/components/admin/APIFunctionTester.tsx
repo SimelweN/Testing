@@ -434,38 +434,22 @@ export default function APIFunctionTester() {
     try {
       const parsedBody = JSON.parse(requestBody);
       
-            const fetchResponse = await fetch(selectedEndpoint.path, {
+                  const result = await safeFetch(selectedEndpoint.path, {
         method: selectedEndpoint.method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(parsedBody),
       });
 
-            // Handle response reading safely - clone first!
-      const responseClone = fetchResponse.clone();
-      let result;
-
-      try {
-        result = await fetchResponse.json();
-      } catch {
-        // If JSON parsing fails, try reading as text from the clone
-        try {
-          const responseText = await responseClone.text();
-          result = { message: responseText || "Empty response" };
-        } catch {
-          result = { message: "Failed to read response" };
-        }
-      }
-
       setResponse({
-        status: fetchResponse.status,
-        statusText: fetchResponse.statusText,
-        data: result
+        status: result.status,
+        statusText: result.statusText,
+        data: result.data
       });
 
-      if (fetchResponse.ok) {
+      if (result.ok) {
         toast.success(`${selectedEndpoint.name} executed successfully`);
       } else {
-        toast.error(`${selectedEndpoint.name} failed: ${result.error || 'Unknown error'}`);
+        toast.error(`${selectedEndpoint.name} failed: ${result.data?.error || 'Unknown error'}`);
       }
     } catch (err: any) {
       setError(err.message || "An error occurred");
