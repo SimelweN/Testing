@@ -438,25 +438,26 @@ export const getStudyResources = async (): Promise<StudyResource[]> => {
     }
 
     return (data || []).map((item) => ({
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      type: item.type,
-      category: item.category,
-      difficulty: item.difficulty,
-      url: item.url,
-      rating: item.rating,
-      provider: "", // Not in table
-      duration: "", // Not in table
+      id: item.id || "",
+      title: item.title || "Untitled Resource",
+      description:
+        item.description || item.content || "No description available",
+      type: item.type || item.resource_type || "website",
+      category: item.category || "General",
+      difficulty: item.difficulty || "Beginner",
+      url: item.url || item.link || "",
+      rating: item.rating || 0,
+      provider: item.provider || "",
+      duration: item.duration || "",
       tags: item.tags || [],
-      downloadUrl: "", // Not in table
-      isActive: true, // Default since not in table
-      isFeatured: false, // Not in table
-      isSponsored: item.sponsored || false,
-      sponsorName: "", // Not in table
-      sponsorLogo: "", // Not in table
-      sponsorUrl: "", // Not in table
-      sponsorCta: "", // Not in table
+      downloadUrl: item.download_url || item.downloadUrl || "",
+      isActive: item.is_active !== undefined ? item.is_active : true,
+      isFeatured: item.is_featured || false,
+      isSponsored: item.sponsored || item.is_sponsored || false,
+      sponsorName: item.sponsor_name || "",
+      sponsorLogo: item.sponsor_logo || "",
+      sponsorUrl: item.sponsor_url || "",
+      sponsorCta: item.sponsor_cta || "",
       createdAt: item.created_at,
       updatedAt: item.updated_at,
     }));
