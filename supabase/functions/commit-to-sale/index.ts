@@ -45,18 +45,15 @@ serve(async (req) => {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     const isTestMode = order_id.startsWith('ORD_test') || seller_id.startsWith('USR_test');
 
-    if (!isTestMode && (!uuidRegex.test(order_id) || !uuidRegex.test(seller_id))) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "order_id and seller_id must be valid UUIDs",
-          debug: { order_id, seller_id, isTestMode }
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+        if (!isTestMode && (!uuidRegex.test(order_id) || !uuidRegex.test(seller_id))) {
+      return json({
+        success: false,
+        error: "order_id and seller_id must be valid UUIDs",
+        debug: { order_id, seller_id, isTestMode }
+      }, {
+        status: 400,
+        headers: corsHeaders,
+      });
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
