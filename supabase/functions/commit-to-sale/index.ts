@@ -11,8 +11,13 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  try {
-    const { order_id, seller_id } = await req.json();
+    try {
+    // Use safe body parser to prevent consumption errors
+    const bodyParseResult = await parseRequestBody(req, corsHeaders);
+    if (!bodyParseResult.success) {
+      return bodyParseResult.errorResponse!;
+    }
+    const { order_id, seller_id } = bodyParseResult.data;
 
         if (!order_id || !seller_id) {
       return new Response(
