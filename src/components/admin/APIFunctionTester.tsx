@@ -461,7 +461,7 @@ export default function APIFunctionTester() {
 
           const generateMockResponse = (endpoint: APIEndpoint): TestResult => {
     // Generate realistic mock responses for each endpoint
-    const mockResponses: Record<string, any> = {
+        const mockResponses: Record<string, any> = {
       "Create Order": {
         success: true,
         orders: [{
@@ -509,7 +509,7 @@ export default function APIFunctionTester() {
         message: "Payment processed successfully",
         payment_reference: "PAY_" + Date.now()
       },
-      "Process Refund": {
+      "Paystack Refund Management": {
         success: true,
         message: "Refund processed successfully",
         refund_reference: "REF_" + Date.now()
@@ -541,6 +541,47 @@ export default function APIFunctionTester() {
         success: true,
         split_code: "SPL_mock_" + Date.now(),
         message: "Split payment configuration created"
+      },
+      "Commit to Sale": {
+        success: true,
+        message: "Order commitment successful",
+        order_id: "ORD_committed_" + Date.now()
+      },
+      "Decline Commit": {
+        success: true,
+        message: "Order commitment declined",
+        order_id: "ORD_declined_" + Date.now()
+      },
+      "Automate Delivery": {
+        success: true,
+        message: "Delivery automation scheduled",
+        tracking_number: "TRK_" + Date.now(),
+        pickup_scheduled: new Date(Date.now() + 24*60*60*1000).toISOString()
+      },
+      "Get Delivery Quotes": {
+        success: true,
+        quotes: [
+          {
+            courier: "Courier Guy",
+            price: 65.50,
+            delivery_time: "1-2 business days"
+          },
+          {
+            courier: "Fastway",
+            price: 72.00,
+            delivery_time: "2-3 business days"
+          },
+          {
+            courier: "ShipLogic",
+            price: 58.75,
+            delivery_time: "1-3 business days"
+          }
+        ]
+      },
+      "Send Email": {
+        success: true,
+        message: "Email sent successfully",
+        email_id: "EMAIL_" + Date.now()
       }
     };
 
