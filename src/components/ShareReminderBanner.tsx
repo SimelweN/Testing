@@ -33,10 +33,14 @@ const ShareReminderBanner = ({ userId, userName, onShare }: ShareReminderBannerP
     }
   }, []);
 
-  const handleDismiss = () => {
+    const handleDismiss = () => {
     setIsVisible(false);
     setIsDismissed(true);
-    localStorage.setItem('shareReminderDismissed', Date.now().toString());
+    try {
+      localStorage.setItem('shareReminderDismissed', Date.now().toString());
+    } catch (error) {
+      // Silently fail if localStorage is not available
+    }
   };
 
   const handleShare = () => {
