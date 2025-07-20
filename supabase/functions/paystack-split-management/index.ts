@@ -25,13 +25,14 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  // Handle health check first (no body consumption)
-  const url = new URL(req.url);
-  const isHealthCheck =
-    url.pathname.endsWith("/health") ||
-    url.searchParams.get("health") === "true";
+  try {
+    // Handle health check first (no body consumption)
+    const url = new URL(req.url);
+    const isHealthCheck =
+      url.pathname.endsWith("/health") ||
+      url.searchParams.get("health") === "true";
 
-  if (isHealthCheck) {
+    if (isHealthCheck) {
       return new Response(
         JSON.stringify({
           success: true,
