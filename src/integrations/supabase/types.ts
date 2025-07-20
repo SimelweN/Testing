@@ -474,7 +474,66 @@ export type Database = {
           id?: string;
           notified?: boolean;
         };
-                Relationships: [];
+                        Relationships: [];
+      };
+      banking_subaccounts: {
+        Row: {
+          id: string;
+          user_id: string;
+          subaccount_code: string;
+          business_name: string;
+          business_description: string | null;
+          bank_code: string;
+          account_number: string;
+          account_name: string | null;
+          percentage_charge: number;
+          settlement_bank: string | null;
+          is_verified: boolean;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          subaccount_code: string;
+          business_name: string;
+          business_description?: string | null;
+          bank_code: string;
+          account_number: string;
+          account_name?: string | null;
+          percentage_charge?: number;
+          settlement_bank?: string | null;
+          is_verified?: boolean;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          subaccount_code?: string;
+          business_name?: string;
+          business_description?: string | null;
+          bank_code?: string;
+          account_number?: string;
+          account_name?: string | null;
+          percentage_charge?: number;
+          settlement_bank?: string | null;
+          is_verified?: boolean;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "banking_subaccounts_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       orders: {
         Row: {
