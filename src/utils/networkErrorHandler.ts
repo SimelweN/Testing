@@ -73,8 +73,32 @@ const originalFetch = window.fetch;
 // Save original fetch for debugging tools
 (window.fetch as any).__original__ = originalFetch;
 
-// Temporarily disable fetch override for debugging
-// window.fetch = originalFetch;
+// Simplified fetch override - only handle actual third-party services, not API errors
+window.fetch = async function (...args) {
+  const url = args[0]?.toString() || "";
+
+  // Only intercept third-party services that are known to fail in development
+  const isActualThirdParty = THIRD_PARTY_SERVICES.some((service) => url.includes(service));
+
+  if (!isActualThirdParty) {
+    // For all other requests (including Supabase), use original fetch without any interception
+    return originalFetch.apply(this, args);
+  }
+
+  // Only for actual third-party services, handle gracefully
+  try {
+    return await originalFetch.apply(this, args);
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.debug(`Third-party service unavailable: ${url}`, error);
+    }
+    return new Response("{}", {
+      status: 200,
+      statusText: "Service Unavailable",
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+};
 
 // Global error handler for script loading errors (including Google Maps)
 window.addEventListener("error", (event) => {
