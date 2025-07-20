@@ -480,10 +480,19 @@ export class PaystackSystemTester {
         );
       }
     } catch (error) {
+      const errorDetails = {
+        message: error.message,
+        status: error.status || error.statusCode || "unknown",
+        statusText: error.statusText || "unknown",
+        functionName: "create-paystack-subaccount",
+        inputData: PaystackMockData.subaccountCreation,
+      };
+
       this.addResult(
         "Subaccount Creation",
         "error",
-        `Subaccount creation test failed: ${error.message}`,
+        `Subaccount creation test failed: ${error.message} | Status: ${errorDetails.status} | Function: ${errorDetails.functionName} | Details: ${JSON.stringify(errorDetails)}`,
+        errorDetails,
       );
     }
   }
