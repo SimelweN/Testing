@@ -38,7 +38,7 @@ serve(async (req) => {
           error: "VALIDATION_FAILED",
           details: {
             validation_errors: validationErrors,
-            provided_fields: Object.keys(await req.json()),
+                        provided_fields: Object.keys({ user_id, cart_items, shipping_address, email }),
             message: `Validation failed: ${validationErrors.join(", ")}`,
             required_format: {
               user_id: "String, authenticated user ID",
