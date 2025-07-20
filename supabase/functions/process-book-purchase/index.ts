@@ -367,7 +367,7 @@ serve(async (req) => {
             details: {
               error_code: orderError.code,
               error_message: orderError.message,
-              order_id: orderId,
+                            payment_reference: payment_reference,
               message: "Order with this ID already exists",
             },
             fix_instructions:
