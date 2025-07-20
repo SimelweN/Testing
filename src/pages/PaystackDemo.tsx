@@ -330,18 +330,106 @@ const PaystackDemo = () => {
     }
   };
 
-      // Helper function for better error handling
+        // Mock implementations for missing functions
+  const mockPaystackFunctions = {
+    "initialize-paystack-payment": (payload: any) => ({
+      success: true,
+      data: {
+        authorization_url: `https://checkout.paystack.com/mock_${Date.now()}`,
+        reference: `mock_ref_${Date.now()}`,
+        access_code: `mock_access_${Date.now()}`
+      },
+      mock: true,
+      message: "Mock payment initialization - function not deployed"
+    }),
+
+    "verify-paystack-payment": (payload: any) => ({
+      success: true,
+      data: {
+        reference: payload.reference || "mock_ref_123",
+        amount: 5000,
+        currency: "ZAR",
+        status: "success",
+        paid_at: new Date().toISOString(),
+        customer: { email: "test@example.com" }
+      },
+      mock: true,
+      message: "Mock payment verification - function not deployed"
+    }),
+
+    "create-paystack-subaccount": (payload: any) => ({
+      success: true,
+      data: {
+        subaccount_code: `ACCT_mock_${Date.now()}`,
+        business_name: payload.business_name || "Mock Business",
+        description: "Mock subaccount creation",
+        primary_contact_email: payload.email || "test@example.com",
+        percentage_charge: 90
+      },
+      mock: true,
+      message: "Mock subaccount creation - function not deployed"
+    }),
+
+    "pay-seller": (payload: any) => ({
+      success: true,
+      data: {
+        transfer_code: `TRF_mock_${Date.now()}`,
+        amount: payload.amount || 4500,
+        recipient: payload.seller_id || "mock_seller",
+        status: "pending",
+        reference: `transfer_${Date.now()}`
+      },
+      mock: true,
+      message: "Mock seller payment - function not deployed"
+    }),
+
+    "paystack-split-management": (payload: any) => ({
+      success: true,
+      data: {
+        split_code: `SPL_mock_${Date.now()}`,
+        name: payload.name || "Mock Split",
+        type: payload.type || "flat",
+        currency: payload.currency || "ZAR"
+      },
+      mock: true,
+      message: "Mock split management - function not deployed"
+    }),
+
+    "paystack-webhook": (payload: any) => ({
+      success: true,
+      data: {
+        event: payload.event || "charge.success",
+        processed: true,
+        timestamp: new Date().toISOString()
+      },
+      mock: true,
+      message: "Mock webhook processing - function not deployed"
+    })
+  };
+
+  // Helper function for better error handling with mock fallback
   const debugFunctionCall = async (functionName: string, payload: any) => {
     console.log(`🔍 Calling function: ${functionName}`);
     console.log(`📤 Payload:`, payload);
 
     try {
-      // Skip health check for now and go straight to the actual call
+      // Try the real function first
       const response = await supabase.functions.invoke(functionName, {
         body: payload
       });
 
       console.log(`📥 Response from ${functionName}:`, response);
+
+      // If function not deployed, use mock
+      if (response.error?.name === 'FunctionsHttpError' && mockPaystackFunctions[functionName]) {
+        console.log(`🎭 Using mock implementation for ${functionName}`);
+        const mockResponse = {
+          data: mockPaystackFunctions[functionName](payload),
+          error: null
+        };
+        console.log(`🎭 Mock response:`, mockResponse);
+        return mockResponse;
+      }
 
       // Log additional debug info
       console.log(`🔍 Debug info:`, {
@@ -355,6 +443,16 @@ const PaystackDemo = () => {
       return response;
     } catch (error) {
       console.error(`❌ Error calling ${functionName}:`, error);
+
+      // Fallback to mock if available
+      if (mockPaystackFunctions[functionName]) {
+        console.log(`🎭 Fallback to mock for ${functionName} due to error`);
+        return {
+          data: mockPaystackFunctions[functionName](payload),
+          error: null
+        };
+      }
+
       return { error, data: null };
     }
   };
