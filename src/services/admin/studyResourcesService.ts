@@ -474,27 +474,16 @@ export const getStudyTips = async (): Promise<StudyTip[]> => {
     // Check if table exists first
     const tableExists = await checkTableExists("study_tips");
     if (!tableExists) {
-      console.warn(
-        "Study tips table does not exist. Creating a sample entry to initialize.",
-      );
+      console.warn("Study tips table does not exist.");
       // Return empty array but don't fail
       return [];
     }
 
-    // Query only columns that exist in the actual table
+    // First, let's try a simple query to see what columns exist
     const { data, error } = await supabase
       .from("study_tips")
-      .select(
-        `
-        id,
-        title,
-        description,
-        is_active,
-        created_at,
-        updated_at
-      `,
-      )
-      .eq("is_active", true)
+      .select("*")
+      .limit(10)
       .order("created_at", { ascending: false });
 
     if (error) {
