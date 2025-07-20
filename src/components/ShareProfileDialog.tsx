@@ -30,9 +30,29 @@ const ShareProfileDialog = ({
 }: ShareProfileDialogProps) => {
   const profileUrl = `${window.location.origin}/user/${userId}`;
 
-  const copyProfileLink = () => {
-    navigator.clipboard.writeText(profileUrl);
-    toast.success("Profile link copied to clipboard!");
+      const copyProfileLink = () => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(profileUrl);
+        toast.success("Profile link copied! 📋 Share it everywhere to sell faster!");
+      } else {
+        // Fallback for environments where clipboard API is restricted
+        const textArea = document.createElement('textarea');
+        textArea.value = profileUrl;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        textArea.remove();
+        toast.success("Profile link copied! 📋 Share it everywhere to sell faster!");
+      }
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+      toast.error("Couldn't copy link automatically. Please copy it manually from the input field.");
+    }
   };
 
   const shareToSocial = (platform: string) => {
@@ -50,33 +70,59 @@ const ShareProfileDialog = ({
       case "whatsapp":
         shareUrl = `https://wa.me/?text=${encodeURIComponent(text + " " + profileUrl)}`;
         break;
-      case "instagram": {
+            case "instagram": {
         // Instagram doesn't support direct URL sharing, so we copy the text and URL
         const instagramText = `${text}\n\n${profileUrl}`;
-        navigator.clipboard.writeText(instagramText);
-        toast.success(
-          "Text and link copied! Paste it in your Instagram story or post.",
-        );
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(instagramText);
+          } else {
+            // Fallback for restricted environments
+            const textArea = document.createElement('textarea');
+            textArea.value = instagramText;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+            textArea.remove();
+          }
+          toast.success(
+            "Text and link copied! Paste it in your Instagram story or post.",
+          );
+        } catch (error) {
+          console.error('Failed to copy Instagram text:', error);
+          toast.success("Opening Instagram... You can manually copy the profile link from above!");
+        }
         return;
       }
       default:
         return;
     }
 
-    window.open(shareUrl, "_blank", "width=600,height=400");
+        window.open(shareUrl, "_blank", "width=600,height=400");
+    toast.success("Great! 🚀 Sharing your profile helps sell books faster!");
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
-        <DialogHeader>
+                <DialogHeader>
           <DialogTitle className="flex items-center">
             <Share2 className="h-5 w-5 text-book-600 mr-2" />
-            Share Profile
+            Share {isOwnProfile ? "Your" : `${userName}'s`} ReBooked Mini Page
           </DialogTitle>
-          <DialogDescription>
-            Share {isOwnProfile ? "your" : `${userName}'s`} profile to boost{" "}
-            {isOwnProfile ? "your" : "their"} chances of hitting a sale :)
+                    <DialogDescription>
+            {isOwnProfile ? (
+              <div className="space-y-2">
+                <div>🚀 Share your ReBooked mini page to sell your books faster!</div>
+                <div className="text-sm text-gray-600">Post it on social media, send to classmates, or share in study groups - the more people see your books, the quicker they'll sell.</div>
+              </div>
+            ) : (
+              <>Help {userName} sell their books by sharing their ReBooked mini page!</>
+            )}
           </DialogDescription>
         </DialogHeader>
 

@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { json } from "https://deno.land/x/supabase_functions@0.2.0/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { parseRequestBody } from "../_shared/safe-body-parser.ts";
 import { refundTransaction } from "../_shared/paystack-refund.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -11,32 +13,42 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  try {
-    const { order_id, seller_id, reason } = await req.json();
+    try {
+    // Use safe body parser
+    const bodyParseResult = await parseRequestBody(req, corsHeaders);
+    if (!bodyParseResult.success) {
+      return bodyParseResult.errorResponse!;
+    }
+    const { order_id, seller_id, reason } = bodyParseResult.data;
 
     // Enhanced validation with specific error messages
     const validationErrors = [];
     if (!order_id) validationErrors.push("order_id is required");
     if (!seller_id) validationErrors.push("seller_id is required");
 
-    if (validationErrors.length > 0) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "VALIDATION_FAILED",
-          details: {
-            missing_fields: validationErrors,
-                        provided_fields: Object.keys({ order_id, seller_id, reason }),
-            message: `Missing required fields: ${validationErrors.join(", ")}`,
-          },
-          fix_instructions:
-            "Provide all required fields: order_id (string), seller_id (string), reason (optional string)",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // UUID format validation (allow test IDs)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const isTestMode = order_id?.startsWith('ORD_test') || seller_id?.startsWith('USR_test');
+
+    if (order_id && seller_id && !isTestMode && (!uuidRegex.test(order_id) || !uuidRegex.test(seller_id))) {
+      validationErrors.push("order_id and seller_id must be valid UUIDs");
+    }
+
+        if (validationErrors.length > 0) {
+      return json({
+        success: false,
+        error: "VALIDATION_FAILED",
+        details: {
+          missing_fields: validationErrors,
+                      provided_fields: Object.keys({ order_id, seller_id, reason }),
+          message: `Missing required fields: ${validationErrors.join(", ")}`,
         },
-      );
+        fix_instructions:
+          "Provide all required fields: order_id (string), seller_id (string), reason (optional string)",
+      }, {
+        status: 400,
+        headers: corsHeaders,
+      });
     }
 
     // Check environment variables
@@ -293,7 +305,7 @@ serve(async (req) => {
       <p><strong>Refund Status:</strong> ${refundResult.data.status}</p>
       <p><strong>Refund Reference:</strong> ${refundResult.data.id}</p>
       <p><strong>Processing Time:</strong> 3-5 business days</p>
-      <p><strong>✅ Your refund has been successfully processed.</strong></p>
+      <p><strong>��� Your refund has been successfully processed.</strong></p>
     </div>
     `
         : `

@@ -23,6 +23,7 @@ import {
   Calendar,
   Package,
   TrendingUp,
+  Share2,
 } from "lucide-react";
 import { getUserBooks } from "@/services/book/bookQueries";
 import { deleteBook } from "@/services/book/bookMutations";
@@ -32,6 +33,8 @@ import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ModernAddressTab from "@/components/profile/ModernAddressTab";
 import BankingProfileTab from "@/components/profile/BankingProfileTab";
+import ShareProfileDialog from "@/components/ShareProfileDialog";
+import ShareReminderBanner from "@/components/ShareReminderBanner";
 import { UserProfile, AddressData, Address } from "@/types/address";
 
 const Profile = () => {
@@ -41,9 +44,10 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [activeListings, setActiveListings] = useState<Book[]>([]);
   const [isLoadingListings, setIsLoadingListings] = useState(true);
-  const [addressData, setAddressData] = useState<AddressData | null>(null);
+    const [addressData, setAddressData] = useState<AddressData | null>(null);
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
   const [deletingBooks, setDeletingBooks] = useState<Set<string>>(new Set());
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
   const loadActiveListings = useCallback(async () => {
     if (!user?.id) return;
@@ -260,8 +264,13 @@ const Profile = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab */}
+                    {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
+            <ShareReminderBanner
+              userId={user?.id || ""}
+              userName={profile?.name || ""}
+              onShare={() => setIsShareDialogOpen(true)}
+            />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card>
                 <CardContent className="pt-6">
@@ -308,7 +317,30 @@ const Profile = () => {
                   </div>
                 </CardContent>
               </Card>
-            </div>
+                        </div>
+
+            {/* Share Your Profile */}
+            <Card className="bg-gradient-to-r from-book-50 to-book-100 border-book-200">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-book-800">
+                      Share Your ReBooked Mini Page
+                    </h3>
+                    <p className="text-book-700 text-sm">
+                      Share your profile to help your books sell faster! Post it on social media, send to classmates, or share in study groups.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => setIsShareDialogOpen(true)}
+                    className="bg-book-600 hover:bg-book-700 text-white"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share Profile
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Recent Activity */}
             <Card>
@@ -544,8 +576,16 @@ const Profile = () => {
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
+                </Tabs>
       </div>
+
+      <ShareProfileDialog
+        isOpen={isShareDialogOpen}
+        onClose={() => setIsShareDialogOpen(false)}
+        userId={user?.id || ""}
+        userName={profile?.name || "Anonymous User"}
+        isOwnProfile={true}
+      />
     </Layout>
   );
 };

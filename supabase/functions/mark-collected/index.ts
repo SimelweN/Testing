@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { json } from "https://deno.land/x/supabase_functions@0.2.0/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { parseRequestBody } from "../_shared/safe-body-parser.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -14,28 +16,12 @@ serve(async (req) => {
     // Safety check for body consumption
     console.log("Body used before consumption:", req.bodyUsed);
 
-    let requestData;
-    try {
-      requestData = await req.json();
-    } catch (bodyError) {
-      console.error("Body consumption error:", bodyError.message);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "BODY_CONSUMPTION_ERROR",
-          details: {
-            error_message: bodyError.message,
-            body_used: req.bodyUsed,
-            timestamp: new Date().toISOString()
-          },
-          fix_instructions: "Request body may have been consumed already. Check for duplicate body reads."
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+        // Use safe body parser
+    const bodyParseResult = await parseRequestBody(req, corsHeaders);
+    if (!bodyParseResult.success) {
+      return bodyParseResult.errorResponse!;
     }
+        const requestData = bodyParseResult.data;
 
     const {
       order_id,
@@ -45,14 +31,25 @@ serve(async (req) => {
       collected_at = new Date().toISOString(),
     } = requestData;
 
-    // Enhanced validation with specific error messages
-    if (!order_id) {
+        // Enhanced validation with specific error messages
+    const validationErrors = [];
+    if (!order_id) validationErrors.push("order_id is required");
+
+    // UUID format validation (allow test IDs)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const isTestMode = order_id?.startsWith('ORD_test');
+
+    if (order_id && !isTestMode && !uuidRegex.test(order_id)) {
+      validationErrors.push("order_id must be a valid UUID");
+    }
+
+    if (validationErrors.length > 0) {
       return new Response(
         JSON.stringify({
           success: false,
           error: "VALIDATION_FAILED",
           details: {
-            missing_fields: ["order_id"],
+            missing_fields: validationErrors,
                         provided_fields: Object.keys({
               order_id,
               collected_by,

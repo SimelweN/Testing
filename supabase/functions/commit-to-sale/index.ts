@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { json } from "https://deno.land/x/supabase_functions@0.2.0/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { parseRequestBody } from "../_shared/safe-body-parser.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -10,20 +12,48 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  try {
-    const { order_id, seller_id } = await req.json();
+    try {
+    // Use safe body parser to prevent consumption errors
+    const bodyParseResult = await parseRequestBody(req, corsHeaders);
+    if (!bodyParseResult.success) {
+      return bodyParseResult.errorResponse!;
+    }
+    const { order_id, seller_id } = bodyParseResult.data;
 
-    if (!order_id || !seller_id) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Missing required fields: order_id, seller_id",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+                if (!order_id || !seller_id) {
+      return json({
+        success: false,
+        error: "Missing required fields: order_id, seller_id",
+      }, {
+        status: 400,
+        headers: corsHeaders,
+      });
+    }
+
+            // Validate parameter types
+    if (typeof order_id !== 'string' || typeof seller_id !== 'string') {
+      return json({
+        success: false,
+        error: "order_id and seller_id must be valid strings",
+      }, {
+        status: 400,
+        headers: corsHeaders,
+      });
+    }
+
+    // UUID format validation (allow test IDs for testing)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const isTestMode = order_id.startsWith('ORD_test') || seller_id.startsWith('USR_test');
+
+        if (!isTestMode && (!uuidRegex.test(order_id) || !uuidRegex.test(seller_id))) {
+      return json({
+        success: false,
+        error: "order_id and seller_id must be valid UUIDs",
+        debug: { order_id, seller_id, isTestMode }
+      }, {
+        status: 400,
+        headers: corsHeaders,
+      });
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
@@ -37,17 +67,29 @@ serve(async (req) => {
       .eq("status", "pending_commit")
       .single();
 
-    if (orderError || !order) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Order not found or not in pending commit status",
-        }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+        if (orderError || !order) {
+            return json({
+        success: false,
+        error: "Order not found or not in pending commit status",
+      }, {
+        status: 404,
+        headers: corsHeaders,
+      });
+    }
+
+    // Ensure order.items is properly parsed if it's stored as JSONB
+    if (order.items && typeof order.items === 'string') {
+      try {
+        order.items = JSON.parse(order.items);
+      } catch (parseError) {
+        console.warn("Failed to parse order.items:", parseError);
+        order.items = [];
+      }
+    }
+
+    // Ensure items is an array
+    if (!Array.isArray(order.items)) {
+      order.items = [];
     }
 
     // Get buyer and seller profiles separately for safety
@@ -57,9 +99,9 @@ serve(async (req) => {
       .eq("id", order.buyer_id)
       .single();
 
-    const { data: seller } = await supabase
+        const { data: seller } = await supabase
       .from("profiles")
-      .select("id, name, email, phone")
+      .select("id, name, email, phone, pickup_address")
       .eq("id", order.seller_id)
       .single();
 
@@ -76,17 +118,32 @@ serve(async (req) => {
       throw new Error(`Failed to update order status: ${updateError.message}`);
     }
 
-    // Schedule automatic courier pickup by calling automate-delivery (if possible)
-    try {
-      await fetch(`${SUPABASE_URL}/functions/v1/automate-delivery`, {
+            // Schedule automatic courier pickup by calling automate-delivery (if possible)
+    let deliveryError = null;
+
+    // Validate addresses before attempting delivery automation
+    const hasSellerAddress = seller?.pickup_address &&
+      typeof seller.pickup_address === 'object' &&
+      seller.pickup_address.streetAddress;
+    const hasBuyerAddress = order.shipping_address || order.delivery_address;
+
+    if (!hasSellerAddress) {
+      deliveryError = new Error("Seller pickup address not configured");
+      console.warn("Skipping delivery automation: seller pickup address missing");
+    } else if (!hasBuyerAddress) {
+      deliveryError = new Error("Buyer delivery address not available");
+      console.warn("Skipping delivery automation: buyer address missing");
+    } else {
+      try {
+        await fetch(`${SUPABASE_URL}/functions/v1/automate-delivery`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
         },
-        body: JSON.stringify({
+                body: JSON.stringify({
           order_id: order_id,
-          seller_address: order.shipping_address || order.delivery_address,
+          seller_address: seller?.pickup_address || null,
           buyer_address: order.shipping_address || order.delivery_address,
           weight:
             (order.items || []).reduce(
@@ -94,13 +151,16 @@ serve(async (req) => {
               0,
             ) || 1,
         }),
-      });
-    } catch (deliveryError) {
-      console.error("Failed to schedule automatic delivery:", deliveryError);
-      // Continue anyway - delivery can be scheduled manually
+            });
+      } catch (error) {
+        deliveryError = error;
+        console.error("Failed to schedule automatic delivery:", error);
+        // Continue anyway - delivery can be scheduled manually
+      }
     }
 
-    // Send notification emails using DIRECT HTML
+        // Send notification emails using DIRECT HTML
+    let emailError = null;
     try {
       // Notify buyer
       if (buyer?.email) {
@@ -299,35 +359,33 @@ serve(async (req) => {
           }),
         });
       }
-    } catch (emailError) {
-      console.error("Failed to send notification emails:", emailError);
+            } catch (error) {
+      emailError = error;
+      console.error("Failed to send notification emails:", error);
       // Don't fail the commit for email errors
     }
 
-    return new Response(
-      JSON.stringify({
+                return json({
         success: true,
         message: "Order committed successfully",
         order_id,
         status: "committed",
-        pickup_scheduled: true,
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+        pickup_scheduled: !deliveryError,
+        email_sent: !emailError,
+        ...(deliveryError && { delivery_warning: "Automatic pickup scheduling failed - will need manual arrangement" }),
+        ...(emailError && { email_warning: "Notification emails failed to send" })
+      }, {
+        headers: corsHeaders,
+      });
   } catch (error) {
     console.error("Commit to sale error:", error);
 
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message || "Failed to commit order to sale",
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+        return json({
+      success: false,
+      error: error.message || "Failed to commit order to sale",
+    }, {
+      status: 500,
+      headers: corsHeaders,
+    });
   }
 });
