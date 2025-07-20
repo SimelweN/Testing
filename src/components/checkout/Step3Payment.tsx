@@ -115,19 +115,44 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           orderSummary: orderSummary.book.id
         });
 
-                // Simple error message extraction
+                        // Robust error message extraction that prevents [object Object]
         let userFriendlyMessage = "Failed to process purchase";
-        if (error?.message) {
-          userFriendlyMessage = error.message;
-        } else if (error?.details) {
-          userFriendlyMessage = error.details;
-        } else if (typeof error === 'string') {
-          userFriendlyMessage = error;
-        } else if (error) {
-          userFriendlyMessage = String(error);
+
+        try {
+          if (error?.message && typeof error.message === 'string' && error.message !== '[object Object]') {
+            userFriendlyMessage = error.message;
+          } else if (error?.details && typeof error.details === 'string' && error.details !== '[object Object]') {
+            userFriendlyMessage = error.details;
+          } else if (error?.hint && typeof error.hint === 'string' && error.hint !== '[object Object]') {
+            userFriendlyMessage = error.hint;
+          } else if (typeof error === 'string' && error !== '[object Object]') {
+            userFriendlyMessage = error;
+          } else if (error?.code) {
+            userFriendlyMessage = `Error code: ${error.code}`;
+          } else if (error) {
+            // Try JSON.stringify as last resort
+            try {
+              const stringified = JSON.stringify(error, Object.getOwnPropertyNames(error));
+              if (stringified && stringified !== '{}' && stringified !== '[object Object]') {
+                userFriendlyMessage = `Error: ${stringified}`;
+              } else {
+                userFriendlyMessage = `Error occurred (type: ${typeof error})`;
+              }
+            } catch (jsonError) {
+              userFriendlyMessage = `Error occurred (type: ${typeof error}, constructor: ${error?.constructor?.name || 'unknown'})`;
+            }
+          }
+        } catch (extractionError) {
+          userFriendlyMessage = "Error occurred during error processing";
+        }
+
+        // Final safety check
+        if (userFriendlyMessage === '[object Object]' || !userFriendlyMessage) {
+          userFriendlyMessage = "An unexpected error occurred";
         }
 
         console.log("🔍 USER FRIENDLY MESSAGE:", userFriendlyMessage);
+        console.log("🔍 MESSAGE TYPE:", typeof userFriendlyMessage);
 
         // Fallback: Create order directly in database when Edge Function fails
         console.log("🔄 Attempting fallback order creation...");
