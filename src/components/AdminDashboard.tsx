@@ -689,26 +689,9 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="api-testing" className="space-y-4 mt-0">
+                    <TabsContent value="api-testing" className="space-y-4 mt-0">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold mb-2">API Function Testing</h3>
-                <p className="text-gray-600 text-sm">
-                  Test API functions from the /api folder. You can access the full testing interface at:
-                </p>
-                <div className="mt-3">
-                  <a
-                    href="/admin/api-testing"
-                    target="_blank"
-                    className="inline-flex items-center px-4 py-2 bg-book-600 text-white rounded-lg hover:bg-book-700 transition-colors"
-                  >
-                    Open API Testing Interface
-                    <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
-                </div>
-              </div>
+              <APIFunctionTester />
             </div>
           </TabsContent>
 
