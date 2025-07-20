@@ -731,21 +731,25 @@ const PaystackDemo = () => {
 
               {Object.keys(functionStatus).length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4">
-                  {Object.entries(functionStatus).map(([funcName, status]: [string, any]) => (
+                                    {Object.entries(functionStatus).map(([funcName, status]: [string, any]) => (
                     <div
                       key={funcName}
                       className={`flex items-center gap-2 p-2 rounded text-xs ${
-                        status.available
+                        status.actuallyWorking
                           ? 'bg-green-100 text-green-800 border border-green-200'
-                          : 'bg-red-100 text-red-800 border border-red-200'
+                          : status.available
+                            ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                            : 'bg-red-100 text-red-800 border border-red-200'
                       }`}
                     >
-                      {status.available ? (
+                      {status.actuallyWorking ? (
                         <CheckCircle className="h-3 w-3" />
+                      ) : status.available ? (
+                        <AlertTriangle className="h-3 w-3" />
                       ) : (
                         <XCircle className="h-3 w-3" />
                       )}
-                      <span className="truncate">{funcName}</span>
+                      <span className="truncate">{funcName.replace('paystack-', '')}</span>
                     </div>
                   ))}
                 </div>
