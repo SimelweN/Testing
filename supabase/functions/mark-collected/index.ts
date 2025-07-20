@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { json } from "https://deno.land/x/supabase_functions@0.2.0/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { parseRequestBody } from "../_shared/safe-body-parser.ts";
@@ -284,7 +285,7 @@ serve(async (req) => {
     </div>
 
     <div class="info-box">
-      <h3>�� Delivery Address</h3>
+      <h3>📍 Delivery Address</h3>
       <p>${order.shipping_address?.address_line_1 || order.delivery_address?.address_line_1 || "Address on file"}<br>
       ${order.shipping_address?.address_line_2 || order.delivery_address?.address_line_2 || ""}<br>
       ${order.shipping_address?.city || order.delivery_address?.city || ""}, ${order.shipping_address?.postal_code || order.delivery_address?.postal_code || ""}</p>
