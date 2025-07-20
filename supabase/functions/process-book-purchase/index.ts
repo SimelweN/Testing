@@ -444,7 +444,7 @@ serve(async (req) => {
 
     try {
       // Email to seller
-      const sellerHtml = `
+            const sellerHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -472,16 +472,16 @@ serve(async (req) => {
 
     <div class="info-box">
       <h3>📋 Order Details</h3>
-      <p><strong>Order ID:</strong> ${orderId}</p>
+      <p><strong>Order ID:</strong> ${order.id}</p>
       <p><strong>Book:</strong> ${book.title}</p>
       <p><strong>Author:</strong> ${book.author}</p>
       <p><strong>Buyer:</strong> ${buyer.name} (${email})</p>
-      <p><strong>Total Amount:</strong> R${orderData.total_amount.toFixed(2)}</p>
+      <p><strong>Total Amount:</strong> R${(orderData.amount / 100).toFixed(2)}</p>
     </div>
 
     <div class="warning">
       <h3>⏰ Action Required Within 48 Hours</h3>
-      <p><strong>Expires:</strong> ${new Date(orderData.expires_at).toLocaleString()}</p>
+      <p><strong>Expires:</strong> ${new Date(orderData.metadata.expires_at).toLocaleString()}</p>
       <p>You must commit to this order within 48 hours or it will be automatically cancelled and refunded.</p>
     </div>
 
