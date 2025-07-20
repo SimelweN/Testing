@@ -170,15 +170,15 @@ export default function NetworkConnectivityDebug() {
     }
     setResults([...testResults]);
 
-    // Test 5: CORS and Headers Test
+        // Test 5: CORS and Headers Test
     try {
-      const corsTestUrl = ENV.VITE_SUPABASE_URL + "/rest/v1/profiles?select=id&limit=1";
+      // Use a simpler endpoint that's more likely to exist
+      const corsTestUrl = ENV.VITE_SUPABASE_URL + "/rest/v1/";
       const corsResponse = await fetch(corsTestUrl, {
-        method: "GET",
+        method: "HEAD",
         headers: {
           "apikey": ENV.VITE_SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${ENV.VITE_SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json"
+          "Authorization": `Bearer ${ENV.VITE_SUPABASE_ANON_KEY}`
         }
       });
 
@@ -195,6 +195,17 @@ export default function NetworkConnectivityDebug() {
             }
           }
         });
+      } else if (corsResponse.status === 404) {
+        testResults.push({
+          name: "CORS and Headers",
+          status: "warning",
+          message: "Database schema issue - tables may not exist",
+          details: {
+            status: corsResponse.status,
+            explanation: "404 usually means tables haven't been created or wrong schema",
+            suggestion: "Check if Supabase database is properly set up"
+          }
+        });
       } else {
         testResults.push({
           name: "CORS and Headers",
@@ -202,7 +213,8 @@ export default function NetworkConnectivityDebug() {
           message: `CORS test failed with status ${corsResponse.status}`,
           details: {
             status: corsResponse.status,
-            statusText: corsResponse.statusText
+            statusText: corsResponse.statusText,
+            explanation: corsResponse.status === 401 ? "Authentication issue" : "Unknown error"
           }
         });
       }
