@@ -155,79 +155,14 @@ const GoogleMapsAddressAutocomplete: React.FC<
     }
   };
 
-  // Load Google Maps script
-  const loadGoogleMaps = () => {
-    // Check if already loaded
-    if (checkGoogleMapsLoaded()) {
-      console.log("Google Maps already loaded, initializing...");
-      setScriptLoaded(true);
-      initializeAutocomplete();
-      return;
-    }
-
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    if (!apiKey) {
-      setLoadError("Google Maps API key not found");
-      setIsLoading(false);
-      return;
-    }
-
-    // Check if script is already being loaded
-    const existingScript = document.querySelector(
-      'script[src*="maps.googleapis.com"]',
-    );
-    if (existingScript) {
+  // Initialize autocomplete when Google Maps is ready
+  const initializeGoogleMaps = () => {
+    if (mapsLoaded && checkGoogleMapsLoaded()) {
       console.log(
-        "Google Maps script already exists, waiting for it to load...",
+        "Google Maps loaded via context, initializing autocomplete...",
       );
-
-      // Poll for Google Maps to be ready
-      const pollInterval = setInterval(() => {
-        if (checkGoogleMapsLoaded()) {
-          clearInterval(pollInterval);
-          setScriptLoaded(true);
-          initializeAutocomplete();
-        }
-      }, 100);
-
-      // Stop polling after 10 seconds
-      setTimeout(() => {
-        clearInterval(pollInterval);
-        if (!checkGoogleMapsLoaded()) {
-          setLoadError("Google Maps failed to load within timeout");
-          setIsLoading(false);
-        }
-      }, 10000);
-      return;
+      initializeAutocomplete();
     }
-
-    console.log("Loading Google Maps script...");
-
-    // Create and load script
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-
-    script.onload = () => {
-      console.log("Google Maps script loaded successfully");
-      setScriptLoaded(true);
-
-      // Small delay to ensure Places library is ready
-      setTimeout(() => {
-        if (initializeAutocomplete()) {
-          console.log("Autocomplete initialized successfully");
-        }
-      }, 100);
-    };
-
-    script.onerror = () => {
-      // Silently handle Google Maps loading errors
-      setLoadError("Google Maps unavailable");
-      setIsLoading(false);
-    };
-
-    document.head.appendChild(script);
   };
 
   useEffect(() => {
