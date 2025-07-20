@@ -278,9 +278,8 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       console.error("Order processing error after Paystack success:", error);
 
             // Since Paystack already succeeded, this is an order processing issue
-      const safeErrorMessage = (typeof error?.message === 'string' && error.message !== '[object Object]')
-        ? error.message
-        : (typeof error === 'string' ? error : "Unknown error");
+            const extractedMessage = error?.message || (typeof error === 'string' ? error : String(error || 'Unknown error'));
+      const safeErrorMessage = extractedMessage === '[object Object]' ? 'Order processing failed' : extractedMessage;
 
       const orderProcessingError = {
         type: "server" as const,
@@ -1050,7 +1049,7 @@ Time: ${new Date().toISOString()}
             <p>• Payment will be processed immediately</p>
             <p>• You'll receive an email confirmation</p>
             <p>• Seller will be notified to prepare shipment</p>
-            <p>• You can track your order in your account</p>
+            <p>�� You can track your order in your account</p>
           </div>
         </CardContent>
       </Card>
