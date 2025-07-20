@@ -68,16 +68,13 @@ serve(async (req) => {
       .single();
 
         if (orderError || !order) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Order not found or not in pending commit status",
-        }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+            return json({
+        success: false,
+        error: "Order not found or not in pending commit status",
+      }, {
+        status: 404,
+        headers: corsHeaders,
+      });
     }
 
     // Ensure order.items is properly parsed if it's stored as JSONB
