@@ -492,9 +492,58 @@ export default function APIFunctionTester() {
                 </div>
               )}
 
-              {!response && !error && (
+                            {!response && !error && !testingAll && testAllResults.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground text-sm">
                   Select a function and click "Test" to see the response
+                </div>
+              )}
+
+              {/* Test All Results Summary */}
+              {!testingAll && testAllResults.length > 0 && (
+                <div className="space-y-3 border-t pt-4 mt-4">
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    <PlayCircle className="h-4 w-4" />
+                    Test All Results Summary
+                  </h4>
+
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="flex items-center justify-between p-2 bg-green-50 rounded">
+                      <span className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                        Passed
+                      </span>
+                      <Badge variant="default" className="bg-green-600">
+                        {testAllResults.filter(r => r.success).length}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-red-50 rounded">
+                      <span className="flex items-center gap-2">
+                        <AlertCircle className="h-3 w-3 text-red-600" />
+                        Failed
+                      </span>
+                      <Badge variant="destructive">
+                        {testAllResults.filter(r => !r.success).length}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {testAllResults.filter(r => !r.success).map((result, index) => (
+                      <div key={index} className="p-2 bg-red-50 rounded text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">{result.endpoint}</span>
+                          <Badge variant="destructive" className="text-xs">
+                            {result.status || "ERR"}
+                          </Badge>
+                        </div>
+                        {result.error && (
+                          <div className="text-red-600 mt-1 truncate">
+                            {result.error}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </CardContent>
