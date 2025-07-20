@@ -12,43 +12,25 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  try {
-    // Handle health check first (allow GET and POST for health checks)
-    const url = new URL(req.url);
-    const isHealthCheck =
-      url.pathname.endsWith("/health") ||
-      url.searchParams.get("health") === "true";
+    try {
+    // Handle request body and health checks safely
+    const requestResult = await handleRequestBody(req, "initialize-paystack-payment", {
+      environment: {
+        paystack_configured: !!PAYSTACK_SECRET_KEY,
+        supabase_configured: !!(SUPABASE_URL && SUPABASE_SERVICE_KEY),
+      },
+    });
 
-    // Check for health check in POST body as well
-    let body = null;
-    if (req.method === "POST") {
-      try {
-        // Clone the request to avoid consuming the body
-        const clonedReq = req.clone();
-        body = await clonedReq.json();
-      } catch {
-        // Ignore JSON parsing errors for health checks
-      }
+    if (requestResult.isHealthCheck) {
+      return requestResult.response!;
     }
 
-    if (isHealthCheck || body?.health === true) {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          service: "initialize-paystack-payment",
-          status: "healthy",
-          timestamp: new Date().toISOString(),
-          environment: {
-            paystack_configured: !!PAYSTACK_SECRET_KEY,
-            supabase_configured: !!(SUPABASE_URL && SUPABASE_SERVICE_KEY),
-          },
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+    if (requestResult.response) {
+      // Error occurred during body parsing
+      return requestResult.response;
     }
+
+    const requestBody = requestResult.body;
 
     // Validate request method for non-health endpoints
     if (req.method !== "POST") {
