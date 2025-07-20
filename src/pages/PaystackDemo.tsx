@@ -209,13 +209,14 @@ const PaystackDemo = () => {
 
       console.log(`🔗 Testing direct HTTP call to: ${functionUrl}`);
 
-      // Try health check with proper health parameter
-      const healthResponse = await fetch(`${functionUrl}?health=true`, {
-        method: 'GET',
+            // Try health check with proper health parameter using POST
+      const healthResponse = await fetch(functionUrl, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${supabase.supabaseKey}`
-        }
+        },
+        body: JSON.stringify({ health: true })
       });
 
       // Clone the response to read it multiple times if needed
@@ -1275,7 +1276,7 @@ const PaystackDemo = () => {
                         <span>paystack-transfer-management</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline">��</Badge>
+                        <Badge variant="outline">✅</Badge>
                         <span>paystack-split-management</span>
                       </div>
                       <div className="flex items-center gap-2">
