@@ -21,10 +21,63 @@ export class EdgeFunctionDebugger {
   private supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   private supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+  private validateConfiguration(): { valid: boolean; error?: string } {
+    if (!this.supabaseUrl || this.supabaseUrl.trim() === "" || this.supabaseUrl === "undefined") {
+      return {
+        valid: false,
+        error: "VITE_SUPABASE_URL is not set or invalid"
+      };
+    }
+
+    if (!this.supabaseAnonKey || this.supabaseAnonKey.trim() === "" || this.supabaseAnonKey === "undefined") {
+      return {
+        valid: false,
+        error: "VITE_SUPABASE_ANON_KEY is not set or invalid"
+      };
+    }
+
+    try {
+      new URL(this.supabaseUrl);
+    } catch {
+      return {
+        valid: false,
+        error: `Invalid VITE_SUPABASE_URL format: ${this.supabaseUrl}`
+      };
+    }
+
+    return { valid: true };
+  }
+
   async diagnoseFunction(
     functionName: string,
   ): Promise<EdgeFunctionDiagnostic> {
     const startTime = performance.now();
+
+    // Validate configuration first
+    const configValidation = this.validateConfiguration();
+    if (!configValidation.valid) {
+      return {
+        functionName,
+        status: "error",
+        error: {
+          message: "Configuration Error",
+          name: "ConfigurationError",
+          details: configValidation.error!,
+          possibleCauses: [
+            "Environment variables not set in deployment",
+            "Invalid Supabase URL format",
+            "Missing VITE_ prefix in environment variables"
+          ],
+          troubleshooting: [
+            "Check .env file has VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY",
+            "Verify environment variables are set in production deployment",
+            "Ensure URL format: https://your-project.supabase.co"
+          ]
+        },
+        timing: performance.now() - startTime,
+        url: this.supabaseUrl || "undefined"
+      };
+    }
 
     try {
       // First try with Supabase client
