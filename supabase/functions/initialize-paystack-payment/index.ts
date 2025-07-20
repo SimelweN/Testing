@@ -468,19 +468,16 @@ serve(async (req) => {
       // Return mock response if Paystack fails
       const mockReference = `fallback_ref_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          data: {
-            authorization_url: `https://checkout.paystack.com/mock/${mockReference}`,
-            reference: mockReference,
-            access_code: `fallback_access_${Date.now()}`,
-          },
-          fallback: true,
-          paystack_error: paystackError.message,
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+            return jsonResponse({
+        success: true,
+        data: {
+          authorization_url: `https://checkout.paystack.com/mock/${mockReference}`,
+          reference: mockReference,
+          access_code: `fallback_access_${Date.now()}`,
+        },
+        fallback: true,
+        paystack_error: paystackError.message,
+      });
     }
   } catch (error) {
     console.error("Initialize payment error:", error);
