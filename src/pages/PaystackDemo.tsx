@@ -163,15 +163,23 @@ const PaystackDemo = () => {
           body: { test: true }
         });
 
-        // Function is available if we get any response (even error responses)
+                // Function is available if we get any response (even error responses)
+        // FunctionsHttpError = not deployed, other errors = deployed but wrong params
         const isAvailable = response.error?.name !== 'FunctionsHttpError';
 
+        // Special case: if we get MISSING_REQUIRED_FIELDS, the function is definitely working
+        const isWorking = response.error?.message?.includes?.('MISSING_REQUIRED_FIELDS') ||
+                         response.error?.message?.includes?.('METHOD_NOT_ALLOWED') ||
+                         response.data;
+
         status[funcName] = {
-          available: isAvailable,
+          available: isAvailable || isWorking,
           error: response.error,
           data: response.data,
           errorType: response.error?.name,
-          description: isAvailable ? "Function responded" : "Function not accessible"
+          description: isWorking ? "Function working (expected validation error)" :
+                      isAvailable ? "Function responded" : "Function not accessible",
+          actuallyWorking: isWorking
         };
 
                 console.log(`${isAvailable ? '✅' : '❌'} ${funcName} status:`, status[funcName]);
