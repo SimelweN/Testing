@@ -109,11 +109,24 @@ window.addEventListener("unhandledrejection", (event) => {
 // Handle global errors
 window.addEventListener("error", (event) => {
   const { message, filename, error } = event;
+  const stack = error?.stack || "";
 
-  // Only suppress errors from third-party services
+  // Suppress errors from third-party services
   if (filename && isThirdPartyError(filename)) {
     if (import.meta.env.DEV) {
       console.debug("Third-party script error suppressed:", message);
+    }
+    event.preventDefault();
+    return;
+  }
+
+  // Suppress development tool errors
+  if (
+    isDevelopmentError(message || "", stack) ||
+    (filename && isDevelopmentError(filename))
+  ) {
+    if (import.meta.env.DEV) {
+      console.debug("Development tool error suppressed:", message);
     }
     event.preventDefault();
     return;
