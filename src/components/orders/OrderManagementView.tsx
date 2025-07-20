@@ -101,13 +101,13 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
 
         logError("Error fetching orders (Supabase query)", error, { activeTab });
 
-        // Run diagnostics if it's a table-related error
-        if (error?.message?.includes("does not exist") || error?.message?.includes("relation") || error?.code === "42P01") {
-          console.log("🔍 Running orders table diagnostics due to table-related error...");
-          runOrdersTableDiagnostics().catch(diagError => {
-            console.error("Failed to run diagnostics:", diagError);
-          });
-        }
+                // Run comprehensive diagnostics for any orders error
+        console.log("🔍 Running comprehensive orders diagnostics...");
+        debugOrdersError(error).then(diagnosticResult => {
+          console.log("🔍 Complete diagnostic result:", diagnosticResult);
+        }).catch(diagError => {
+          console.error("Failed to run comprehensive diagnostics:", diagError);
+        });
 
         // Simple error message extraction
         let errorMsg = 'Failed to load orders';
