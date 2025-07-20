@@ -34,24 +34,21 @@ serve(async (req) => {
       validationErrors.push("order_id and seller_id must be valid UUIDs");
     }
 
-    if (validationErrors.length > 0) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "VALIDATION_FAILED",
-          details: {
-            missing_fields: validationErrors,
-                        provided_fields: Object.keys({ order_id, seller_id, reason }),
-            message: `Missing required fields: ${validationErrors.join(", ")}`,
-          },
-          fix_instructions:
-            "Provide all required fields: order_id (string), seller_id (string), reason (optional string)",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        if (validationErrors.length > 0) {
+      return json({
+        success: false,
+        error: "VALIDATION_FAILED",
+        details: {
+          missing_fields: validationErrors,
+                      provided_fields: Object.keys({ order_id, seller_id, reason }),
+          message: `Missing required fields: ${validationErrors.join(", ")}`,
         },
-      );
+        fix_instructions:
+          "Provide all required fields: order_id (string), seller_id (string), reason (optional string)",
+      }, {
+        status: 400,
+        headers: corsHeaders,
+      });
     }
 
     // Check environment variables
