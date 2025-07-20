@@ -58,13 +58,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = ({
     try {
             let query = supabase
         .from("orders")
-                .select(
-          `
-          *,
-          buyer:profiles!buyer_id(id, name, email),
-          seller:profiles!seller_id(id, name, email)
-        `,
-        )
+                        .select("*")
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
         .order("created_at", { ascending: false });
 
