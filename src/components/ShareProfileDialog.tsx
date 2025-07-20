@@ -70,13 +70,32 @@ const ShareProfileDialog = ({
       case "whatsapp":
         shareUrl = `https://wa.me/?text=${encodeURIComponent(text + " " + profileUrl)}`;
         break;
-      case "instagram": {
+            case "instagram": {
         // Instagram doesn't support direct URL sharing, so we copy the text and URL
         const instagramText = `${text}\n\n${profileUrl}`;
-        navigator.clipboard.writeText(instagramText);
-        toast.success(
-          "Text and link copied! Paste it in your Instagram story or post.",
-        );
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(instagramText);
+          } else {
+            // Fallback for restricted environments
+            const textArea = document.createElement('textarea');
+            textArea.value = instagramText;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+            textArea.remove();
+          }
+          toast.success(
+            "Text and link copied! Paste it in your Instagram story or post.",
+          );
+        } catch (error) {
+          console.error('Failed to copy Instagram text:', error);
+          toast.success("Opening Instagram... You can manually copy the profile link from above!");
+        }
         return;
       }
       default:
