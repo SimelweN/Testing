@@ -8,16 +8,23 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
     hmr: {
-      // More resilient HMR configuration
-      overlay: false, // Disable error overlay that might interfere
-      clientPort: 8080, // Ensure client connects to correct port
-      // Add timeout and retry configuration
-      timeout: 60000, // 60 second timeout for better stability
-      // Handle connection errors gracefully
+      // Configure HMR for cloud environment (Fly.io)
+      overlay: false, // Disable error overlay
+      clientPort: process.env.FLY_APP_NAME ? 443 : 8080,
+      host: process.env.FLY_APP_NAME
+        ? `${process.env.FLY_APP_NAME}.fly.dev`
+        : "localhost",
+      protocol: process.env.FLY_APP_NAME ? "wss" : "ws",
+      timeout: 60000,
+      // Enhanced error handling for cloud deployment
       skipErrors: true,
-      // Improve error handling
       errorHandler: (err, context) => {
-        console.debug("[HMR] Error handled gracefully:", err.message);
+        console.debug(
+          "[HMR] Connection error handled gracefully:",
+          err.message,
+        );
+        // Don't throw errors for network connectivity issues
+        return null;
       },
     },
     // Add CORS headers for better cross-origin support
