@@ -59,6 +59,7 @@ import NotificationsNew from "./pages/NotificationsNew";
 import ActivityLog from "./pages/ActivityLog";
 import BankingSetup from "./pages/BankingSetup";
 import UserProfile from "./pages/UserProfile";
+import PaystackDemo from "./pages/PaystackDemo";
 
 import "./App.css";
 
@@ -241,7 +242,8 @@ function App() {
                       <Route path="/terms" element={<Terms />} />
                       <Route path="/policies" element={<Policies />} />
                       <Route path="/shipping" element={<Shipping />} />
-                      <Route path="/report" element={<Report />} />
+                                            <Route path="/report" element={<Report />} />
+                      <Route path="/paystack-demo" element={<PaystackDemo />} />
 
                       {/* 404 Catch All */}
                       <Route path="*" element={<Index />} />
