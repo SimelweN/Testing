@@ -20,6 +20,7 @@ import PaymentErrorHandler, {
   classifyPaymentError,
   PaymentError,
 } from "@/components/payments/PaymentErrorHandler";
+import { logError, getUserFriendlyErrorMessage } from "@/utils/errorLogging";
 
 interface Step3PaymentProps {
   orderSummary: OrderSummary;
