@@ -278,10 +278,14 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
     } catch (error) {
       console.error("Order processing error after Paystack success:", error);
 
-      // Since Paystack already succeeded, this is an order processing issue
+            // Since Paystack already succeeded, this is an order processing issue
+      const safeErrorMessage = (typeof error?.message === 'string' && error.message !== '[object Object]')
+        ? error.message
+        : (typeof error === 'string' ? error : "Unknown error");
+
       const orderProcessingError = {
         type: "server" as const,
-        message: `Payment was successful, but order creation failed: ${error.message || "Unknown error"}`,
+        message: `Payment was successful, but order creation failed: ${safeErrorMessage}`,
         retryable: true,
         details: error,
       };
