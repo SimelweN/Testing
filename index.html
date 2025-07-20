@@ -107,7 +107,9 @@
             // Google Maps retry messages
             (msg.includes("failed to load google maps script") &&
               msg.includes("retrying")) ||
-            msg.includes("google maps script, retrying")
+            msg.includes("google maps script, retrying") ||
+            msg.includes("failed to load google maps script, retrying in") ||
+            (msg.includes("google maps") && msg.includes("retrying"))
           );
         };
 
