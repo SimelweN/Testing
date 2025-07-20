@@ -144,12 +144,12 @@ serve(async (req) => {
       );
     }
   } catch (error) {
-    console.error("Courier Guy quote error:", error);
+        console.error("Courier Guy quote error:", error?.message || error);
 
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || "Failed to get Courier Guy quote",
+                error: error?.message || String(error) || "Failed to get Courier Guy quote",
       }),
       {
         status: 500,
