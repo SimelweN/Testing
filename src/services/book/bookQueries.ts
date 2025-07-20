@@ -66,51 +66,95 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
   try {
     console.log("Fetching books with filters:", filters);
 
-    const fetchBooksOperation = async () => {
-      // First get books
-      let query = supabase
-        .from("books")
-        .select("*")
-        .eq("sold", false)
-        .order("created_at", { ascending: false });
+        const fetchBooksOperation = async (retryCount = 0): Promise<any[]> => {
+      try {
+        // First get books
+        let query = supabase
+          .from("books")
+          .select("*")
+          .eq("sold", false)
+          .order("created_at", { ascending: false });
 
-      // Apply filters if provided
-      if (filters) {
-        if (filters.search) {
-          query = query.or(
-            `title.ilike.%${filters.search}%,author.ilike.%${filters.search}%`,
+        // Apply filters if provided
+        if (filters) {
+          if (filters.search) {
+            query = query.or(
+              `title.ilike.%${filters.search}%,author.ilike.%${filters.search}%`,
+            );
+          }
+          if (filters.category) {
+            query = query.eq("category", filters.category);
+          }
+          if (filters.condition) {
+            query = query.eq("condition", filters.condition);
+          }
+          if (filters.grade) {
+            query = query.eq("grade", filters.grade);
+          }
+          if (filters.universityYear) {
+            query = query.eq("university_year", filters.universityYear);
+          }
+          if (filters.university) {
+            query = query.eq("university", filters.university);
+          }
+          if (filters.minPrice !== undefined) {
+            query = query.gte("price", filters.minPrice);
+          }
+          if (filters.maxPrice !== undefined) {
+            query = query.lte("price", filters.maxPrice);
+          }
+        }
+
+        const { data: booksData, error: booksError } = await query;
+
+        if (booksError) {
+          logDetailedError("Books query failed", {
+            error: booksError,
+            retryCount,
+            filters,
+            timestamp: new Date().toISOString()
+          });
+
+          // If it's a connection error and we haven't retried too many times, try again
+          if (retryCount < 3 && (
+            booksError.message?.includes('fetch') ||
+            booksError.message?.includes('network') ||
+            booksError.message?.includes('Failed to fetch') ||
+            booksError.message?.includes('timeout')
+          )) {
+            console.log(`Retrying books query (attempt ${retryCount + 1}/4)...`);
+            await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
+            return fetchBooksOperation(retryCount + 1);
+          }
+
+          throw new Error(
+            `Failed to fetch books after ${retryCount + 1} attempts: ${booksError.message || "Unknown database error"}`,
           );
         }
-        if (filters.category) {
-          query = query.eq("category", filters.category);
-        }
-        if (filters.condition) {
-          query = query.eq("condition", filters.condition);
-        }
-        if (filters.grade) {
-          query = query.eq("grade", filters.grade);
-        }
-        if (filters.universityYear) {
-          query = query.eq("university_year", filters.universityYear);
-        }
-        if (filters.university) {
-          query = query.eq("university", filters.university);
-        }
-        if (filters.minPrice !== undefined) {
-          query = query.gte("price", filters.minPrice);
-        }
-        if (filters.maxPrice !== undefined) {
-          query = query.lte("price", filters.maxPrice);
-        }
-      }
 
-      const { data: booksData, error: booksError } = await query;
+        if (!booksData) {
+          console.warn("Books query returned null data");
+          return [];
+        }
 
-      if (booksError) {
-        logDetailedError("Books query failed", booksError);
-        throw new Error(
-          `Failed to fetch books: ${booksError.message || "Unknown database error"}`,
-        );
+        console.log(`Successfully fetched ${booksData.length} books`);
+        return booksData;
+      } catch (networkError) {
+        logDetailedError("Network exception in books query", {
+          error: networkError,
+          retryCount,
+          filters,
+          timestamp: new Date().toISOString()
+        });
+
+        // If it's a network error and we haven't retried too many times, try again
+        if (retryCount < 3) {
+          console.log(`Retrying books query after network exception (attempt ${retryCount + 1}/4)...`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+          return fetchBooksOperation(retryCount + 1);
+        }
+
+        throw networkError;
       }
 
       if (!booksData || booksData.length === 0) {
