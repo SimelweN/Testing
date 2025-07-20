@@ -380,15 +380,12 @@ serve(async (req) => {
   } catch (error) {
     console.error("Commit to sale error:", error);
 
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message || "Failed to commit order to sale",
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+        return json({
+      success: false,
+      error: error.message || "Failed to commit order to sale",
+    }, {
+      status: 500,
+      headers: corsHeaders,
+    });
   }
 });
