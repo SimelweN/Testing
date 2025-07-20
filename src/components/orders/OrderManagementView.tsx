@@ -22,6 +22,7 @@ import OrderActionsPanel from "./OrderActionsPanel";
 import { Order } from "@/services/orderCancellationService";
 import { logError, getUserFriendlyErrorMessage } from "@/utils/errorLogging";
 import { runOrdersTableDiagnostics } from "@/utils/testOrdersTable";
+import { debugOrdersError, runComprehensiveDiagnostics } from "@/utils/databaseDiagnostics";
 
 interface OrderManagementViewProps {
   initialFilter?: "all" | "pending" | "active" | "completed" | "cancelled";
