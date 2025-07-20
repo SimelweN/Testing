@@ -63,8 +63,9 @@ import {
   CreditCard,
   Database,
   Split,
-  ArrowUpRight,
+    ArrowUpRight,
   ShieldCheck,
+  Wifi,
 } from "lucide-react";
 
 const AdminDashboard = () => {
