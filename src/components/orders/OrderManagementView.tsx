@@ -32,11 +32,11 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
   const [loading, setLoading] = useState(true);
   
 
-  useEffect(() => {
+    useEffect(() => {
     if (user) {
       fetchOrders();
     }
-  }, [user, activeTab]);
+  }, [user]);
 
     const fetchOrders = async () => {
     if (!user) {
@@ -44,41 +44,20 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
       return;
     }
 
-    console.log("🔍 Fetching orders for user:", {
+        console.log("🔍 Fetching orders for user:", {
       userId: user.id,
-      userEmail: user.email,
-      activeTab
+      userEmail: user.email
     });
 
     setLoading(true);
     try {
-            let query = supabase
+                  let query = supabase
         .from("orders")
-                        .select("*")
+        .select("*")
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
         .order("created_at", { ascending: false });
 
-      // Apply filters based on active tab
-      switch (activeTab) {
-        case "pending":
-          query = query.in("status", ["pending", "confirmed"]);
-          break;
-        case "active":
-          query = query.in("status", ["confirmed", "dispatched"]);
-          break;
-        case "completed":
-          query = query.eq("status", "delivered");
-          break;
-        case "cancelled":
-          query = query.in("status", [
-            "cancelled_by_buyer",
-            "declined_by_seller",
-            "cancelled_by_seller_after_missed_pickup",
-          ]);
-          break;
-            }
-
-      console.log("🔍 About to execute orders query for activeTab:", activeTab);
+      console.log("🔍 About to execute orders query");
       const { data, error } = await query;
       console.log("🔍 Orders query result:", { data, error, dataLength: data?.length });
 
@@ -90,7 +69,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
         console.log("🔍 ORDER FETCH ERROR - Message:", error?.message);
         console.log("🔍 ORDER FETCH ERROR - Details:", error?.details);
 
-        logError("Error fetching orders (Supabase query)", error, { activeTab });
+                logError("Error fetching orders (Supabase query)", error);
 
                 // Run comprehensive diagnostics for any orders error
         console.log("🔍 Running comprehensive orders diagnostics...");
@@ -121,7 +100,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
       console.log("🔍 ORDER FETCH CATCH ERROR - Raw:", error);
       console.log("🔍 ORDER FETCH CATCH ERROR - Message:", error?.message);
 
-      logError("Error fetching orders (catch block)", error, { activeTab });
+            logError("Error fetching orders (catch block)", error);
 
       // Simple error message extraction
       let errorMsg = 'Failed to load orders';
