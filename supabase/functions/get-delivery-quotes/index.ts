@@ -26,6 +26,12 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // 🧪 TEST MODE: Check if this is a test request with mock data
+  const testResult = await testFunction("get-delivery-quotes", req);
+  if (testResult.isTest) {
+    return testResult.response;
+  }
+
   try {
     const { fromAddress, toAddress, weight }: QuoteRequest = await req.json();
 
