@@ -55,13 +55,13 @@ const GoogleMapsAddressAutocomplete: React.FC<
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  // Use Google Maps context instead of manual loading
+  const { isLoaded: mapsLoaded, loadError: mapsLoadError } = useGoogleMaps();
+
   const [selectedAddress, setSelectedAddress] = useState<AddressData | null>(
     null,
   );
   const [inputValue, setInputValue] = useState("");
-  const [scriptLoaded, setScriptLoaded] = useState(false);
 
   // Check if Google Maps is already loaded
   const checkGoogleMapsLoaded = () => {
