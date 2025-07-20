@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   CreditCard, 
   Webhook, 
@@ -14,7 +17,15 @@ import {
   RefreshCw,
   Copy,
   Play,
-  AlertTriangle
+  AlertTriangle,
+  ArrowLeftRight,
+  Eye,
+  TestTube,
+  Settings,
+  Zap,
+  FileText,
+  Split,
+  TrendingUp
 } from "lucide-react";
 import Layout from "@/components/Layout";
 import { toast } from "sonner";
@@ -75,6 +86,42 @@ const PaystackDemo = () => {
   const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
   const [results, setResults] = useState<{ [key: string]: any }>({});
 
+  // Form states for different functions
+  const [paymentForm, setPaymentForm] = useState({
+    email: DEMO_DATA.testCustomer.email,
+    amount: "50.00",
+    userId: "demo-user-123"
+  });
+
+  const [subaccountForm, setSubaccountForm] = useState({
+    businessName: DEMO_DATA.testSubaccount.business_name,
+    email: "seller@example.com",
+    bankCode: DEMO_DATA.testSubaccount.settlement_bank,
+    accountNumber: DEMO_DATA.testSubaccount.account_number
+  });
+
+  const [transferForm, setTransferForm] = useState({
+    sellerId: "demo-seller-789",
+    amount: "45.00",
+    orderId: "demo-order-123"
+  });
+
+  const [refundForm, setRefundForm] = useState({
+    transactionReference: "",
+    amount: "50.00",
+    reason: "Customer requested refund"
+  });
+
+  const [verifyForm, setVerifyForm] = useState({
+    reference: ""
+  });
+
+  const [splitForm, setSplitForm] = useState({
+    name: "Demo Order Split",
+    type: "flat",
+    currency: "ZAR"
+  });
+
   const setTestLoading = (key: string, value: boolean) => {
     setLoading(prev => ({ ...prev, [key]: value }));
   };
@@ -83,20 +130,20 @@ const PaystackDemo = () => {
     setResults(prev => ({ ...prev, [key]: value }));
   };
 
-  // Test payment initialization
-  const testPaymentInitialization = async () => {
-    setTestLoading("payment", true);
+  // 1. Initialize Payment Function
+  const testInitializePayment = async () => {
+    setTestLoading("init-payment", true);
     try {
       const response = await supabase.functions.invoke("initialize-paystack-payment", {
         body: {
-          email: DEMO_DATA.testCustomer.email,
-          amount: DEMO_DATA.testAmount / 100, // Convert cents to rands
-          user_id: "demo-user-123",
+          email: paymentForm.email,
+          amount: parseFloat(paymentForm.amount),
+          user_id: paymentForm.userId,
           items: [
             {
               book_id: "demo-book-456",
               title: "Test Textbook",
-              price: 50.00,
+              price: parseFloat(paymentForm.amount),
               seller_id: "demo-seller-789"
             }
           ],
@@ -107,7 +154,7 @@ const PaystackDemo = () => {
         }
       });
 
-      setTestResult("payment", {
+      setTestResult("init-payment", {
         success: !response.error,
         data: response.data,
         error: response.error
@@ -119,17 +166,265 @@ const PaystackDemo = () => {
         toast.error("❌ Payment initialization failed");
       }
     } catch (error) {
-      setTestResult("payment", {
+      setTestResult("init-payment", {
         success: false,
         error: error.message
       });
       toast.error("Payment test failed: " + error.message);
     } finally {
-      setTestLoading("payment", false);
+      setTestLoading("init-payment", false);
     }
   };
 
-  // Test webhook simulation
+  // 2. Verify Payment Function
+  const testVerifyPayment = async () => {
+    setTestLoading("verify-payment", true);
+    try {
+      const response = await supabase.functions.invoke("verify-paystack-payment", {
+        body: {
+          reference: verifyForm.reference
+        }
+      });
+
+      setTestResult("verify-payment", {
+        success: !response.error,
+        data: response.data,
+        error: response.error
+      });
+
+      if (response.data) {
+        toast.success("✅ Payment verification successful!");
+      } else {
+        toast.error("❌ Payment verification failed");
+      }
+    } catch (error) {
+      setTestResult("verify-payment", {
+        success: false,
+        error: error.message
+      });
+      toast.error("Verify test failed: " + error.message);
+    } finally {
+      setTestLoading("verify-payment", false);
+    }
+  };
+
+  // 3. Create Subaccount Function
+  const testCreateSubaccount = async () => {
+    setTestLoading("create-subaccount", true);
+    try {
+      const response = await supabase.functions.invoke("create-paystack-subaccount", {
+        body: {
+          business_name: subaccountForm.businessName,
+          email: subaccountForm.email,
+          bank_code: subaccountForm.bankCode,
+          account_number: subaccountForm.accountNumber,
+          user_id: "demo-seller-789"
+        }
+      });
+
+      setTestResult("create-subaccount", {
+        success: !response.error,
+        data: response.data,
+        error: response.error
+      });
+
+      if (response.data) {
+        toast.success("✅ Subaccount creation successful!");
+      } else {
+        toast.error("❌ Subaccount creation failed");
+      }
+    } catch (error) {
+      setTestResult("create-subaccount", {
+        success: false,
+        error: error.message
+      });
+      toast.error("Subaccount test failed: " + error.message);
+    } finally {
+      setTestLoading("create-subaccount", false);
+    }
+  };
+
+  // 4. Manage Subaccount Function
+  const testManageSubaccount = async () => {
+    setTestLoading("manage-subaccount", true);
+    try {
+      const response = await supabase.functions.invoke("manage-paystack-subaccount", {
+        body: {
+          action: "fetch",
+          subaccount_code: "ACCT_demo123456789"
+        }
+      });
+
+      setTestResult("manage-subaccount", {
+        success: !response.error,
+        data: response.data,
+        error: response.error
+      });
+
+      if (response.data) {
+        toast.success("✅ Subaccount management successful!");
+      } else {
+        toast.error("❌ Subaccount management failed");
+      }
+    } catch (error) {
+      setTestResult("manage-subaccount", {
+        success: false,
+        error: error.message
+      });
+      toast.error("Manage subaccount test failed: " + error.message);
+    } finally {
+      setTestLoading("manage-subaccount", false);
+    }
+  };
+
+  // 5. Pay Seller Function
+  const testPaySeller = async () => {
+    setTestLoading("pay-seller", true);
+    try {
+      const response = await supabase.functions.invoke("pay-seller", {
+        body: {
+          seller_id: transferForm.sellerId,
+          amount: parseFloat(transferForm.amount) * 100, // Convert to cents
+          reference: "demo_transfer_" + Date.now(),
+          order_id: transferForm.orderId
+        }
+      });
+
+      setTestResult("pay-seller", {
+        success: !response.error,
+        data: response.data,
+        error: response.error
+      });
+
+      if (response.data) {
+        toast.success("✅ Seller payment successful!");
+      } else {
+        toast.error("❌ Seller payment failed");
+      }
+    } catch (error) {
+      setTestResult("pay-seller", {
+        success: false,
+        error: error.message
+      });
+      toast.error("Pay seller test failed: " + error.message);
+    } finally {
+      setTestLoading("pay-seller", false);
+    }
+  };
+
+  // 6. Refund Management Function
+  const testRefundManagement = async () => {
+    setTestLoading("refund-mgmt", true);
+    try {
+      const response = await supabase.functions.invoke("paystack-refund-management", {
+        body: {
+          action: "initiate",
+          transaction_reference: refundForm.transactionReference,
+          amount: parseFloat(refundForm.amount) * 100, // Convert to cents
+          reason: refundForm.reason
+        }
+      });
+
+      setTestResult("refund-mgmt", {
+        success: !response.error,
+        data: response.data,
+        error: response.error
+      });
+
+      if (response.data) {
+        toast.success("✅ Refund management successful!");
+      } else {
+        toast.error("❌ Refund management failed");
+      }
+    } catch (error) {
+      setTestResult("refund-mgmt", {
+        success: false,
+        error: error.message
+      });
+      toast.error("Refund test failed: " + error.message);
+    } finally {
+      setTestLoading("refund-mgmt", false);
+    }
+  };
+
+  // 7. Transfer Management Function
+  const testTransferManagement = async () => {
+    setTestLoading("transfer-mgmt", true);
+    try {
+      const response = await supabase.functions.invoke("paystack-transfer-management", {
+        body: {
+          action: "initiate",
+          recipient_code: "RCP_demo123456789",
+          amount: parseFloat(transferForm.amount) * 100,
+          reason: "Seller payout for order " + transferForm.orderId
+        }
+      });
+
+      setTestResult("transfer-mgmt", {
+        success: !response.error,
+        data: response.data,
+        error: response.error
+      });
+
+      if (response.data) {
+        toast.success("✅ Transfer management successful!");
+      } else {
+        toast.error("❌ Transfer management failed");
+      }
+    } catch (error) {
+      setTestResult("transfer-mgmt", {
+        success: false,
+        error: error.message
+      });
+      toast.error("Transfer management test failed: " + error.message);
+    } finally {
+      setTestLoading("transfer-mgmt", false);
+    }
+  };
+
+  // 8. Split Management Function
+  const testSplitManagement = async () => {
+    setTestLoading("split-mgmt", true);
+    try {
+      const response = await supabase.functions.invoke("paystack-split-management", {
+        body: {
+          action: "create",
+          name: splitForm.name,
+          type: splitForm.type,
+          currency: splitForm.currency,
+          order_items: [
+            {
+              book_id: "demo-book-456",
+              seller_id: "demo-seller-789",
+              price: 50.00
+            }
+          ]
+        }
+      });
+
+      setTestResult("split-mgmt", {
+        success: !response.error,
+        data: response.data,
+        error: response.error
+      });
+
+      if (response.data) {
+        toast.success("✅ Split management successful!");
+      } else {
+        toast.error("❌ Split management failed");
+      }
+    } catch (error) {
+      setTestResult("split-mgmt", {
+        success: false,
+        error: error.message
+      });
+      toast.error("Split management test failed: " + error.message);
+    } finally {
+      setTestLoading("split-mgmt", false);
+    }
+  };
+
+  // 9. Webhook Simulation Function
   const testWebhook = async (eventType: string) => {
     setTestLoading(`webhook-${eventType}`, true);
     try {
@@ -161,75 +456,6 @@ const PaystackDemo = () => {
     }
   };
 
-  // Test subaccount creation
-  const testSubaccountCreation = async () => {
-    setTestLoading("subaccount", true);
-    try {
-      const response = await supabase.functions.invoke("create-paystack-subaccount", {
-        body: {
-          ...DEMO_DATA.testSubaccount,
-          user_id: "demo-seller-789",
-          email: "seller@example.com"
-        }
-      });
-
-      setTestResult("subaccount", {
-        success: !response.error,
-        data: response.data,
-        error: response.error
-      });
-
-      if (response.data) {
-        toast.success("✅ Subaccount creation successful!");
-      } else {
-        toast.error("❌ Subaccount creation failed");
-      }
-    } catch (error) {
-      setTestResult("subaccount", {
-        success: false,
-        error: error.message
-      });
-      toast.error("Subaccount test failed: " + error.message);
-    } finally {
-      setTestLoading("subaccount", false);
-    }
-  };
-
-  // Test payment to seller
-  const testPaySeller = async () => {
-    setTestLoading("pay-seller", true);
-    try {
-      const response = await supabase.functions.invoke("pay-seller", {
-        body: {
-          seller_id: "demo-seller-789",
-          amount: 4500, // R45.00 in cents (after commission)
-          reference: "demo_transfer_" + Date.now(),
-          order_id: "demo-order-123"
-        }
-      });
-
-      setTestResult("pay-seller", {
-        success: !response.error,
-        data: response.data,
-        error: response.error
-      });
-
-      if (response.data) {
-        toast.success("✅ Seller payment successful!");
-      } else {
-        toast.error("❌ Seller payment failed");
-      }
-    } catch (error) {
-      setTestResult("pay-seller", {
-        success: false,
-        error: error.message
-      });
-      toast.error("Pay seller test failed: " + error.message);
-    } finally {
-      setTestLoading("pay-seller", false);
-    }
-  };
-
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard!");
@@ -252,7 +478,7 @@ const PaystackDemo = () => {
           </span>
         </div>
         <AlertDescription>
-          <pre className="text-xs bg-white/50 p-2 rounded overflow-auto">
+          <pre className="text-xs bg-white/50 p-2 rounded overflow-auto max-h-40">
             {JSON.stringify(result, null, 2)}
           </pre>
         </AlertDescription>
@@ -265,35 +491,123 @@ const PaystackDemo = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Paystack Demo Testing</h1>
+            <h1 className="text-3xl font-bold mb-2">Complete Paystack Functions Demo</h1>
             <p className="text-gray-600">
-              Test all Paystack functionality with demo data and mock transactions
+              Test all Paystack functionality with demo data and live edge function calls
             </p>
           </div>
 
           <Tabs defaultValue="payment" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="payment">Payment Init</TabsTrigger>
-              <TabsTrigger value="webhook">Webhooks</TabsTrigger>
-              <TabsTrigger value="subaccount">Subaccounts</TabsTrigger>
-              <TabsTrigger value="transfer">Transfers</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="payment">Payments</TabsTrigger>
+              <TabsTrigger value="subaccounts">Subaccounts</TabsTrigger>
+              <TabsTrigger value="transfers">Transfers</TabsTrigger>
+              <TabsTrigger value="refunds">Refunds</TabsTrigger>
+              <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+              <TabsTrigger value="management">Management</TabsTrigger>
             </TabsList>
 
-            {/* Payment Initialization Testing */}
+            {/* Payment Functions */}
             <TabsContent value="payment">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Initialize Payment */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <CreditCard className="h-5 w-5" />
-                      Payment Initialization
+                      Initialize Payment
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold mb-2">Test Card Numbers</h4>
+                    <div className="space-y-2">
+                      <Label htmlFor="pay-email">Customer Email</Label>
+                      <Input
+                        id="pay-email"
+                        value={paymentForm.email}
+                        onChange={(e) => setPaymentForm(prev => ({ ...prev, email: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="pay-amount">Amount (ZAR)</Label>
+                      <Input
+                        id="pay-amount"
+                        type="number"
+                        step="0.01"
+                        value={paymentForm.amount}
+                        onChange={(e) => setPaymentForm(prev => ({ ...prev, amount: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="pay-user">User ID</Label>
+                      <Input
+                        id="pay-user"
+                        value={paymentForm.userId}
+                        onChange={(e) => setPaymentForm(prev => ({ ...prev, userId: e.target.value }))}
+                      />
+                    </div>
+
+                    <Button
+                      onClick={testInitializePayment}
+                      disabled={loading["init-payment"]}
+                      className="w-full"
+                    >
+                      {loading["init-payment"] ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Play className="h-4 w-4 mr-2" />
+                      )}
+                      Test Initialize Payment
+                    </Button>
+
+                    <TestResultCard testKey="init-payment" title="Initialize Payment" />
+                  </CardContent>
+                </Card>
+
+                {/* Verify Payment */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Eye className="h-5 w-5" />
+                      Verify Payment
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="verify-ref">Payment Reference</Label>
+                      <Input
+                        id="verify-ref"
+                        value={verifyForm.reference}
+                        onChange={(e) => setVerifyForm(prev => ({ ...prev, reference: e.target.value }))}
+                        placeholder="Enter payment reference to verify"
+                      />
+                    </div>
+
+                    <Button
+                      onClick={testVerifyPayment}
+                      disabled={loading["verify-payment"] || !verifyForm.reference}
+                      className="w-full"
+                    >
+                      {loading["verify-payment"] ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Eye className="h-4 w-4 mr-2" />
+                      )}
+                      Test Verify Payment
+                    </Button>
+
+                    <TestResultCard testKey="verify-payment" title="Verify Payment" />
+                  </CardContent>
+                </Card>
+
+                {/* Test Card Information */}
+                <Card className="lg:col-span-2">
+                  <CardHeader>
+                    <CardTitle>Test Card Numbers</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {DEMO_DATA.testCards.map((card, index) => (
-                        <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded mb-2">
+                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded">
                           <div>
                             <Badge className="mr-2">{card.type}</Badge>
                             <code className="text-sm">{card.number}</code>
@@ -308,66 +622,259 @@ const PaystackDemo = () => {
                         </div>
                       ))}
                     </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
 
+            {/* Subaccount Functions */}
+            <TabsContent value="subaccounts">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Create Subaccount */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building2 className="h-5 w-5" />
+                      Create Subaccount
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <h4 className="font-semibold">Test Payment Details</h4>
-                      <div className="text-sm space-y-1">
-                        <div>Email: <code>{DEMO_DATA.testCustomer.email}</code></div>
-                        <div>Amount: <code>R{DEMO_DATA.testAmount / 100}</code></div>
-                        <div>Currency: <code>ZAR</code></div>
-                      </div>
+                      <Label htmlFor="sub-business">Business Name</Label>
+                      <Input
+                        id="sub-business"
+                        value={subaccountForm.businessName}
+                        onChange={(e) => setSubaccountForm(prev => ({ ...prev, businessName: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="sub-email">Email</Label>
+                      <Input
+                        id="sub-email"
+                        type="email"
+                        value={subaccountForm.email}
+                        onChange={(e) => setSubaccountForm(prev => ({ ...prev, email: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="sub-bank">Bank Code</Label>
+                      <Input
+                        id="sub-bank"
+                        value={subaccountForm.bankCode}
+                        onChange={(e) => setSubaccountForm(prev => ({ ...prev, bankCode: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="sub-account">Account Number</Label>
+                      <Input
+                        id="sub-account"
+                        value={subaccountForm.accountNumber}
+                        onChange={(e) => setSubaccountForm(prev => ({ ...prev, accountNumber: e.target.value }))}
+                      />
                     </div>
 
                     <Button
-                      onClick={testPaymentInitialization}
-                      disabled={loading.payment}
+                      onClick={testCreateSubaccount}
+                      disabled={loading["create-subaccount"]}
                       className="w-full"
                     >
-                      {loading.payment ? (
+                      {loading["create-subaccount"] ? (
                         <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                       ) : (
-                        <Play className="h-4 w-4 mr-2" />
+                        <Building2 className="h-4 w-4 mr-2" />
                       )}
-                      Test Payment Initialization
+                      Test Create Subaccount
                     </Button>
 
-                    <TestResultCard testKey="payment" title="Payment Initialization" />
+                    <TestResultCard testKey="create-subaccount" title="Create Subaccount" />
                   </CardContent>
                 </Card>
 
+                {/* Manage Subaccount */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Integration Code Example</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                      <Settings className="h-5 w-5" />
+                      Manage Subaccount
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <pre className="text-xs bg-gray-50 p-4 rounded overflow-auto">
-{`// Initialize Payment
-const response = await supabase.functions.invoke(
-  "initialize-paystack-payment", {
-  body: {
-    email: "${DEMO_DATA.testCustomer.email}",
-    amount: ${DEMO_DATA.testAmount / 100}, // Rands
-    user_id: "demo-user-123",
-    items: [{
-      book_id: "demo-book-456",
-      title: "Test Textbook",
-      price: 50.00,
-      seller_id: "demo-seller-789"
-    }],
-    metadata: {
-      order_id: "demo-order-123",
-      test_mode: true
-    }
-  }
-});`}
-                    </pre>
+                  <CardContent className="space-y-4">
+                    <Alert>
+                      <AlertDescription>
+                        This tests the manage-paystack-subaccount function which can fetch, update, or delete subaccounts.
+                      </AlertDescription>
+                    </Alert>
+
+                    <Button
+                      onClick={testManageSubaccount}
+                      disabled={loading["manage-subaccount"]}
+                      className="w-full"
+                    >
+                      {loading["manage-subaccount"] ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Settings className="h-4 w-4 mr-2" />
+                      )}
+                      Test Manage Subaccount
+                    </Button>
+
+                    <TestResultCard testKey="manage-subaccount" title="Manage Subaccount" />
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Transfer Functions */}
+            <TabsContent value="transfers">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Pay Seller */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <DollarSign className="h-5 w-5" />
+                      Pay Seller
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="transfer-seller">Seller ID</Label>
+                      <Input
+                        id="transfer-seller"
+                        value={transferForm.sellerId}
+                        onChange={(e) => setTransferForm(prev => ({ ...prev, sellerId: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="transfer-amount">Amount (ZAR)</Label>
+                      <Input
+                        id="transfer-amount"
+                        type="number"
+                        step="0.01"
+                        value={transferForm.amount}
+                        onChange={(e) => setTransferForm(prev => ({ ...prev, amount: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="transfer-order">Order ID</Label>
+                      <Input
+                        id="transfer-order"
+                        value={transferForm.orderId}
+                        onChange={(e) => setTransferForm(prev => ({ ...prev, orderId: e.target.value }))}
+                      />
+                    </div>
+
+                    <Button
+                      onClick={testPaySeller}
+                      disabled={loading["pay-seller"]}
+                      className="w-full"
+                    >
+                      {loading["pay-seller"] ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <DollarSign className="h-4 w-4 mr-2" />
+                      )}
+                      Test Pay Seller
+                    </Button>
+
+                    <TestResultCard testKey="pay-seller" title="Pay Seller" />
+                  </CardContent>
+                </Card>
+
+                {/* Transfer Management */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ArrowLeftRight className="h-5 w-5" />
+                      Transfer Management
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Alert>
+                      <AlertDescription>
+                        This tests the paystack-transfer-management function for advanced transfer operations.
+                      </AlertDescription>
+                    </Alert>
+
+                    <Button
+                      onClick={testTransferManagement}
+                      disabled={loading["transfer-mgmt"]}
+                      className="w-full"
+                    >
+                      {loading["transfer-mgmt"] ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <ArrowLeftRight className="h-4 w-4 mr-2" />
+                      )}
+                      Test Transfer Management
+                    </Button>
+
+                    <TestResultCard testKey="transfer-mgmt" title="Transfer Management" />
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Refund Functions */}
+            <TabsContent value="refunds">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      Refund Management
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="refund-ref">Transaction Reference</Label>
+                      <Input
+                        id="refund-ref"
+                        value={refundForm.transactionReference}
+                        onChange={(e) => setRefundForm(prev => ({ ...prev, transactionReference: e.target.value }))}
+                        placeholder="Enter transaction reference to refund"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="refund-amount">Refund Amount (ZAR)</Label>
+                      <Input
+                        id="refund-amount"
+                        type="number"
+                        step="0.01"
+                        value={refundForm.amount}
+                        onChange={(e) => setRefundForm(prev => ({ ...prev, amount: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="refund-reason">Reason</Label>
+                      <Textarea
+                        id="refund-reason"
+                        value={refundForm.reason}
+                        onChange={(e) => setRefundForm(prev => ({ ...prev, reason: e.target.value }))}
+                        placeholder="Reason for refund"
+                      />
+                    </div>
+
+                    <Button
+                      onClick={testRefundManagement}
+                      disabled={loading["refund-mgmt"]}
+                      className="w-full"
+                    >
+                      {loading["refund-mgmt"] ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <TrendingUp className="h-4 w-4 mr-2" />
+                      )}
+                      Test Refund Management
+                    </Button>
+
+                    <TestResultCard testKey="refund-mgmt" title="Refund Management" />
                   </CardContent>
                 </Card>
               </div>
             </TabsContent>
 
             {/* Webhook Testing */}
-            <TabsContent value="webhook">
+            <TabsContent value="webhooks">
               <div className="space-y-6">
                 <Alert>
                   <AlertTriangle className="h-4 w-4" />
@@ -403,7 +910,7 @@ const response = await supabase.functions.invoke(
                           {loading[`webhook-${webhook.event}`] ? (
                             <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                           ) : (
-                            <Play className="h-4 w-4 mr-2" />
+                            <Webhook className="h-4 w-4 mr-2" />
                           )}
                           Test {webhook.event}
                         </Button>
@@ -416,127 +923,102 @@ const response = await supabase.functions.invoke(
               </div>
             </TabsContent>
 
-            {/* Subaccount Testing */}
-            <TabsContent value="subaccount">
+            {/* Management Functions */}
+            <TabsContent value="management">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Split Management */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Building2 className="h-5 w-5" />
-                      Create Subaccount
+                      <Split className="h-5 w-5" />
+                      Split Management
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold mb-2">Test Subaccount Data</h4>
-                      <div className="text-sm space-y-1">
-                        <div>Business: <code>{DEMO_DATA.testSubaccount.business_name}</code></div>
-                        <div>Bank: <code>{DEMO_DATA.testSubaccount.settlement_bank}</code></div>
-                        <div>Account: <code>{DEMO_DATA.testSubaccount.account_number}</code></div>
-                        <div>Commission: <code>{DEMO_DATA.testSubaccount.percentage_charge}%</code></div>
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="split-name">Split Name</Label>
+                      <Input
+                        id="split-name"
+                        value={splitForm.name}
+                        onChange={(e) => setSplitForm(prev => ({ ...prev, name: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="split-type">Split Type</Label>
+                      <Input
+                        id="split-type"
+                        value={splitForm.type}
+                        onChange={(e) => setSplitForm(prev => ({ ...prev, type: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="split-currency">Currency</Label>
+                      <Input
+                        id="split-currency"
+                        value={splitForm.currency}
+                        onChange={(e) => setSplitForm(prev => ({ ...prev, currency: e.target.value }))}
+                      />
                     </div>
 
                     <Button
-                      onClick={testSubaccountCreation}
-                      disabled={loading.subaccount}
+                      onClick={testSplitManagement}
+                      disabled={loading["split-mgmt"]}
                       className="w-full"
                     >
-                      {loading.subaccount ? (
+                      {loading["split-mgmt"] ? (
                         <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                       ) : (
-                        <Play className="h-4 w-4 mr-2" />
+                        <Split className="h-4 w-4 mr-2" />
                       )}
-                      Test Subaccount Creation
+                      Test Split Management
                     </Button>
 
-                    <TestResultCard testKey="subaccount" title="Subaccount Creation" />
+                    <TestResultCard testKey="split-mgmt" title="Split Management" />
                   </CardContent>
                 </Card>
 
+                {/* Function Overview */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Subaccount Benefits</CardTitle>
+                    <CardTitle>All Paystack Functions</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ul className="text-sm space-y-2">
-                      <li>• Automatic payment splitting</li>
-                      <li>• Direct seller payouts</li>
-                      <li>• Commission handling</li>
-                      <li>• Settlement tracking</li>
-                      <li>• Dispute management</li>
-                    </ul>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* Transfer Testing */}
-            <TabsContent value="transfer">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <DollarSign className="h-5 w-5" />
-                      Pay Seller
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold mb-2">Test Transfer Details</h4>
-                      <div className="text-sm space-y-1">
-                        <div>Seller ID: <code>demo-seller-789</code></div>
-                        <div>Amount: <code>R45.00</code> (after 10% commission)</div>
-                        <div>Original: <code>R50.00</code></div>
-                        <div>Platform Fee: <code>R5.00</code></div>
-                      </div>
-                    </div>
-
-                    <Alert>
-                      <AlertDescription className="text-xs">
-                        In test mode, no actual money transfer occurs. 
-                        Paystack simulates the transfer process.
-                      </AlertDescription>
-                    </Alert>
-
-                    <Button
-                      onClick={testPaySeller}
-                      disabled={loading["pay-seller"]}
-                      className="w-full"
-                    >
-                      {loading["pay-seller"] ? (
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Play className="h-4 w-4 mr-2" />
-                      )}
-                      Test Pay Seller
-                    </Button>
-
-                    <TestResultCard testKey="pay-seller" title="Seller Payment" />
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Transfer Flow</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3 text-sm">
+                    <div className="space-y-2 text-sm">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-xs font-bold">1</div>
-                        <span>Buyer pays R50.00</span>
+                        <Badge variant="outline">✅</Badge>
+                        <span>initialize-paystack-payment</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-xs font-bold">2</div>
-                        <span>Platform takes R5.00 (10%)</span>
+                        <Badge variant="outline">✅</Badge>
+                        <span>verify-paystack-payment</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center text-xs font-bold">3</div>
-                        <span>Seller receives R45.00</span>
+                        <Badge variant="outline">✅</Badge>
+                        <span>create-paystack-subaccount</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center text-xs font-bold">4</div>
-                        <span>Delivery fee handled separately</span>
+                        <Badge variant="outline">✅</Badge>
+                        <span>manage-paystack-subaccount</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">✅</Badge>
+                        <span>pay-seller</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">✅</Badge>
+                        <span>paystack-refund-management</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">✅</Badge>
+                        <span>paystack-transfer-management</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">✅</Badge>
+                        <span>paystack-split-management</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">✅</Badge>
+                        <span>paystack-webhook</span>
                       </div>
                     </div>
                   </CardContent>
@@ -557,12 +1039,12 @@ const response = await supabase.functions.invoke(
                   <span>Test mode enabled</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline">Webhooks</Badge>
-                  <span>No auth required</span>
+                  <Badge variant="outline">Edge Functions</Badge>
+                  <span>All 9 functions available</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline">Transactions</Badge>
-                  <span>Simulated responses</span>
+                  <Badge variant="outline">Demo Data</Badge>
+                  <span>Safe testing environment</span>
                 </div>
               </div>
             </CardContent>
