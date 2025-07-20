@@ -3,7 +3,7 @@
  * Provides proper error handling and debugging for network issues
  */
 
-// Known third-party services that might fail
+// Known third-party services and development tools that might fail
 const THIRD_PARTY_SERVICES = [
   "fullstory.com",
   "edge.fullstory.com",
@@ -11,9 +11,23 @@ const THIRD_PARTY_SERVICES = [
   "googletagmanager.com",
 ];
 
+const DEVELOPMENT_SERVICES = [
+  "@vite/client",
+  ".fly.dev",
+  "ping",
+  "messageHandler",
+  "waitForSuccessfulPing",
+];
+
 // Check if an error is from a third-party service
 const isThirdPartyError = (url: string): boolean => {
   return THIRD_PARTY_SERVICES.some((service) => url.includes(service));
+};
+
+// Check if an error is from development tools (Vite HMR)
+const isDevelopmentError = (message: string, stack?: string): boolean => {
+  const fullText = `${message} ${stack || ""}`;
+  return DEVELOPMENT_SERVICES.some((service) => fullText.includes(service));
 };
 
 // Override fetch to provide better error handling
