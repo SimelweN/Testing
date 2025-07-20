@@ -11,14 +11,28 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-      try {
-    // Use safe body parser to prevent stream errors
-    const bodyResult = await parseRequestBody(req, corsHeaders);
+  // Read request body ONCE at the start (ChatGPT's advice)
+  let requestBody;
+  try {
+    console.log("🔍 bodyUsed before read:", req.bodyUsed);
+    requestBody = await req.json();
+    console.log("✅ Body read successfully");
+  } catch (error) {
+    console.error("❌ Body read failed:", error.message);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "BODY_READ_ERROR",
+        details: { error: error.message, bodyUsed: req.bodyUsed },
+      }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
 
-    if (!bodyResult.success) {
-      return bodyResult.errorResponse!;
-    }
-
+  try {
     const {
       user_id,
       book_id,
@@ -27,7 +41,7 @@ serve(async (req) => {
       payment_reference,
       total_amount,
       delivery_details,
-    } = bodyResult.data;
+    } = requestBody;
 
     console.log("�� Processing book purchase confirmation:", {
       user_id,
