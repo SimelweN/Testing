@@ -308,19 +308,20 @@ const PaystackDemo = () => {
         responseData = responseText;
       }
 
-      setTestResult("direct-http", {
-        success: healthResponse.ok,
-        status: healthResponse.status,
-        statusText: healthResponse.statusText,
+            setTestResult("direct-http", {
+        success: responseMetadata.ok,
+        status: responseMetadata.status,
+        statusText: responseMetadata.statusText,
         data: responseData,
-                url: functionUrl,
-        method: 'POST with health=true'
+        url: functionUrl,
+        method: 'POST with health=true',
+        headers: responseMetadata.headers
       });
 
-      if (healthResponse.ok) {
+      if (responseMetadata.ok) {
         toast.success("✅ Direct HTTP health check successful!");
       } else {
-        toast.error(`❌ Direct HTTP failed: ${healthResponse.status} ${healthResponse.statusText}`);
+        toast.error(`❌ Direct HTTP failed: ${responseMetadata.status} ${responseMetadata.statusText}`);
       }
     } catch (error) {
       console.error("Direct HTTP test failed:", error);
