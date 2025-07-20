@@ -243,12 +243,8 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
         return mapBookFromDatabase(bookData);
       });
 
-      console.log("Processed books:", books.length);
+            console.log("Processed books:", books.length);
       return books;
-    };
-
-    // Use retry logic for network resilience
-    return await retryWithConnection(fetchBooksOperation, 2, 1000);
   } catch (error) {
     logDetailedError("Error in getBooks", error);
 
