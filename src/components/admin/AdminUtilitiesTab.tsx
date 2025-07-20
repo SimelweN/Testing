@@ -279,8 +279,11 @@ const AdminUtilitiesTab = ({ className }: AdminUtilitiesTabProps) => {
             )}
             Refresh Stats
           </Button>
-        </div>
+                </div>
       </div>
+
+      {/* Database Diagnostics */}
+      <DatabaseDiagnosticsPanel />
 
       {/* Database Status */}
       <Card
