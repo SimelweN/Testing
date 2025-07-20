@@ -138,11 +138,12 @@ serve(async (req) => {
               0,
             ) || 1,
         }),
-      });
-    } catch (error) {
-      deliveryError = error;
-      console.error("Failed to schedule automatic delivery:", error);
-      // Continue anyway - delivery can be scheduled manually
+            });
+      } catch (error) {
+        deliveryError = error;
+        console.error("Failed to schedule automatic delivery:", error);
+        // Continue anyway - delivery can be scheduled manually
+      }
     }
 
         // Send notification emails using DIRECT HTML
