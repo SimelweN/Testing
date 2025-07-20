@@ -130,47 +130,84 @@ const PaystackDemo = () => {
     setResults(prev => ({ ...prev, [key]: value }));
   };
 
+    // Helper function for better error handling
+  const debugFunctionCall = async (functionName: string, payload: any) => {
+    console.log(`🔍 Calling function: ${functionName}`);
+    console.log(`📤 Payload:`, payload);
+
+    try {
+      // First, try a health check
+      const healthResponse = await supabase.functions.invoke(functionName, {
+        body: { health: true }
+      });
+
+      console.log(`🏥 Health check for ${functionName}:`, healthResponse);
+
+      // Now try the actual call
+      const response = await supabase.functions.invoke(functionName, {
+        body: payload
+      });
+
+      console.log(`📥 Response from ${functionName}:`, response);
+      return response;
+    } catch (error) {
+      console.error(`❌ Error calling ${functionName}:`, error);
+      return { error, data: null };
+    }
+  };
+
   // 1. Initialize Payment Function
   const testInitializePayment = async () => {
     setTestLoading("init-payment", true);
     try {
-      const response = await supabase.functions.invoke("initialize-paystack-payment", {
-        body: {
-          email: paymentForm.email,
-          amount: parseFloat(paymentForm.amount),
-          user_id: paymentForm.userId,
-          items: [
-            {
-              book_id: "demo-book-456",
-              title: "Test Textbook",
-              price: parseFloat(paymentForm.amount),
-              seller_id: "demo-seller-789"
-            }
-          ],
-          metadata: {
-            order_id: "demo-order-" + Date.now(),
-            test_mode: true
+      const payload = {
+        email: paymentForm.email,
+        amount: parseFloat(paymentForm.amount),
+        user_id: paymentForm.userId,
+        items: [
+          {
+            book_id: "demo-book-456",
+            title: "Test Textbook",
+            price: parseFloat(paymentForm.amount),
+            seller_id: "demo-seller-789"
           }
+        ],
+        metadata: {
+          order_id: "demo-order-" + Date.now(),
+          test_mode: true
         }
-      });
+      };
+
+      const response = await debugFunctionCall("initialize-paystack-payment", payload);
 
       setTestResult("init-payment", {
         success: !response.error,
         data: response.data,
-        error: response.error
+        error: response.error,
+        debug: {
+          functionName: "initialize-paystack-payment",
+          payload,
+          rawResponse: response
+        }
       });
 
       if (response.data) {
         toast.success("✅ Payment initialization successful!");
       } else {
-        toast.error("❌ Payment initialization failed");
+        toast.error("❌ Payment initialization failed - check console for details");
       }
     } catch (error) {
+      console.error("Caught error in testInitializePayment:", error);
       setTestResult("init-payment", {
         success: false,
-        error: error.message
+        error: error.message || error,
+        debug: {
+          caughtError: error,
+          errorType: typeof error,
+          errorConstructor: error?.constructor?.name
+        }
       });
-      toast.error("Payment test failed: " + error.message);
+      toast.error("Payment test failed: " + (error.message || "Unknown error"));
     } finally {
       setTestLoading("init-payment", false);
     }
