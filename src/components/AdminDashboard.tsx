@@ -448,6 +448,13 @@ const AdminDashboard = () => {
       description: "Test all database tables",
     },
     {
+      value: "database-schema",
+      label: "Database Schema",
+      icon: Database,
+      color: "text-blue-600",
+      description: "Check table schemas and columns",
+    },
+    {
       value: "cleanup",
       label: "Cleanup",
       icon: Trash2,
