@@ -11,6 +11,7 @@ import { Code, Play, AlertCircle, CheckCircle, Copy, PlayCircle, Zap, Database, 
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { safeFetch } from "@/utils/safeFetch";
 
 interface APIEndpoint {
   name: string;
@@ -433,23 +434,22 @@ export default function APIFunctionTester() {
     try {
       const parsedBody = JSON.parse(requestBody);
       
-      const fetchResponse = await fetch(selectedEndpoint.path, {
+                  const result = await safeFetch(selectedEndpoint.path, {
         method: selectedEndpoint.method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(parsedBody),
       });
 
-      const result = await fetchResponse.json();
       setResponse({
-        status: fetchResponse.status,
-        statusText: fetchResponse.statusText,
-        data: result
+        status: result.status,
+        statusText: result.statusText,
+        data: result.data
       });
 
-      if (fetchResponse.ok) {
+      if (result.ok) {
         toast.success(`${selectedEndpoint.name} executed successfully`);
       } else {
-        toast.error(`${selectedEndpoint.name} failed: ${result.error || 'Unknown error'}`);
+        toast.error(`${selectedEndpoint.name} failed: ${result.data?.error || 'Unknown error'}`);
       }
     } catch (err: any) {
       setError(err.message || "An error occurred");
@@ -605,7 +605,7 @@ export default function APIFunctionTester() {
     try {
       const body = payload || endpoint.samplePayload;
 
-      const fetchResponse = await fetch(endpoint.path, {
+            const result = await safeFetch(endpoint.path, {
         method: endpoint.method,
         headers: {
           'Content-Type': 'application/json',
@@ -615,37 +615,12 @@ export default function APIFunctionTester() {
         body: JSON.stringify(body),
       });
 
-      // Capture response properties before reading the body
-      const status = fetchResponse.status;
-      const statusText = fetchResponse.statusText;
-      const isOk = fetchResponse.ok;
-
-      // Handle different response types
-      let result;
-      try {
-        const responseText = await fetchResponse.text();
-
-        // Try to parse as JSON if possible
-        if (responseText) {
-          try {
-            result = JSON.parse(responseText);
-          } catch {
-            // If not JSON, return the text
-            result = { message: responseText };
-          }
-        } else {
-          result = { message: "Empty response" };
-        }
-      } catch {
-        result = { message: "Failed to read response" };
-      }
-
       return {
         endpoint: endpoint.name,
-        status,
-        statusText,
-        data: result,
-        success: isOk
+        status: result.status,
+        statusText: result.statusText,
+        data: result.data,
+        success: result.ok
       };
     } catch (err: any) {
       return {

@@ -1,120 +1,175 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+  const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  const now = new Date();
+  const cutoff = new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString();
+
+  console.log(`[ReBooked Auto-Expire] Starting book order expiry run. Cutoff: ${cutoff}`);
+
   try {
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-
-    // Find orders that have expired (48 hours old and still pending commit)
-    const fortyEightHoursAgo = new Date(
-      Date.now() - 48 * 60 * 60 * 1000,
-    ).toISOString();
-
-    const { data: expiredOrders, error: expiredError } = await supabase
+    // Find expired book orders that sellers haven't committed to
+    // Use simple query to avoid relationship issues
+    const { data: expiredOrders, error } = await supabase
       .from("orders")
-      .select(
-        `
-        *,
-        seller:profiles!orders_seller_id_fkey(id, name, email),
-        buyer:profiles!orders_buyer_id_fkey(id, name, email)
-      `,
-      )
+      .select("*")
       .eq("status", "pending_commit")
-      .lt("created_at", fortyEightHoursAgo);
+      .lte("created_at", cutoff);
 
-    if (expiredError) {
-      throw new Error(
-        `Failed to fetch expired orders: ${expiredError.message}`,
+    if (error) {
+      console.error("[ReBooked Auto-Expire] DB fetch error:", error.message);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Failed to fetch expired book orders",
+          details: error.message 
+        }), 
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        }
       );
     }
 
     if (!expiredOrders || expiredOrders.length === 0) {
+      console.log("[ReBooked Auto-Expire] No expired book orders found.");
       return new Response(
-        JSON.stringify({
+        JSON.stringify({ 
           success: true,
-          message: "No expired orders found",
+          expired: 0, 
           processed: 0,
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          message: "No expired book orders found - all sellers are responsive!" 
+        }), 
+        { 
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        }
       );
     }
 
-    const processedOrders = [];
-    const errors = [];
+    let successCount = 0;
+    let failedCount = 0;
+    const processedBooks = [];
+    const errorDetails = [];
 
-    // Process each expired order
+    console.log(`[ReBooked Auto-Expire] Processing ${expiredOrders.length} expired book orders...`);
+
     for (const order of expiredOrders) {
       try {
-        // Call decline-commit function to handle the expiration
-        const declineResponse = await fetch(
+        // Fetch book and profile info separately to avoid relationship issues
+        const { data: book } = await supabase
+          .from("books")
+          .select("title, author, price")
+          .eq("id", order.book_id)
+          .single();
+
+        const { data: buyer } = await supabase
+          .from("profiles")
+          .select("id, name, email")
+          .eq("id", order.buyer_id)
+          .single();
+
+        const { data: seller } = await supabase
+          .from("profiles")
+          .select("id, name, email")
+          .eq("id", order.seller_id)
+          .single();
+
+        console.log(`[ReBooked Auto-Expire] Processing order ${order.id} - Book: "${book?.title}" by ${book?.author}`);
+
+        const declineRes = await fetch(
           `${SUPABASE_URL}/functions/v1/decline-commit`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+              Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
             },
             body: JSON.stringify({
               order_id: order.id,
               seller_id: order.seller_id,
-              reason: "Order expired - seller did not commit within 48 hours",
+              reason: "Auto-expired: Seller did not commit to book sale within 48 hours",
             }),
-          },
+          }
         );
 
-        const declineResult = await declineResponse.json();
-
-        if (declineResult.success) {
-          processedOrders.push({
+        if (!declineRes.ok) {
+          const errorText = await declineRes.text();
+          console.error(`[ReBooked Auto-Expire] Decline failed for book order ${order.id}:`, errorText);
+          failedCount++;
+          errorDetails.push({
             order_id: order.id,
-            buyer_email: order.buyer.email,
-            seller_email: order.seller.email,
-            amount: order.total_amount,
-            expired_at: new Date().toISOString(),
+            book_title: book?.title || "Unknown",
+            error: errorText
           });
-
-          // Log the automatic expiration
-          console.log(
-            `Auto-expired order ${order.id} for seller ${order.seller_id}`,
-          );
-        } else {
-          errors.push({
-            order_id: order.id,
-            error: declineResult.error,
-          });
+          continue;
         }
-      } catch (orderError) {
-        console.error(
-          `Failed to process expired order ${order.id}:`,
-          orderError,
-        );
-        errors.push({
+
+        // Track successful expiry
+        processedBooks.push({
           order_id: order.id,
-          error: orderError.message,
+          book_title: book?.title || "Unknown Book",
+          book_author: book?.author || "Unknown Author",
+          book_price: book?.price || order.total_amount || 0,
+          buyer_email: buyer?.email || "unknown",
+          seller_email: seller?.email || "unknown",
+          expired_at: now.toISOString()
+        });
+
+        successCount++;
+        console.log(`[ReBooked Auto-Expire] ✅ Successfully expired book order ${order.id}`);
+
+      } catch (err) {
+        console.error(`[ReBooked Auto-Expire] Error processing book order ${order.id}:`, err);
+        failedCount++;
+        errorDetails.push({
+          order_id: order.id,
+          book_title: "Unknown",
+          error: err.message
         });
       }
     }
 
-    // Send summary report if there were processed orders
-    if (processedOrders.length > 0) {
+    const result = {
+      success: true,
+      processed: expiredOrders.length,
+      expired: successCount,
+      failed: failedCount,
+      total_books_freed: successCount,
+      books_back_to_market: processedBooks.map(book => ({
+        title: book.book_title,
+        author: book.book_author,
+        price: `R${book.book_price.toFixed(2)}`
+      })),
+      error_details: errorDetails,
+      message: `ReBooked Auto-Expire: ${successCount} book orders expired, ${successCount} books back on the market!`
+    };
+
+    // Send notification email if books were processed
+    if (successCount > 0) {
       try {
+        const totalValue = processedBooks.reduce((sum, book) => sum + book.book_price, 0);
+        
         await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+            Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
           },
           body: JSON.stringify({
-            to: "admin@rebookedsolutions.co.za", // Admin notification
-            subject: `Auto-Expire Report: ${processedOrders.length} orders expired`,
+            to: "admin@rebookedsolutions.co.za",
+            subject: `📚 ReBooked Auto-Expire: ${successCount} books back on the market!`,
             html: `
 <!DOCTYPE html>
 <html>
@@ -122,175 +177,78 @@ serve(async (req) => {
   <meta charset="utf-8">
   <title>Auto-Expire Report - ReBooked Solutions</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f3fef7;
-      padding: 20px;
-      color: #1f4e3d;
-      margin: 0;
-    }
-    .container {
-      max-width: 600px;
-      margin: auto;
-      background-color: #ffffff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-    .header {
-      background: #dc2626;
-      color: white;
-      padding: 20px;
-      text-align: center;
-      border-radius: 10px 10px 0 0;
-      margin: -30px -30px 20px -30px;
-    }
-    .stats-box {
-      background: #fef2f2;
-      border: 1px solid #dc2626;
-      padding: 15px;
-      border-radius: 5px;
-      margin: 15px 0;
-    }
-    .order-item {
-      background: #f9fafb;
-      border-left: 3px solid #dc2626;
-      padding: 10px;
-      margin: 5px 0;
-    }
-    .footer {
-      background: #f3fef7;
-      color: #1f4e3d;
-      padding: 20px;
-      text-align: center;
-      font-size: 12px;
-      line-height: 1.5;
-      margin: 30px -30px -30px -30px;
-      border-radius: 0 0 10px 10px;
-      border-top: 1px solid #e5e7eb;
-    }
+    body { font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; margin: 0; }
+    .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 10px; }
+    .header { background: #44ab83; color: white; padding: 20px; text-align: center; border-radius: 10px; margin: -30px -30px 20px -30px; }
+    .book-item { background: #f9fafb; border-left: 3px solid #44ab83; padding: 10px; margin: 5px 0; }
+    .footer { background: #f3fef7; padding: 15px; text-align: center; margin: 20px -30px -30px -30px; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>⏰ Auto-Expire Report</h1>
+      <h1>📚 ReBooked Auto-Expire Report</h1>
+      <p>Keeping the book marketplace flowing!</p>
     </div>
-
-    <h2>Orders Automatically Expired</h2>
-    <p>Report generated on: ${new Date().toLocaleString()}</p>
-
-    <div class="stats-box">
-      <h3>📊 Summary</h3>
-      <p><strong>Orders Processed:</strong> ${processedOrders.length}</p>
-      <p><strong>Errors:</strong> ${errors.length}</p>
-      <p><strong>Total Refund Amount:</strong> R${processedOrders.reduce((sum, order) => sum + order.amount, 0).toFixed(2)}</p>
+    
+    <h2>Books Back on the Market</h2>
+    <p><strong>📅 Generated:</strong> ${now.toLocaleString()}</p>
+    <p><strong>📊 Summary:</strong> ${successCount} books freed up for new buyers</p>
+    <p><strong>💰 Total Value:</strong> R${totalValue.toFixed(2)}</p>
+    
+    <h3>📖 Books Now Available Again:</h3>
+    ${processedBooks.slice(0, 10).map(book => `
+    <div class="book-item">
+      <p><strong>"${book.book_title}"</strong> by ${book.book_author}</p>
+      <p>Price: R${book.book_price.toFixed(2)} | Order: ${book.order_id}</p>
     </div>
-
-    ${
-      processedOrders.length > 0
-        ? `
-    <h3>📋 Processed Orders (showing first 10)</h3>
-    ${processedOrders
-      .slice(0, 10)
-      .map(
-        (order) => `
-    <div class="order-item">
-      <p><strong>Order ID:</strong> ${order.order_id}</p>
-      <p><strong>Buyer:</strong> ${order.buyer_email}</p>
-      <p><strong>Seller:</strong> ${order.seller_email}</p>
-      <p><strong>Amount:</strong> R${order.amount.toFixed(2)}</p>
-    </div>
-    `,
-      )
-      .join("")}
-    ${processedOrders.length > 10 ? `<p><em>... and ${processedOrders.length - 10} more orders</em></p>` : ""}
-    `
-        : ""
-    }
-
-    ${
-      errors.length > 0
-        ? `
-    <div class="stats-box">
-      <h3>❌ Errors Encountered</h3>
-      <p>${errors.length} errors occurred during processing. Check logs for details.</p>
-    </div>
-    `
-        : ""
-    }
-
+    `).join('')}
+    
+    ${processedBooks.length > 10 ? `<p><em>... and ${processedBooks.length - 10} more books</em></p>` : ''}
+    
     <div class="footer">
-      <p><strong>This is an automated system report from ReBooked Solutions.</strong></p>
-      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+      <p><strong>ReBooked Solutions - Pre-Loved Pages, New Adventures</strong></p>
+      <p>Automated system keeping our book marketplace efficient 📚</p>
     </div>
   </div>
 </body>
 </html>`,
-            text: `Auto-Expire Report
+            text: `ReBooked Auto-Expire Report
 
-Orders Automatically Expired
-Report generated on: ${new Date().toLocaleString()}
+${successCount} books have been freed up and are back on the market!
 
 Summary:
-Orders Processed: ${processedOrders.length}
-Errors: ${errors.length}
-Total Refund Amount: R${processedOrders.reduce((sum, order) => sum + order.amount, 0).toFixed(2)}
+- Books processed: ${successCount}
+- Total value: R${totalValue.toFixed(2)}
+- Generated: ${now.toLocaleString()}
 
-${
-  processedOrders.length > 0
-    ? `
-Processed Orders (first 10):
-${processedOrders
-  .slice(0, 10)
-  .map(
-    (order) => `
-Order ID: ${order.order_id}
-Buyer: ${order.buyer_email}
-Seller: ${order.seller_email}
-Amount: R${order.amount.toFixed(2)}
----`,
-  )
-  .join("\n")}
-${processedOrders.length > 10 ? `... and ${processedOrders.length - 10} more orders` : ""}
-`
-    : ""
-}
+Books now available again:
+${processedBooks.slice(0, 10).map(book => 
+  `"${book.book_title}" by ${book.book_author} - R${book.book_price.toFixed(2)}`
+).join('\n')}
 
-${
-  errors.length > 0
-    ? `
-Errors: ${errors.length} errors occurred during processing. Check logs for details.
-`
-    : ""
-}
-
-This is an automated system report from ReBooked Solutions.
-"Pre-Loved Pages, New Adventures"`,
+ReBooked Solutions - Pre-Loved Pages, New Adventures`
           }),
         });
       } catch (emailError) {
-        console.error("Failed to send admin report:", emailError);
+        console.error("[ReBooked Auto-Expire] Failed to send notification email:", emailError);
       }
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        processed: processedOrders.length,
-        errors: errors.length,
-        processedOrders: processedOrders,
-        errorDetails: errors,
-        message: `Processed ${processedOrders.length} expired orders, ${errors.length} errors`,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    console.log("[ReBooked Auto-Expire] Summary:", result);
+
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+
   } catch (error) {
-    console.error("Auto-expire commits error:", error);
+    console.error("[ReBooked Auto-Expire] Critical error:", error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || "Failed to process expired orders",
+        error: "Failed to process book order expiry",
+        details: error.message
       }),
       {
         status: 500,

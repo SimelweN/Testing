@@ -431,10 +431,15 @@ const SupabaseFunctionTester = () => {
           const responseTime = Date.now() - startTime;
           let responseData;
 
+                    const responseClone = fetchResponse.clone();
           try {
             responseData = await fetchResponse.json();
           } catch {
-            responseData = await fetchResponse.text();
+            try {
+              responseData = await responseClone.text();
+            } catch {
+              responseData = { error: "Failed to read response" };
+            }
           }
 
           const status = fetchResponse.ok

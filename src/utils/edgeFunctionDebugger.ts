@@ -173,13 +173,18 @@ export class EdgeFunctionDebugger {
         responseHeaders[key] = value;
       });
 
-      let responseData;
+            let responseData;
+      const responseClone = response.clone();
       try {
         const responseText = await response.text();
         responseData = responseText ? JSON.parse(responseText) : null;
       } catch (parseError) {
-        // If JSON parsing fails, just return the text
-        responseData = await response.text();
+        // If JSON parsing fails, try to read from clone
+        try {
+          responseData = await responseClone.text();
+        } catch {
+          responseData = { error: "Failed to read response" };
+        }
       }
 
       return {
