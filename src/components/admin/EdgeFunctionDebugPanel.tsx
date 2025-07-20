@@ -24,7 +24,7 @@ export default function EdgeFunctionDebugPanel() {
   const [diagnostics, setDiagnostics] = useState<EdgeFunctionDiagnostic[]>([]);
   const [isRunning, setIsRunning] = useState(false);
 
-  const runDiagnostics = async () => {
+    const runDiagnostics = async () => {
     setIsRunning(true);
     try {
       const debuggerTool = new EdgeFunctionDebugger();
@@ -32,6 +32,19 @@ export default function EdgeFunctionDebugPanel() {
       setDiagnostics(results);
     } catch (error) {
       console.error("Failed to run diagnostics:", error);
+      // Add a diagnostic entry for the error itself
+      setDiagnostics([
+        {
+          functionName: "diagnostics-error",
+          status: "error",
+          error: {
+            message: error.message || "Unknown error occurred",
+            name: error.name || "Error",
+            details: "Failed to run Edge Function diagnostics",
+          },
+          timing: 0,
+        },
+      ]);
     } finally {
       setIsRunning(false);
     }
