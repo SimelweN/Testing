@@ -40,7 +40,7 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
     const originalConsoleError = console.error;
     const originalConsoleWarn = console.warn;
 
-    const isGoogleMapsError = (message: string) => {
+        const isGoogleMapsError = (message: string) => {
       const msg = message.toLowerCase();
       return (
         msg.includes("failed to load google maps script") ||
@@ -50,7 +50,11 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
         msg.includes("maps api") ||
         msg.includes("places api") ||
         msg.includes("google.maps") ||
-        msg.includes("googleapis.com")
+        msg.includes("googleapis.com") ||
+        msg.includes("maps javascript api") ||
+        msg.includes("map api") ||
+        msg.includes("script retrying") ||
+        msg.includes("google api")
       );
     };
 
