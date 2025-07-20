@@ -598,7 +598,7 @@ serve(async (req) => {
             to: buyer.email,
             subject: "🎉 Order Confirmed - Thank You!",
             html: buyerHtml,
-            text: `Order Confirmed!\n\nThank you, ${buyer.name}!\n\nYour order has been confirmed and ${seller.name} has been notified.\n\nOrder Details:\n- Order ID: ${orderId}\n- Book: ${book.title}\n- Author: ${book.author}\n- Seller: ${seller.name}\n- Total Amount: R${orderData.total_amount.toFixed(2)}\n- Payment Reference: ${payment_reference}\n\nWhat happens next?\n- The seller has 48 hours to commit to your order\n- Once committed, we'll arrange pickup and delivery\n- You'll receive tracking information via email\n- Your book will be delivered within 2-3 business days\n\nTrack your order: https://rebookedsolutions.co.za/activity\n\nReBooked Solutions`,
+                        text: `Order Confirmed!\n\nThank you, ${buyer.name}!\n\nYour order has been confirmed and ${seller.name} has been notified.\n\nOrder Details:\n- Order ID: ${order.id}\n- Book: ${book.title}\n- Author: ${book.author}\n- Seller: ${seller.name}\n- Total Amount: R${(orderData.amount / 100).toFixed(2)}\n- Payment Reference: ${payment_reference}\n\nWhat happens next?\n- The seller has 48 hours to commit to your order\n- Once committed, we'll arrange pickup and delivery\n- You'll receive tracking information via email\n- Your book will be delivered within 2-3 business days\n\nTrack your order: https://rebookedsolutions.co.za/activity\n\nReBooked Solutions`,
           }),
         })
           .then(() => {
