@@ -70,6 +70,9 @@ const isGoogleMapsRetryError = (message: string): boolean => {
 
 // Override fetch to provide better error handling
 const originalFetch = window.fetch;
+// Save original fetch for debugging tools
+(window.fetch as any).__original__ = originalFetch;
+
 window.fetch = async function (...args) {
   const url = args[0]?.toString() || "";
 
