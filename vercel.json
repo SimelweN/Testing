@@ -1,11 +1,7 @@
 {
   "version": 2,
-  "functions": {
+    "functions": {
     "api/**/*.js": {
-      "memory": 512,
-      "maxDuration": 30
-    },
-    "api/**/*.ts": {
       "memory": 512,
       "maxDuration": 30
     }
