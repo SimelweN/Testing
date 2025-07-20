@@ -217,7 +217,7 @@ function App() {
                         }
                       />
 
-                      {/* Admin Routes */}
+                                            {/* Admin Routes */}
                       <Route
                         path="/admin"
                         element={
@@ -231,6 +231,14 @@ function App() {
                         element={
                           <AdminProtectedRoute>
                             <AdminReports />
+                          </AdminProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/api-testing"
+                        element={
+                          <AdminProtectedRoute>
+                            <APITesting />
                           </AdminProtectedRoute>
                         }
                       />
