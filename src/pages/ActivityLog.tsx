@@ -385,40 +385,13 @@ const ActivityLog = () => {
               <div className="space-y-6">
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                  <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+                                    <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
                     <CardContent className="p-4 text-center">
                       <Package className="h-8 w-8 text-orange-600 mx-auto mb-2" />
                       <div className="text-2xl font-bold text-orange-900">
                         {pendingCommits.length}
                       </div>
                       <div className="text-sm text-orange-700">Pending</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-                    <CardContent className="p-4 text-center">
-                      <Check className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                      <div className="text-2xl font-bold text-green-900">-</div>
-                      <div className="text-sm text-green-700">Completed</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-                    <CardContent className="p-4 text-center">
-                      <Clock className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                      <div className="text-2xl font-bold text-blue-900">
-                        48h
-                      </div>
-                      <div className="text-sm text-blue-700">Time Limit</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-                    <CardContent className="p-4 text-center">
-                      <Star className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                      <div className="text-2xl font-bold text-purple-900">
-                        100%
-                      </div>
-                      <div className="text-sm text-purple-700">
-                        Success Rate
-                      </div>
                     </CardContent>
                   </Card>
                 </div>
