@@ -242,8 +242,8 @@ const PaystackDemo = () => {
         status: healthResponse.status,
         statusText: healthResponse.statusText,
         data: responseData,
-        url: functionUrl,
-        method: 'GET with health=true'
+                url: functionUrl,
+        method: 'POST with health=true'
       });
 
       if (healthResponse.ok) {
