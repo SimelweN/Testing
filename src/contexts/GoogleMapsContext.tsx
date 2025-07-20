@@ -35,6 +35,46 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
 }) => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
+  // Aggressive Google Maps error suppression
+  useEffect(() => {
+    const originalConsoleError = console.error;
+    const originalConsoleWarn = console.warn;
+
+    const isGoogleMapsError = (message: string) => {
+      const msg = message.toLowerCase();
+      return (
+        msg.includes("failed to load google maps script") ||
+        msg.includes("google maps script, retrying") ||
+        msg.includes("retrying in") ||
+        msg.includes("maps api") ||
+        msg.includes("places api")
+      );
+    };
+
+    console.error = function (...args) {
+      const message = args.join(" ");
+      if (isGoogleMapsError(message)) {
+        // Completely suppress Google Maps retry messages
+        return;
+      }
+      originalConsoleError.apply(this, args);
+    };
+
+    console.warn = function (...args) {
+      const message = args.join(" ");
+      if (isGoogleMapsError(message)) {
+        // Completely suppress Google Maps retry messages
+        return;
+      }
+      originalConsoleWarn.apply(this, args);
+    };
+
+    return () => {
+      console.error = originalConsoleError;
+      console.warn = originalConsoleWarn;
+    };
+  }, []);
+
   // Check if API key is valid (not empty, undefined, or placeholder)
   const isValidApiKey =
     apiKey &&
