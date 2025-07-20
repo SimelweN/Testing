@@ -189,10 +189,69 @@ const PaystackDemo = () => {
     const availableCount = Object.values(status).filter((s: any) => s.available).length;
     const totalCount = functions.length;
 
-    if (availableCount === totalCount) {
+        if (availableCount === totalCount) {
       toast.success(`✅ All ${totalCount} functions are available!`);
     } else {
       toast.error(`❌ Only ${availableCount}/${totalCount} functions are available`);
+    }
+  };
+
+  // Direct HTTP test (bypass Supabase client)
+  const testDirectHTTP = async () => {
+    setTestLoading("direct-http", true);
+    try {
+      const supabaseUrl = supabase.supabaseUrl;
+      const functionUrl = `${supabaseUrl}/functions/v1/initialize-paystack-payment`;
+
+      console.log(`🔗 Testing direct HTTP call to: ${functionUrl}`);
+
+      const response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.supabaseKey}`
+        },
+        body: JSON.stringify({ health: true })
+      });
+
+      const responseText = await response.text();
+      console.log(`📡 Direct HTTP response:`, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        body: responseText
+      });
+
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+      } catch {
+        responseData = responseText;
+      }
+
+      setTestResult("direct-http", {
+        success: response.ok,
+        status: response.status,
+        statusText: response.statusText,
+        data: responseData,
+        url: functionUrl
+      });
+
+      if (response.ok) {
+        toast.success("✅ Direct HTTP call successful!");
+      } else {
+        toast.error(`❌ Direct HTTP call failed: ${response.status} ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Direct HTTP test failed:", error);
+      setTestResult("direct-http", {
+        success: false,
+        error: error.message,
+        errorType: error.constructor.name
+      });
+      toast.error("Direct HTTP test failed: " + error.message);
+    } finally {
+      setTestLoading("direct-http", false);
     }
   };
 
