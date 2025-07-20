@@ -52,17 +52,11 @@ serve(async (req) => {
       console.log("✅ Body read successfully");
     } catch (error) {
       console.error("❌ Body read failed:", error.message);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "BODY_READ_ERROR",
-          details: { error: error.message, bodyUsed: req.bodyUsed },
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+            return jsonResponse({
+        success: false,
+        error: "BODY_READ_ERROR",
+        details: { error: error.message, bodyUsed: req.bodyUsed },
+      }, { status: 400 });
     }
 
     // Validate request method for non-health endpoints
