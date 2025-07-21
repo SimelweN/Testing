@@ -86,8 +86,7 @@ export const FunctionMockData = {
   },
 
   "verify-paystack-payment": {
-    reference: "TXN_" + Date.now(),
-    user_id: "550e8400-e29b-41d4-a716-446655440000"
+    reference: "bk_" + Date.now() + "_test_use"
   },
 
   "paystack-refund-management": {
