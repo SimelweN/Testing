@@ -2,7 +2,7 @@
  * Response Utilities - Prevents "Failed to execute 'clone' on 'Response'" errors
  */
 
-import { corsHeaders } from "./cors.ts";
+import { corsHeaders, getCorsHeaders } from "./cors.ts";
 import { getErrorMessage, createErrorDetails } from "./error-utils.ts";
 
 /**
