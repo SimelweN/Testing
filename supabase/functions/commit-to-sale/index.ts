@@ -3,14 +3,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { parseRequestBody } from "../_shared/safe-body-parser.ts";
 import { validateUUIDs, createUUIDErrorResponse } from "../_shared/uuid-validator.ts";
-import { json } from "../_shared/response-utils.ts";
+import { jsonResponse, errorResponse, handleCorsPreflightRequest } from "../_shared/response-utils.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return handleCorsPreflightRequest();
   }
 
     try {
@@ -39,13 +39,19 @@ serve(async (req) => {
       .single();
 
         if (orderError || !order) {
-            return json({
-        success: false,
-        error: "Order not found or not in pending commit status",
-      }, {
-        status: 404,
-        headers: corsHeaders,
-      });
+            return errorResponse(
+        "ORDER_NOT_FOUND",
+        {
+          order_id,
+          seller_id,
+          possible_causes: [
+            "Order does not exist",
+            "Order does not belong to this seller",
+            "Order is not in pending_commit status"
+          ]
+        },
+        { status: 404 }
+      );
     }
 
     // Ensure order.items is properly parsed if it's stored as JSONB
@@ -336,8 +342,7 @@ serve(async (req) => {
       // Don't fail the commit for email errors
     }
 
-                return json({
-        success: true,
+                return jsonResponse({
         message: "Order committed successfully",
         order_id,
         status: "committed",
@@ -345,18 +350,17 @@ serve(async (req) => {
         email_sent: !emailError,
         ...(deliveryError && { delivery_warning: "Automatic pickup scheduling failed - will need manual arrangement" }),
         ...(emailError && { email_warning: "Notification emails failed to send" })
-      }, {
-        headers: corsHeaders,
       });
   } catch (error) {
     console.error("Commit to sale error:", error);
 
-        return json({
-      success: false,
-      error: error.message || "Failed to commit order to sale",
-    }, {
-      status: 500,
-      headers: corsHeaders,
-    });
+        return errorResponse(
+      "COMMIT_FAILED",
+      {
+        error_message: error.message || "Failed to commit order to sale",
+        error_type: error.constructor?.name || "UnknownError"
+      },
+      { status: 500 }
+    );
   }
 });
