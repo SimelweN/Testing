@@ -93,9 +93,11 @@ export function createUUIDErrorResponse(errors: string[], corsHeaders: any): Res
         validation_errors: errors,
         accepted_formats: [
           "Valid UUID (e.g., 123e4567-e89b-12d3-a456-426614174000)",
-          "Test order IDs (e.g., ORD_test_123, ORD_1234567890_abc)",
+          "Test order IDs (e.g., ORD_test_decline, ORD_1234567890_abc)",
           "Test user IDs (e.g., USR_test_123)",
-          "Test payment refs (e.g., test_ref_1234567890_abc)"
+          "Test payment refs (e.g., test_ref_1234567890_abc)",
+          "Tracking numbers (e.g., FW123456789, CG123456789)",
+          "Mock/Demo IDs (e.g., mock_123, demo_456, ACCT_mock_789)"
         ]
       },
       fix_instructions: "Ensure all ID fields are either valid UUIDs or test IDs in the correct format"

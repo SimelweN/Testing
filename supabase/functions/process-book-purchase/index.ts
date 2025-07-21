@@ -1,429 +1,125 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
-import { parseRequestBody } from "../_shared/safe-body-parser.ts";
-import { extractSafeErrorMessage, safeErrorLog, createErrorResponse } from "../_shared/error-utils.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+const jsonResponse = (data: any, options: { status?: number; headers?: Record<string, string> } = {}) => {
+  return new Response(JSON.stringify(data), {
+    status: options.status || 200,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+      ...options.headers
+    }
+  });
+};
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 serve(async (req) => {
-  console.log("🚀 Process-book-purchase function called:", {
-    method: req.method,
-    url: req.url,
-    timestamp: new Date().toISOString(),
-    headers: Object.fromEntries(req.headers.entries())
-  });
-
-  if (req.method === "OPTIONS") {
-    console.log("✅ Handling OPTIONS request");
-    return new Response("ok", { headers: corsHeaders });
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
   }
-
-  if (req.method !== "POST") {
-    console.log("❌ Invalid method:", req.method);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "METHOD_NOT_ALLOWED",
-        details: { method: req.method, expected: "POST" }
-      }),
-      {
-        status: 405,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  }
-
-    // Use safe body parser to prevent body consumption errors
-  const bodyParseResult = await parseRequestBody(req, corsHeaders);
-  if (!bodyParseResult.success) {
-    console.error("❌ Body parsing failed");
-    return bodyParseResult.errorResponse!;
-  }
-
-  const requestBody = bodyParseResult.data;
-  console.log("✅ Body parsed successfully using safe parser");
 
   try {
+    // Parse request body
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (error) {
+      return jsonResponse({
+        success: false,
+        error: "INVALID_JSON_PAYLOAD",
+        details: { error: error.message },
+      }, { status: 400 });
+    }
+
     const {
-      user_id,
       book_id,
-      email,
-      shipping_address,
+      buyer_id,
+      seller_id,
+      amount,
       payment_reference,
-      total_amount,
-      delivery_details,
+      buyer_email,
+      shipping_address
     } = requestBody;
 
-    console.log("�� Processing book purchase confirmation:", {
-      user_id,
-      book_id,
-      payment_reference,
-      total_amount,
-    });
+    // Validate required fields
+    const missingFields = [];
+    if (!book_id) missingFields.push("book_id");
+    if (!buyer_id) missingFields.push("buyer_id");
+    if (!seller_id) missingFields.push("seller_id");
+    if (!amount) missingFields.push("amount");
+    if (!payment_reference) missingFields.push("payment_reference");
 
-    // Enhanced validation with specific error messages
-    const validationErrors = [];
-    if (!user_id) validationErrors.push("user_id is required");
-    if (!book_id) validationErrors.push("book_id is required");
-    if (!email) validationErrors.push("email is required");
-    if (!payment_reference)
-      validationErrors.push("payment_reference is required");
-
-    if (validationErrors.length > 0) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "VALIDATION_FAILED",
-          details: {
-            missing_fields: validationErrors,
-                        provided_fields: Object.keys({
-              user_id,
-              book_id,
-              email,
-              shipping_address,
-              payment_reference,
-              total_amount,
-              delivery_details,
-            }),
-            message: `Missing required fields: ${validationErrors.join(", ")}`,
-          },
-          fix_instructions:
-            "Provide all required fields: user_id (string), book_id (string), email (string), payment_reference (string). Optional: shipping_address, total_amount, delivery_details",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (missingFields.length > 0) {
+      return jsonResponse({
+        success: false,
+        error: "MISSING_REQUIRED_FIELDS",
+        details: {
+          missing_fields: missingFields,
+          provided_fields: Object.keys(requestBody),
+          message: "Required fields are missing for book purchase"
         },
-      );
+      }, { status: 400 });
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "INVALID_EMAIL_FORMAT",
-          details: {
-            provided_email: email,
-            message: "Email format is invalid",
-          },
-          fix_instructions:
-            "Provide a valid email address in format: user@domain.com",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Validate amount format
+    if (typeof amount !== "number" || amount <= 0) {
+      return jsonResponse({
+        success: false,
+        error: "INVALID_AMOUNT_FORMAT",
+        details: {
+          amount_type: typeof amount,
+          amount_value: amount,
+          message: "Amount must be a positive number"
         },
-      );
-    }
-
-    // Check environment variables
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "ENVIRONMENT_CONFIG_ERROR",
-          details: {
-            missing_env_vars: [
-              !SUPABASE_URL ? "SUPABASE_URL" : null,
-              !SUPABASE_SERVICE_KEY ? "SUPABASE_SERVICE_ROLE_KEY" : null,
-            ].filter(Boolean),
-            message: "Required environment variables are not configured",
-          },
-          fix_instructions:
-            "Configure missing environment variables in your deployment settings",
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      }, { status: 400 });
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-    // Get book details with seller information
+    // Get book details
     const { data: book, error: bookError } = await supabase
       .from("books")
       .select("*")
       .eq("id", book_id)
+      .eq("seller_id", seller_id)
+      .eq("sold", false)
       .single();
 
-    if (bookError) {
-      if (bookError.code === "PGRST116") {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: "BOOK_NOT_FOUND",
-            details: {
-              book_id,
-              database_error: bookError.message,
-              message: "Book not found",
-            },
-            fix_instructions:
-              "Verify the book_id exists in the books table. The book may have been deleted or the ID is incorrect.",
-          }),
-          {
-            status: 404,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
-      }
-
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "DATABASE_QUERY_FAILED",
-          details: {
-            error_code: bookError.code,
-            error_message: bookError.message,
-            query_details: "SELECT from books table with book_id filter",
-          },
-          fix_instructions:
-            "Check database connection and table structure. Ensure 'books' table exists and is accessible.",
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (bookError || !book) {
+      return jsonResponse({
+        success: false,
+        error: "BOOK_NOT_AVAILABLE",
+        details: {
+          book_id,
+          seller_id,
+          error_message: bookError?.message || "Book not found or already sold"
         },
-      );
+      }, { status: 404 });
     }
 
-    if (!book) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "BOOK_NOT_FOUND",
-          details: {
-            book_id,
-            message: "Book not found",
-          },
-          fix_instructions:
-            "Verify the book_id is correct and the book exists in the database",
-        }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Get buyer and seller profiles
+    const [{ data: buyer }, { data: seller }] = await Promise.all([
+      supabase.from("profiles").select("*").eq("id", buyer_id).single(),
+      supabase.from("profiles").select("*").eq("id", seller_id).single()
+    ]);
+
+    if (!buyer || !seller) {
+      return jsonResponse({
+        success: false,
+        error: "USER_PROFILES_NOT_FOUND",
+        details: {
+          buyer_found: !!buyer,
+          seller_found: !!seller,
+          message: "Required user profiles not found"
         },
-      );
-    }
-
-    // Check if book is already sold
-    if (book.sold) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "BOOK_ALREADY_SOLD",
-          details: {
-            book_id,
-            book_title: book.title,
-            sold_status: book.sold,
-            sold_at: book.sold_at,
-            message: "Book has already been sold",
-          },
-          fix_instructions:
-            "This book is no longer available for purchase. Choose a different book or refresh the listings.",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    // Check if buyer is trying to buy their own book
-    if (book.seller_id === user_id) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "SELF_PURCHASE_ATTEMPT",
-          details: {
-            book_id,
-            user_id,
-            seller_id: book.seller_id,
-            message: "Cannot purchase your own book",
-          },
-          fix_instructions:
-            "Users cannot purchase books they are selling. Use a different user account or choose a different book.",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    // Get buyer information
-    const { data: buyer, error: buyerError } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user_id)
-      .single();
-
-    if (buyerError || !buyer) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "BUYER_NOT_FOUND",
-          details: {
-            user_id,
-            database_error: buyerError?.message,
-            message: "Buyer profile not found",
-          },
-          fix_instructions:
-            "Verify the user_id exists in the profiles table. The user may need to complete registration first.",
-        }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    // Get seller information
-    const { data: seller, error: sellerError } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", book.seller_id)
-      .single();
-
-    if (sellerError || !seller) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "SELLER_NOT_FOUND",
-          details: {
-            seller_id: book.seller_id,
-            book_id,
-            database_error: sellerError?.message,
-            message: "Seller profile not found",
-          },
-          fix_instructions:
-            "The seller's profile is missing. This may indicate data integrity issues. Contact support.",
-        }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
-        // Create order with correct schema
-    const orderData = {
-      buyer_email: email,
-      seller_id: book.seller_id,
-      amount: Math.round((total_amount || book.price) * 100), // Convert to kobo
-      paystack_ref: payment_reference,
-      status: "pending", // Use valid status value
-      items: [
-        {
-          type: "book",
-          book_id: book.id,
-          book_title: book.title,
-          author: book.author,
-          price: Math.round(book.price * 100), // Convert to kobo
-          condition: book.condition,
-          seller_id: book.seller_id,
-          quantity: 1,
-        },
-      ],
-      shipping_address,
-      delivery_data: delivery_details || {},
-      metadata: {
-        buyer_id: user_id,
-        buyer_name: buyer.name,
-        seller_name: seller.name,
-        seller_email: seller.email,
-        expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48 hours
-        order_type: "book_purchase",
-        platform_fee: Math.round(book.price * 0.1 * 100), // 10% platform fee in kobo
-        seller_amount: Math.round(book.price * 0.9 * 100), // 90% to seller in kobo
-      },
-    };
-
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .insert(orderData)
-      .select()
-      .single();
-
-    if (orderError) {
-      console.error("Failed to create order:", {
-        error: orderError,
-        orderData,
-        book_id,
-        user_id,
-      });
-
-      // Specific order creation error handling
-      if (orderError.code === "23505") {
-        // Unique constraint violation
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: "DUPLICATE_ORDER_ATTEMPT",
-            details: {
-              error_code: orderError.code,
-              error_message: orderError.message,
-                            payment_reference: payment_reference,
-              message: "Order with this ID already exists",
-            },
-            fix_instructions:
-              "This is likely a retry attempt. Check if the order was already created successfully.",
-          }),
-          {
-            status: 409,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
-      }
-
-      if (orderError.code === "23503") {
-        // Foreign key constraint violation
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: "DATABASE_CONSTRAINT_VIOLATION",
-            details: {
-              error_code: orderError.code,
-              error_message: orderError.message,
-              possible_causes: [
-                "buyer_id does not exist in profiles table",
-                "seller_id does not exist in profiles table",
-                "Referenced foreign key constraints are not met",
-              ],
-            },
-            fix_instructions:
-              "Ensure both buyer and seller profiles exist and are properly linked. Check database foreign key constraints.",
-          }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
-      }
-
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "ORDER_CREATION_FAILED",
-          details: {
-            error_code: orderError.code,
-            error_message: orderError.message,
-            order_data: orderData,
-            message: `Failed to create order: ${orderError.message}`,
-          },
-          fix_instructions:
-            "Check database permissions and table structure. Ensure 'orders' table exists with proper columns and constraints.",
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      }, { status: 404 });
     }
 
     // Mark book as sold
@@ -432,273 +128,180 @@ serve(async (req) => {
       .update({
         sold: true,
         sold_at: new Date().toISOString(),
-        buyer_id: user_id,
-        reserved_until: null,
-        reserved_by: null,
+        buyer_id,
+        updated_at: new Date().toISOString()
       })
-      .eq("id", book_id);
+      .eq("id", book_id)
+      .eq("sold", false);
 
     if (bookUpdateError) {
-      console.warn("Failed to mark book as sold:", {
-        error: bookUpdateError,
-        book_id,
-        user_id,
-      });
-      // Don't fail the order creation for this, but log it
-    }
-
-    // Send notification emails
-    const emailPromises = [];
-    const emailResults = {
-      seller_email_sent: false,
-      buyer_email_sent: false,
-      errors: [],
-    };
-
-    try {
-      // Email to seller
-            const sellerHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>New Order - Action Required</title>
-  <style>
-    body { font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; }
-    .container { max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
-    .header { background: #3ab26f; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; }
-    .footer { background: #f3fef7; color: #1f4e3d; padding: 20px; text-align: center; font-size: 12px; line-height: 1.5; margin: 30px -30px -30px -30px; border-radius: 0 0 10px 10px; border-top: 1px solid #e5e7eb; }
-    .info-box { background: #f3fef7; border: 1px solid #3ab26f; padding: 15px; border-radius: 5px; margin: 15px 0; }
-    .warning { background: #fff3cd; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #ffeaa7; }
-    .btn { display: inline-block; padding: 12px 20px; background-color: #3ab26f; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: bold; }
-    .link { color: #3ab26f; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>📚 New Order - Action Required!</h1>
-    </div>
-
-    <h2>Hi ${seller.name}!</h2>
-    <p>Great news! You have a new order from <strong>${buyer.name}</strong>.</p>
-
-    <div class="info-box">
-      <h3>📋 Order Details</h3>
-      <p><strong>Order ID:</strong> ${order.id}</p>
-      <p><strong>Book:</strong> ${book.title}</p>
-      <p><strong>Author:</strong> ${book.author}</p>
-      <p><strong>Buyer:</strong> ${buyer.name} (${email})</p>
-      <p><strong>Total Amount:</strong> R${(orderData.amount / 100).toFixed(2)}</p>
-    </div>
-
-    <div class="warning">
-      <h3>⏰ Action Required Within 48 Hours</h3>
-      <p><strong>Expires:</strong> ${new Date(orderData.metadata.expires_at).toLocaleString()}</p>
-      <p>You must commit to this order within 48 hours or it will be automatically cancelled and refunded.</p>
-    </div>
-
-    <p>Once you commit, we'll arrange pickup and you'll be paid after delivery!</p>
-
-    <a href="https://rebookedsolutions.co.za/activity" class="btn">Commit to Order</a>
-
-    <div class="footer">
-      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
-      Please do not reply to this email.</p>
-      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
-      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
-      <p>T&Cs apply. <em>"Pre-Loved Pages, New Adventures"</em></p>
-    </div>
-  </div>
-</body>
-</html>`;
-
-      emailPromises.push(
-        fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-          },
-          body: JSON.stringify({
-            to: seller.email,
-            subject: "📚 New Order - Action Required (48 hours)",
-            html: sellerHtml,
-                        text: `New Order - Action Required!\n\nHi ${seller.name}!\n\nGreat news! You have a new order from ${buyer.name}.\n\nOrder Details:\n- Order ID: ${order.id}\n- Book: ${book.title}\n- Author: ${book.author}\n- Buyer: ${buyer.name} (${email})\n- Total Amount: R${(orderData.amount / 100).toFixed(2)}\n\n⏰ Action Required Within 48 Hours\nExpires: ${new Date(orderData.metadata.expires_at).toLocaleString()}\n\nYou must commit to this order within 48 hours or it will be automatically cancelled.\n\nCommit to order: https://rebookedsolutions.co.za/activity\n\nReBooked Solutions`,
-          }),
-        })
-          .then(() => {
-            emailResults.seller_email_sent = true;
-          })
-          .catch((error) => {
-            emailResults.errors.push({
-              recipient: "seller",
-              error: error.message,
-            });
-          }),
-      );
-
-      // Email to buyer
-      const buyerHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Order Confirmed - Thank You!</title>
-  <style>
-    body { font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; }
-    .container { max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
-    .header { background: #3ab26f; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; }
-    .footer { background: #f3fef7; color: #1f4e3d; padding: 20px; text-align: center; font-size: 12px; line-height: 1.5; margin: 30px -30px -30px -30px; border-radius: 0 0 10px 10px; border-top: 1px solid #e5e7eb; }
-    .info-box { background: #f3fef7; border: 1px solid #3ab26f; padding: 15px; border-radius: 5px; margin: 15px 0; }
-    .steps { background: #f3fef7; padding: 15px; border-radius: 5px; margin: 15px 0; }
-    .btn { display: inline-block; padding: 12px 20px; background-color: #3ab26f; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: bold; }
-    .link { color: #3ab26f; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>🎉 Order Confirmed!</h1>
-    </div>
-
-    <h2>Thank you, ${buyer.name}!</h2>
-    <p>Your order has been confirmed and <strong>${seller.name}</strong> has been notified.</p>
-
-        <div class="info-box">
-      <h3>📋 Order Details</h3>
-      <p><strong>Order ID:</strong> ${order.id}</p>
-      <p><strong>Book:</strong> ${book.title}</p>
-      <p><strong>Author:</strong> ${book.author}</p>
-      <p><strong>Seller:</strong> ${seller.name}</p>
-      <p><strong>Total Amount:</strong> R${(orderData.amount / 100).toFixed(2)}</p>
-      <p><strong>Payment Reference:</strong> ${payment_reference}</p>
-    </div>
-
-    <div class="steps">
-      <h3>📦 What happens next?</h3>
-      <ul>
-        <li>The seller has 48 hours to commit to your order</li>
-        <li>Once committed, we'll arrange pickup and delivery</li>
-        <li>You'll receive tracking information via email</li>
-        <li>Your book will be delivered within 2-3 business days</li>
-      </ul>
-    </div>
-
-    <p>We'll notify you as soon as the seller confirms your order!</p>
-
-    <a href="https://rebookedsolutions.co.za/activity" class="btn">Track Your Order</a>
-
-    <div class="footer">
-      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
-      Please do not reply to this email.</p>
-      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
-      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
-      <p>T&Cs apply. <em>"Pre-Loved Pages, New Adventures"</em></p>
-    </div>
-  </div>
-</body>
-</html>`;
-
-      emailPromises.push(
-        fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-          },
-          body: JSON.stringify({
-            to: buyer.email,
-            subject: "🎉 Order Confirmed - Thank You!",
-            html: buyerHtml,
-                        text: `Order Confirmed!\n\nThank you, ${buyer.name}!\n\nYour order has been confirmed and ${seller.name} has been notified.\n\nOrder Details:\n- Order ID: ${order.id}\n- Book: ${book.title}\n- Author: ${book.author}\n- Seller: ${seller.name}\n- Total Amount: R${(orderData.amount / 100).toFixed(2)}\n- Payment Reference: ${payment_reference}\n\nWhat happens next?\n- The seller has 48 hours to commit to your order\n- Once committed, we'll arrange pickup and delivery\n- You'll receive tracking information via email\n- Your book will be delivered within 2-3 business days\n\nTrack your order: https://rebookedsolutions.co.za/activity\n\nReBooked Solutions`,
-          }),
-        })
-          .then(() => {
-            emailResults.buyer_email_sent = true;
-          })
-          .catch((error) => {
-            emailResults.errors.push({
-              recipient: "buyer",
-              error: error.message,
-            });
-          }),
-      );
-
-      // Wait for emails
-      await Promise.allSettled(emailPromises);
-    } catch (emailError) {
-      console.error("Failed to send notification emails:", emailError);
-      emailResults.errors.push({ general: emailError.message });
-    }
-
-        console.log("✅ Book purchase processed successfully:", {
-      order_id: order.id,
-      book_title: book.title,
-      buyer: buyer.name,
-      seller: seller.name,
-    });
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "Order created successfully",
-        order_id: order.id,
-        details: {
-          order_id: order.id,
-          book: {
-            id: book.id,
-            title: book.title,
-            author: book.author,
-            price: book.price,
-          },
-          buyer: {
-            id: buyer.id,
-            name: buyer.name,
-            email: buyer.email,
-          },
-          seller: {
-            id: seller.id,
-            name: seller.name,
-            email: seller.email,
-          },
-          order: {
-            id: order.id,
-            status: order.status,
-            total_amount: order.amount / 100, // Convert back to rands
-            expires_at: orderData.metadata.expires_at,
-            created_at: order.created_at,
-          },
-          notifications: emailResults,
-        },
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
-    } catch (error) {
-    const safeError = extractSafeErrorMessage(error, "Failed to process book purchase");
-
-    safeErrorLog("Process Book Purchase", error, {
-      timestamp: new Date().toISOString(),
-    });
-
-    return new Response(
-      JSON.stringify({
+      return jsonResponse({
         success: false,
-        error: "UNEXPECTED_ERROR",
+        error: "BOOK_UPDATE_FAILED",
         details: {
-          error_message: safeError.message,
-          error_stack: safeError.stack || 'No stack trace available',
-          error_type: safeError.type,
-          error_code: safeError.code,
-          timestamp: new Date().toISOString(),
+          error_message: bookUpdateError.message,
+          book_id
         },
-        fix_instructions:
-          "This is an unexpected server error. Check the server logs for more details and contact support if the issue persists.",
+      }, { status: 500 });
+    }
+
+    // Create order
+    const commitDeadline = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
+    const finalPaymentRef = payment_reference || `single_book_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .insert({
+        buyer_id,
+        buyer_email: buyer_email || buyer.email,
+        seller_id,
+        items: [{
+          book_id,
+          title: book.title,
+          author: book.author,
+          price: amount,
+          condition: book.condition,
+          seller_id
+        }],
+        amount: Math.round(amount * 100), // Convert to cents
+        total_amount: amount,
+        status: "pending_commit",
+        payment_status: "paid",
+        payment_reference: finalPaymentRef,
+        shipping_address: shipping_address || {},
+        commit_deadline: commitDeadline.toISOString(),
+        paid_at: new Date().toISOString(),
+        buyer_name: buyer.name,
+        seller_name: seller.name,
+        seller_email: seller.email,
+        expires_at: commitDeadline.toISOString(),
+        created_at: new Date().toISOString(),
+        metadata: {
+          created_from: "single_book_purchase",
+          item_count: 1,
+          book_id
+        }
+      })
+      .select()
+      .single();
+
+    if (orderError) {
+      // Rollback book sale if order creation fails
+      await supabase
+        .from("books")
+        .update({ sold: false, buyer_id: null, sold_at: null })
+        .eq("id", book_id);
+
+      return jsonResponse({
+        success: false,
+        error: "ORDER_CREATION_FAILED",
+        details: {
+          error_message: orderError.message
+        },
+      }, { status: 500 });
+    }
+
+    // Create notifications
+    await Promise.all([
+      supabase.from("order_notifications").insert({
+        order_id: order.id,
+        user_id: buyer_id,
+        type: "order_confirmed",
+        title: "Purchase Confirmed!",
+        message: `Your purchase of "${book.title}" has been confirmed. Total: R${amount.toFixed(2)}`
       }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      supabase.from("order_notifications").insert({
+        order_id: order.id,
+        user_id: seller_id,
+        type: "new_order",
+        title: "New Sale!",
+        message: `You have a new order for "${book.title}" worth R${amount.toFixed(2)}. Please commit within 48 hours.`
+      })
+    ]);
+
+    // Log activity
+    await supabase.from("order_activity_log").insert({
+      order_id: order.id,
+      user_id: buyer_id,
+      action: "single_book_purchase",
+      new_status: "pending_commit",
+      metadata: {
+        book_id,
+        amount,
+        payment_reference: finalPaymentRef
+      }
+    });
+
+    // Queue notification emails
+    const buyerEmailHtml = `
+      <div style="font-family: Arial, sans-serif;">
+        <h2>Purchase Confirmed!</h2>
+        <p>Hi ${buyer.name},</p>
+        <p>Your purchase has been confirmed!</p>
+        <p><strong>Book:</strong> "${book.title}" by ${book.author}</p>
+        <p><strong>Price:</strong> R${amount.toFixed(2)}</p>
+        <p><strong>Seller:</strong> ${seller.name}</p>
+        <p>The seller has 48 hours to commit to the sale. We'll notify you once they confirm!</p>
+        <p>Thank you for choosing ReBooked Solutions!</p>
+      </div>
+    `;
+
+    const sellerEmailHtml = `
+      <div style="font-family: Arial, sans-serif;">
+        <h2>New Sale - Action Required!</h2>
+        <p>Hi ${seller.name},</p>
+        <p>Great news! You have a new sale!</p>
+        <p><strong>Book:</strong> "${book.title}" by ${book.author}</p>
+        <p><strong>Price:</strong> R${amount.toFixed(2)}</p>
+        <p><strong>Buyer:</strong> ${buyer.name}</p>
+        <p><strong>Deadline:</strong> ${commitDeadline.toLocaleString()}</p>
+        <p><strong>⏰ Please commit to this sale within 48 hours or it will be automatically cancelled.</strong></p>
+        <p>Log in to your account to commit to the sale!</p>
+      </div>
+    `;
+
+    await Promise.all([
+      supabase.from("mail_queue").insert({
+        user_id: buyer_id,
+        email: buyer_email || buyer.email,
+        subject: "📚 Purchase Confirmed - ReBooked",
+        body: buyerEmailHtml,
+        status: "pending",
+        created_at: new Date().toISOString()
+      }),
+      supabase.from("mail_queue").insert({
+        user_id: seller_id,
+        email: seller.email,
+        subject: "💰 New Sale - Action Required (48 hours)",
+        body: sellerEmailHtml,
+        status: "pending",
+        created_at: new Date().toISOString()
+      })
+    ]);
+
+    return jsonResponse({
+      success: true,
+      message: "Book purchase processed successfully",
+      order: {
+        id: order.id,
+        book_id,
+        book_title: book.title,
+        amount,
+        status: order.status,
+        commit_deadline: commitDeadline.toISOString(),
+        payment_reference: finalPaymentRef
+      }
+    });
+
+  } catch (error) {
+    console.error('Error in process-book-purchase:', error);
+    return jsonResponse({
+      success: false,
+      error: "INTERNAL_SERVER_ERROR",
+      details: {
+        error_message: error.message,
+        timestamp: new Date().toISOString()
       },
-    );
+    }, { status: 500 });
   }
 });

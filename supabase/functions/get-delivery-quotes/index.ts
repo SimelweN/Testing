@@ -142,7 +142,9 @@ serve(async (req) => {
             console.error("Courier Guy API error:", error?.message || error);
             providerErrors.push({
         provider: "courier-guy",
-        error: error?.message || String(error),
+        error: error instanceof Error ? error.message :
+               typeof error === "string" ? error :
+               "Courier Guy API error",
         fallback_used: true,
       });
       // Add fallback quote
@@ -178,7 +180,9 @@ serve(async (req) => {
             console.error("Fastway API error:", error?.message || error);
             providerErrors.push({
         provider: "fastway",
-        error: error?.message || String(error),
+        error: error instanceof Error ? error.message :
+               typeof error === "string" ? error :
+               "Fastway API error",
         fallback_used: true,
       });
       // Add fallback quote
@@ -214,15 +218,20 @@ serve(async (req) => {
       },
     );
   } catch (error) {
-        console.error("Error in get-delivery-quotes:", error?.message || error);
+    console.error("Error in get-delivery-quotes:", error);
+
+    const errorMessage = error instanceof Error ? error.message :
+                        typeof error === "string" ? error :
+                        "Unexpected error occurred";
 
     return new Response(
       JSON.stringify({
         success: false,
         error: "UNEXPECTED_ERROR",
-                details: {
-          error_message: error?.message || String(error),
-          error_stack: error?.stack || 'No stack trace available',
+        details: {
+          error_message: errorMessage,
+          error_type: error instanceof Error ? error.constructor.name : typeof error,
+          error_stack: error instanceof Error ? error.stack : undefined,
           error_type: error?.constructor?.name || 'Unknown',
           timestamp: new Date().toISOString(),
         },

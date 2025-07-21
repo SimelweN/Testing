@@ -562,32 +562,61 @@ export default function EdgeFunctionTester() {
         credentials: 'omit'
       });
 
+      // Clear timeout as soon as we get a response
       clearTimeout(timeoutId);
       console.log(`✅ Function ${func.name} responded with status: ${response.status}`);
 
       const duration = Date.now() - startTime;
 
-            // Parse response regardless of status code - clone first to avoid stream issues
-      const responseClone = response.clone();
+      // Parse response safely - avoid multiple body reads
       let responseData;
       try {
-        responseData = await response.json();
-      } catch (parseError) {
-        try {
-          const rawText = await responseClone.text();
+        // Check if response body is available and not already used
+        if (!response.bodyUsed) {
+          // First try to get the text content
+          const responseText = await response.text();
+
+          // Try to parse as JSON if we have text content
+          if (responseText.trim()) {
+            try {
+              responseData = JSON.parse(responseText);
+            } catch (jsonError) {
+              // If JSON parsing fails, create a structured response
+              responseData = {
+                error: "Failed to parse response as JSON",
+                raw_response: responseText,
+                status: response.status,
+                statusText: response.statusText,
+                parseError: jsonError.message
+              };
+            }
+          } else {
+            // Empty response body
+            responseData = {
+              message: "Empty response body",
+              status: response.status,
+              statusText: response.statusText
+            };
+          }
+        } else {
+          // Body already used - this is the main fix for the error
+          console.warn(`⚠️ Response body already used for ${func.name}`);
           responseData = {
-            error: "Failed to parse response",
-            raw_response: rawText,
+            error: "Response body was already consumed",
             status: response.status,
             statusText: response.statusText,
-          };
-        } catch {
-          responseData = {
-            error: "Failed to read response",
-            status: response.status,
-            statusText: response.statusText,
+            note: "This may indicate multiple reads of the same response"
           };
         }
+      } catch (textError) {
+        // If we can't even read the text, create a minimal response
+        console.error(`❌ Failed to read response body for ${func.name}:`, textError);
+        responseData = {
+          error: "Failed to read response body",
+          status: response.status,
+          statusText: response.statusText,
+          readError: textError.message
+        };
       }
 
       if (!response.ok) {
@@ -623,6 +652,8 @@ export default function EdgeFunctionTester() {
         });
       }
     } catch (error: any) {
+      // Ensure timeout is cleared even on error
+      clearTimeout(timeoutId);
       const duration = Date.now() - startTime;
 
       let errorMessage = "Unknown error";
@@ -651,6 +682,16 @@ export default function EdgeFunctionTester() {
         errorMessage = "Request timed out";
         debugInfo = {
           possibleCauses: ["Function taking too long to respond", "Network timeout"]
+        };
+      } else if (error.message && error.message.includes("Response body is already used")) {
+        errorMessage = "Response body consumption error";
+        debugInfo = {
+          possibleCauses: [
+            "Multiple attempts to read response body",
+            "Response was cloned and read multiple times",
+            "Concurrent access to same response object"
+          ],
+          fix: "The EdgeFunctionTester has been updated to handle this properly"
         };
       } else {
         errorMessage = error.message || String(error);
@@ -682,15 +723,27 @@ export default function EdgeFunctionTester() {
     });
     setTestResults(resetResults);
 
-    // Test functions in batches to avoid overwhelming the system
-    const batchSize = 3;
+    // Test functions in smaller batches to avoid overwhelming the system and response conflicts
+    const batchSize = 2; // Reduced batch size to prevent response body conflicts
     for (let i = 0; i < edgeFunctions.length; i += batchSize) {
       const batch = edgeFunctions.slice(i, i + batchSize);
-      await Promise.all(batch.map((func) => testFunction(func)));
 
-      // Small delay between batches
+      try {
+        await Promise.all(batch.map((func, index) => {
+          // Add small delay between concurrent requests to prevent conflicts
+          return new Promise(resolve => {
+            setTimeout(() => {
+              resolve(testFunction(func));
+            }, index * 200); // 200ms offset between concurrent requests
+          });
+        }));
+      } catch (batchError) {
+        console.error(`Error in batch ${i / batchSize + 1}:`, batchError);
+      }
+
+      // Longer delay between batches to ensure proper cleanup
       if (i + batchSize < edgeFunctions.length) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1500));
       }
     }
 

@@ -225,12 +225,17 @@ serve(async (req) => {
       },
     );
   } catch (error) {
-        console.error("Automate delivery error:", error?.message || error);
+    console.error("Automate delivery error:", error);
+
+    const errorMessage = error instanceof Error ? error.message :
+                        typeof error === "string" ? error :
+                        "Failed to automate delivery";
 
     return new Response(
       JSON.stringify({
         success: false,
-                error: error?.message || String(error) || "Failed to automate delivery",
+        error: errorMessage,
+        error_type: error instanceof Error ? error.constructor.name : typeof error
       }),
       {
         status: 500,
