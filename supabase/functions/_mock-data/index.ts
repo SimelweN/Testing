@@ -532,7 +532,7 @@ export function validateMockData(functionName: string, mockData: any): boolean {
     "paystack-split-management": ["action"],
 
     // CORE SUPABASE FUNCTIONS
-    "process-book-purchase": ["user_id", "book_id", "email", "payment_reference"],
+    "process-book-purchase": ["book_id", "buyer_id", "seller_id", "amount", "buyer_email"],
     "process-multi-seller-purchase": ["user_id", "email", "cart_items"],
     "create-order": ["buyer_id", "buyer_email", "cart_items"],
     "send-email": ["to", "subject", "html"],
@@ -541,11 +541,11 @@ export function validateMockData(functionName: string, mockData: any): boolean {
     // COMMIT SYSTEM FUNCTIONS
     "commit-to-sale": ["order_id", "seller_id"],
     "decline-commit": ["order_id", "seller_id"],
-    "mark-collected": ["order_id", "seller_id"],
+    "mark-collected": ["order_id", "tracking_number"],
     "pay-seller": ["order_id", "seller_id", "amount"],
 
         // SUBACCOUNT MANAGEMENT
-    "create-paystack-subaccount": ["business_name", "email", "bank_name", "bank_code", "account_number"],
+    "create-paystack-subaccount": ["business_name", "email", "bank_name", "bank_code", "account_number", "user_id"],
         "manage-paystack-subaccount": ["action", "subaccount_code", "business_name", "settlement_bank", "account_number"],
 
     // DELIVERY FUNCTIONS
