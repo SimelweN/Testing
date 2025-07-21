@@ -54,14 +54,14 @@ export const MockResponses = {
   "process-book-purchase": {
     success: true,
     message: "Book purchase processed successfully",
-    transaction_id: "txn_" + Date.now(),
-    order_id: "550e8400-e29b-41d4-a716-446655440002",
-    book_id: "550e8400-e29b-41d4-a716-446655440001",
-    buyer_id: "550e8400-e29b-41d4-a716-446655440000",
-    seller_id: "550e8400-e29b-41d4-a716-446655440003",
+    transaction_id: "txn_test_" + Date.now(),
+    order_id: "ORD_test_book_purchase",
+    book_id: "book_test_123",
+    buyer_id: "USR_test_buyer_456",
+    seller_id: "USR_test_seller_789",
     amount: 34999,
     status: "pending_commit",
-    payment_reference: "TXN_" + Date.now(),
+    payment_reference: "test_ref_" + Date.now(),
     emails_sent: true,
     expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
   },
@@ -99,9 +99,9 @@ export const MockResponses = {
     orders_created: 1,
     orders: [
       {
-        order_id: "550e8400-e29b-41d4-a716-446655440002",
-        seller_id: "550e8400-e29b-41d4-a716-446655440003",
-        buyer_id: "550e8400-e29b-41d4-a716-446655440000",
+        order_id: "ORD_test_create_order",
+        seller_id: "USR_test_seller_order",
+        buyer_id: "USR_test_buyer_order",
         status: "pending_commit",
         total_amount: 34999,
         items_count: 1,
@@ -109,7 +109,7 @@ export const MockResponses = {
       }
     ],
     notifications_sent: true,
-    payment_reference: "TXN_" + Date.now()
+    payment_reference: "test_ref_" + Date.now()
   },
 
   "create-paystack-subaccount": {
