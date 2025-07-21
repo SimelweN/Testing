@@ -134,7 +134,41 @@ export class EdgeFunctionDebugger {
     functionName: string,
     startTime: number,
   ): Promise<EdgeFunctionDiagnostic> {
+    // Validate configuration before making request
+    const configValidation = this.validateConfiguration();
+    if (!configValidation.valid) {
+      return {
+        functionName,
+        status: "error",
+        error: {
+          message: "Configuration Error",
+          name: "ConfigurationError",
+          details: configValidation.error,
+          possibleCauses: [
+            "VITE_SUPABASE_URL not set in environment variables",
+            "VITE_SUPABASE_ANON_KEY not set in environment variables",
+            "Environment variables are undefined or invalid"
+          ],
+          troubleshooting: [
+            "Check .env file for VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY",
+            "Verify environment variables are properly loaded",
+            "Check that Supabase project URL is correct"
+          ]
+        },
+        timing: performance.now() - startTime,
+        url: `${this.supabaseUrl}/functions/v1/${functionName}`
+      };
+    }
+
     const url = `${this.supabaseUrl}/functions/v1/${functionName}`;
+
+    console.log(`🔍 Testing edge function: ${functionName}`);
+    console.log(`📋 Configuration:`, {
+      url,
+      supabaseUrl: this.supabaseUrl,
+      hasAnonKey: !!this.supabaseAnonKey,
+      anonKeyLength: this.supabaseAnonKey?.length || 0
+    });
 
     try {
       // Create a completely clean fetch to avoid any interceptors
