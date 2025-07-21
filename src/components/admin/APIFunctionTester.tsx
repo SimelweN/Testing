@@ -22,7 +22,7 @@ interface APIEndpoint {
   samplePayload: object;
 }
 
-const SUPABASE_FUNCTIONS_BASE_URL = "https://kbpjqzaqbqukutflwixf.supabase.co/functions/v1";
+const SUPABASE_FUNCTIONS_BASE_URL = "https://kbpjqzaqbqukutflwixf.functions.supabase.co";
 
 const apiEndpoints: APIEndpoint[] = [
   {
