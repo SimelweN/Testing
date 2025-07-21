@@ -146,22 +146,22 @@ export const FunctionMockData = {
   },
 
     "process-multi-seller-purchase": {
-    user_id: "550e8400-e29b-41d4-a716-446655440000", // REQUIRED: validated by function
+    user_id: "USR_test_buyer_multi", // REQUIRED: validated by function
     email: "buyer@example.com", // REQUIRED: validated by function with email format check
     cart_items: [ // REQUIRED: must be array and not empty
       {
-        book_id: "book-550e8400-e29b-41d4-a716-446655440001",
+        book_id: "book_test_multi_1",
         title: "Introduction to Computer Science",
         price: 29999,
         quantity: 1,
-        seller_id: "seller-550e8400-e29b-41d4-a716-446655440002"
+        seller_id: "USR_test_seller_1"
       },
       {
-        book_id: "550e8400-e29b-41d4-a716-446655440003",
+        book_id: "book_test_multi_2",
         title: "Mathematics for Engineers",
         price: 24999,
         quantity: 1,
-        seller_id: "550e8400-e29b-41d4-a716-446655440004"
+        seller_id: "USR_test_seller_2"
       }
     ],
     shipping_address: {
