@@ -680,6 +680,16 @@ export default function EdgeFunctionTester() {
         debugInfo = {
           possibleCauses: ["Function taking too long to respond", "Network timeout"]
         };
+      } else if (error.message && error.message.includes("Response body is already used")) {
+        errorMessage = "Response body consumption error";
+        debugInfo = {
+          possibleCauses: [
+            "Multiple attempts to read response body",
+            "Response was cloned and read multiple times",
+            "Concurrent access to same response object"
+          ],
+          fix: "The EdgeFunctionTester has been updated to handle this properly"
+        };
       } else {
         errorMessage = error.message || String(error);
         debugInfo = {
