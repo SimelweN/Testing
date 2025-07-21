@@ -1,72 +1,77 @@
 /**
- * Shared Response Utilities - Consistent response creation across Edge Functions
+ * Response Utilities - Prevents "Failed to execute 'clone' on 'Response'" errors
  */
 
 import { corsHeaders } from "./cors.ts";
 
-export interface ResponseOptions {
-  status?: number;
-  headers?: Record<string, string>;
-}
-
 /**
- * Create standardized JSON response
+ * Create a standardized JSON response with proper headers
  */
-export function jsonResponse(data: any, options: ResponseOptions = {}): Response {
+export function jsonResponse(data: any, options: { status?: number; headers?: any } = {}): Response {
+  const { status = 200, headers = {} } = options;
+  
   return new Response(JSON.stringify(data), {
-    status: options.status || 200,
+    status,
     headers: {
       ...corsHeaders,
       "Content-Type": "application/json",
-      ...options.headers
+      ...headers
     }
   });
 }
 
 /**
- * Alias for backward compatibility
+ * Create a standardized error response
  */
-export const json = jsonResponse;
+export function errorResponse(
+  error: string,
+  details: any = {},
+  options: { status?: number; headers?: any } = {}
+): Response {
+  const { status = 500, headers = {} } = options;
+  
+  const errorData = {
+    success: false,
+    error,
+    details,
+    timestamp: new Date().toISOString()
+  };
 
-/**
- * Create success response
- */
-export function successResponse(data: any, options: ResponseOptions = {}): Response {
-  return jsonResponse({
-    success: true,
-    ...data
-  }, options);
+  return jsonResponse(errorData, { status, headers });
 }
 
 /**
- * Create error response
+ * Create a success response
  */
-export function errorResponse(error: string, details?: any, options: ResponseOptions = {}): Response {
-  return jsonResponse({
-    success: false,
-    error,
-    ...(details && { details }),
+export function successResponse(data: any, message?: string): Response {
+  const responseData = {
+    success: true,
+    ...(message && { message }),
+    ...data,
     timestamp: new Date().toISOString()
-  }, {
-    status: 400,
-    ...options
+  };
+
+  return jsonResponse(responseData);
+}
+
+/**
+ * Handle CORS preflight requests
+ */
+export function handleCorsPreflightRequest(): Response {
+  return new Response("ok", { 
+    headers: corsHeaders,
+    status: 200
   });
 }
 
 /**
- * Create validation error response
+ * Create a health check response
  */
-export function validationErrorResponse(errors: string[], options: ResponseOptions = {}): Response {
+export function healthCheckResponse(serviceName: string, additionalData: any = {}): Response {
   return jsonResponse({
-    success: false,
-    error: "VALIDATION_FAILED",
-    details: {
-      validation_errors: errors,
-      message: `Validation failed: ${errors.join(", ")}`
-    },
-    timestamp: new Date().toISOString()
-  }, {
-    status: 400,
-    ...options
+    success: true,
+    service: serviceName,
+    status: "healthy",
+    ...additionalData
   });
 }
