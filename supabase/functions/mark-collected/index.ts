@@ -2,7 +2,8 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { parseRequestBody } from "../_shared/safe-body-parser.ts";
-import { jsonResponse, errorResponse, handleCorsPreflightRequest } from "../_shared/response-utils.ts";
+import { jsonResponse, errorResponse, handleCorsPreflightRequest, safeErrorResponse } from "../_shared/response-utils.ts";
+import { logError } from "../_shared/error-utils.ts";
 import { validateUUIDs, createUUIDErrorResponse } from "../_shared/uuid-validator.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
