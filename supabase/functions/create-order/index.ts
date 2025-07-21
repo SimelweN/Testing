@@ -42,6 +42,12 @@ serve(async (req) => {
   }
 
   try {
+    // Safe body parsing to prevent "body stream already read" errors
+    const bodyResult = await parseRequestBody<CreateOrderRequest>(req, corsHeaders);
+    if (!bodyResult.success) {
+      return bodyResult.errorResponse!;
+    }
+
     const {
       buyer_id,
       user_id,
@@ -53,7 +59,7 @@ serve(async (req) => {
       payment_reference,
       total_amount,
       payment_data,
-    }: CreateOrderRequest = await req.json();
+    } = bodyResult.data!;
 
     // Handle multiple field name variations for backward compatibility
     const finalBuyerId = buyer_id || user_id;
