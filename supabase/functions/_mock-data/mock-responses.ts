@@ -148,13 +148,15 @@ export const MockResponses = {
   "paystack-webhook": {
     success: true,
     message: "Webhook processed successfully",
-    event: "charge.success",
-    reference: "TXN_" + Date.now(),
+    event: "charge.success.test",
+    reference: "test_ref_" + Date.now(),
     amount: 34999,
     status: "success",
     order_created: true,
     order_id: "550e8400-e29b-41d4-a716-446655440002",
-    processed_at: new Date().toISOString()
+    processed_at: new Date().toISOString(),
+    signature_verified: true,
+    test_mode: true
   },
 
   "process-order-reminders": {
