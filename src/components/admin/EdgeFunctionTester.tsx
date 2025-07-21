@@ -570,24 +570,46 @@ export default function EdgeFunctionTester() {
       // Parse response safely - avoid multiple body reads
       let responseData;
       try {
-        // First try to get the text content
-        const responseText = await response.text();
+        // Check if response body is available and not already used
+        if (!response.bodyUsed) {
+          // First try to get the text content
+          const responseText = await response.text();
 
-        // Try to parse as JSON
-        try {
-          responseData = JSON.parse(responseText);
-        } catch (jsonError) {
-          // If JSON parsing fails, create a structured response
+          // Try to parse as JSON if we have text content
+          if (responseText.trim()) {
+            try {
+              responseData = JSON.parse(responseText);
+            } catch (jsonError) {
+              // If JSON parsing fails, create a structured response
+              responseData = {
+                error: "Failed to parse response as JSON",
+                raw_response: responseText,
+                status: response.status,
+                statusText: response.statusText,
+                parseError: jsonError.message
+              };
+            }
+          } else {
+            // Empty response body
+            responseData = {
+              message: "Empty response body",
+              status: response.status,
+              statusText: response.statusText
+            };
+          }
+        } else {
+          // Body already used - this is the main fix for the error
+          console.warn(`⚠️ Response body already used for ${func.name}`);
           responseData = {
-            error: "Failed to parse response as JSON",
-            raw_response: responseText,
+            error: "Response body was already consumed",
             status: response.status,
             statusText: response.statusText,
-            parseError: jsonError.message
+            note: "This may indicate multiple reads of the same response"
           };
         }
       } catch (textError) {
         // If we can't even read the text, create a minimal response
+        console.error(`❌ Failed to read response body for ${func.name}:`, textError);
         responseData = {
           error: "Failed to read response body",
           status: response.status,
