@@ -7,7 +7,7 @@ export const MockResponses = {
   "commit-to-sale": {
     success: true,
     message: "Order committed successfully",
-    order_id: "550e8400-e29b-41d4-a716-446655440002",
+    order_id: "ORD_test_456",
     status: "committed",
     pickup_scheduled: true,
     email_sent: true,
@@ -18,11 +18,11 @@ export const MockResponses = {
   "decline-commit": {
     success: true,
     message: "Order commitment declined and refund processed",
-    order_id: "550e8400-e29b-41d4-a716-446655440002",
+    order_id: "ORD_test_decline",
     status: "declined",
     refund_processed: true,
     refund_amount: 34999,
-    refund_reference: "REFUND_" + Date.now(),
+    refund_reference: "REFUND_test_" + Date.now(),
     reason: "book_not_available",
     email_sent: true
   },
@@ -30,10 +30,10 @@ export const MockResponses = {
   "mark-collected": {
     success: true,
     message: "Order marked as collected and payment processed",
-    order_id: "550e8400-e29b-41d4-a716-446655440002",
+    order_id: "ORD_collected_test",
     status: "collected",
     collected_at: new Date().toISOString(),
-    tracking_number: "CG123456789ZA",
+    tracking_number: "TRK_test_123456789",
     payment_processed: true,
     seller_payout_amount: 19999,
     courier_service: "courier_guy"
@@ -42,11 +42,11 @@ export const MockResponses = {
   "pay-seller": {
     success: true,
     message: "Seller payment processed successfully",
-    order_id: "550e8400-e29b-41d4-a716-446655440002",
-    seller_id: "550e8400-e29b-41d4-a716-446655440003",
+    order_id: "ORD_payment_test",
+    seller_id: "USR_test_seller_789",
     amount: 19999,
-    transfer_reference: "PAYOUT_" + Date.now(),
-    paystack_transfer_code: "TRF_" + Date.now(),
+    transfer_reference: "PAYOUT_test_" + Date.now(),
+    paystack_transfer_code: "TRF_test_" + Date.now(),
     status: "success",
     processed_at: new Date().toISOString()
   },
