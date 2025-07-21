@@ -149,15 +149,51 @@ serve(async (req) => {
         .single(),
     ]);
 
-    // Update order status to declined
-    const { error: updateError } = await supabase
-      .from("orders")
-      .update({
-        status: "declined",
-        declined_at: new Date().toISOString(),
-        decline_reason: reason || "Seller declined to commit",
-      })
-      .eq("id", order_id);
+    // Update order status to declined (handle missing decline_reason column gracefully)
+    const updateFields: any = {
+      status: "declined",
+      declined_at: new Date().toISOString(),
+    };
+
+    // Only add decline_reason if the column exists
+    try {
+      const { error: updateError } = await supabase
+        .from("orders")
+        .update({
+          ...updateFields,
+          decline_reason: reason || "Seller declined to commit",
+        })
+        .eq("id", order_id);
+
+      if (updateError && updateError.code === "PGRST204" && updateError.message.includes("decline_reason")) {
+        // Column doesn't exist, update without it
+        console.warn("decline_reason column not found, updating without it");
+        const { error: fallbackError } = await supabase
+          .from("orders")
+          .update(updateFields)
+          .eq("id", order_id);
+
+        if (fallbackError) {
+          throw new Error(`Failed to update order status: ${fallbackError.message}`);
+        }
+      } else if (updateError) {
+        throw new Error(`Failed to update order status: ${updateError.message}`);
+      }
+    } catch (error) {
+      if (error.message.includes("decline_reason")) {
+        // Try without decline_reason column
+        const { error: fallbackError } = await supabase
+          .from("orders")
+          .update(updateFields)
+          .eq("id", order_id);
+
+        if (fallbackError) {
+          throw new Error(`Failed to update order status: ${fallbackError.message}`);
+        }
+      } else {
+        throw error;
+      }
+    }
 
     if (updateError) {
       return new Response(
