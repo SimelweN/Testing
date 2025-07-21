@@ -34,8 +34,8 @@ interface CreateOrderRequest {
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return handleCorsPreflightRequest();
+  if (isOptionsRequest(req)) {
+    return handleOptionsRequest(req);
   }
 
   try {
