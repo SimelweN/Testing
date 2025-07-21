@@ -44,7 +44,91 @@ serve(async (req) => {
       validationErrors.push("order_id must be a valid UUID");
     }
 
+    // Use UUID validator instead of manual validation
+    const validation = validateUUIDs({ order_id });
+    if (!validation.isValid) {
+      return createUUIDErrorResponse(validation.errors, corsHeaders);
+    }
+
     if (validationErrors.length > 0) {
+      return errorResponse(
+        "VALIDATION_FAILED",
+        {
+          validation_errors: validationErrors,
+          provided_fields: Object.keys(requestData)
+        },
+        { status: 400 }
+      );
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+    // Get order details
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .select("*")
+      .eq("id", order_id)
+      .single();
+
+    if (orderError || !order) {
+      return errorResponse(
+        "ORDER_NOT_FOUND",
+        {
+          order_id,
+          error_message: orderError?.message || "Order not found"
+        },
+        { status: 404 }
+      );
+    }
+
+    // Update order status to collected
+    const { error: updateError } = await supabase
+      .from("orders")
+      .update({
+        status: "collected",
+        collected_at,
+        collection_notes,
+        tracking_reference
+      })
+      .eq("id", order_id);
+
+    if (updateError) {
+      return errorResponse(
+        "ORDER_UPDATE_FAILED",
+        {
+          error_message: updateError.message,
+          update_fields: ["status", "collected_at", "collection_notes", "tracking_reference"]
+        },
+        { status: 500 }
+      );
+    }
+
+    // TODO: Trigger seller payment here
+
+    return jsonResponse({
+      message: "Order marked as collected successfully",
+      order_id,
+      status: "collected",
+      collected_at,
+      collected_by,
+      tracking_reference
+    });
+
+  } catch (error) {
+    console.error("Mark collected error:", error);
+    return errorResponse(
+      "UNEXPECTED_ERROR",
+      {
+        error_message: error.message,
+        error_type: error.constructor?.name || "UnknownError"
+      },
+      { status: 500 }
+    );
+  }
+});
+
+// Remove the incomplete validation block below
+if (false) {
       return new Response(
         JSON.stringify({
           success: false,
