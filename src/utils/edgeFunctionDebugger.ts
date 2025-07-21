@@ -259,23 +259,33 @@ export class EdgeFunctionDebugger {
       if (error.name === "TypeError" && error.message.includes("Failed to fetch")) {
         return {
           functionName,
-          status: "network_error",
+          status: "error" as const,
           error: {
             message: "Network request failed - likely CORS or connectivity issue",
             name: "NetworkError",
             details: "Unable to reach the Supabase Edge Function endpoint",
+            originalError: error.message,
+            configuration: {
+              url,
+              supabaseUrl: this.supabaseUrl,
+              hasValidUrl: !!this.supabaseUrl && this.supabaseUrl !== "undefined",
+              hasValidKey: !!this.supabaseAnonKey && this.supabaseAnonKey !== "undefined"
+            },
             possibleCauses: [
               "Function not deployed to Supabase",
               "CORS configuration issue",
               "Invalid Supabase URL or credentials",
               "Network firewall blocking requests",
-              "Supabase project is paused or has issues"
+              "Supabase project is paused or has issues",
+              "Environment variables not properly loaded"
             ],
             troubleshooting: [
               "Check if function is deployed: supabase functions list",
-              "Verify Supabase URL is correct",
+              "Verify VITE_SUPABASE_URL is correct in environment",
+              "Verify VITE_SUPABASE_ANON_KEY is set correctly",
               "Test function directly in Supabase dashboard",
-              "Check browser network tab for specific error"
+              "Check browser network tab for specific error",
+              "Run database setup if tables are missing"
             ]
           },
           timing,
@@ -359,7 +369,7 @@ export class EdgeFunctionDebugger {
   }
 
   private printDiagnosticReport(results: EdgeFunctionDiagnostic[]) {
-    console.log("\n🔍 EDGE FUNCTION DIAGNOSTIC REPORT");
+    console.log("\n�� EDGE FUNCTION DIAGNOSTIC REPORT");
     console.log("=====================================\n");
 
     results.forEach((result) => {
