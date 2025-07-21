@@ -547,10 +547,13 @@ serve(async (req) => {
       emails_queued: createdOrders.length + 1 // buyer + sellers
     });
   } catch (error) {
-    console.error("Create order error:", error);
-    return errorResponse("ORDER_CREATION_FAILED", {
-      error_message: error?.message || String(error) || "Failed to create orders",
-      error_type: error?.constructor?.name || "UnknownError"
-    }, { status: 500 });
+    logError("Create order", error);
+
+    return safeErrorResponse(
+      "ORDER_CREATION_FAILED",
+      error,
+      "Failed to create orders",
+      { status: 500 }
+    );
   }
 });
