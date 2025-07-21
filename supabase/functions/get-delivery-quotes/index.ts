@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { testFunction } from "../_mock-data/edge-function-tester.ts";
+import { parseRequestBody } from "../_shared/safe-body-parser.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,7 +34,11 @@ serve(async (req) => {
   }
 
   try {
-    const { fromAddress, toAddress, weight }: QuoteRequest = await req.json();
+    const bodyResult = await parseRequestBody<QuoteRequest>(req, corsHeaders);
+    if (!bodyResult.success) {
+      return bodyResult.errorResponse!;
+    }
+    const { fromAddress, toAddress, weight } = bodyResult.data;
 
     // Enhanced validation with specific error messages
     const validationErrors = [];
