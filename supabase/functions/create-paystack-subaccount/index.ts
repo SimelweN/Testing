@@ -1,12 +1,23 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { jsonResponse, errorResponse, handleCorsPreflightRequest } from "../_shared/response-utils.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const jsonResponse = (data: any, options: { status?: number; headers?: Record<string, string> } = {}) => {
+  return new Response(JSON.stringify(data), {
+    status: options.status || 200,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+      ...options.headers
+    }
+  });
+};
+
+
 
 // Helper function to get user from request
 async function getUserFromRequest(req: Request) {
@@ -35,9 +46,8 @@ async function getUserFromRequest(req: Request) {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return handleCorsPreflightRequest();
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
@@ -139,25 +149,16 @@ serve(async (req) => {
 
     console.log("Existing profile data:", existingProfile);
 
-        // Step 4: Parse request body ONCE (ChatGPT's advice)
+        // Parse request body
     let requestBody;
     try {
-      console.log("🔍 bodyUsed before read:", req.bodyUsed);
       requestBody = await req.json();
-      console.log("✅ Body read successfully");
     } catch (error) {
-      console.error("❌ Body read failed:", error.message);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "BODY_READ_ERROR",
-          details: { error: error.message, bodyUsed: req.bodyUsed },
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return jsonResponse({
+        success: false,
+        error: "INVALID_JSON_PAYLOAD",
+        details: { error: error.message },
+      }, { status: 400 });
     }
 
     const {
@@ -279,6 +280,7 @@ serve(async (req) => {
       }
 
       return jsonResponse({
+        success: true,
         message:
           "Mock banking details created successfully (Paystack not configured)!",
         subaccount_code: mockSubaccountCode,
@@ -679,6 +681,7 @@ serve(async (req) => {
     );
 
     return jsonResponse({
+      success: true,
       message: `Banking details and subaccount ${shouldUpdate ? "updated" : "created"} successfully!`,
       subaccount_code: subaccount_code,
       user_id: user.id,
