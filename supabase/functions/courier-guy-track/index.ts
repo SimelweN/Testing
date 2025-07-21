@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { parseRequestBody } from "../_shared/safe-body-parser.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -7,7 +8,11 @@ serve(async (req) => {
   }
 
   try {
-    const { tracking_number } = await req.json();
+    const bodyResult = await parseRequestBody(req, corsHeaders);
+    if (!bodyResult.success) {
+      return bodyResult.errorResponse!;
+    }
+    const { tracking_number } = bodyResult.data;
 
     if (!tracking_number) {
       return new Response(
