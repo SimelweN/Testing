@@ -49,10 +49,10 @@ export const diagnoseFunctionError = async (): Promise<DiagnosticResult[]> => {
     }
   }
 
-  // Test 2: Check function with minimal payload
+  // Test 2: Check function deployment and accessibility
   try {
     const { data, error } = await supabase.functions.invoke('initialize-paystack-payment', {
-      body: { 
+      body: {
         email: "test@example.com",
         amount: 100,
         metadata: { diagnostic: true }
@@ -60,19 +60,46 @@ export const diagnoseFunctionError = async (): Promise<DiagnosticResult[]> => {
     });
 
     if (error) {
-      results.push({
-        test: "Function Basic Test",
-        status: "fail",
-        message: "Function returned error",
-        details: { 
-          error: error.message,
-          name: error.name,
-          context: error.context || {}
-        }
-      });
+      // Specific handling for different error types
+      if (error.name === "FunctionsFetchError") {
+        results.push({
+          test: "Function Deployment",
+          status: "fail",
+          message: "Function not deployed or not accessible",
+          details: {
+            error: error.message,
+            name: error.name,
+            context: error.context || {},
+            possibleCauses: [
+              "Function 'initialize-paystack-payment' is not deployed to Supabase",
+              "Function name mismatch",
+              "Network connectivity issues",
+              "Supabase project configuration issues"
+            ],
+            troubleshooting: [
+              "Check if function is deployed: Go to Supabase Dashboard > Edge Functions",
+              "Deploy function: supabase functions deploy initialize-paystack-payment",
+              "Verify function name matches exactly",
+              "Check Supabase project URL and keys"
+            ]
+          }
+        });
+      } else {
+        results.push({
+          test: "Function Basic Test",
+          status: "warning",
+          message: "Function is deployed but has internal errors",
+          details: {
+            error: error.message,
+            name: error.name,
+            context: error.context || {},
+            note: "This is actually good - function is reachable but has configuration issues"
+          }
+        });
+      }
     } else {
       results.push({
-        test: "Function Basic Test", 
+        test: "Function Basic Test",
         status: "pass",
         message: "Function responded successfully",
         details: { data }
@@ -82,8 +109,11 @@ export const diagnoseFunctionError = async (): Promise<DiagnosticResult[]> => {
     results.push({
       test: "Function Basic Test",
       status: "fail",
-      message: "Function call failed",
-      details: { error: error instanceof Error ? error.message : "Unknown error" }
+      message: "Unexpected error during function test",
+      details: {
+        error: error instanceof Error ? error.message : "Unknown error",
+        type: "Unexpected Error"
+      }
     });
   }
 
