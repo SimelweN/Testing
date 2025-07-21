@@ -19,8 +19,8 @@ export interface EdgeFunctionDiagnostic {
 }
 
 export class EdgeFunctionDebugger {
-  private supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  private supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  private supabaseUrl = ENV.VITE_SUPABASE_URL;
+  private supabaseAnonKey = ENV.VITE_SUPABASE_ANON_KEY;
 
   private validateConfiguration(): { valid: boolean; error?: string } {
     if (!this.supabaseUrl || this.supabaseUrl.trim() === "" || this.supabaseUrl === "undefined") {
