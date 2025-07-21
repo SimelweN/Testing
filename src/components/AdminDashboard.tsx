@@ -48,6 +48,7 @@ import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
 import DatabaseCleanup from "@/components/admin/DatabaseCleanup";
+import PaystackDatabaseSetupChecker from "@/components/admin/PaystackDatabaseSetupChecker";
 import {
   TrendingUp,
   Users,
