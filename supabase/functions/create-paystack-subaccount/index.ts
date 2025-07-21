@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { jsonResponse, errorResponse, handleCorsPreflightRequest } from "../_shared/response-utils.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -36,7 +37,7 @@ async function getUserFromRequest(req: Request) {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreflightRequest();
   }
 
   try {
@@ -277,24 +278,20 @@ serve(async (req) => {
         );
       }
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message:
-            "Mock banking details created successfully (Paystack not configured)!",
+      return jsonResponse({
+        message:
+          "Mock banking details created successfully (Paystack not configured)!",
+        subaccount_code: mockSubaccountCode,
+        user_id: user.id,
+        is_update: shouldUpdate,
+        mock: true,
+        data: {
           subaccount_code: mockSubaccountCode,
-          user_id: user.id,
-          is_update: shouldUpdate,
-          mock: true,
-          data: {
-            subaccount_code: mockSubaccountCode,
-            business_name,
-            bank_name,
-            account_number_masked: `****${account_number.slice(-4)}`,
-          },
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+          business_name,
+          bank_name,
+          account_number_masked: `****${account_number.slice(-4)}`,
+        },
+      });
     }
 
     let subaccount_code = existingProfile?.subaccount_code;
@@ -681,22 +678,18 @@ serve(async (req) => {
       `Successfully ${shouldUpdate ? "updated" : "created"} subaccount and updated profile`,
     );
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: `Banking details and subaccount ${shouldUpdate ? "updated" : "created"} successfully!`,
-        subaccount_code: subaccount_code,
-        user_id: user.id,
-        is_update: shouldUpdate,
-        data: {
-          subaccount_code,
-          business_name,
-          bank_name,
-          account_number_masked: `****${account_number.slice(-4)}`,
-        },
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return jsonResponse({
+      message: `Banking details and subaccount ${shouldUpdate ? "updated" : "created"} successfully!`,
+      subaccount_code: subaccount_code,
+      user_id: user.id,
+      is_update: shouldUpdate,
+      data: {
+        subaccount_code,
+        business_name,
+        bank_name,
+        account_number_masked: `****${account_number.slice(-4)}`,
+      },
+    });
   } catch (error) {
     console.error("Unexpected error in create-paystack-subaccount:", error);
     return new Response(
