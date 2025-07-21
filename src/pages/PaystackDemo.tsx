@@ -373,14 +373,59 @@ const PaystackDemo = () => {
       }
 
     } catch (error) {
-      console.error("Direct HTTP test failed:", error);
+      console.error("❌ Direct HTTP test failed:", error);
+
+      let errorMessage = "Unknown error";
+      let errorType = "Unknown";
+      let debugInfo = {};
+
+      if (error instanceof TypeError && error.message === "Failed to fetch") {
+        errorMessage = "Network error - Could not connect to Supabase functions";
+        errorType = "NetworkError";
+        debugInfo = {
+          possibleCauses: [
+            "Function not deployed",
+            "Network connectivity issues",
+            "CORS configuration problems",
+            "Invalid Supabase URL",
+            "Function URL incorrect"
+          ],
+          supabaseUrl: ENV.VITE_SUPABASE_URL,
+          functionUrl: `${ENV.VITE_SUPABASE_URL}/functions/v1/initialize-paystack-payment`,
+          suggestions: [
+            "Check if function is deployed in Supabase dashboard",
+            "Verify VITE_SUPABASE_URL is correct",
+            "Check network connectivity",
+            "Try the Supabase client test instead"
+          ]
+        };
+      } else if (error.name === "AbortError") {
+        errorMessage = "Request timed out after 10 seconds";
+        errorType = "TimeoutError";
+        debugInfo = {
+          possibleCauses: ["Function taking too long to respond", "Network timeout"],
+          suggestions: ["Try again", "Check function performance"]
+        };
+      } else {
+        errorMessage = String(error?.message || error);
+        errorType = error?.constructor?.name || "Unknown";
+        debugInfo = {
+          stack: error?.stack,
+          originalError: error
+        };
+      }
+
+      console.log("🔍 Debug Info:", debugInfo);
+
       setTestResult("direct-http", {
         success: false,
-        error: String(error?.message || error),
-        errorType: error?.constructor?.name || "Unknown",
-        stack: error?.stack
+        error: errorMessage,
+        errorType,
+        debugInfo,
+        timestamp: new Date().toISOString()
       });
-      toast.error("Direct HTTP test failed: " + String(error?.message || error));
+
+      toast.error(`❌ ${errorMessage}`);
     } finally {
       setTestLoading("direct-http", false);
     }
