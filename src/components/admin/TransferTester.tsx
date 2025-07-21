@@ -104,7 +104,19 @@ const TransferTester = () => {
         },
       );
 
-      const banksResult = await banksResponse.json();
+      // Safely parse response to avoid body stream consumption issues
+      const banksResponseClone = banksResponse.clone();
+      let banksResult;
+      try {
+        banksResult = await banksResponse.json();
+      } catch (parseError) {
+        const textContent = await banksResponseClone.text();
+        banksResult = {
+          success: false,
+          error: `Failed to parse response: ${parseError.message}`,
+          details: { raw_response: textContent, status: banksResponse.status, statusText: banksResponse.statusText }
+        };
+      }
 
       if (banksResult.success) {
         addTestResult({
