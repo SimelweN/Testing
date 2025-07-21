@@ -3,6 +3,7 @@
  */
 
 import { corsHeaders } from "./cors.ts";
+import { getErrorMessage, createErrorDetails } from "./error-utils.ts";
 
 /**
  * Create a standardized JSON response with proper headers
