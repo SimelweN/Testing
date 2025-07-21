@@ -247,8 +247,10 @@ ReBooked Solutions - Pre-Loved Pages, New Adventures`
     return new Response(
       JSON.stringify({
         success: false,
-                error: "Failed to process book order expiry",
-        details: error?.message || String(error)
+        error: "Failed to process book order expiry",
+        details: error instanceof Error ? error.message :
+                typeof error === "string" ? error :
+                "Auto-expire processing failed"
       }),
       {
         status: 500,
