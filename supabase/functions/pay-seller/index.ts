@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { parseRequestBody } from "../_shared/safe-body-parser.ts";
+import { jsonResponse, errorResponse, handleCorsPreflightRequest } from "../_shared/response-utils.ts";
+import { validateUUIDs, createUUIDErrorResponse } from "../_shared/uuid-validator.ts";
 
 const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -8,16 +11,22 @@ const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return handleCorsPreflightRequest();
   }
 
   try {
+    // Use safe body parser
+    const bodyParseResult = await parseRequestBody(req, corsHeaders);
+    if (!bodyParseResult.success) {
+      return bodyParseResult.errorResponse!;
+    }
+
     const {
       order_id,
       seller_id,
       amount,
       trigger = "manual",
-    } = await req.json();
+    } = bodyParseResult.data;
 
     // Enhanced validation with specific error messages
     const validationErrors = [];
