@@ -994,8 +994,34 @@ const PaystackDemo = () => {
                             {Object.keys(functionStatus).length > 0 && (
                 <Alert className="mt-4">
                   <AlertDescription>
+                    <div className="space-y-2 mb-3">
+                      <h4 className="font-semibold">Function Deployment Status:</h4>
+                      {Object.entries(functionStatus).map(([funcName, status]: [string, any]) => {
+                        const isDeployed = status.actuallyWorking || status.available;
+                        const hasMock = mockPaystackFunctions[funcName];
+
+                        return (
+                          <div key={funcName} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded text-xs">
+                            <span className="font-mono">{funcName}</span>
+                            <div className="flex items-center gap-2">
+                              {isDeployed ? (
+                                <span className="text-green-600 font-medium">✅ DEPLOYED</span>
+                              ) : (
+                                <span className="text-red-600 font-medium">❌ NOT DEPLOYED</span>
+                              )}
+                              {hasMock && !isDeployed && (
+                                <span className="text-orange-600 bg-orange-100 px-1 rounded font-medium">USING MOCK</span>
+                              )}
+                              <span className="text-gray-500">
+                                {status.error?.name || 'OK'}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                     <details>
-                      <summary className="cursor-pointer font-semibold">Function Status Details</summary>
+                      <summary className="cursor-pointer font-semibold">Raw Function Status Data</summary>
                       <pre className="text-xs mt-2 bg-gray-50 p-2 rounded overflow-auto max-h-40">
                         {JSON.stringify(functionStatus, null, 2)}
                       </pre>
