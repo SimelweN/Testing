@@ -21,34 +21,11 @@ serve(async (req) => {
     }
     const { order_id, seller_id, reason } = bodyParseResult.data;
 
-    // Enhanced validation with specific error messages
-    const validationErrors = [];
-    if (!order_id) validationErrors.push("order_id is required");
-    if (!seller_id) validationErrors.push("seller_id is required");
-
-    // UUID format validation (allow test IDs)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    const isTestMode = order_id?.startsWith('ORD_test') || seller_id?.startsWith('USR_test');
-
-    if (order_id && seller_id && !isTestMode && (!uuidRegex.test(order_id) || !uuidRegex.test(seller_id))) {
-      validationErrors.push("order_id and seller_id must be valid UUIDs");
+    // Validate UUIDs using shared validator
+    const validation = validateUUIDs({ order_id, seller_id });
+    if (!validation.isValid) {
+      return createUUIDErrorResponse(validation.errors, corsHeaders);
     }
-
-        if (validationErrors.length > 0) {
-      return json({
-        success: false,
-        error: "VALIDATION_FAILED",
-        details: {
-          missing_fields: validationErrors,
-                      provided_fields: Object.keys({ order_id, seller_id, reason }),
-          message: `Missing required fields: ${validationErrors.join(", ")}`,
-        },
-        fix_instructions:
-          "Provide all required fields: order_id (string), seller_id (string), reason (optional string)",
-      }, {
-        status: 400,
-        headers: corsHeaders,
-      });
     }
 
     // Check environment variables
