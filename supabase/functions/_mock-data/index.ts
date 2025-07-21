@@ -180,15 +180,15 @@ export const FunctionMockData = {
   },
 
   "create-order": {
-    buyer_id: "550e8400-e29b-41d4-a716-446655440000",
+    buyer_id: "USR_test_buyer_order",
     buyer_email: "buyer@example.com",
     cart_items: [
       {
-        book_id: "550e8400-e29b-41d4-a716-446655440001",
+        book_id: "book_test_order_1",
         title: "Introduction to Computer Science",
         author: "Jane Smith",
         price: 29999,
-        seller_id: "550e8400-e29b-41d4-a716-446655440002",
+        seller_id: "USR_test_seller_order",
         condition: "good",
         isbn: "9781234567890"
       }
