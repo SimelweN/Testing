@@ -198,13 +198,12 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error("Mark collected error:", error);
-    return errorResponse(
+    logError("Mark collected", error);
+
+    return safeErrorResponse(
       "UNEXPECTED_ERROR",
-      {
-        error_message: error.message,
-        error_type: error.constructor?.name || "UnknownError"
-      },
+      error,
+      "Unexpected error occurred during mark collected",
       { status: 500 }
     );
   }
