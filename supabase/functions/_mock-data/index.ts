@@ -547,8 +547,9 @@ export function validateMockData(functionName: string, mockData: any): boolean {
     "paystack-webhook": ["event", "data"],
     "verify-paystack-payment": ["reference"],
     "paystack-refund-management": ["action", "transaction_reference"],
-    "paystack-transfer-management": ["action"],
-    "paystack-split-management": ["action"],
+    "paystack-transfer-management": ["action", "amount", "recipient_code"],
+    "paystack-split-management": ["action", "name", "type"],
+    "manage-paystack-subaccount": ["action", "subaccount_code"],
 
     // CORE SUPABASE FUNCTIONS
     "process-book-purchase": ["book_id", "buyer_id", "seller_id", "amount", "buyer_email"],
