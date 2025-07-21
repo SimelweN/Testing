@@ -124,6 +124,25 @@ export const FunctionMockData = {
     bearer_subaccount: "ACCT_123456789"
   },
 
+  "paystack-transfer-management": {
+    action: "initiate",
+    amount: 50000,
+    currency: "ZAR",
+    recipient_code: "RCP_test_123",
+    reason: "Book sale payout",
+    reference: "transfer_test_" + Date.now()
+  },
+
+  "manage-paystack-subaccount": {
+    action: "update",
+    subaccount_code: "ACCT_test_123",
+    business_name: "Test Business Updated",
+    settlement_bank: "058",
+    account_number: "0123456789",
+    percentage_charge: 2.5,
+    active: true
+  },
+
   // CORE SUPABASE FUNCTIONS
   "process-book-purchase": {
     book_id: "book_test_123",
