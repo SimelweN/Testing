@@ -76,3 +76,28 @@ export function healthCheckResponse(serviceName: string, additionalData: any = {
     ...additionalData
   });
 }
+
+/**
+ * Create a safe error response from any error type
+ * Prevents "[object Object]" errors by properly serializing error objects
+ */
+export function safeErrorResponse(
+  errorCode: string,
+  error: unknown,
+  context?: string,
+  options: { status?: number; headers?: any } = {}
+): Response {
+  const errorDetails = createErrorDetails(error, context);
+
+  return errorResponse(errorCode, errorDetails, options);
+}
+
+/**
+ * Create a simple error response with just a message
+ */
+export function simpleErrorResponse(
+  message: string,
+  options: { status?: number; headers?: any } = {}
+): Response {
+  return errorResponse("ERROR", { error_message: message }, options);
+}
