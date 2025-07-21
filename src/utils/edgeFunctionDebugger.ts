@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { ENV } from "@/config/environment";
 
 export interface EdgeFunctionDiagnostic {
   functionName: string;
