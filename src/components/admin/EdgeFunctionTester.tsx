@@ -562,6 +562,7 @@ export default function EdgeFunctionTester() {
         credentials: 'omit'
       });
 
+      // Clear timeout as soon as we get a response
       clearTimeout(timeoutId);
       console.log(`✅ Function ${func.name} responded with status: ${response.status}`);
 
@@ -651,6 +652,8 @@ export default function EdgeFunctionTester() {
         });
       }
     } catch (error: any) {
+      // Ensure timeout is cleared even on error
+      clearTimeout(timeoutId);
       const duration = Date.now() - startTime;
 
       let errorMessage = "Unknown error";
