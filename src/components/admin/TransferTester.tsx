@@ -104,7 +104,19 @@ const TransferTester = () => {
         },
       );
 
-      const banksResult = await banksResponse.json();
+      // Safely parse response to avoid body stream consumption issues
+      const banksResponseClone = banksResponse.clone();
+      let banksResult;
+      try {
+        banksResult = await banksResponse.json();
+      } catch (parseError) {
+        const textContent = await banksResponseClone.text();
+        banksResult = {
+          success: false,
+          error: `Failed to parse response: ${parseError.message}`,
+          details: { raw_response: textContent, status: banksResponse.status, statusText: banksResponse.statusText }
+        };
+      }
 
       if (banksResult.success) {
         addTestResult({
@@ -146,7 +158,19 @@ const TransferTester = () => {
           },
         );
 
-        const verifyResult = await verifyResponse.json();
+        // Safely parse response to avoid body stream consumption issues
+        const verifyResponseClone = verifyResponse.clone();
+        let verifyResult;
+        try {
+          verifyResult = await verifyResponse.json();
+        } catch (parseError) {
+          const textContent = await verifyResponseClone.text();
+          verifyResult = {
+            success: false,
+            error: `Failed to parse response: ${parseError.message}`,
+            details: { raw_response: textContent, status: verifyResponse.status, statusText: verifyResponse.statusText }
+          };
+        }
 
         if (verifyResult.success) {
           addTestResult({
@@ -185,7 +209,19 @@ const TransferTester = () => {
             },
           );
 
-          const recipientResult = await recipientResponse.json();
+          // Safely parse response to avoid body stream consumption issues
+          const recipientResponseClone = recipientResponse.clone();
+          let recipientResult;
+          try {
+            recipientResult = await recipientResponse.json();
+          } catch (parseError) {
+            const textContent = await recipientResponseClone.text();
+            recipientResult = {
+              success: false,
+              error: `Failed to parse response: ${parseError.message}`,
+              details: { raw_response: textContent, status: recipientResponse.status, statusText: recipientResponse.statusText }
+            };
+          }
 
           if (recipientResult.success) {
             addTestResult({
@@ -225,7 +261,19 @@ const TransferTester = () => {
               },
             );
 
-            const transferResult = await transferResponse.json();
+            // Safely parse response to avoid body stream consumption issues
+            const transferResponseClone = transferResponse.clone();
+            let transferResult;
+            try {
+              transferResult = await transferResponse.json();
+            } catch (parseError) {
+              const textContent = await transferResponseClone.text();
+              transferResult = {
+                success: false,
+                error: `Failed to parse response: ${parseError.message}`,
+                details: { raw_response: textContent, status: transferResponse.status, statusText: transferResponse.statusText }
+              };
+            }
 
             if (transferResult.success) {
               addTestResult({
@@ -329,7 +377,19 @@ const TransferTester = () => {
         },
       );
 
-      const result = await response.json();
+      // Safely parse response to avoid body stream consumption issues
+      const responseClone = response.clone();
+      let result;
+      try {
+        result = await response.json();
+      } catch (parseError) {
+        const textContent = await responseClone.text();
+        result = {
+          success: false,
+          error: `Failed to parse response: ${parseError.message}`,
+          details: { raw_response: textContent, status: response.status, statusText: response.statusText }
+        };
+      }
 
       if (result.success) {
         addTestResult({
@@ -385,7 +445,19 @@ const TransferTester = () => {
         },
       );
 
-      const result = await response.json();
+      // Safely parse response to avoid body stream consumption issues
+      const responseClone = response.clone();
+      let result;
+      try {
+        result = await response.json();
+      } catch (parseError) {
+        const textContent = await responseClone.text();
+        result = {
+          success: false,
+          error: `Failed to parse response: ${parseError.message}`,
+          details: { raw_response: textContent, status: response.status, statusText: response.statusText }
+        };
+      }
 
       if (result.success) {
         addTestResult({

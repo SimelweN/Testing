@@ -2,6 +2,10 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { testFunction } from "../_mock-data/edge-function-tester.ts";
+import { parseRequestBody } from "../_shared/safe-body-parser.ts";
+import { validateUUIDs } from "../_shared/uuid-validator.ts";
+import { validateEnvironment } from "../_shared/auth-utils.ts";
+import { jsonResponse, errorResponse } from "../_shared/response-utils.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -41,6 +45,18 @@ serve(async (req) => {
   }
 
   try {
+    // Validate environment variables first
+    const envValidation = validateEnvironment();
+    if (!envValidation.success) {
+      return envValidation.errorResponse!;
+    }
+
+    // Safe body parsing to prevent "body stream already read" errors
+    const bodyResult = await parseRequestBody<CreateOrderRequest>(req, corsHeaders);
+    if (!bodyResult.success) {
+      return bodyResult.errorResponse!;
+    }
+
     const {
       buyer_id,
       user_id,
@@ -52,30 +68,76 @@ serve(async (req) => {
       payment_reference,
       total_amount,
       payment_data,
-    }: CreateOrderRequest = await req.json();
+    } = bodyResult.data!;
 
     // Handle multiple field name variations for backward compatibility
     const finalBuyerId = buyer_id || user_id;
     const finalBuyerEmail = buyer_email || email;
     const finalItems = cart_items || items;
 
-    if (
-      !finalBuyerId ||
-      !finalBuyerEmail ||
-      !finalItems ||
-      finalItems.length === 0
-    ) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error:
-            "Missing required fields: buyer_id/user_id, buyer_email/email, cart_items/items",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+    // Enhanced validation with detailed error messages
+    const validationErrors = [];
+
+    if (!finalBuyerId) {
+      validationErrors.push("buyer_id or user_id is required");
+    }
+
+    if (!finalBuyerEmail) {
+      validationErrors.push("buyer_email or email is required");
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(finalBuyerEmail)) {
+      validationErrors.push("buyer_email must be a valid email address");
+    }
+
+    if (!finalItems || !Array.isArray(finalItems)) {
+      validationErrors.push("cart_items or items must be a non-empty array");
+    } else if (finalItems.length === 0) {
+      validationErrors.push("cart_items cannot be empty");
+    }
+
+    if (!shipping_address) {
+      validationErrors.push("shipping_address is required");
+    }
+
+    // Validate each cart item
+    if (finalItems && Array.isArray(finalItems)) {
+      finalItems.forEach((item, index) => {
+        if (!item.book_id) validationErrors.push(`cart_items[${index}].book_id is required`);
+        if (!item.title) validationErrors.push(`cart_items[${index}].title is required`);
+        if (!item.author) validationErrors.push(`cart_items[${index}].author is required`);
+        if (!item.seller_id) validationErrors.push(`cart_items[${index}].seller_id is required`);
+        if (typeof item.price !== 'number' || item.price <= 0) {
+          validationErrors.push(`cart_items[${index}].price must be a positive number`);
+        }
+      });
+    }
+
+    if (validationErrors.length > 0) {
+      return errorResponse("VALIDATION_FAILED", {
+        validation_errors: validationErrors,
+        provided_fields: Object.keys(bodyResult.data!),
+        expected_format: {
+          buyer_id: "string (UUID)",
+          buyer_email: "string (valid email)",
+          cart_items: "array of cart items",
+          shipping_address: "object with address details"
+        }
+      }, { status: 400 });
+    }
+
+    // Validate UUIDs
+    const uuidValidation = validateUUIDs({
+      buyer_id: finalBuyerId,
+      ...finalItems.reduce((acc, item, index) => {
+        acc[`book_${index}_id`] = item.book_id;
+        acc[`seller_${index}_id`] = item.seller_id;
+        return acc;
+      }, {} as Record<string, string>)
+    });
+
+    if (!uuidValidation.isValid) {
+      return errorResponse("UUID_VALIDATION_FAILED", {
+        validation_errors: uuidValidation.errors
+      }, { status: 400 });
     }
 
     // Generate payment reference if not provided (for testing)

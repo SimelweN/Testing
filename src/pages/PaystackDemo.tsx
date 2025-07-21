@@ -8,10 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
-  CreditCard, 
-  Webhook, 
-  Building2, 
-  DollarSign, 
+  CreditCard,
+  Webhook,
+  Building2,
+  DollarSign,
   CheckCircle,
   XCircle,
   RefreshCw,
@@ -25,11 +25,14 @@ import {
   Zap,
   FileText,
   Split,
-  TrendingUp
+  TrendingUp,
+  Loader2
 } from "lucide-react";
 import Layout from "@/components/Layout";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { ENV } from "@/config/environment";
+import { diagnoseFunctionError, generateDiagnosticReport, DiagnosticResult } from "@/utils/functionErrorDiagnostic";
 
 // Demo test data as provided in the user prompt
 const DEMO_DATA = {
@@ -87,6 +90,8 @@ const PaystackDemo = () => {
   const [results, setResults] = useState<{ [key: string]: any }>({});
   const [functionStatus, setFunctionStatus] = useState<{ [key: string]: any }>({});
   const [environmentStatus, setEnvironmentStatus] = useState<any>(null);
+  const [diagnosticResults, setDiagnosticResults] = useState<DiagnosticResult[] | null>(null);
+  const [diagnosticLoading, setDiagnosticLoading] = useState(false);
 
   // Form states for different functions
   const [paymentForm, setPaymentForm] = useState({
@@ -132,6 +137,26 @@ const PaystackDemo = () => {
     setResults(prev => ({ ...prev, [key]: value }));
   };
 
+  const runDiagnostic = async () => {
+    setDiagnosticLoading(true);
+    try {
+      const results = await diagnoseFunctionError();
+      setDiagnosticResults(results);
+
+      const failCount = results.filter(r => r.status === "fail").length;
+      if (failCount > 0) {
+        toast.error(`❌ Diagnostic found ${failCount} issue(s)`);
+      } else {
+        toast.success("✅ All diagnostic checks passed!");
+      }
+    } catch (error) {
+      console.error("Diagnostic failed:", error);
+      toast.error("Failed to run diagnostic");
+    } finally {
+      setDiagnosticLoading(false);
+    }
+  };
+
   // Function to check all Paystack functions availability
   const checkAllFunctions = async () => {
     setTestLoading("function-check", true);
@@ -170,6 +195,9 @@ const PaystackDemo = () => {
         // Special case: if we get MISSING_REQUIRED_FIELDS, the function is definitely working
         const isWorking = response.error?.message?.includes?.('MISSING_REQUIRED_FIELDS') ||
                          response.error?.message?.includes?.('METHOD_NOT_ALLOWED') ||
+                         response.error?.message?.includes?.('UUID_VALIDATION_FAILED') ||
+                         response.error?.message?.includes?.('VALIDATION_FAILED') ||
+                         response.error?.message?.includes?.('BODY_CONSUMPTION_ERROR') ||
                          response.data;
 
         status[funcName] = {
@@ -271,26 +299,49 @@ const PaystackDemo = () => {
     setTestLoading("direct-http", true);
 
     try {
-      const supabaseUrl = supabase.supabaseUrl;
-      const authKey = supabase.supabaseKey;
+      const supabaseUrl = ENV.VITE_SUPABASE_URL;
+      const authKey = ENV.VITE_SUPABASE_ANON_KEY;
       const functionUrl = `${supabaseUrl}/functions/v1/initialize-paystack-payment`;
 
       console.log(`🔗 Testing direct HTTP call to: ${functionUrl}`);
       console.log(`🔑 Auth key available: ${!!authKey}`);
+      console.log(`🌐 Supabase URL: ${supabaseUrl}`);
 
-      if (!authKey) {
-        throw new Error("Supabase auth key not available");
+      if (!authKey || !supabaseUrl) {
+        throw new Error(`Missing environment variables - URL: ${!!supabaseUrl}, Key: ${!!authKey}`);
       }
 
-      // Create a completely new fetch request
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      // Create a completely new fetch request with enhanced error handling
+      console.log('🚀 Starting fetch request...');
+      console.log('📋 Request details:', {
+        url: functionUrl,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authKey.substring(0, 20)}...` // Log partial key for security
+        },
+        body: JSON.stringify({ health: true })
+      });
+
       const fetchResponse = await fetch(functionUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authKey}`
+          'Authorization': `Bearer ${authKey}`,
+          'Accept': 'application/json'
         },
-        body: JSON.stringify({ health: true })
+        body: JSON.stringify({ health: true }),
+        signal: controller.signal,
+        mode: 'cors', // Explicitly set CORS mode
+        credentials: 'omit' // Don't send credentials
       });
+
+      clearTimeout(timeoutId);
+      console.log('✅ Fetch request completed successfully');
 
       // Extract all data safely
       const status = fetchResponse.status;
@@ -346,14 +397,59 @@ const PaystackDemo = () => {
       }
 
     } catch (error) {
-      console.error("Direct HTTP test failed:", error);
+      console.error("❌ Direct HTTP test failed:", error);
+
+      let errorMessage = "Unknown error";
+      let errorType = "Unknown";
+      let debugInfo = {};
+
+      if (error instanceof TypeError && error.message === "Failed to fetch") {
+        errorMessage = "Network error - Could not connect to Supabase functions";
+        errorType = "NetworkError";
+        debugInfo = {
+          possibleCauses: [
+            "Function not deployed",
+            "Network connectivity issues",
+            "CORS configuration problems",
+            "Invalid Supabase URL",
+            "Function URL incorrect"
+          ],
+          supabaseUrl: ENV.VITE_SUPABASE_URL,
+          functionUrl: `${ENV.VITE_SUPABASE_URL}/functions/v1/initialize-paystack-payment`,
+          suggestions: [
+            "Check if function is deployed in Supabase dashboard",
+            "Verify VITE_SUPABASE_URL is correct",
+            "Check network connectivity",
+            "Try the Supabase client test instead"
+          ]
+        };
+      } else if (error.name === "AbortError") {
+        errorMessage = "Request timed out after 10 seconds";
+        errorType = "TimeoutError";
+        debugInfo = {
+          possibleCauses: ["Function taking too long to respond", "Network timeout"],
+          suggestions: ["Try again", "Check function performance"]
+        };
+      } else {
+        errorMessage = String(error?.message || error);
+        errorType = error?.constructor?.name || "Unknown";
+        debugInfo = {
+          stack: error?.stack,
+          originalError: error
+        };
+      }
+
+      console.log("🔍 Debug Info:", debugInfo);
+
       setTestResult("direct-http", {
         success: false,
-        error: String(error?.message || error),
-        errorType: error?.constructor?.name || "Unknown",
-        stack: error?.stack
+        error: errorMessage,
+        errorType,
+        debugInfo,
+        timestamp: new Date().toISOString()
       });
-      toast.error("Direct HTTP test failed: " + String(error?.message || error));
+
+      toast.error(`❌ ${errorMessage}`);
     } finally {
       setTestLoading("direct-http", false);
     }
@@ -664,7 +760,7 @@ const PaystackDemo = () => {
       });
 
       if (response.data) {
-        toast.success("✅ Seller payment successful!");
+        toast.success("��� Seller payment successful!");
       } else {
         toast.error("❌ Seller payment failed");
       }
@@ -991,8 +1087,34 @@ const PaystackDemo = () => {
                             {Object.keys(functionStatus).length > 0 && (
                 <Alert className="mt-4">
                   <AlertDescription>
+                    <div className="space-y-2 mb-3">
+                      <h4 className="font-semibold">Function Deployment Status:</h4>
+                      {Object.entries(functionStatus).map(([funcName, status]: [string, any]) => {
+                        const isDeployed = status.actuallyWorking || status.available;
+                        const hasMock = mockPaystackFunctions[funcName];
+
+                        return (
+                          <div key={funcName} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded text-xs">
+                            <span className="font-mono">{funcName}</span>
+                            <div className="flex items-center gap-2">
+                              {isDeployed ? (
+                                <span className="text-green-600 font-medium">✅ DEPLOYED</span>
+                              ) : (
+                                <span className="text-red-600 font-medium">❌ NOT DEPLOYED</span>
+                              )}
+                              {hasMock && !isDeployed && (
+                                <span className="text-orange-600 bg-orange-100 px-1 rounded font-medium">USING MOCK</span>
+                              )}
+                              <span className="text-gray-500">
+                                {status.error?.name || 'OK'}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                     <details>
-                      <summary className="cursor-pointer font-semibold">Function Status Details</summary>
+                      <summary className="cursor-pointer font-semibold">Raw Function Status Data</summary>
                       <pre className="text-xs mt-2 bg-gray-50 p-2 rounded overflow-auto max-h-40">
                         {JSON.stringify(functionStatus, null, 2)}
                       </pre>
@@ -1000,6 +1122,80 @@ const PaystackDemo = () => {
                   </AlertDescription>
                 </Alert>
               )}
+
+              {/* Function Error Diagnostic Section */}
+              <Alert className="border-orange-200 bg-orange-50">
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
+                <AlertDescription>
+                  <div className="space-y-3">
+                    <div>
+                      <strong className="text-orange-900">Function Error Diagnostic</strong>
+                      <p className="text-sm text-orange-700 mt-1">
+                        If you're seeing FunctionsFetchError, run this diagnostic to identify the root cause.
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={runDiagnostic}
+                        disabled={diagnosticLoading}
+                        size="sm"
+                        className="bg-orange-600 hover:bg-orange-700"
+                      >
+                        {diagnosticLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            Running Diagnostic...
+                          </>
+                        ) : (
+                          <>
+                            <TestTube className="h-4 w-4 mr-2" />
+                            Run Error Diagnostic
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    {diagnosticResults && (
+                      <div className="mt-3">
+                        <div className="space-y-2">
+                          {diagnosticResults.map((result, index) => (
+                            <div key={index} className={`p-2 rounded text-xs ${
+                              result.status === "pass" ? "bg-green-100 text-green-800" :
+                              result.status === "fail" ? "bg-red-100 text-red-800" :
+                              "bg-yellow-100 text-yellow-800"
+                            }`}>
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono">
+                                  {result.status === "pass" ? "✅" : result.status === "fail" ? "❌" : "⚠️"}
+                                </span>
+                                <span className="font-medium">{result.test}</span>
+                              </div>
+                              <div className="ml-6 mt-1">{result.message}</div>
+                              {result.details && result.status === "fail" && (
+                                <details className="ml-6 mt-1">
+                                  <summary className="cursor-pointer text-xs opacity-75">Details</summary>
+                                  <pre className="text-xs mt-1 p-1 bg-black/10 rounded">
+                                    {JSON.stringify(result.details, null, 2)}
+                                  </pre>
+                                </details>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        <details className="mt-3">
+                          <summary className="cursor-pointer font-semibold text-orange-800">
+                            Full Diagnostic Report
+                          </summary>
+                          <pre className="text-xs mt-2 bg-orange-100 p-2 rounded overflow-auto max-h-40 whitespace-pre-wrap">
+                            {generateDiagnosticReport(diagnosticResults)}
+                          </pre>
+                        </details>
+                      </div>
+                    )}
+                  </div>
+                </AlertDescription>
+              </Alert>
 
                             <TestResultCard testKey="direct-http" title="Direct HTTP Test" />
               <TestResultCard testKey="real-test" title="Real Function Test" />

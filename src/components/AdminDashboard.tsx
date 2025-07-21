@@ -48,6 +48,7 @@ import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
 import DatabaseCleanup from "@/components/admin/DatabaseCleanup";
+import PaystackDatabaseSetupChecker from "@/components/admin/PaystackDatabaseSetupChecker";
 import {
   TrendingUp,
   Users,
@@ -473,6 +474,13 @@ const AdminDashboard = () => {
       description: "Test all database tables",
     },
     {
+      value: "paystack-database-setup",
+      label: "Paystack DB Setup",
+      icon: Database,
+      color: "text-green-600",
+      description: "Verify Paystack database setup",
+    },
+    {
       value: "database-schema",
       label: "Database Schema",
       icon: Database,
@@ -764,6 +772,12 @@ const AdminDashboard = () => {
           <TabsContent value="database-testing" className="space-y-4 mt-0">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
               <DatabaseTableTester />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="paystack-database-setup" className="space-y-4 mt-0">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
+              <PaystackDatabaseSetupChecker />
             </div>
           </TabsContent>
 

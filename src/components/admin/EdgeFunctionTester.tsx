@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/lib/supabase";
+import { ENV } from "@/config/environment";
 import { Loader2, Play, CheckCircle, XCircle, Clock, Zap } from "lucide-react";
 
 interface EdgeFunction {
@@ -529,8 +530,23 @@ export default function EdgeFunctionTester() {
       const testPayload = payload || func.testPayload;
 
       // Use direct fetch instead of supabase.functions.invoke to get detailed error messages
-      const supabaseUrl = supabase.supabaseUrl;
-      const supabaseKey = supabase.supabaseKey;
+      const supabaseUrl = ENV.VITE_SUPABASE_URL;
+      const supabaseKey = ENV.VITE_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error(`Missing environment variables - URL: ${!!supabaseUrl}, Key: ${!!supabaseKey}`);
+      }
+
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+      console.log(`🚀 Testing edge function: ${func.name}`);
+      console.log(`📋 Request details:`, {
+        url: `${supabaseUrl}/functions/v1/${func.name}`,
+        method: func.method,
+        payload: testPayload
+      });
 
       const response = await fetch(`${supabaseUrl}/functions/v1/${func.name}`, {
         method: func.method,
@@ -538,9 +554,16 @@ export default function EdgeFunctionTester() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${supabaseKey}`,
           apikey: supabaseKey,
+          'Accept': 'application/json'
         },
         body: JSON.stringify(testPayload),
+        signal: controller.signal,
+        mode: 'cors',
+        credentials: 'omit'
       });
+
+      clearTimeout(timeoutId);
+      console.log(`✅ Function ${func.name} responded with status: ${response.status}`);
 
       const duration = Date.now() - startTime;
 
@@ -601,10 +624,50 @@ export default function EdgeFunctionTester() {
       }
     } catch (error: any) {
       const duration = Date.now() - startTime;
+
+      let errorMessage = "Unknown error";
+      let debugInfo = {};
+
+      if (error instanceof TypeError && error.message === "Failed to fetch") {
+        errorMessage = "Network error - Could not connect to Supabase functions";
+        debugInfo = {
+          possibleCauses: [
+            "Function not deployed",
+            "Network connectivity issues",
+            "CORS configuration problems",
+            "Invalid Supabase URL",
+            "Missing environment variables"
+          ],
+          supabaseUrl: ENV.VITE_SUPABASE_URL,
+          functionUrl: `${ENV.VITE_SUPABASE_URL}/functions/v1/${func.name}`,
+          suggestions: [
+            "Check if function is deployed in Supabase dashboard",
+            "Verify VITE_SUPABASE_URL is correct",
+            "Check network connectivity",
+            "Verify function exists and is accessible"
+          ]
+        };
+      } else if (error.name === "AbortError") {
+        errorMessage = "Request timed out";
+        debugInfo = {
+          possibleCauses: ["Function taking too long to respond", "Network timeout"]
+        };
+      } else {
+        errorMessage = error.message || String(error);
+        debugInfo = {
+          stack: error.stack,
+          originalError: error
+        };
+      }
+
+      console.error(`❌ Edge function test failed for ${func.name}:`, error);
+      console.log("🔍 Debug Info:", debugInfo);
+
       updateTestResult(func.name, {
         status: "error",
-        error: `Network/Request Error: ${error.message}`,
+        error: errorMessage,
         duration,
+        debugInfo
       });
     }
   };

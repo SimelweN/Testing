@@ -79,6 +79,11 @@ const DATABASE_TABLES = [
     category: "Payments",
     description: "User banking details and subaccounts",
   },
+  {
+    name: "transfers",
+    category: "Payments",
+    description: "Seller payout transfers and money transfers",
+  },
 
   // Communication & Support Tables
   {
@@ -358,6 +363,87 @@ const DatabaseTableTester: React.FC = () => {
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Paystack Database Validation Section */}
+        <Alert className="border-blue-200 bg-blue-50">
+          <Database className="h-4 w-4 text-blue-600" />
+          <AlertDescription>
+            <div className="space-y-3">
+              <div>
+                <strong className="text-blue-900">Paystack Database Validation</strong>
+                <p className="text-sm text-blue-700 mt-1">
+                  Test all essential database tables required for Paystack functionality including payments, banking, refunds, and transfers.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={async () => {
+                    const paystackTables = [
+                      "payment_transactions",
+                      "banking_subaccounts",
+                      "refund_transactions",
+                      "transfers",
+                      "orders",
+                      "profiles"
+                    ];
+
+                    setIsTestingAll(true);
+                    const results = [];
+
+                    for (const table of paystackTables) {
+                      const result = await testTable(table);
+                      results.push(result);
+                    }
+
+                    setTestResults(prev => {
+                      const newResults = [...prev];
+                      results.forEach(newResult => {
+                        const existingIndex = newResults.findIndex(r => r.table === newResult.table);
+                        if (existingIndex >= 0) {
+                          newResults[existingIndex] = newResult;
+                        } else {
+                          newResults.push(newResult);
+                        }
+                      });
+                      return newResults;
+                    });
+                    setIsTestingAll(false);
+
+                    const failures = results.filter(r => r.status === "error");
+                    if (failures.length === 0) {
+                      toast.success("✅ All Paystack tables are working correctly!");
+                    } else {
+                      toast.error(`❌ ${failures.length} Paystack table(s) failed validation`);
+                    }
+                  }}
+                  disabled={isTestingAll}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {isTestingAll ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Testing Paystack Tables...
+                    </>
+                  ) : (
+                    <>
+                      <TestTube className="h-4 w-4 mr-2" />
+                      Validate Paystack Database
+                    </>
+                  )}
+                </Button>
+                {testResults.length > 0 && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Badge variant="outline" className="text-blue-700">
+                      {testResults.filter(r => ["payment_transactions", "banking_subaccounts", "refund_transactions", "transfers", "orders", "profiles"].includes(r.table) && r.status === "success").length}/
+                      6 Paystack tables working
+                    </Badge>
+                  </div>
+                )}
+              </div>
+            </div>
+          </AlertDescription>
+        </Alert>
+
         {/* Control Panel */}
         <div className="flex flex-wrap items-center gap-3">
           <Button
