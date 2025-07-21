@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { parseRequestBody } from "../_shared/safe-body-parser.ts";
-import { extractSafeErrorMessage, safeErrorLog, createErrorResponse } from "../_shared/error-utils.ts";
+import { jsonResponse, errorResponse, handleCorsPreflightRequest } from "../_shared/response-utils.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -17,7 +17,7 @@ serve(async (req) => {
 
   if (req.method === "OPTIONS") {
     console.log("✅ Handling OPTIONS request");
-    return new Response("ok", { headers: corsHeaders });
+    return handleCorsPreflightRequest();
   }
 
   if (req.method !== "POST") {
