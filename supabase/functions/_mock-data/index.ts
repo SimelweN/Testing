@@ -65,10 +65,10 @@ export const FunctionMockData = {
   },
 
   "paystack-webhook": {
-    event: "charge.success",
+    event: "charge.success.test",
     data: {
       id: 123456789,
-      reference: "TXN_" + Date.now(),
+      reference: "test_ref_" + Date.now(),
       amount: 34999,
       currency: "ZAR",
       status: "success",
