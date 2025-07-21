@@ -146,6 +146,72 @@ export const diagnoseFunctionError = async (): Promise<DiagnosticResult[]> => {
     }
   }
 
+  // Test 4: Check multiple Paystack functions to see deployment status
+  const paystackFunctions = [
+    'initialize-paystack-payment',
+    'verify-paystack-payment',
+    'create-paystack-subaccount',
+    'paystack-transfer-management',
+    'paystack-refund-management'
+  ];
+
+  let deployedCount = 0;
+  let functionsChecked = 0;
+
+  for (const functionName of paystackFunctions) {
+    try {
+      const { data, error } = await supabase.functions.invoke(functionName, {
+        body: { health: true }
+      });
+
+      functionsChecked++;
+
+      // If we get ANY response (even an error), the function is deployed
+      if (error && error.name !== "FunctionsFetchError") {
+        deployedCount++;
+      } else if (data) {
+        deployedCount++;
+      }
+
+      // Don't check more than 3 functions to avoid spam
+      if (functionsChecked >= 3) break;
+
+    } catch (e) {
+      functionsChecked++;
+    }
+  }
+
+  if (deployedCount === 0) {
+    results.push({
+      test: "Paystack Functions Deployment",
+      status: "fail",
+      message: "No Paystack functions appear to be deployed",
+      details: {
+        functionsChecked,
+        deployedCount,
+        message: "You need to deploy your edge functions to Supabase",
+        instructions: [
+          "1. Make sure you have the Supabase CLI installed",
+          "2. Login to Supabase: supabase login",
+          "3. Link your project: supabase link --project-ref YOUR_PROJECT_REF",
+          "4. Deploy functions: supabase functions deploy",
+          "5. Or deploy specific function: supabase functions deploy initialize-paystack-payment"
+        ]
+      }
+    });
+  } else {
+    results.push({
+      test: "Paystack Functions Deployment",
+      status: "pass",
+      message: `${deployedCount}/${functionsChecked} Paystack functions are deployed`,
+      details: {
+        functionsChecked,
+        deployedCount,
+        note: "At least some functions are deployed and responding"
+      }
+    });
+  }
+
   return results;
 };
 
