@@ -65,29 +65,23 @@ export const FunctionMockData = {
   },
 
   "paystack-webhook": {
-    headers: {
-      "content-type": "application/json",
-      "x-paystack-signature": "t=1234567890,v1=5f6cdc9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e"
-    },
-    body: {
-      event: "charge.success",
-      data: {
-        id: 123456789,
-        reference: "TXN_" + Date.now(),
-        amount: 34999,
-        currency: "ZAR",
-        status: "success",
-        customer: {
-          email: "buyer@example.com",
-          first_name: "John",
-          last_name: "Buyer"
-        },
-        metadata: {
-          user_id: "550e8400-e29b-41d4-a716-446655440000",
-          order_type: "book_purchase"
-        },
-        created_at: new Date().toISOString()
-      }
+    event: "charge.success",
+    data: {
+      id: 123456789,
+      reference: "TXN_" + Date.now(),
+      amount: 34999,
+      currency: "ZAR",
+      status: "success",
+      customer: {
+        email: "buyer@example.com",
+        first_name: "John",
+        last_name: "Buyer"
+      },
+      metadata: {
+        user_id: "550e8400-e29b-41d4-a716-446655440000",
+        order_type: "book_purchase"
+      },
+      created_at: new Date().toISOString()
     }
   },
 
