@@ -287,15 +287,37 @@ const PaystackDemo = () => {
         throw new Error(`Missing environment variables - URL: ${!!supabaseUrl}, Key: ${!!authKey}`);
       }
 
-      // Create a completely new fetch request
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      // Create a completely new fetch request with enhanced error handling
+      console.log('🚀 Starting fetch request...');
+      console.log('📋 Request details:', {
+        url: functionUrl,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authKey.substring(0, 20)}...` // Log partial key for security
+        },
+        body: JSON.stringify({ health: true })
+      });
+
       const fetchResponse = await fetch(functionUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authKey}`
+          'Authorization': `Bearer ${authKey}`,
+          'Accept': 'application/json'
         },
-        body: JSON.stringify({ health: true })
+        body: JSON.stringify({ health: true }),
+        signal: controller.signal,
+        mode: 'cors', // Explicitly set CORS mode
+        credentials: 'omit' // Don't send credentials
       });
+
+      clearTimeout(timeoutId);
+      console.log('✅ Fetch request completed successfully');
 
       // Extract all data safely
       const status = fetchResponse.status;
