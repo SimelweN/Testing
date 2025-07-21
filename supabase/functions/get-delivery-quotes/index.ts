@@ -214,15 +214,20 @@ serve(async (req) => {
       },
     );
   } catch (error) {
-        console.error("Error in get-delivery-quotes:", error?.message || error);
+    console.error("Error in get-delivery-quotes:", error);
+
+    const errorMessage = error instanceof Error ? error.message :
+                        typeof error === "string" ? error :
+                        "Unexpected error occurred";
 
     return new Response(
       JSON.stringify({
         success: false,
         error: "UNEXPECTED_ERROR",
-                details: {
-          error_message: error?.message || String(error),
-          error_stack: error?.stack || 'No stack trace available',
+        details: {
+          error_message: errorMessage,
+          error_type: error instanceof Error ? error.constructor.name : typeof error,
+          error_stack: error instanceof Error ? error.stack : undefined,
           error_type: error?.constructor?.name || 'Unknown',
           timestamp: new Date().toISOString(),
         },
