@@ -8,6 +8,7 @@ import {
   EmailConfig,
   EMAIL_ERRORS,
 } from "../_shared/email-types.ts";
+import { parseRequestBody } from "../_shared/safe-body-parser.ts";
 import {
   validateEmailRequest,
   sanitizeEmailContent,
@@ -173,26 +174,11 @@ serve(async (req) => {
 
   try {
     // Parse request body
-    let emailRequest: EmailRequest;
-    try {
-      emailRequest = await req.json();
-    } catch (error) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "INVALID_JSON_PAYLOAD",
-          details: {
-            parse_error: error.message,
-            message: "Request body must be valid JSON",
-          },
-          fix_instructions: "Ensure request body contains valid JSON format",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+    const bodyResult = await parseRequestBody<EmailRequest>(req, corsHeaders);
+    if (!bodyResult.success) {
+      return bodyResult.errorResponse!;
     }
+    const emailRequest = bodyResult.data;
 
     // Handle test requests
     if (emailRequest.test === true) {

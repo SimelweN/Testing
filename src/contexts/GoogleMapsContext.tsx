@@ -35,33 +35,28 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
 }) => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-    // Aggressive Google Maps error suppression
+    // Only suppress Google Maps errors when explicitly disabled
   useEffect(() => {
+    if (!import.meta.env.VITE_DISABLE_GOOGLE_MAPS) {
+      return; // Don't suppress errors if we're trying to use Google Maps
+    }
+
     const originalConsoleError = console.error;
     const originalConsoleWarn = console.warn;
 
-        const isGoogleMapsError = (message: string) => {
+    const isGoogleMapsError = (message: string) => {
       const msg = message.toLowerCase();
       return (
         msg.includes("failed to load google maps script") ||
         msg.includes("google maps script, retrying") ||
-        msg.includes("google maps script") ||
-        msg.includes("retrying in") ||
-        msg.includes("maps api") ||
-        msg.includes("places api") ||
-        msg.includes("google.maps") ||
-        msg.includes("googleapis.com") ||
-        msg.includes("maps javascript api") ||
-        msg.includes("map api") ||
-        msg.includes("script retrying") ||
-        msg.includes("google api")
+        msg.includes("retrying in")
       );
     };
 
     console.error = function (...args) {
       const message = args.join(" ");
       if (isGoogleMapsError(message)) {
-        // Completely suppress Google Maps retry messages
+        // Only suppress retry messages when Google Maps is disabled
         return;
       }
       originalConsoleError.apply(this, args);
@@ -70,7 +65,7 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
     console.warn = function (...args) {
       const message = args.join(" ");
       if (isGoogleMapsError(message)) {
-        // Completely suppress Google Maps retry messages
+        // Only suppress retry messages when Google Maps is disabled
         return;
       }
       originalConsoleWarn.apply(this, args);
@@ -93,28 +88,33 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
   const shouldLoadMaps =
     isValidApiKey && !import.meta.env.VITE_DISABLE_GOOGLE_MAPS;
 
-  // Temporarily disable Google Maps completely to stop retry messages
-  // TODO: Re-enable once Google Maps API issues are resolved
+  // Load Google Maps if we have a valid API key
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: "", // Empty string to prevent loading
+    googleMapsApiKey: shouldLoadMaps ? apiKey : "",
     libraries,
     preventGoogleFontsLoading: true,
-    loadingElement: null, // Prevent loading
   });
 
   const value: GoogleMapsContextType = {
-    isLoaded: shouldLoadMaps ? isLoaded : false,
+    isLoaded: shouldLoadMaps && isLoaded,
     loadError: shouldLoadMaps
       ? loadError
-      : new Error("Google Maps API key not configured or invalid"),
+      : new Error(
+          "Google Maps is disabled. Please configure VITE_GOOGLE_MAPS_API_KEY in your environment variables."
+        ),
   };
 
-  // Log warning in development if API key is missing or invalid
+  // Log helpful message in development if API key is missing or invalid
   if (import.meta.env.DEV && !isValidApiKey) {
-    console.warn(
-      "Google Maps API key is missing or invalid. Google Maps features will be disabled.",
-      { providedKey: apiKey ? `${apiKey.substring(0, 10)}...` : "none" },
+    console.info(
+      "🗺️ Google Maps is disabled: API key not configured.\n" +
+      "To enable Google Maps:\n" +
+      "1. Get an API key from https://console.cloud.google.com/apis/credentials\n" +
+      "2. Enable Places API and Maps JavaScript API\n" +
+      "3. Add VITE_GOOGLE_MAPS_API_KEY=your_key to .env\n" +
+      "4. Set VITE_DISABLE_GOOGLE_MAPS=false\n" +
+      "\nFalling back to manual address entry."
     );
   }
 

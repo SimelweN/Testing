@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { parseRequestBody } from "../_shared/safe-body-parser.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -11,6 +12,10 @@ serve(async (req) => {
   }
 
   try {
+    const bodyResult = await parseRequestBody(req, corsHeaders);
+    if (!bodyResult.success) {
+      return bodyResult.errorResponse!;
+    }
     const {
       order_id,
       service_code,
@@ -19,7 +24,7 @@ serve(async (req) => {
       weight,
       dimensions,
       reference,
-    } = await req.json();
+    } = bodyResult.data;
 
     if (!order_id || !pickup_address || !delivery_address) {
       return new Response(

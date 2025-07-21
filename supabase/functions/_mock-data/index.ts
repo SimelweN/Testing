@@ -46,11 +46,11 @@ export const FunctionMockData = {
     user_id: "550e8400-e29b-41d4-a716-446655440000",
     items: [
       {
-        book_id: "book-550e8400-e29b-41d4-a716-446655440001",
+        book_id: "550e8400-e29b-41d4-a716-446655440001",
         title: "Introduction to Computer Science",
         price: 29999, // in kobo
         quantity: 1,
-        seller_id: "seller-550e8400-e29b-41d4-a716-446655440002"
+        seller_id: "550e8400-e29b-41d4-a716-446655440002"
       }
     ],
     total_amount: 34999, // in kobo (includes delivery)
@@ -65,35 +65,28 @@ export const FunctionMockData = {
   },
 
   "paystack-webhook": {
-    headers: {
-      "content-type": "application/json",
-      "x-paystack-signature": "t=1234567890,v1=5f6cdc9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e"
-    },
-    body: {
-      event: "charge.success",
-      data: {
-        id: 123456789,
-        reference: "TXN_" + Date.now(),
-        amount: 34999,
-        currency: "ZAR",
-        status: "success",
-        customer: {
-          email: "buyer@example.com",
-          first_name: "John",
-          last_name: "Buyer"
-        },
-        metadata: {
-          user_id: "550e8400-e29b-41d4-a716-446655440000",
-          order_type: "book_purchase"
-        },
-        created_at: new Date().toISOString()
-      }
+    event: "charge.success.test",
+    data: {
+      id: 123456789,
+      reference: "test_ref_" + Date.now(),
+      amount: 34999,
+      currency: "ZAR",
+      status: "success",
+      customer: {
+        email: "buyer@example.com",
+        first_name: "John",
+        last_name: "Buyer"
+      },
+      metadata: {
+        user_id: "550e8400-e29b-41d4-a716-446655440000",
+        order_type: "book_purchase"
+      },
+      created_at: new Date().toISOString()
     }
   },
 
   "verify-paystack-payment": {
-    reference: "TXN_" + Date.now(),
-    user_id: "550e8400-e29b-41d4-a716-446655440000"
+    reference: "bk_" + Date.now() + "_test_use"
   },
 
   "paystack-refund-management": {
@@ -131,12 +124,33 @@ export const FunctionMockData = {
     bearer_subaccount: "ACCT_123456789"
   },
 
+  "paystack-transfer-management": {
+    action: "initiate",
+    amount: 50000,
+    currency: "ZAR",
+    recipient_code: "RCP_test_123",
+    reason: "Book sale payout",
+    reference: "transfer_test_" + Date.now()
+  },
+
+  "manage-paystack-subaccount": {
+    action: "update",
+    subaccount_code: "ACCT_test_123",
+    business_name: "Test Business Updated",
+    settlement_bank: "058",
+    account_number: "0123456789",
+    percentage_charge: 2.5,
+    active: true
+  },
+
   // CORE SUPABASE FUNCTIONS
   "process-book-purchase": {
-    user_id: "550e8400-e29b-41d4-a716-446655440000",
-    book_id: "book-550e8400-e29b-41d4-a716-446655440001",
-    email: "buyer@example.com",
-    payment_reference: "TXN_" + Date.now(),
+    book_id: "book_test_123",
+    buyer_id: "USR_test_buyer_456",
+    seller_id: "USR_test_seller_789",
+    amount: 34999,
+    payment_reference: "test_ref_" + Date.now(),
+    buyer_email: "buyer@example.com",
     shipping_address: {
       street: "123 Student Road",
       suburb: "Rondebosch",
@@ -147,32 +161,26 @@ export const FunctionMockData = {
       phone: "+27123456789",
       first_name: "John",
       last_name: "Buyer"
-    },
-    total_amount: 34999,
-    delivery_details: {
-      method: "courier",
-      estimated_days: 2,
-      tracking_required: true
     }
   },
 
     "process-multi-seller-purchase": {
-    user_id: "550e8400-e29b-41d4-a716-446655440000", // REQUIRED: validated by function
+    user_id: "USR_test_buyer_multi", // REQUIRED: validated by function
     email: "buyer@example.com", // REQUIRED: validated by function with email format check
     cart_items: [ // REQUIRED: must be array and not empty
       {
-        book_id: "book-550e8400-e29b-41d4-a716-446655440001",
+        book_id: "book_test_multi_1",
         title: "Introduction to Computer Science",
         price: 29999,
         quantity: 1,
-        seller_id: "seller-550e8400-e29b-41d4-a716-446655440002"
+        seller_id: "USR_test_seller_1"
       },
       {
-        book_id: "book-550e8400-e29b-41d4-a716-446655440003",
+        book_id: "book_test_multi_2",
         title: "Mathematics for Engineers",
         price: 24999,
         quantity: 1,
-        seller_id: "seller-550e8400-e29b-41d4-a716-446655440004"
+        seller_id: "USR_test_seller_2"
       }
     ],
     shipping_address: {
@@ -191,15 +199,15 @@ export const FunctionMockData = {
   },
 
   "create-order": {
-    buyer_id: "550e8400-e29b-41d4-a716-446655440000",
+    buyer_id: "USR_test_buyer_order",
     buyer_email: "buyer@example.com",
     cart_items: [
       {
-        book_id: "book-550e8400-e29b-41d4-a716-446655440001",
+        book_id: "book_test_order_1",
         title: "Introduction to Computer Science",
         author: "Jane Smith",
         price: 29999,
-        seller_id: "seller-550e8400-e29b-41d4-a716-446655440002",
+        seller_id: "USR_test_seller_order",
         condition: "good",
         isbn: "9781234567890"
       }
@@ -251,15 +259,15 @@ export const FunctionMockData = {
 
   // COMMIT SYSTEM FUNCTIONS
   "commit-to-sale": {
-    order_id: "order-550e8400-e29b-41d4-a716-446655440002",
-    seller_id: "seller-550e8400-e29b-41d4-a716-446655440002",
+    order_id: "ORD_test_456",
+    seller_id: "USR_test_seller_123",
     commit_notes: "Ready to ship immediately",
     estimated_ship_date: "2024-12-25T00:00:00.000Z"
   },
 
   "decline-commit": {
-    order_id: "order-550e8400-e29b-41d4-a716-446655440002",
-    seller_id: "seller-550e8400-e29b-41d4-a716-446655440002",
+    order_id: "ORD_test_decline",
+    seller_id: "USR_test_seller_456",
     reason: "book_not_available",
     notes: "Book was damaged and cannot be sold"
   },
@@ -268,18 +276,18 @@ export const FunctionMockData = {
   "check-expired-orders": {}, // No input required
 
   "mark-collected": {
-    order_id: "order-550e8400-e29b-41d4-a716-446655440002",
-    seller_id: "seller-550e8400-e29b-41d4-a716-446655440002",
+    order_id: "ORD_collected_test",
+    tracking_number: "TRK_test_123456789",
     collection_date: new Date().toISOString(),
-    tracking_number: "CG123456789ZA",
+    collected_by: "courier",
     courier_service: "courier_guy"
   },
 
   "process-order-reminders": {}, // No input required
 
   "pay-seller": {
-    order_id: "order-550e8400-e29b-41d4-a716-446655440002",
-    seller_id: "seller-550e8400-e29b-41d4-a716-446655440002",
+    order_id: "ORD_payment_test",
+    seller_id: "USR_test_seller_789",
     amount: 19999, // in kobo
     trigger: "auto_payout"
   },
@@ -292,13 +300,14 @@ export const FunctionMockData = {
     bank_code: "058", // REQUIRED: 3-digit bank code (Standard Bank)
     account_number: "0123456789", // REQUIRED: 8-12 digit account number
     percentage_charge: 2.5,
+    user_id: "USR_test_subaccount_seller", // REQUIRED: user ID
     description: "Subaccount for seller payouts",
     primary_contact_email: "seller@example.com",
     primary_contact_name: "John Seller",
     primary_contact_phone: "+27123456789",
     is_update: false, // Optional boolean field
     metadata: {
-      user_id: "seller-550e8400-e29b-41d4-a716-446655440002",
+      user_id: "USR_test_subaccount_seller",
       verification_status: "pending"
     }
   },
@@ -538,11 +547,12 @@ export function validateMockData(functionName: string, mockData: any): boolean {
     "paystack-webhook": ["event", "data"],
     "verify-paystack-payment": ["reference"],
     "paystack-refund-management": ["action", "transaction_reference"],
-    "paystack-transfer-management": ["action"],
-    "paystack-split-management": ["action"],
+    "paystack-transfer-management": ["action", "amount", "recipient_code"],
+    "paystack-split-management": ["action", "name", "type"],
+    "manage-paystack-subaccount": ["action", "subaccount_code"],
 
     // CORE SUPABASE FUNCTIONS
-    "process-book-purchase": ["user_id", "book_id", "email", "payment_reference"],
+    "process-book-purchase": ["book_id", "buyer_id", "seller_id", "amount", "buyer_email"],
     "process-multi-seller-purchase": ["user_id", "email", "cart_items"],
     "create-order": ["buyer_id", "buyer_email", "cart_items"],
     "send-email": ["to", "subject", "html"],
@@ -551,11 +561,11 @@ export function validateMockData(functionName: string, mockData: any): boolean {
     // COMMIT SYSTEM FUNCTIONS
     "commit-to-sale": ["order_id", "seller_id"],
     "decline-commit": ["order_id", "seller_id"],
-    "mark-collected": ["order_id", "seller_id"],
+    "mark-collected": ["order_id", "tracking_number"],
     "pay-seller": ["order_id", "seller_id", "amount"],
 
         // SUBACCOUNT MANAGEMENT
-    "create-paystack-subaccount": ["business_name", "email", "bank_name", "bank_code", "account_number"],
+    "create-paystack-subaccount": ["business_name", "email", "bank_name", "bank_code", "account_number", "user_id"],
         "manage-paystack-subaccount": ["action", "subaccount_code", "business_name", "settlement_bank", "account_number"],
 
     // DELIVERY FUNCTIONS

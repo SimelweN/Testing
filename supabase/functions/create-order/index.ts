@@ -2,7 +2,8 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders, getCorsHeaders } from "../_shared/cors.ts";
 import { handleOptionsRequest, isOptionsRequest } from "../_shared/options-handler.ts";
-import { parseRequestBody } from "../_shared/safe-body-parser.ts";
+import { enhancedParseRequestBody } from "../_shared/enhanced-body-parser.ts";
+import { testFunction } from "../_mock-data/edge-function-tester.ts";
 import { validateUUIDs } from "../_shared/uuid-validator.ts";
 import { validateEnvironment } from "../_shared/auth-utils.ts";
 import { jsonResponse, errorResponse, handleCorsPreflightRequest, safeErrorResponse } from "../_shared/response-utils.ts";
@@ -38,11 +39,17 @@ serve(async (req) => {
     return handleOptionsRequest(req);
   }
 
+  // 🧪 TEST MODE: Check if this is a test request with mock data
+  const testResult = await testFunction("create-order", req);
+  if (testResult.isTest) {
+    return testResult.response;
+  }
+
   try {
     const envValidation = validateEnvironment();
     if (!envValidation.success) return envValidation.errorResponse!;
 
-    const bodyResult = await parseRequestBody<CreateOrderRequest>(req, corsHeaders);
+    const bodyResult = await enhancedParseRequestBody<CreateOrderRequest>(req, corsHeaders);
     if (!bodyResult.success) return bodyResult.errorResponse!;
 
     const {

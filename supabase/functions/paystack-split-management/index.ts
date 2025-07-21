@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, getCorsHeaders } from "../_shared/cors.ts";
 import { handleOptionsRequest, isOptionsRequest } from "../_shared/options-handler.ts";
+import { testFunction } from "../_mock-data/edge-function-tester.ts";
 
 const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -25,6 +26,12 @@ serve(async (req) => {
   // Handle OPTIONS requests with enhanced CORS
   if (isOptionsRequest(req)) {
     return handleOptionsRequest(req);
+  }
+
+  // 🧪 TEST MODE: Check if this is a test request with mock data
+  const testResult = await testFunction("paystack-split-management", req);
+  if (testResult.isTest) {
+    return testResult.response;
   }
 
   try {

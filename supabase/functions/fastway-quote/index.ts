@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { parseRequestBody } from "../_shared/safe-body-parser.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -7,13 +8,17 @@ serve(async (req) => {
   }
 
   try {
+    const bodyResult = await parseRequestBody(req, corsHeaders);
+    if (!bodyResult.success) {
+      return bodyResult.errorResponse!;
+    }
     const {
       fromAddress,
       toAddress,
       weight,
       dimensions,
       serviceType = "standard",
-    } = await req.json();
+    } = bodyResult.data;
 
     if (!fromAddress || !toAddress || !weight) {
       return new Response(

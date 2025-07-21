@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { parseRequestBody } from "../_shared/safe-body-parser.ts";
+import { testFunction } from "../_mock-data/edge-function-tester.ts";
 import { refundTransaction } from "../_shared/paystack-refund.ts";
 import { validateUUIDs, createUUIDErrorResponse } from "../_shared/uuid-validator.ts";
 import { jsonResponse, errorResponse, handleCorsPreflightRequest, safeErrorResponse } from "../_shared/response-utils.ts";
@@ -13,6 +14,12 @@ const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return handleCorsPreflightRequest();
+  }
+
+  // 🧪 TEST MODE: Check if this is a test request with mock data
+  const testResult = await testFunction("decline-commit", req);
+  if (testResult.isTest) {
+    return testResult.response;
   }
 
     try {
