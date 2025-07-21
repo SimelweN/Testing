@@ -180,7 +180,9 @@ serve(async (req) => {
             console.error("Fastway API error:", error?.message || error);
             providerErrors.push({
         provider: "fastway",
-        error: error?.message || String(error),
+        error: error instanceof Error ? error.message :
+               typeof error === "string" ? error :
+               "Fastway API error",
         fallback_used: true,
       });
       // Add fallback quote
