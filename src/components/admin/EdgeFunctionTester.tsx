@@ -567,27 +567,33 @@ export default function EdgeFunctionTester() {
 
       const duration = Date.now() - startTime;
 
-            // Parse response regardless of status code - clone first to avoid stream issues
-      const responseClone = response.clone();
+      // Parse response safely - avoid multiple body reads
       let responseData;
       try {
-        responseData = await response.json();
-      } catch (parseError) {
+        // First try to get the text content
+        const responseText = await response.text();
+
+        // Try to parse as JSON
         try {
-          const rawText = await responseClone.text();
+          responseData = JSON.parse(responseText);
+        } catch (jsonError) {
+          // If JSON parsing fails, create a structured response
           responseData = {
-            error: "Failed to parse response",
-            raw_response: rawText,
+            error: "Failed to parse response as JSON",
+            raw_response: responseText,
             status: response.status,
             statusText: response.statusText,
-          };
-        } catch {
-          responseData = {
-            error: "Failed to read response",
-            status: response.status,
-            statusText: response.statusText,
+            parseError: jsonError.message
           };
         }
+      } catch (textError) {
+        // If we can't even read the text, create a minimal response
+        responseData = {
+          error: "Failed to read response body",
+          status: response.status,
+          statusText: response.statusText,
+          readError: textError.message
+        };
       }
 
       if (!response.ok) {
