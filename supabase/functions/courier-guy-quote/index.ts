@@ -149,7 +149,9 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-                error: error?.message || String(error) || "Failed to get Courier Guy quote",
+        error: error instanceof Error ? error.message :
+               typeof error === "string" ? error :
+               "Failed to get Courier Guy quote",
       }),
       {
         status: 500,
