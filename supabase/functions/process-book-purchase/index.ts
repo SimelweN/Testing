@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { parseRequestBody } from "../_shared/safe-body-parser.ts";
+import { enhancedParseRequestBody } from "../_shared/enhanced-body-parser.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -29,7 +29,7 @@ serve(async (req) => {
   try {
     // Parse request body
     let requestBody;
-    const bodyResult = await parseRequestBody(req, corsHeaders);
+    const bodyResult = await enhancedParseRequestBody(req, corsHeaders);
     if (!bodyResult.success) {
       return bodyResult.errorResponse!;
     }
