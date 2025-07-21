@@ -136,6 +136,26 @@ const PaystackDemo = () => {
     setResults(prev => ({ ...prev, [key]: value }));
   };
 
+  const runDiagnostic = async () => {
+    setDiagnosticLoading(true);
+    try {
+      const results = await diagnoseFunctionError();
+      setDiagnosticResults(results);
+
+      const failCount = results.filter(r => r.status === "fail").length;
+      if (failCount > 0) {
+        toast.error(`❌ Diagnostic found ${failCount} issue(s)`);
+      } else {
+        toast.success("✅ All diagnostic checks passed!");
+      }
+    } catch (error) {
+      console.error("Diagnostic failed:", error);
+      toast.error("Failed to run diagnostic");
+    } finally {
+      setDiagnosticLoading(false);
+    }
+  };
+
   // Function to check all Paystack functions availability
   const checkAllFunctions = async () => {
     setTestLoading("function-check", true);
