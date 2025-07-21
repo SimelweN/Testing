@@ -30,6 +30,12 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // 🧪 TEST MODE: Check if this is a test request with mock data
+  const testResult = await testFunction("paystack-transfer-management", req);
+  if (testResult.isTest) {
+    return testResult.response;
+  }
+
   try {
     // Handle health check first
     const url = new URL(req.url);
