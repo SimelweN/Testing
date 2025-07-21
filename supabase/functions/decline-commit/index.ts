@@ -456,16 +456,12 @@ serve(async (req) => {
       },
     });
   } catch (error) {
-    console.error("Decline commit error:", error);
+    logError("Decline commit", error);
 
-    return errorResponse(
+    return safeErrorResponse(
       "UNEXPECTED_ERROR",
-      {
-        error_message: error.message,
-        error_stack: error.stack,
-        error_type: error.constructor.name,
-        fix_instructions: "This is an unexpected server error. Check the server logs for more details and contact support if the issue persists."
-      },
+      error,
+      "Unexpected error occurred during decline commit",
       { status: 500 }
     );
   }
