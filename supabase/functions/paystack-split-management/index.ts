@@ -22,8 +22,9 @@ interface SplitRequest {
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+  // Handle OPTIONS requests with enhanced CORS
+  if (isOptionsRequest(req)) {
+    return handleOptionsRequest(req);
   }
 
   try {
