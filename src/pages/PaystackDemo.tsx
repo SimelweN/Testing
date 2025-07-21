@@ -8,10 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
-  CreditCard, 
-  Webhook, 
-  Building2, 
-  DollarSign, 
+  CreditCard,
+  Webhook,
+  Building2,
+  DollarSign,
   CheckCircle,
   XCircle,
   RefreshCw,
@@ -25,7 +25,8 @@ import {
   Zap,
   FileText,
   Split,
-  TrendingUp
+  TrendingUp,
+  Loader2
 } from "lucide-react";
 import Layout from "@/components/Layout";
 import { toast } from "sonner";
@@ -759,7 +760,7 @@ const PaystackDemo = () => {
       });
 
       if (response.data) {
-        toast.success("✅ Seller payment successful!");
+        toast.success("��� Seller payment successful!");
       } else {
         toast.error("❌ Seller payment failed");
       }
