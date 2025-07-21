@@ -353,14 +353,12 @@ serve(async (req) => {
         ...(emailError && { email_warning: "Notification emails failed to send" })
       });
   } catch (error) {
-    console.error("Commit to sale error:", error);
+    logError("Commit to sale", error);
 
-        return errorResponse(
+    return safeErrorResponse(
       "COMMIT_FAILED",
-      {
-        error_message: error.message || "Failed to commit order to sale",
-        error_type: error.constructor?.name || "UnknownError"
-      },
+      error,
+      "Failed to commit order to sale",
       { status: 500 }
     );
   }
