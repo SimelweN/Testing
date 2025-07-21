@@ -133,10 +133,12 @@ export const FunctionMockData = {
 
   // CORE SUPABASE FUNCTIONS
   "process-book-purchase": {
-    user_id: "550e8400-e29b-41d4-a716-446655440000",
-    book_id: "book-550e8400-e29b-41d4-a716-446655440001",
-    email: "buyer@example.com",
+    book_id: "550e8400-e29b-41d4-a716-446655440001",
+    buyer_id: "550e8400-e29b-41d4-a716-446655440000",
+    seller_id: "550e8400-e29b-41d4-a716-446655440003",
+    amount: 34999,
     payment_reference: "TXN_" + Date.now(),
+    buyer_email: "buyer@example.com",
     shipping_address: {
       street: "123 Student Road",
       suburb: "Rondebosch",
@@ -147,12 +149,6 @@ export const FunctionMockData = {
       phone: "+27123456789",
       first_name: "John",
       last_name: "Buyer"
-    },
-    total_amount: 34999,
-    delivery_details: {
-      method: "courier",
-      estimated_days: 2,
-      tracking_required: true
     }
   },
 
