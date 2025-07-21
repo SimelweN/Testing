@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/lib/supabase";
+import { ENV } from "@/config/environment";
 import { Loader2, Play, CheckCircle, XCircle, Clock, Zap } from "lucide-react";
 
 interface EdgeFunction {
