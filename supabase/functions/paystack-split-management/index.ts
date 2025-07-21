@@ -28,6 +28,12 @@ serve(async (req) => {
     return handleOptionsRequest(req);
   }
 
+  // 🧪 TEST MODE: Check if this is a test request with mock data
+  const testResult = await testFunction("paystack-split-management", req);
+  if (testResult.isTest) {
+    return testResult.response;
+  }
+
   try {
     // Handle health check first (no body consumption)
     const url = new URL(req.url);
