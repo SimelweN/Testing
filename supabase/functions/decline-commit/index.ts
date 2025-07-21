@@ -26,7 +26,6 @@ serve(async (req) => {
     if (!validation.isValid) {
       return createUUIDErrorResponse(validation.errors, corsHeaders);
     }
-    }
 
     // Check environment variables
     if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
