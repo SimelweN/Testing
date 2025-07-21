@@ -79,6 +79,11 @@ const DATABASE_TABLES = [
     category: "Payments",
     description: "User banking details and subaccounts",
   },
+  {
+    name: "transfers",
+    category: "Payments",
+    description: "Seller payout transfers and money transfers",
+  },
 
   // Communication & Support Tables
   {
