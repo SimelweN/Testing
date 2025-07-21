@@ -181,6 +181,52 @@ export const MockResponses = {
     ],
     total_pending_orders: 15,
     processed_at: new Date().toISOString()
+  },
+
+  "paystack-transfer-management": {
+    success: true,
+    message: "Transfer processed successfully",
+    transfer_code: "TRF_test_" + Date.now(),
+    amount: 50000,
+    currency: "ZAR",
+    status: "success",
+    recipient_code: "RCP_test_123",
+    reference: "transfer_test_" + Date.now(),
+    processed_at: new Date().toISOString()
+  },
+
+  "manage-paystack-subaccount": {
+    success: true,
+    message: "Subaccount managed successfully",
+    action: "update",
+    subaccount_code: "ACCT_test_" + Date.now(),
+    business_name: "Test Business Updated",
+    settlement_bank: "058",
+    account_number: "0123456789",
+    percentage_charge: 2.5,
+    active: true,
+    updated_at: new Date().toISOString()
+  },
+
+  "paystack-split-management": {
+    success: true,
+    message: "Split payment configured successfully",
+    split_code: "SPL_test_" + Date.now(),
+    name: "Test Split Payment",
+    type: "percentage",
+    currency: "ZAR",
+    subaccounts: [
+      {
+        subaccount: "ACCT_test_1",
+        share: 70
+      },
+      {
+        subaccount: "ACCT_test_2",
+        share: 30
+      }
+    ],
+    active: true,
+    created_at: new Date().toISOString()
   }
 };
 
