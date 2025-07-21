@@ -281,14 +281,14 @@ export const FunctionMockData = {
     bank_code: "058", // REQUIRED: 3-digit bank code (Standard Bank)
     account_number: "0123456789", // REQUIRED: 8-12 digit account number
     percentage_charge: 2.5,
-    user_id: "550e8400-e29b-41d4-a716-446655440003", // REQUIRED: user ID
+    user_id: "USR_test_subaccount_seller", // REQUIRED: user ID
     description: "Subaccount for seller payouts",
     primary_contact_email: "seller@example.com",
     primary_contact_name: "John Seller",
     primary_contact_phone: "+27123456789",
     is_update: false, // Optional boolean field
     metadata: {
-      user_id: "550e8400-e29b-41d4-a716-446655440003",
+      user_id: "USR_test_subaccount_seller",
       verification_status: "pending"
     }
   },
