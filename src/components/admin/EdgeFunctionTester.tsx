@@ -537,15 +537,33 @@ export default function EdgeFunctionTester() {
         throw new Error(`Missing environment variables - URL: ${!!supabaseUrl}, Key: ${!!supabaseKey}`);
       }
 
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+      console.log(`🚀 Testing edge function: ${func.name}`);
+      console.log(`📋 Request details:`, {
+        url: `${supabaseUrl}/functions/v1/${func.name}`,
+        method: func.method,
+        payload: testPayload
+      });
+
       const response = await fetch(`${supabaseUrl}/functions/v1/${func.name}`, {
         method: func.method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${supabaseKey}`,
           apikey: supabaseKey,
+          'Accept': 'application/json'
         },
         body: JSON.stringify(testPayload),
+        signal: controller.signal,
+        mode: 'cors',
+        credentials: 'omit'
       });
+
+      clearTimeout(timeoutId);
+      console.log(`✅ Function ${func.name} responded with status: ${response.status}`);
 
       const duration = Date.now() - startTime;
 
