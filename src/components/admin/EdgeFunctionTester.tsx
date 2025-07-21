@@ -530,8 +530,12 @@ export default function EdgeFunctionTester() {
       const testPayload = payload || func.testPayload;
 
       // Use direct fetch instead of supabase.functions.invoke to get detailed error messages
-      const supabaseUrl = supabase.supabaseUrl;
-      const supabaseKey = supabase.supabaseKey;
+      const supabaseUrl = ENV.VITE_SUPABASE_URL;
+      const supabaseKey = ENV.VITE_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error(`Missing environment variables - URL: ${!!supabaseUrl}, Key: ${!!supabaseKey}`);
+      }
 
       const response = await fetch(`${supabaseUrl}/functions/v1/${func.name}`, {
         method: func.method,
