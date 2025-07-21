@@ -134,11 +134,17 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in paystack-webhook:', error);
+
+    const errorMessage = error instanceof Error ? error.message :
+                        typeof error === "string" ? error :
+                        "Webhook processing error occurred";
+
     return jsonResponse({
       success: false,
       error: "WEBHOOK_PROCESSING_ERROR",
       details: {
-        error_message: error.message,
+        error_message: errorMessage,
+        error_type: error instanceof Error ? error.constructor.name : typeof error,
         timestamp: new Date().toISOString()
       },
     }, { status: 500 });
