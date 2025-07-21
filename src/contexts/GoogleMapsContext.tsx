@@ -105,14 +105,21 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
     isLoaded: shouldLoadMaps && isLoaded,
     loadError: shouldLoadMaps
       ? loadError
-      : new Error("Google Maps API key not configured or invalid"),
+      : new Error(
+          "Google Maps is disabled. Please configure VITE_GOOGLE_MAPS_API_KEY in your environment variables."
+        ),
   };
 
-  // Log warning in development if API key is missing or invalid
+  // Log helpful message in development if API key is missing or invalid
   if (import.meta.env.DEV && !isValidApiKey) {
-    console.warn(
-      "Google Maps API key is missing or invalid. Google Maps features will be disabled.",
-      { providedKey: apiKey ? `${apiKey.substring(0, 10)}...` : "none" },
+    console.info(
+      "🗺️ Google Maps is disabled: API key not configured.\n" +
+      "To enable Google Maps:\n" +
+      "1. Get an API key from https://console.cloud.google.com/apis/credentials\n" +
+      "2. Enable Places API and Maps JavaScript API\n" +
+      "3. Add VITE_GOOGLE_MAPS_API_KEY=your_key to .env\n" +
+      "4. Set VITE_DISABLE_GOOGLE_MAPS=false\n" +
+      "\nFalling back to manual address entry."
     );
   }
 
