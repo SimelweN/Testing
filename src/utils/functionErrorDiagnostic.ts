@@ -252,14 +252,22 @@ export const generateDiagnosticReport = (results: DiagnosticResult[]): string =>
   // Recommendations
   report += `\n🔧 RECOMMENDATIONS:\n`;
   if (failed.some(r => r.test.includes("Database Table"))) {
-    report += `  • Run database setup: Go to Admin Dashboard → Paystack DB Setup → Run database-setup.sql\n`;
+    report += `  • 📊 Run database setup: Go to Admin Dashboard → Paystack DB Setup → Run database-setup.sql\n`;
   }
   if (failed.some(r => r.test.includes("Environment"))) {
-    report += `  • Check environment variables in .env file and Supabase function settings\n`;
+    report += `  • 🔧 Check environment variables in .env file and Supabase function settings\n`;
   }
-  if (failed.some(r => r.test.includes("Function Basic Test"))) {
-    report += `  • Check Supabase function logs for detailed error information\n`;
-    report += `  • Verify function is deployed: supabase functions list\n`;
+  if (failed.some(r => r.test.includes("Function Deployment") || r.test.includes("Paystack Functions Deployment"))) {
+    report += `  • 🚀 DEPLOY FUNCTIONS: Your edge functions are not deployed!\n`;
+    report += `    1. Install Supabase CLI: npm install -g supabase\n`;
+    report += `    2. Login: supabase login\n`;
+    report += `    3. Link project: supabase link --project-ref YOUR_PROJECT_REF\n`;
+    report += `    4. Deploy all functions: supabase functions deploy\n`;
+    report += `    5. Or deploy specific: supabase functions deploy initialize-paystack-payment\n`;
+  }
+  if (failed.some(r => r.test.includes("Function Basic Test")) && !failed.some(r => r.test.includes("Function Deployment"))) {
+    report += `  • 🔍 Check Supabase function logs for detailed error information\n`;
+    report += `  • ✅ Function is deployed but has configuration issues (this is progress!)\n`;
   }
 
   return report;
