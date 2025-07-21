@@ -720,15 +720,27 @@ export default function EdgeFunctionTester() {
     });
     setTestResults(resetResults);
 
-    // Test functions in batches to avoid overwhelming the system
-    const batchSize = 3;
+    // Test functions in smaller batches to avoid overwhelming the system and response conflicts
+    const batchSize = 2; // Reduced batch size to prevent response body conflicts
     for (let i = 0; i < edgeFunctions.length; i += batchSize) {
       const batch = edgeFunctions.slice(i, i + batchSize);
-      await Promise.all(batch.map((func) => testFunction(func)));
 
-      // Small delay between batches
+      try {
+        await Promise.all(batch.map((func, index) => {
+          // Add small delay between concurrent requests to prevent conflicts
+          return new Promise(resolve => {
+            setTimeout(() => {
+              resolve(testFunction(func));
+            }, index * 200); // 200ms offset between concurrent requests
+          });
+        }));
+      } catch (batchError) {
+        console.error(`Error in batch ${i / batchSize + 1}:`, batchError);
+      }
+
+      // Longer delay between batches to ensure proper cleanup
       if (i + batchSize < edgeFunctions.length) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1500));
       }
     }
 
