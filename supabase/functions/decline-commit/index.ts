@@ -4,13 +4,14 @@ import { corsHeaders } from "../_shared/cors.ts";
 import { parseRequestBody } from "../_shared/safe-body-parser.ts";
 import { refundTransaction } from "../_shared/paystack-refund.ts";
 import { validateUUIDs, createUUIDErrorResponse } from "../_shared/uuid-validator.ts";
+import { jsonResponse, errorResponse, handleCorsPreflightRequest } from "../_shared/response-utils.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return handleCorsPreflightRequest();
   }
 
     try {
@@ -402,47 +403,33 @@ serve(async (req) => {
       // Don't fail the decline process for email errors
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "Order declined successfully",
-        details: {
-          order_id,
-          status: "declined",
-          declined_at: new Date().toISOString(),
-          refund_amount: order.total_amount,
-          refund_processed: refundResult?.success || false,
-          refund_reference: refundResult?.data?.id,
-          notifications_sent: {
-            buyer: !!buyer?.email,
-            seller: !!seller?.email,
-          },
+    return jsonResponse({
+      message: "Order declined successfully",
+      details: {
+        order_id,
+        status: "declined",
+        declined_at: new Date().toISOString(),
+        refund_amount: order.total_amount,
+        refund_processed: refundResult?.success || false,
+        refund_reference: refundResult?.data?.id,
+        notifications_sent: {
+          buyer: !!buyer?.email,
+          seller: !!seller?.email,
         },
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
       },
-    );
+    });
   } catch (error) {
     console.error("Decline commit error:", error);
 
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "UNEXPECTED_ERROR",
-        details: {
-          error_message: error.message,
-          error_stack: error.stack,
-          error_type: error.constructor.name,
-          timestamp: new Date().toISOString(),
-        },
-        fix_instructions:
-          "This is an unexpected server error. Check the server logs for more details and contact support if the issue persists.",
-      }),
+    return errorResponse(
+      "UNEXPECTED_ERROR",
       {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        error_message: error.message,
+        error_stack: error.stack,
+        error_type: error.constructor.name,
+        fix_instructions: "This is an unexpected server error. Check the server logs for more details and contact support if the issue persists."
       },
+      { status: 500 }
     );
   }
 });
