@@ -35,33 +35,28 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
 }) => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-    // Aggressive Google Maps error suppression
+    // Only suppress Google Maps errors when explicitly disabled
   useEffect(() => {
+    if (!import.meta.env.VITE_DISABLE_GOOGLE_MAPS) {
+      return; // Don't suppress errors if we're trying to use Google Maps
+    }
+
     const originalConsoleError = console.error;
     const originalConsoleWarn = console.warn;
 
-        const isGoogleMapsError = (message: string) => {
+    const isGoogleMapsError = (message: string) => {
       const msg = message.toLowerCase();
       return (
         msg.includes("failed to load google maps script") ||
         msg.includes("google maps script, retrying") ||
-        msg.includes("google maps script") ||
-        msg.includes("retrying in") ||
-        msg.includes("maps api") ||
-        msg.includes("places api") ||
-        msg.includes("google.maps") ||
-        msg.includes("googleapis.com") ||
-        msg.includes("maps javascript api") ||
-        msg.includes("map api") ||
-        msg.includes("script retrying") ||
-        msg.includes("google api")
+        msg.includes("retrying in")
       );
     };
 
     console.error = function (...args) {
       const message = args.join(" ");
       if (isGoogleMapsError(message)) {
-        // Completely suppress Google Maps retry messages
+        // Only suppress retry messages when Google Maps is disabled
         return;
       }
       originalConsoleError.apply(this, args);
@@ -70,7 +65,7 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
     console.warn = function (...args) {
       const message = args.join(" ");
       if (isGoogleMapsError(message)) {
-        // Completely suppress Google Maps retry messages
+        // Only suppress retry messages when Google Maps is disabled
         return;
       }
       originalConsoleWarn.apply(this, args);
