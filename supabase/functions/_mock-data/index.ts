@@ -126,11 +126,11 @@ export const FunctionMockData = {
 
   // CORE SUPABASE FUNCTIONS
   "process-book-purchase": {
-    book_id: "550e8400-e29b-41d4-a716-446655440001",
-    buyer_id: "550e8400-e29b-41d4-a716-446655440000",
-    seller_id: "550e8400-e29b-41d4-a716-446655440003",
+    book_id: "book_test_123",
+    buyer_id: "USR_test_buyer_456",
+    seller_id: "USR_test_seller_789",
     amount: 34999,
-    payment_reference: "TXN_" + Date.now(),
+    payment_reference: "test_ref_" + Date.now(),
     buyer_email: "buyer@example.com",
     shipping_address: {
       street: "123 Student Road",
