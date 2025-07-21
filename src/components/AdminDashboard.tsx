@@ -474,6 +474,13 @@ const AdminDashboard = () => {
       description: "Test all database tables",
     },
     {
+      value: "paystack-database-setup",
+      label: "Paystack DB Setup",
+      icon: Database,
+      color: "text-green-600",
+      description: "Verify Paystack database setup",
+    },
+    {
       value: "database-schema",
       label: "Database Schema",
       icon: Database,
