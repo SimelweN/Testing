@@ -1,14 +1,13 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders } from "../_shared/cors.ts";
-import { testFunction } from "../_mock-data/edge-function-tester.ts";
 import { parseRequestBody } from "../_shared/safe-body-parser.ts";
 import { validateUUIDs } from "../_shared/uuid-validator.ts";
 import { validateEnvironment } from "../_shared/auth-utils.ts";
 import { jsonResponse, errorResponse, handleCorsPreflightRequest } from "../_shared/response-utils.ts";
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? '';
+const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? '';
 
 interface CartItem {
   book_id: string;
@@ -21,15 +20,14 @@ interface CartItem {
 }
 
 interface CreateOrderRequest {
-  buyer_id?: string; // Made optional for backward compatibility
-  user_id?: string; // Alternative field name
+  buyer_id?: string;
+  user_id?: string;
   buyer_email?: string;
-  email?: string; // Alternative field name
-  cart_items?: CartItem[]; // Original field name
-  items?: CartItem[]; // Alternative field name
+  email?: string;
+  cart_items?: CartItem[];
+  items?: CartItem[];
   shipping_address: any;
   payment_reference?: string;
-  total_amount?: number;
   payment_data?: any;
 }
 
@@ -38,24 +36,12 @@ serve(async (req) => {
     return handleCorsPreflightRequest();
   }
 
-  // 🧪 TEST MODE: Check if this is a test request with mock data
-  const testResult = await testFunction("create-order", req);
-  if (testResult.isTest) {
-    return testResult.response;
-  }
-
   try {
-    // Validate environment variables first
     const envValidation = validateEnvironment();
-    if (!envValidation.success) {
-      return envValidation.errorResponse!;
-    }
+    if (!envValidation.success) return envValidation.errorResponse!;
 
-    // Safe body parsing to prevent "body stream already read" errors
     const bodyResult = await parseRequestBody<CreateOrderRequest>(req, corsHeaders);
-    if (!bodyResult.success) {
-      return bodyResult.errorResponse!;
-    }
+    if (!bodyResult.success) return bodyResult.errorResponse!;
 
     const {
       buyer_id,
@@ -66,16 +52,14 @@ serve(async (req) => {
       items,
       shipping_address,
       payment_reference,
-      total_amount,
-      payment_data,
+      payment_data
     } = bodyResult.data!;
 
-    // Handle multiple field name variations for backward compatibility
     const finalBuyerId = buyer_id || user_id;
     const finalBuyerEmail = buyer_email || email;
     const finalItems = cart_items || items;
 
-    // Enhanced validation with detailed error messages
+    // Enhanced validation
     const validationErrors = [];
 
     if (!finalBuyerId) {
@@ -88,10 +72,8 @@ serve(async (req) => {
       validationErrors.push("buyer_email must be a valid email address");
     }
 
-    if (!finalItems || !Array.isArray(finalItems)) {
+    if (!Array.isArray(finalItems) || finalItems.length === 0) {
       validationErrors.push("cart_items or items must be a non-empty array");
-    } else if (finalItems.length === 0) {
-      validationErrors.push("cart_items cannot be empty");
     }
 
     if (!shipping_address) {
@@ -124,7 +106,6 @@ serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Validate UUIDs
     const uuidValidation = validateUUIDs({
       buyer_id: finalBuyerId,
       ...finalItems.reduce((acc, item, index) => {
@@ -140,16 +121,7 @@ serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Generate payment reference if not provided (for testing)
-    const finalPaymentRef =
-      payment_reference ||
-      `test_ref_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-
-    console.log(
-      `Creating orders for ${finalItems.length} items, buyer: ${finalBuyerEmail}`,
-    );
 
     // Get buyer information
     const { data: buyer, error: buyerError } = await supabase
@@ -159,40 +131,44 @@ serve(async (req) => {
       .single();
 
     if (buyerError || !buyer) {
-      throw new Error("Buyer not found");
+      return errorResponse("BUYER_NOT_FOUND", {
+        buyer_id: finalBuyerId,
+        error_message: buyerError?.message || "Buyer profile not found"
+      }, { status: 404 });
     }
 
-    // Group cart items by seller to create separate orders
-    const ordersBySeller = new Map<string, CartItem[]>();
+    // Group items by seller
+    const ordersBySeller = finalItems.reduce((acc, item) => {
+      if (!acc[item.seller_id]) acc[item.seller_id] = [];
+      acc[item.seller_id].push(item);
+      return acc;
+    }, {} as Record<string, CartItem[]>);
 
-    finalItems.forEach((item) => {
-      if (!ordersBySeller.has(item.seller_id)) {
-        ordersBySeller.set(item.seller_id, []);
-      }
-      ordersBySeller.get(item.seller_id)!.push(item);
-    });
+    const bookIds = finalItems.map(item => item.book_id);
 
-    const createdOrders = [];
-    const bookIds = finalItems.map((item) => item.book_id);
-
-    // Mark all books as sold first (atomic operation)
-    const { error: markSoldError } = await supabase
+    // Mark books as sold atomically
+    const { error: booksUpdateError } = await supabase
       .from("books")
       .update({
         sold: true,
-        sold_at: new Date().toISOString(),
-        buyer_id: finalBuyerId,
         updated_at: new Date().toISOString(),
+        sold_at: new Date().toISOString(),
+        buyer_id: finalBuyerId
       })
       .in("id", bookIds)
       .eq("sold", false);
 
-    if (markSoldError) {
-      throw new Error(`Failed to mark books as sold: ${markSoldError.message}`);
+    if (booksUpdateError) {
+      return errorResponse("BOOKS_UPDATE_FAILED", {
+        message: booksUpdateError.message
+      }, { status: 500 });
     }
 
+    const createdOrders = [];
+    const finalPaymentRef = payment_reference || `test_ref_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
     // Create orders for each seller
-    for (const [sellerId, items] of ordersBySeller) {
+    for (const [sellerId, sellerItems] of Object.entries(ordersBySeller)) {
       // Get seller information
       const { data: seller, error: sellerError } = await supabase
         .from("profiles")
@@ -201,100 +177,93 @@ serve(async (req) => {
         .single();
 
       if (sellerError || !seller) {
-        console.error(`Seller ${sellerId} not found`);
+        console.error(`Seller ${sellerId} not found:`, sellerError);
         continue;
       }
 
-      const orderTotal = items.reduce((sum, item) => sum + item.price, 0);
-      const commitDeadline = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours from now
-
-      // Generate unique order ID
-      const orderId = `ORD_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-      const orderData = {
-        id: orderId,
-        buyer_id: finalBuyerId,
-        seller_id: sellerId,
-        status: "pending_commit",
-        total_amount: orderTotal,
-        items: items.map((item) => ({
-          book_id: item.book_id,
-          title: item.title,
-          author: item.author,
-          price: item.price,
-          condition: item.condition,
-          seller_id: item.seller_id,
-        })),
-        shipping_address,
-        payment_reference: finalPaymentRef,
-        payment_data,
-        buyer_name: buyer.name,
-        buyer_email: finalBuyerEmail,
-        seller_name: seller.name,
-        seller_email: seller.email,
-        expires_at: commitDeadline.toISOString(),
-        created_at: new Date().toISOString(),
-        // Legacy fields for backward compatibility
-        amount: Math.round(orderTotal),
-        payment_status: "paid",
-        paystack_ref: finalPaymentRef,
-        delivery_address: shipping_address,
-        commit_deadline: commitDeadline.toISOString(),
-        paid_at: new Date().toISOString(),
-        metadata: {
-          created_from: "cart",
-          item_count: items.length,
-          created_at: new Date().toISOString(),
-        },
-      };
+      const totalAmount = sellerItems.reduce((sum, item) => sum + (item.price || 0), 0);
+      const commitDeadline = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
       const { data: order, error: orderError } = await supabase
         .from("orders")
-        .insert(orderData)
+        .insert({
+          buyer_id: finalBuyerId,
+          buyer_email: finalBuyerEmail,
+          seller_id: sellerId,
+          items: sellerItems,
+          amount: Math.round(totalAmount * 100),
+          total_amount: totalAmount,
+          status: "pending_commit",
+          payment_status: "paid",
+          payment_reference: finalPaymentRef,
+          shipping_address,
+          commit_deadline: commitDeadline.toISOString(),
+          paid_at: new Date().toISOString(),
+          // Additional fields for compatibility
+          buyer_name: buyer.name,
+          seller_name: seller.name,
+          seller_email: seller.email,
+          expires_at: commitDeadline.toISOString(),
+          created_at: new Date().toISOString(),
+          paystack_ref: finalPaymentRef,
+          delivery_address: shipping_address,
+          metadata: {
+            item_count: sellerItems.length,
+            created_at: new Date().toISOString(),
+            created_from: "cart",
+            payment_data: payment_data || null
+          }
+        })
         .select()
         .single();
 
       if (orderError) {
-        console.error(
-          "Failed to create order for seller:",
-          sellerId,
-          orderError,
-        );
-        throw new Error(`Failed to create order: ${orderError.message}`);
+        console.error(`Failed to create order for seller ${sellerId}:`, orderError);
+        continue;
       }
 
       createdOrders.push(order);
 
-      // Create order notification for seller
-      try {
-        await supabase.functions.invoke("create-order-notification", {
-          body: {
-            order_id: order.id,
-            user_id: sellerId,
-            type: "new_order",
-            title: "New Order Received!",
-            message: `You have a new order for ${items.length} book(s). Please commit within 48 hours.`,
-          },
-        });
-      } catch (notificationError) {
-        console.error("Failed to create notification:", notificationError);
-      }
+      // Create notifications
+      await supabase.from("order_notifications").insert([
+        {
+          order_id: order.id,
+          user_id: finalBuyerId,
+          type: "order_confirmed",
+          title: "Order Confirmed!",
+          message: `Your order for ${sellerItems.length} book(s) has been confirmed. Total: R${totalAmount.toFixed(2)}`
+        },
+        {
+          order_id: order.id,
+          user_id: sellerId,
+          type: "new_order",
+          title: "New Order Received!",
+          message: `You have a new order worth R${totalAmount.toFixed(2)}. Please commit within 48 hours.`
+        }
+      ]);
 
-      console.log(
-        `Created order ${order.id} for seller ${sellerId} with ${items.length} items`,
-      );
+      // Log activity
+      await supabase.from("order_activity_log").insert({
+        order_id: order.id,
+        user_id: finalBuyerId,
+        action: "order_created",
+        new_status: "pending_commit",
+        metadata: {
+          total_amount: totalAmount,
+          items_count: sellerItems.length,
+          payment_reference: finalPaymentRef
+        }
+      });
     }
 
     if (createdOrders.length === 0) {
-      throw new Error("Failed to create any orders");
+      return errorResponse("ORDER_CREATION_FAILED", {
+        message: "Failed to create any orders - no valid sellers found"
+      }, { status: 500 });
     }
 
-    // Send notification emails using DIRECT HTML (the only correct way!)
-    const emailPromises = [];
-
-    // Send buyer confirmation email
-    try {
-      const buyerHtml = `
+    // Prepare beautiful HTML email templates (preserved from original)
+    const buyerHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -403,7 +372,7 @@ serve(async (req) => {
 
     <p>We'll notify you as soon as each seller confirms their order!</p>
 
-    <a href="${req.headers.get("origin")}/activity" class="btn">Track Your Orders</a>
+    <a href="https://rebookedsolutions.co.za/activity" class="btn">Track Your Orders</a>
 
     <div class="footer">
       <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
@@ -417,29 +386,19 @@ serve(async (req) => {
 </body>
 </html>`;
 
-      emailPromises.push(
-        fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-          },
-          body: JSON.stringify({
-            to: finalBuyerEmail,
-            subject: "🎉 Order Confirmed - Thank You!",
-            html: buyerHtml,
-            text: `Order Confirmed!\n\nThank you, ${buyer.name}!\n\nYour order has been confirmed and the sellers have been notified.\n\nTotal Orders: ${createdOrders.length}\nTotal Amount: R${createdOrders.reduce((sum, order) => sum + order.total_amount, 0).toFixed(2)}\nTotal Books: ${finalItems.length}\n\nReBooked Solutions`,
-          }),
-        }),
-      );
-    } catch (emailError) {
-      console.error("Failed to prepare buyer email:", emailError);
-    }
+    // Add buyer email to mail queue
+    await supabase.from("mail_queue").insert({
+      user_id: finalBuyerId,
+      email: finalBuyerEmail,
+      subject: "🎉 Order Confirmed - Thank You!",
+      body: buyerHtml,
+      status: "pending",
+      created_at: new Date().toISOString()
+    });
 
-    // Send seller notification emails
+    // Add seller notification emails to mail queue
     for (const order of createdOrders) {
-      try {
-        const sellerHtml = `
+      const sellerHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -544,7 +503,7 @@ serve(async (req) => {
 
     <p>Once you commit, we'll arrange pickup and you'll be paid after delivery!</p>
 
-    <a href="${req.headers.get("origin")}/activity" class="btn">Commit to Order</a>
+    <a href="https://rebookedsolutions.co.za/activity" class="btn">Commit to Order</a>
 
     <div class="footer">
       <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
@@ -558,40 +517,19 @@ serve(async (req) => {
 </body>
 </html>`;
 
-        emailPromises.push(
-          fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-            },
-            body: JSON.stringify({
-              to: order.seller_email,
-              subject: "📚 New Order - Action Required (48 hours)",
-              html: sellerHtml,
-              text: `New Order - Action Required!\n\nHi ${order.seller_name}!\n\nGreat news! You have a new order from ${buyer.name}.\n\nOrder Details:\n- Order ID: ${order.id}\n- Buyer: ${buyer.name} (${finalBuyerEmail})\n- Items: ${order.items.length} book(s)\n- Total Amount: R${order.total_amount.toFixed(2)}\n\n⏰ Action Required Within 48 Hours\nExpires: ${new Date(order.expires_at).toLocaleString()}\n\nYou must commit to this order within 48 hours or it will be automatically cancelled.\n\nCommit to order: ${req.headers.get("origin")}/activity\n\nReBooked Solutions`,
-            }),
-          }),
-        );
-      } catch (emailError) {
-        console.error("Failed to prepare seller email:", emailError);
-      }
+      await supabase.from("mail_queue").insert({
+        user_id: order.seller_id,
+        email: order.seller_email,
+        subject: "📚 New Order - Action Required (48 hours)",
+        body: sellerHtml,
+        status: "pending",
+        created_at: new Date().toISOString()
+      });
     }
 
-    // Wait for emails to send (but don't fail if they don't)
-    const emailResults = await Promise.allSettled(emailPromises);
-    const emailErrors = emailResults.filter(
-      (result) => result.status === "rejected",
-    ).length;
-
-    if (emailErrors > 0) {
-      console.warn(
-        `${emailErrors} email(s) failed to send out of ${emailPromises.length}`,
-      );
-    }
-
-    const response = {
+    return jsonResponse({
       success: true,
+      message: `Successfully created ${createdOrders.length} order(s)`,
       orders: createdOrders.map((order) => ({
         id: order.id,
         seller_id: order.seller_id,
@@ -602,29 +540,16 @@ serve(async (req) => {
         status: order.status,
       })),
       total_orders: createdOrders.length,
-      total_amount: createdOrders.reduce(
-        (sum, order) => sum + order.total_amount,
-        0,
-      ),
+      total_amount: createdOrders.reduce((sum, order) => sum + order.total_amount, 0),
       books_marked_sold: bookIds.length,
-      emails_sent: emailPromises.length - emailErrors,
       payment_reference: finalPaymentRef,
-      message: `Created ${createdOrders.length} order(s) successfully`,
-    };
-
-    console.log("Order creation completed:", response);
-
-    return jsonResponse(response);
+      emails_queued: createdOrders.length + 1 // buyer + sellers
+    });
   } catch (error) {
-        console.error("Create order error:", error?.message || error);
-
-    return errorResponse(
-      "ORDER_CREATION_FAILED",
-      {
-        error_message: error?.message || String(error) || "Failed to create orders",
-        error_type: error?.constructor?.name || "UnknownError"
-      },
-      { status: 500 }
-    );
+    console.error("Create order error:", error);
+    return errorResponse("ORDER_CREATION_FAILED", {
+      error_message: error?.message || String(error) || "Failed to create orders",
+      error_type: error?.constructor?.name || "UnknownError"
+    }, { status: 500 });
   }
 });
