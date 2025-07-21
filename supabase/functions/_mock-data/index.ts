@@ -251,15 +251,15 @@ export const FunctionMockData = {
 
   // COMMIT SYSTEM FUNCTIONS
   "commit-to-sale": {
-    order_id: "order-550e8400-e29b-41d4-a716-446655440002",
-    seller_id: "seller-550e8400-e29b-41d4-a716-446655440002",
+    order_id: "550e8400-e29b-41d4-a716-446655440002",
+    seller_id: "550e8400-e29b-41d4-a716-446655440003",
     commit_notes: "Ready to ship immediately",
     estimated_ship_date: "2024-12-25T00:00:00.000Z"
   },
 
   "decline-commit": {
-    order_id: "order-550e8400-e29b-41d4-a716-446655440002",
-    seller_id: "seller-550e8400-e29b-41d4-a716-446655440002",
+    order_id: "550e8400-e29b-41d4-a716-446655440002",
+    seller_id: "550e8400-e29b-41d4-a716-446655440003",
     reason: "book_not_available",
     notes: "Book was damaged and cannot be sold"
   },
@@ -268,18 +268,18 @@ export const FunctionMockData = {
   "check-expired-orders": {}, // No input required
 
   "mark-collected": {
-    order_id: "order-550e8400-e29b-41d4-a716-446655440002",
-    seller_id: "seller-550e8400-e29b-41d4-a716-446655440002",
-    collection_date: new Date().toISOString(),
+    order_id: "550e8400-e29b-41d4-a716-446655440002",
     tracking_number: "CG123456789ZA",
+    collection_date: new Date().toISOString(),
+    collected_by: "courier",
     courier_service: "courier_guy"
   },
 
   "process-order-reminders": {}, // No input required
 
   "pay-seller": {
-    order_id: "order-550e8400-e29b-41d4-a716-446655440002",
-    seller_id: "seller-550e8400-e29b-41d4-a716-446655440002",
+    order_id: "550e8400-e29b-41d4-a716-446655440002",
+    seller_id: "550e8400-e29b-41d4-a716-446655440003",
     amount: 19999, // in kobo
     trigger: "auto_payout"
   },
