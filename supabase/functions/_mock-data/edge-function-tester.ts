@@ -4,6 +4,7 @@
  */
 
 import { FunctionMockData, validateMockData } from "./index.ts";
+import { createMockResponse } from "./mock-responses.ts";
 
 /**
  * Test any Edge Function with proper mock data
@@ -70,26 +71,16 @@ export async function testFunction(functionName: string, req: Request) {
     };
   }
 
-  // Return success response with mock data
+  // Return realistic mock response for the function
+  const mockResponse = createMockResponse(functionName, {
+    test_mode: true,
+    mock_data_used: mockData
+  });
+
   return {
     isTest: true,
     response: new Response(
-      JSON.stringify({
-        success: true,
-        message: `✅ Function ${functionName} has complete mock data with all required fields`,
-        function_name: functionName,
-        mock_data: mockData,
-        validation_passed: true,
-        timestamp: new Date().toISOString(),
-        test_instructions: {
-          purpose: "This confirms your function has complete mock data for testing",
-          next_steps: [
-            "Remove ?test=true from URL to run actual function",
-            "Use this mock data structure for your test cases",
-            "All required fields are included and properly formatted"
-          ]
-        }
-      }),
+      JSON.stringify(mockResponse),
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
