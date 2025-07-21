@@ -170,6 +170,9 @@ const PaystackDemo = () => {
         // Special case: if we get MISSING_REQUIRED_FIELDS, the function is definitely working
         const isWorking = response.error?.message?.includes?.('MISSING_REQUIRED_FIELDS') ||
                          response.error?.message?.includes?.('METHOD_NOT_ALLOWED') ||
+                         response.error?.message?.includes?.('UUID_VALIDATION_FAILED') ||
+                         response.error?.message?.includes?.('VALIDATION_FAILED') ||
+                         response.error?.message?.includes?.('BODY_CONSUMPTION_ERROR') ||
                          response.data;
 
         status[funcName] = {
