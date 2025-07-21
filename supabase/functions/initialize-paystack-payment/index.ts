@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { parseRequestBody } from "../_shared/safe-body-parser.ts";
+import { testFunction } from "../_mock-data/edge-function-tester.ts";
 
 // Helper to create JSON responses without body stream issues
 const jsonResponse = (data: any, options: { status?: number; headers?: Record<string, string> } = {}) => {
@@ -22,6 +23,12 @@ const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
+  }
+
+  // 🧪 TEST MODE: Check if this is a test request with mock data
+  const testResult = await testFunction("initialize-paystack-payment", req);
+  if (testResult.isTest) {
+    return testResult.response;
   }
 
       try {
