@@ -20,40 +20,10 @@ serve(async (req) => {
     }
     const { order_id, seller_id } = bodyParseResult.data;
 
-                if (!order_id || !seller_id) {
-      return json({
-        success: false,
-        error: "Missing required fields: order_id, seller_id",
-      }, {
-        status: 400,
-        headers: corsHeaders,
-      });
-    }
-
-            // Validate parameter types
-    if (typeof order_id !== 'string' || typeof seller_id !== 'string') {
-      return json({
-        success: false,
-        error: "order_id and seller_id must be valid strings",
-      }, {
-        status: 400,
-        headers: corsHeaders,
-      });
-    }
-
-    // UUID format validation (allow test IDs for testing)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    const isTestMode = order_id.startsWith('ORD_test') || seller_id.startsWith('USR_test');
-
-        if (!isTestMode && (!uuidRegex.test(order_id) || !uuidRegex.test(seller_id))) {
-      return json({
-        success: false,
-        error: "order_id and seller_id must be valid UUIDs",
-        debug: { order_id, seller_id, isTestMode }
-      }, {
-        status: 400,
-        headers: corsHeaders,
-      });
+    // Validate UUIDs using shared validator
+    const validation = validateUUIDs({ order_id, seller_id });
+    if (!validation.isValid) {
+      return createUUIDErrorResponse(validation.errors, corsHeaders);
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
