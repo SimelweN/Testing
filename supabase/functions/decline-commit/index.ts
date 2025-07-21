@@ -4,7 +4,8 @@ import { corsHeaders } from "../_shared/cors.ts";
 import { parseRequestBody } from "../_shared/safe-body-parser.ts";
 import { refundTransaction } from "../_shared/paystack-refund.ts";
 import { validateUUIDs, createUUIDErrorResponse } from "../_shared/uuid-validator.ts";
-import { jsonResponse, errorResponse, handleCorsPreflightRequest } from "../_shared/response-utils.ts";
+import { jsonResponse, errorResponse, handleCorsPreflightRequest, safeErrorResponse } from "../_shared/response-utils.ts";
+import { logError } from "../_shared/error-utils.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
