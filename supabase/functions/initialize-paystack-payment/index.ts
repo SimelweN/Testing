@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
-import { handleRequestBody } from "../_shared/request-utils.ts";
+import { parseRequestBody } from "../_shared/safe-body-parser.ts";
 
 // Helper to create JSON responses without body stream issues
 const jsonResponse = (data: any, options: { status?: number; headers?: Record<string, string> } = {}) => {
@@ -44,20 +44,13 @@ serve(async (req) => {
       });
     }
 
-    // Read request body ONCE (ChatGPT's advice)
-    let requestBody;
-    try {
-      console.log("🔍 bodyUsed before read:", req.bodyUsed);
-      requestBody = await req.json();
-      console.log("✅ Body read successfully");
-    } catch (error) {
-      console.error("❌ Body read failed:", error.message);
-            return jsonResponse({
-        success: false,
-        error: "BODY_READ_ERROR",
-        details: { error: error.message, bodyUsed: req.bodyUsed },
-      }, { status: 400 });
+    // Parse request body safely - ONLY ONCE
+    const bodyResult = await parseRequestBody(req, corsHeaders);
+    if (!bodyResult.success) {
+      return bodyResult.errorResponse!;
     }
+    const requestBody = bodyResult.data;
+    console.log("✅ Body parsed successfully with safe parser");
 
     // Validate request method for non-health endpoints
         if (req.method !== "POST") {
