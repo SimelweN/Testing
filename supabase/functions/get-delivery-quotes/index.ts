@@ -142,7 +142,9 @@ serve(async (req) => {
             console.error("Courier Guy API error:", error?.message || error);
             providerErrors.push({
         provider: "courier-guy",
-        error: error?.message || String(error),
+        error: error instanceof Error ? error.message :
+               typeof error === "string" ? error :
+               "Courier Guy API error",
         fallback_used: true,
       });
       // Add fallback quote
