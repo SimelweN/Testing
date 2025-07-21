@@ -31,6 +31,7 @@ import Layout from "@/components/Layout";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ENV } from "@/config/environment";
+import { diagnoseFunctionError, generateDiagnosticReport, DiagnosticResult } from "@/utils/functionErrorDiagnostic";
 
 // Demo test data as provided in the user prompt
 const DEMO_DATA = {
