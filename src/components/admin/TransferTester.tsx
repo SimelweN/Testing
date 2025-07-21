@@ -209,7 +209,19 @@ const TransferTester = () => {
             },
           );
 
-          const recipientResult = await recipientResponse.json();
+          // Safely parse response to avoid body stream consumption issues
+          const recipientResponseClone = recipientResponse.clone();
+          let recipientResult;
+          try {
+            recipientResult = await recipientResponse.json();
+          } catch (parseError) {
+            const textContent = await recipientResponseClone.text();
+            recipientResult = {
+              success: false,
+              error: `Failed to parse response: ${parseError.message}`,
+              details: { raw_response: textContent, status: recipientResponse.status, statusText: recipientResponse.statusText }
+            };
+          }
 
           if (recipientResult.success) {
             addTestResult({
