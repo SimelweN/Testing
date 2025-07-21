@@ -53,6 +53,12 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // 🧪 TEST MODE: Check if this is a test request with mock data
+  const testResult = await testFunction("manage-paystack-subaccount", req);
+  if (testResult.isTest) {
+    return testResult.response;
+  }
+
   try {
     console.log("=== Paystack Subaccount Management Request ===");
 
