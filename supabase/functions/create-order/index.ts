@@ -5,7 +5,7 @@ import { testFunction } from "../_mock-data/edge-function-tester.ts";
 import { parseRequestBody } from "../_shared/safe-body-parser.ts";
 import { validateUUIDs } from "../_shared/uuid-validator.ts";
 import { validateEnvironment } from "../_shared/auth-utils.ts";
-import { jsonResponse, errorResponse } from "../_shared/response-utils.ts";
+import { jsonResponse, errorResponse, handleCorsPreflightRequest } from "../_shared/response-utils.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -35,7 +35,7 @@ interface CreateOrderRequest {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return handleCorsPreflightRequest();
   }
 
   // 🧪 TEST MODE: Check if this is a test request with mock data
@@ -614,22 +614,17 @@ serve(async (req) => {
 
     console.log("Order creation completed:", response);
 
-    return new Response(JSON.stringify(response), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse(response);
   } catch (error) {
         console.error("Create order error:", error?.message || error);
 
-    return new Response(
-      JSON.stringify({
-        success: false,
-                error: error?.message || String(error) || "Failed to create orders",
-        timestamp: new Date().toISOString(),
-      }),
+    return errorResponse(
+      "ORDER_CREATION_FAILED",
       {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        error_message: error?.message || String(error) || "Failed to create orders",
+        error_type: error?.constructor?.name || "UnknownError"
       },
+      { status: 500 }
     );
   }
 });
