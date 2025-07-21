@@ -606,10 +606,50 @@ export default function EdgeFunctionTester() {
       }
     } catch (error: any) {
       const duration = Date.now() - startTime;
+
+      let errorMessage = "Unknown error";
+      let debugInfo = {};
+
+      if (error instanceof TypeError && error.message === "Failed to fetch") {
+        errorMessage = "Network error - Could not connect to Supabase functions";
+        debugInfo = {
+          possibleCauses: [
+            "Function not deployed",
+            "Network connectivity issues",
+            "CORS configuration problems",
+            "Invalid Supabase URL",
+            "Missing environment variables"
+          ],
+          supabaseUrl: ENV.VITE_SUPABASE_URL,
+          functionUrl: `${ENV.VITE_SUPABASE_URL}/functions/v1/${func.name}`,
+          suggestions: [
+            "Check if function is deployed in Supabase dashboard",
+            "Verify VITE_SUPABASE_URL is correct",
+            "Check network connectivity",
+            "Verify function exists and is accessible"
+          ]
+        };
+      } else if (error.name === "AbortError") {
+        errorMessage = "Request timed out";
+        debugInfo = {
+          possibleCauses: ["Function taking too long to respond", "Network timeout"]
+        };
+      } else {
+        errorMessage = error.message || String(error);
+        debugInfo = {
+          stack: error.stack,
+          originalError: error
+        };
+      }
+
+      console.error(`❌ Edge function test failed for ${func.name}:`, error);
+      console.log("🔍 Debug Info:", debugInfo);
+
       updateTestResult(func.name, {
         status: "error",
-        error: `Network/Request Error: ${error.message}`,
+        error: errorMessage,
         duration,
+        debugInfo
       });
     }
   };
