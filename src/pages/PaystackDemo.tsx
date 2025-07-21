@@ -275,15 +275,16 @@ const PaystackDemo = () => {
     setTestLoading("direct-http", true);
 
     try {
-      const supabaseUrl = supabase.supabaseUrl;
-      const authKey = supabase.supabaseKey;
+      const supabaseUrl = ENV.VITE_SUPABASE_URL;
+      const authKey = ENV.VITE_SUPABASE_ANON_KEY;
       const functionUrl = `${supabaseUrl}/functions/v1/initialize-paystack-payment`;
 
       console.log(`🔗 Testing direct HTTP call to: ${functionUrl}`);
       console.log(`🔑 Auth key available: ${!!authKey}`);
+      console.log(`🌐 Supabase URL: ${supabaseUrl}`);
 
-      if (!authKey) {
-        throw new Error("Supabase auth key not available");
+      if (!authKey || !supabaseUrl) {
+        throw new Error(`Missing environment variables - URL: ${!!supabaseUrl}, Key: ${!!authKey}`);
       }
 
       // Create a completely new fetch request
