@@ -89,6 +89,8 @@ const PaystackDemo = () => {
   const [results, setResults] = useState<{ [key: string]: any }>({});
   const [functionStatus, setFunctionStatus] = useState<{ [key: string]: any }>({});
   const [environmentStatus, setEnvironmentStatus] = useState<any>(null);
+  const [diagnosticResults, setDiagnosticResults] = useState<DiagnosticResult[] | null>(null);
+  const [diagnosticLoading, setDiagnosticLoading] = useState(false);
 
   // Form states for different functions
   const [paymentForm, setPaymentForm] = useState({
