@@ -56,12 +56,28 @@ export function successResponse(data: any, message?: string): Response {
 }
 
 /**
- * Handle CORS preflight requests
+ * Handle CORS preflight requests with origin-aware headers
  */
-export function handleCorsPreflightRequest(): Response {
-  return new Response("ok", { 
-    headers: corsHeaders,
+export function handleCorsPreflightRequest(origin?: string): Response {
+  return new Response("ok", {
+    headers: getCorsHeaders(origin),
     status: 200
+  });
+}
+
+/**
+ * Create CORS-aware response with origin detection
+ */
+export function corsAwareResponse(data: any, request?: Request, options: { status?: number; headers?: any } = {}): Response {
+  const origin = request?.headers.get('origin') || undefined;
+  const corsHeaders = getCorsHeaders(origin);
+
+  return jsonResponse(data, {
+    ...options,
+    headers: {
+      ...corsHeaders,
+      ...options.headers
+    }
   });
 }
 
