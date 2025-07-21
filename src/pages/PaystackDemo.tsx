@@ -1122,6 +1122,80 @@ const PaystackDemo = () => {
                 </Alert>
               )}
 
+              {/* Function Error Diagnostic Section */}
+              <Alert className="border-orange-200 bg-orange-50">
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
+                <AlertDescription>
+                  <div className="space-y-3">
+                    <div>
+                      <strong className="text-orange-900">Function Error Diagnostic</strong>
+                      <p className="text-sm text-orange-700 mt-1">
+                        If you're seeing FunctionsFetchError, run this diagnostic to identify the root cause.
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={runDiagnostic}
+                        disabled={diagnosticLoading}
+                        size="sm"
+                        className="bg-orange-600 hover:bg-orange-700"
+                      >
+                        {diagnosticLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            Running Diagnostic...
+                          </>
+                        ) : (
+                          <>
+                            <TestTube className="h-4 w-4 mr-2" />
+                            Run Error Diagnostic
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    {diagnosticResults && (
+                      <div className="mt-3">
+                        <div className="space-y-2">
+                          {diagnosticResults.map((result, index) => (
+                            <div key={index} className={`p-2 rounded text-xs ${
+                              result.status === "pass" ? "bg-green-100 text-green-800" :
+                              result.status === "fail" ? "bg-red-100 text-red-800" :
+                              "bg-yellow-100 text-yellow-800"
+                            }`}>
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono">
+                                  {result.status === "pass" ? "✅" : result.status === "fail" ? "❌" : "⚠️"}
+                                </span>
+                                <span className="font-medium">{result.test}</span>
+                              </div>
+                              <div className="ml-6 mt-1">{result.message}</div>
+                              {result.details && result.status === "fail" && (
+                                <details className="ml-6 mt-1">
+                                  <summary className="cursor-pointer text-xs opacity-75">Details</summary>
+                                  <pre className="text-xs mt-1 p-1 bg-black/10 rounded">
+                                    {JSON.stringify(result.details, null, 2)}
+                                  </pre>
+                                </details>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        <details className="mt-3">
+                          <summary className="cursor-pointer font-semibold text-orange-800">
+                            Full Diagnostic Report
+                          </summary>
+                          <pre className="text-xs mt-2 bg-orange-100 p-2 rounded overflow-auto max-h-40 whitespace-pre-wrap">
+                            {generateDiagnosticReport(diagnosticResults)}
+                          </pre>
+                        </details>
+                      </div>
+                    )}
+                  </div>
+                </AlertDescription>
+              </Alert>
+
                             <TestResultCard testKey="direct-http" title="Direct HTTP Test" />
               <TestResultCard testKey="real-test" title="Real Function Test" />
             </CardContent>
