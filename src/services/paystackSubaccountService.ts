@@ -221,29 +221,28 @@ export class PaystackSubaccountService {
           if (userId) {
             console.log("Creating mock subaccount in database...");
 
-            // Try to insert with minimal required fields first
-          let insertData: any = {
+            // Insert using actual database schema columns only
+          const insertData = {
             user_id: userId,
             business_name: details.business_name,
+            email: details.email,
+            bank_name: details.bank_name,
             bank_code: details.bank_code,
             account_number: details.account_number,
             subaccount_code: mockSubaccountCode,
+            status: "active",
+            paystack_response: {
+              mock: true,
+              created_at: new Date().toISOString(),
+              user_id: userId,
+              business_name: details.business_name,
+            },
           };
 
-          // Add optional fields that may not exist in all schemas
-          try {
-            // Try with more fields
-            insertData = {
-              ...insertData,
-              business_description: `Mock subaccount for ${details.business_name}`,
-              percentage_charge: 10,
-              settlement_bank: details.bank_code,
-              is_verified: false,
-              is_active: true,
-            };
-          } catch {
-            // If that fails, use minimal data
-          }
+          console.log("Inserting mock subaccount with actual schema:", {
+            ...insertData,
+            account_number: "***" + insertData.account_number.slice(-4)
+          });
 
           const { error: dbError } = await supabase
             .from("banking_subaccounts")
