@@ -492,6 +492,7 @@ export type Database = {
           bank_code: string;
           account_number: string;
           subaccount_code: string | null;
+          recipient_code: string | null;
           paystack_response: any | null;
           status: string | null;
           created_at: string | null;
@@ -506,6 +507,7 @@ export type Database = {
           bank_code: string;
           account_number: string;
           subaccount_code?: string | null;
+          recipient_code?: string | null;
           paystack_response?: any | null;
           status?: string | null;
           created_at?: string | null;
@@ -520,6 +522,7 @@ export type Database = {
           bank_code?: string;
           account_number?: string;
           subaccount_code?: string | null;
+          recipient_code?: string | null;
           paystack_response?: any | null;
           status?: string | null;
           created_at?: string | null;
