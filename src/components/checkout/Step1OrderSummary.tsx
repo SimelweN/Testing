@@ -2,13 +2,14 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, User, MapPin, ArrowRight } from "lucide-react";
+import { Package, User, MapPin, ArrowRight, X } from "lucide-react";
 import { CheckoutBook, CheckoutAddress } from "@/types/checkout";
 
 interface Step1OrderSummaryProps {
   book: CheckoutBook;
   sellerAddress: CheckoutAddress | null;
   onNext: () => void;
+  onCancel?: () => void;
   loading?: boolean;
 }
 
@@ -16,6 +17,7 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
   book,
   sellerAddress,
   onNext,
+  onCancel,
   loading = false,
 }) => {
   return (
@@ -98,8 +100,18 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
         </CardContent>
       </Card>
 
-      {/* Next Button */}
-      <div className="flex justify-center pt-6">
+      {/* Action Buttons */}
+      <div className="flex justify-between items-center pt-6">
+        <Button
+          onClick={onCancel}
+          variant="outline"
+          disabled={loading}
+          className="px-6 py-3"
+        >
+          <X className="w-4 h-4 mr-2" />
+          Cancel
+        </Button>
+
         <Button
           onClick={onNext}
           disabled={loading}

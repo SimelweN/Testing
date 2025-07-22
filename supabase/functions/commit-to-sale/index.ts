@@ -37,30 +37,63 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-    // Get order details first
-    const { data: order, error: orderError } = await supabase
+    console.log("🔍 Looking for order:", { order_id, seller_id });
+
+    // First, check if order exists at all
+    const { data: orderCheck, error: checkError } = await supabase
       .from("orders")
       .select("*")
       .eq("id", order_id)
-      .eq("seller_id", seller_id)
-      .eq("status", "pending_commit")
-      .single();
+      .maybeSingle();
 
-        if (orderError || !order) {
-            return errorResponse(
+    console.log("📋 Order check result:", { orderCheck, checkError });
+
+    if (!orderCheck) {
+      console.log("❌ Order not found at all");
+      return errorResponse(
         "ORDER_NOT_FOUND",
         {
           order_id,
           seller_id,
-          possible_causes: [
-            "Order does not exist",
-            "Order does not belong to this seller",
-            "Order is not in pending_commit status"
-          ]
+          message: "Order does not exist in database"
         },
         { status: 404 }
       );
     }
+
+    if (orderCheck.seller_id !== seller_id) {
+      console.log("❌ Wrong seller ID:", { expected: seller_id, actual: orderCheck.seller_id });
+      return errorResponse(
+        "SELLER_MISMATCH",
+        {
+          order_id,
+          provided_seller_id: seller_id,
+          actual_seller_id: orderCheck.seller_id,
+          message: "Order does not belong to this seller"
+        },
+        { status: 403 }
+      );
+    }
+
+    if (orderCheck.status !== "pending_commit") {
+      console.log("❌ Wrong status:", { expected: "pending_commit", actual: orderCheck.status });
+      return errorResponse(
+        "INVALID_ORDER_STATUS",
+        {
+          order_id,
+          seller_id,
+          current_status: orderCheck.status,
+          required_status: "pending_commit",
+          message: "Order is not in pending_commit status"
+        },
+        { status: 400 }
+      );
+    }
+
+    console.log("✅ Order validation passed, proceeding with commit");
+    const order = orderCheck;
+
+
 
     // Ensure order.items is properly parsed if it's stored as JSONB
     if (order.items && typeof order.items === 'string') {

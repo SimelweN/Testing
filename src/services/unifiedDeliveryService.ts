@@ -12,11 +12,6 @@ import {
   FastwayShipmentRequest,
   formatAddressForFastway,
 } from "./fastwayService";
-import {
-  getShipLogicQuickQuote,
-  createShipLogicShipment,
-  trackShipLogicShipment,
-} from "./shipLogicService";
 
 // Unified delivery types
 export interface UnifiedAddress {
@@ -55,7 +50,7 @@ export interface UnifiedShipmentRequest {
   require_signature?: boolean;
   insurance?: boolean;
   reference?: string;
-  preferred_provider?: "courier-guy" | "fastway" | "shiplogic";
+  preferred_provider?: "courier-guy" | "fastway";
 }
 
 export interface UnifiedQuoteRequest {
@@ -69,7 +64,7 @@ export interface UnifiedQuoteRequest {
 }
 
 export interface UnifiedQuote {
-  provider: "courier-guy" | "fastway" | "shiplogic";
+  provider: "courier-guy" | "fastway";
   provider_name: string;
   service_code: string;
   service_name: string;
@@ -88,7 +83,7 @@ export interface UnifiedQuote {
 }
 
 export interface UnifiedShipment {
-  provider: "courier-guy" | "fastway" | "shiplogic";
+  provider: "courier-guy" | "fastway";
   shipment_id: string;
   tracking_number: string;
   barcode?: string;
@@ -110,7 +105,7 @@ export interface UnifiedTrackingEvent {
 }
 
 export interface UnifiedTrackingResponse {
-  provider: "courier-guy" | "fastway" | "shiplogic";
+  provider: "courier-guy" | "fastway";
   tracking_number: string;
   status:
     | "pending"
@@ -149,10 +144,6 @@ export const getAllDeliveryQuotes = async (
       }),
       getFastwayQuotes(request).catch((err) => {
         errors.push(`Fastway: ${err.message}`);
-        return [];
-      }),
-      getShipLogicQuotes(request).catch((err) => {
-        errors.push(`ShipLogic: ${err.message}`);
         return [];
       }),
     ];
@@ -219,8 +210,6 @@ export const createUnifiedShipment = async (
         return await createCourierGuyShipmentUnified(request);
       case "fastway":
         return await createFastwayShipmentUnified(request);
-      case "shiplogic":
-        return await createShipLogicShipmentUnified(request);
       default:
         throw new Error(`Unknown provider: ${provider}`);
     }
@@ -235,7 +224,7 @@ export const createUnifiedShipment = async (
  */
 export const trackUnifiedShipment = async (
   trackingNumber: string,
-  provider?: "courier-guy" | "fastway" | "shiplogic",
+  provider?: "courier-guy" | "fastway",
 ): Promise<UnifiedTrackingResponse> => {
   try {
     console.log("Tracking shipment:", { trackingNumber, provider });
@@ -250,8 +239,6 @@ export const trackUnifiedShipment = async (
         return await trackCourierGuyShipmentUnified(trackingNumber);
       case "fastway":
         return await trackFastwayShipmentUnified(trackingNumber);
-      case "shiplogic":
-        return await trackShipLogicShipmentUnified(trackingNumber);
       default:
         throw new Error(`Unknown provider: ${provider}`);
     }
@@ -321,51 +308,6 @@ async function getFastwayQuotes(
     features: ["Express delivery", "Parcel tracking", "Delivery confirmation"],
     terms: q.delivery_guarantee,
   }));
-}
-
-async function getShipLogicQuotes(
-  request: UnifiedQuoteRequest,
-): Promise<UnifiedQuote[]> {
-  const quote = await getShipLogicQuickQuote({
-    fromAddress: {
-      street: request.from.streetAddress,
-      city: request.from.city,
-      province: request.from.province,
-      postalCode: request.from.postalCode,
-    },
-    toAddress: {
-      street: request.to.streetAddress,
-      city: request.to.city,
-      province: request.to.province,
-      postalCode: request.to.postalCode,
-    },
-    weight: request.weight,
-    dimensions:
-      request.length && request.width && request.height
-        ? {
-            length: request.length,
-            width: request.width,
-            height: request.height,
-          }
-        : undefined,
-  });
-
-  return [
-    {
-      provider: "shiplogic",
-      provider_name: "ShipLogic",
-      service_code: quote.service_level_code,
-      service_name: quote.service_level_description,
-      cost: quote.rate_value,
-      transit_days: quote.transit_days,
-      estimated_delivery: quote.estimated_delivery_date,
-      features: [
-        "Professional logistics",
-        "Advanced tracking",
-        "Business delivery",
-      ],
-    },
-  ];
 }
 
 // Provider-specific shipment creation functions
@@ -452,13 +394,6 @@ async function createFastwayShipmentUnified(
   };
 }
 
-async function createShipLogicShipmentUnified(
-  request: UnifiedShipmentRequest,
-): Promise<UnifiedShipment> {
-  // Implementation for ShipLogic shipment creation
-  throw new Error("ShipLogic shipment creation not yet implemented");
-}
-
 // Provider-specific tracking functions
 async function trackCourierGuyShipmentUnified(
   trackingNumber: string,
@@ -505,40 +440,15 @@ async function trackFastwayShipmentUnified(
   };
 }
 
-async function trackShipLogicShipmentUnified(
-  trackingNumber: string,
-): Promise<UnifiedTrackingResponse> {
-  const tracking = await trackShipLogicShipment(trackingNumber);
-
-  return {
-    provider: "shiplogic",
-    tracking_number: trackingNumber,
-    status: mapShipLogicStatus(tracking.status),
-    current_location: tracking.current_location,
-    estimated_delivery: tracking.estimated_delivery_date,
-    actual_delivery: tracking.actual_delivery_date,
-    events:
-      tracking.tracking_events?.map((e) => ({
-        timestamp: e.timestamp,
-        status: e.status,
-        location: e.location,
-        description: e.description,
-      })) || [],
-    tracking_url: `https://www.shiplogic.com/track/${trackingNumber}`,
-  };
-}
-
 // Helper functions
 function detectProviderFromTrackingNumber(
   trackingNumber: string,
-): "courier-guy" | "fastway" | "shiplogic" {
+): "courier-guy" | "fastway" {
   // Basic heuristics to detect provider from tracking number format
   if (trackingNumber.startsWith("CG") || trackingNumber.length === 10) {
     return "courier-guy";
   } else if (trackingNumber.startsWith("FW") || trackingNumber.length === 12) {
     return "fastway";
-  } else if (trackingNumber.startsWith("SL") || trackingNumber.includes("-")) {
-    return "shiplogic";
   }
 
   return "courier-guy"; // Default fallback
@@ -556,27 +466,6 @@ function mapCourierGuyStatus(
       return "collected";
     case "in_transit":
     case "in_delivery":
-      return "in_transit";
-    case "out_for_delivery":
-      return "out_for_delivery";
-    case "delivered":
-      return "delivered";
-    case "failed":
-    case "exception":
-      return "failed";
-    default:
-      return "pending";
-  }
-}
-
-function mapShipLogicStatus(status: string): UnifiedTrackingResponse["status"] {
-  switch (status?.toLowerCase()) {
-    case "created":
-    case "booked":
-      return "pending";
-    case "collected":
-      return "collected";
-    case "in_transit":
       return "in_transit";
     case "out_for_delivery":
       return "out_for_delivery";

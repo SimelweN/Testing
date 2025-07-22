@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   Loader2,
   AlertTriangle,
+  X,
 } from "lucide-react";
 import { CheckoutAddress, DeliveryOption } from "@/types/checkout";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +23,7 @@ interface Step2DeliveryOptionsProps {
   sellerAddress: CheckoutAddress;
   onSelectDelivery: (option: DeliveryOption) => void;
   onBack: () => void;
+  onCancel?: () => void;
   selectedDelivery?: DeliveryOption;
 }
 
@@ -30,6 +32,7 @@ const Step2DeliveryOptions: React.FC<Step2DeliveryOptionsProps> = ({
   sellerAddress,
   onSelectDelivery,
   onBack,
+  onCancel,
   selectedDelivery,
 }) => {
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>([]);
@@ -372,11 +375,19 @@ const Step2DeliveryOptions: React.FC<Step2DeliveryOptionsProps> = ({
       )}
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between pt-6">
-        <Button variant="outline" onClick={onBack}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
+      <div className="flex justify-between items-center pt-6">
+        <div className="flex gap-3">
+          {onCancel && (
+            <Button variant="ghost" onClick={onCancel}>
+              <X className="w-4 h-4 mr-2" />
+              Cancel
+            </Button>
+          )}
+          <Button variant="outline" onClick={onBack}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+        </div>
 
         <Button
           onClick={() => selectedDelivery && onSelectDelivery(selectedDelivery)}

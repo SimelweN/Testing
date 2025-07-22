@@ -570,11 +570,6 @@ export default function APIFunctionTester() {
             courier: "Fastway",
             price: 72.00,
             delivery_time: "2-3 business days"
-          },
-          {
-            courier: "ShipLogic",
-            price: 58.75,
-            delivery_time: "1-3 business days"
           }
         ]
       },

@@ -97,17 +97,26 @@ interface Bank {
 const PaystackTransferManagement = () => {
   const [recipients, setRecipients] = useState<TransferRecipient[]>([]);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
-  const [banks, setBanks] = useState<Bank[]>([]);
+  const [banks, setBanks] = useState<Bank[]>([
+    { id: 1, name: "Access Bank", code: "044", longcode: "044150149", gateway: "test", pay_with_bank: true, active: true, country: "NG", currency: "NGN", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
+    { id: 2, name: "GTBank", code: "058", longcode: "058152036", gateway: "test", pay_with_bank: true, active: true, country: "NG", currency: "NGN", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
+    { id: 3, name: "First Bank", code: "011", longcode: "011151003", gateway: "test", pay_with_bank: true, active: true, country: "NG", currency: "NGN", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
+    { id: 4, name: "Zenith Bank", code: "057", longcode: "057150013", gateway: "test", pay_with_bank: true, active: true, country: "NG", currency: "NGN", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
+    { id: 5, name: "UBA", code: "033", longcode: "033153513", gateway: "test", pay_with_bank: true, active: true, country: "NG", currency: "NGN", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
+    { id: 6, name: "Fidelity Bank", code: "070", longcode: "070150003", gateway: "test", pay_with_bank: true, active: true, country: "NG", currency: "NGN", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
+    { id: 7, name: "FCMB", code: "214", longcode: "214150018", gateway: "test", pay_with_bank: true, active: true, country: "NG", currency: "NGN", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" }
+  ]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [transferring, setTransferring] = useState(false);
+  const [banksError, setBanksError] = useState<string | null>(null);
 
   // Create recipient form state
   const [recipientForm, setRecipientForm] = useState({
     name: "",
     account_number: "",
     bank_code: "",
-    currency: "ZAR",
+    currency: "NGN",
     type: "nuban",
   });
 
@@ -200,6 +209,7 @@ const PaystackTransferManagement = () => {
   };
 
   const loadBanks = async () => {
+    setBanksError(null);
     try {
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paystack-transfer-management?action=banks&country=south-africa&currency=ZAR`,
@@ -216,16 +226,26 @@ const PaystackTransferManagement = () => {
         const result = await response.json();
         if (result.success && Array.isArray(result.data)) {
           setBanks(result.data);
+          if (result.data.length === 0) {
+            setBanksError("No banks available for the selected country/currency");
+          }
         } else {
           console.warn("Unexpected banks response format:", result);
           setBanks([]);
+          setBanksError(result.details?.message || "Failed to load banks data");
         }
       } else {
         const errorResult = await response.json().catch(() => null);
         console.error("Failed to load banks:", errorResult);
+        setBanksError(
+          errorResult?.error === "PAYSTACK_NOT_CONFIGURED"
+            ? "⚠️ Paystack integration is not configured. The PAYSTACK_SECRET_KEY environment variable needs to be set in the Supabase Edge Functions. Please contact your administrator to configure this."
+            : errorResult?.details?.message || "Failed to load banks. Please try again."
+        );
       }
     } catch (error) {
       console.error("Error loading banks:", error);
+      setBanksError("Network error loading banks. Please check your connection.");
     }
   };
 
@@ -309,7 +329,7 @@ const PaystackTransferManagement = () => {
           name: "",
           account_number: "",
           bank_code: "",
-          currency: "ZAR",
+          currency: "NGN",
           type: "nuban",
         });
         setVerificationResult(null);
@@ -355,9 +375,10 @@ const PaystackTransferManagement = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            ...transferForm,
-            reference,
+            recipient: transferForm.recipient_code,
             amount: Math.round(transferForm.amount * 100), // Convert to kobo
+            reference,
+            reason: transferForm.reason,
           }),
         },
       );
@@ -726,9 +747,10 @@ const PaystackTransferManagement = () => {
                         bank_code: value,
                       }))
                     }
+                    disabled={loading || banks.length === 0}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select bank" />
+                      <SelectValue placeholder={loading ? "Loading banks..." : banks.length === 0 ? "No banks available" : "Select bank"} />
                     </SelectTrigger>
                     <SelectContent>
                       {banks.map((bank) => (
@@ -738,6 +760,27 @@ const PaystackTransferManagement = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                  {banksError && (
+                    <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                        <div className="text-sm text-red-700">
+                          <p className="font-medium mb-1">Banks not available</p>
+                          <p>{banksError}</p>
+                          {banksError.includes("PAYSTACK_SECRET_KEY") && (
+                            <div className="mt-2 text-xs text-red-600">
+                              <p><strong>For developers:</strong> Set the PAYSTACK_SECRET_KEY in your Supabase project settings under Edge Functions environment variables.</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {banks.length === 0 && !loading && !banksError && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      No banks loaded. Please refresh the page or contact support.
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="currency">Currency</Label>
@@ -751,10 +794,10 @@ const PaystackTransferManagement = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="NGN">NGN (Nigerian Naira)</SelectItem>
                       <SelectItem value="ZAR">
                         ZAR (South African Rand)
                       </SelectItem>
-                      <SelectItem value="NGN">NGN (Nigerian Naira)</SelectItem>
                       <SelectItem value="USD">USD (US Dollar)</SelectItem>
                     </SelectContent>
                   </Select>
@@ -880,7 +923,7 @@ const PaystackTransferManagement = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="transfer-amount">Amount (ZAR)</Label>
+                  <Label htmlFor="transfer-amount">Amount (NGN)</Label>
                   <Input
                     id="transfer-amount"
                     type="number"
@@ -936,7 +979,7 @@ const PaystackTransferManagement = () => {
                     <div className="flex justify-between">
                       <span>Amount:</span>
                       <span className="font-medium">
-                        R{transferForm.amount.toFixed(2)}
+                        ₦{transferForm.amount.toFixed(2)}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -953,7 +996,7 @@ const PaystackTransferManagement = () => {
                     <div className="flex justify-between">
                       <span>Processing Fee:</span>
                       <span className="font-medium">
-                        ~R{(transferForm.amount * 0.005).toFixed(2)}
+                        ~₦{(transferForm.amount * 0.005).toFixed(2)}
                       </span>
                     </div>
                   </div>

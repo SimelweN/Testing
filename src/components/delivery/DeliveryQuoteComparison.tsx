@@ -74,8 +74,6 @@ const DeliveryQuoteComparison: React.FC<DeliveryQuoteComparisonProps> = ({
         return "🚚";
       case "fastway":
         return "📦";
-      case "shiplogic":
-        return "🏢";
       default:
         return "🚛";
     }

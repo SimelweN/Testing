@@ -5,13 +5,6 @@ import {
   CourierGuyShipmentData,
   CourierGuyTrackingResponse,
 } from "@/services/courierGuyService";
-import {
-  getShipLogicQuote,
-  trackShipLogicShipment,
-  ShipLogicQuoteRequest,
-  ShipLogicQuoteResponse,
-  ShipLogicTrackingResponse,
-} from "@/services/shipLogicService";
 
 export interface DeliveryTestResult {
   service: string;
@@ -24,7 +17,6 @@ export interface DeliveryTestResult {
 
 export interface DeliveryTestSuite {
   courierGuy: DeliveryTestResult[];
-  shipLogic: DeliveryTestResult[];
   summary: {
     totalTests: number;
     passed: number;
@@ -47,16 +39,14 @@ export class DeliveryApiTestService {
     );
 
     const courierGuyTests = await this.testCourierGuyService();
-    const shipLogicTests = await this.testShipLogicService();
 
-    const allTests = [...courierGuyTests, ...shipLogicTests];
+    const allTests = [...courierGuyTests];
     const passed = allTests.filter((t) => t.success).length;
     const failed = allTests.filter((t) => !t.success).length;
     const duration = Date.now() - startTime;
 
     const results: DeliveryTestSuite = {
       courierGuy: courierGuyTests,
-      shipLogic: shipLogicTests,
       summary: {
         totalTests: allTests.length,
         passed,
@@ -145,76 +135,6 @@ export class DeliveryApiTestService {
             : "TEST123456789"; // Fallback test number
 
         return await trackCourierGuyShipment(trackingNumber);
-      },
-    );
-    results.push(trackingResult);
-
-    return results;
-  }
-
-  /**
-   * Test ShipLogic service endpoints
-   */
-  static async testShipLogicService(): Promise<DeliveryTestResult[]> {
-    const results: DeliveryTestResult[] = [];
-
-    // Test 1: Get shipping quote
-    const quoteResult = await this.runTest(
-      "ShipLogic",
-      "Get Quote",
-      async () => {
-        const testQuoteRequest: ShipLogicQuoteRequest = {
-          collection: {
-            company: "Test Company",
-            contact: "Test Sender",
-            email: "test@example.com",
-            phone: "0123456789",
-            address: {
-              streetAddress: "123 Test Street",
-              suburb: "Test Suburb",
-              city: "Cape Town",
-              province: "Western Cape",
-              postalCode: "8001",
-            },
-          },
-          delivery: {
-            company: "Delivery Company",
-            contact: "Test Receiver",
-            email: "receiver@example.com",
-            phone: "0987654321",
-            address: {
-              streetAddress: "456 Delivery Road",
-              suburb: "Delivery Suburb",
-              city: "Johannesburg",
-              province: "Gauteng",
-              postalCode: "2000",
-            },
-          },
-          parcels: [
-            {
-              description: "Test Textbook",
-              value: 150.0,
-              weight: 0.5,
-              length: 25,
-              width: 20,
-              height: 3,
-            },
-          ],
-        };
-
-        return await getShipLogicQuote(testQuoteRequest);
-      },
-    );
-    results.push(quoteResult);
-
-    // Test 2: Track shipment (use test tracking number)
-    const trackingResult = await this.runTest(
-      "ShipLogic",
-      "Track Shipment",
-      async () => {
-        // Use a test tracking number
-        const trackingNumber = "TEST-SL-123456789";
-        return await trackShipLogicShipment(trackingNumber);
       },
     );
     results.push(trackingResult);
@@ -356,15 +276,6 @@ export class DeliveryApiTestService {
     // Courier Guy results
     report += "--- COURIER GUY TESTS ---\n";
     results.courierGuy.forEach((test) => {
-      const status = test.success ? "✅ PASS" : "❌ FAIL";
-      report += `${status} ${test.test} (${test.duration}ms)\n`;
-      if (!test.success && test.error) {
-        report += `  Error: ${test.error}\n`;
-      }
-    });
-
-    report += "\n--- SHIPLOGIC TESTS ---\n";
-    results.shipLogic.forEach((test) => {
       const status = test.success ? "✅ PASS" : "❌ FAIL";
       report += `${status} ${test.test} (${test.duration}ms)\n`;
       if (!test.success && test.error) {
