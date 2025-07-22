@@ -36,6 +36,18 @@ const PaystackSystemTestComponent: React.FC = () => {
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [endTime, setEndTime] = useState<Date | null>(null);
 
+  // Subaccount creation states
+  const [banks, setBanks] = useState<any[]>([]);
+  const [newSubaccount, setNewSubaccount] = useState({
+    business_name: "",
+    email: "",
+    bank_code: "",
+    account_number: "",
+    percentage_charge: 2.5,
+    description: ""
+  });
+  const [creatingSubaccount, setCreatingSubaccount] = useState(false);
+
   const runSystemTest = async () => {
     setIsRunning(true);
     setResults([]);
