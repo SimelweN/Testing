@@ -499,17 +499,41 @@ export const PaystackTransferTester: React.FC = () => {
       </div>
 
       <Tabs defaultValue="payment" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="payment">Payment Verification</TabsTrigger>
-          <TabsTrigger value="banks">Banks</TabsTrigger>
-          <TabsTrigger value="verify">Verify Account</TabsTrigger>
-          <TabsTrigger value="recipients">Recipients</TabsTrigger>
-          <TabsTrigger value="transfers">Transfers</TabsTrigger>
-          <TabsTrigger value="refunds">Refunds</TabsTrigger>
-          <TabsTrigger value="subaccounts">Create Subaccount</TabsTrigger>
-          <TabsTrigger value="payouts">Test Payouts</TabsTrigger>
-          <TabsTrigger value="real-data">Real Data</TabsTrigger>
-        </TabsList>
+        {/* Desktop Tabs */}
+        <div className="hidden lg:block">
+          <TabsList className="grid w-full grid-cols-5 h-auto">
+            <TabsTrigger value="payment" className="text-xs p-2">Payment</TabsTrigger>
+            <TabsTrigger value="banks" className="text-xs p-2">Banks</TabsTrigger>
+            <TabsTrigger value="verify" className="text-xs p-2">Verify</TabsTrigger>
+            <TabsTrigger value="recipients" className="text-xs p-2">Recipients</TabsTrigger>
+            <TabsTrigger value="transfers" className="text-xs p-2">Transfers</TabsTrigger>
+          </TabsList>
+          <TabsList className="grid w-full grid-cols-4 h-auto mt-2">
+            <TabsTrigger value="refunds" className="text-xs p-2">Refunds</TabsTrigger>
+            <TabsTrigger value="subaccounts" className="text-xs p-2">Subaccounts</TabsTrigger>
+            <TabsTrigger value="payouts" className="text-xs p-2">Payouts</TabsTrigger>
+            <TabsTrigger value="real-data" className="text-xs p-2">Real Data</TabsTrigger>
+          </TabsList>
+        </div>
+
+        {/* Mobile/Tablet Tabs */}
+        <div className="lg:hidden">
+          <TabsList className="grid w-full grid-cols-3 h-auto">
+            <TabsTrigger value="payment" className="text-xs p-2">Payment</TabsTrigger>
+            <TabsTrigger value="banks" className="text-xs p-2">Banks</TabsTrigger>
+            <TabsTrigger value="verify" className="text-xs p-2">Verify</TabsTrigger>
+          </TabsList>
+          <TabsList className="grid w-full grid-cols-3 h-auto mt-2">
+            <TabsTrigger value="recipients" className="text-xs p-2">Recipients</TabsTrigger>
+            <TabsTrigger value="transfers" className="text-xs p-2">Transfers</TabsTrigger>
+            <TabsTrigger value="refunds" className="text-xs p-2">Refunds</TabsTrigger>
+          </TabsList>
+          <TabsList className="grid w-full grid-cols-3 h-auto mt-2">
+            <TabsTrigger value="subaccounts" className="text-xs p-2">Subaccounts</TabsTrigger>
+            <TabsTrigger value="payouts" className="text-xs p-2">Payouts</TabsTrigger>
+            <TabsTrigger value="real-data" className="text-xs p-2">Real Data</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="payment" className="space-y-4">
           <Card>
@@ -783,37 +807,44 @@ export const PaystackTransferTester: React.FC = () => {
         <TabsContent value="subaccounts" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Create New Subaccount</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Create New Subaccount
+              </CardTitle>
               <CardDescription>
                 Create a new Paystack subaccount for seller payouts. This will be linked to a seller's profile.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="business-name">Business Name *</Label>
+                  <Label htmlFor="business-name" className="text-sm font-medium">Business Name *</Label>
                   <Input
                     id="business-name"
                     value={newSubaccount.business_name}
                     onChange={(e) => setNewSubaccount(prev => ({ ...prev, business_name: e.target.value }))}
                     placeholder="John's Textbook Store"
+                    className="w-full"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="subaccount-email">Email *</Label>
+                  <Label htmlFor="subaccount-email" className="text-sm font-medium">Email *</Label>
                   <Input
                     id="subaccount-email"
                     type="email"
                     value={newSubaccount.email}
                     onChange={(e) => setNewSubaccount(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="seller@example.com"
+                    className="w-full"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="subaccount-bank">Bank *</Label>
+                  <Label htmlFor="subaccount-bank" className="text-sm font-medium">Bank *</Label>
                   <Select onValueChange={(value) => {
                     const selectedBank = banks.find(b => b.code === value);
                     setNewSubaccount(prev => ({
@@ -844,19 +875,20 @@ export const PaystackTransferTester: React.FC = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="subaccount-account-number">Account Number *</Label>
+                  <Label htmlFor="subaccount-account-number" className="text-sm font-medium">Account Number *</Label>
                   <Input
                     id="subaccount-account-number"
                     value={newSubaccount.account_number}
                     onChange={(e) => setNewSubaccount(prev => ({ ...prev, account_number: e.target.value }))}
                     placeholder="0123456789"
+                    className="w-full"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="percentage-charge">Percentage Charge (%)</Label>
+                  <Label htmlFor="percentage-charge" className="text-sm font-medium">Percentage Charge (%)</Label>
                   <Input
                     id="percentage-charge"
                     type="number"
@@ -864,27 +896,43 @@ export const PaystackTransferTester: React.FC = () => {
                     value={newSubaccount.percentage_charge}
                     onChange={(e) => setNewSubaccount(prev => ({ ...prev, percentage_charge: parseFloat(e.target.value) || 2.5 }))}
                     placeholder="2.5"
+                    className="w-full"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="subaccount-description">Description</Label>
+                  <Label htmlFor="subaccount-description" className="text-sm font-medium">Description</Label>
                   <Input
                     id="subaccount-description"
                     value={newSubaccount.description}
                     onChange={(e) => setNewSubaccount(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Subaccount for seller payouts"
+                    className="w-full"
                   />
                 </div>
               </div>
 
-              <Button onClick={handleCreateSubaccount} disabled={creatingSubaccount} className="w-full">
-                {creatingSubaccount ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                Create Subaccount
-              </Button>
+              <div className="pt-4 border-t">
+                <Button onClick={handleCreateSubaccount} disabled={creatingSubaccount} className="w-full md:w-auto">
+                  {creatingSubaccount ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : (
+                    <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  )}
+                  Create Subaccount
+                </Button>
+              </div>
 
               {banks.length === 0 && (
-                <div className="text-sm text-muted-foreground">
-                  💡 No banks loaded. The banks will be fetched automatically when the component loads.
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 text-blue-700">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-sm font-medium">Banks Loading</span>
+                  </div>
+                  <p className="text-sm text-blue-600 mt-1">
+                    Bank list will be fetched automatically when the component loads.
+                  </p>
                 </div>
               )}
             </CardContent>
