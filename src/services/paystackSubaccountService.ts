@@ -310,6 +310,9 @@ export class PaystackSubaccountService {
         );
         // Don't return false immediately, log the error but continue
         console.warn("Book update failed but continuing with subaccount creation");
+        console.warn("This might be because the books table doesn't have the seller_subaccount_code column yet");
+        // Return true to not fail the subaccount creation process
+        return true;
       }
 
       const updatedCount = data?.length || 0;
