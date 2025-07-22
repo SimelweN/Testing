@@ -507,7 +507,7 @@ serve(async (req) => {
     await supabase.from("mail_queue").insert({
       user_id: finalBuyerId,
       email: finalBuyerEmail,
-      subject: "���� Order Confirmed - Thank You!",
+      subject: "🎉 Order Confirmed - Thank You!",
       body: buyerHtml,
       status: "pending",
       created_at: new Date().toISOString()
@@ -655,13 +655,11 @@ serve(async (req) => {
         order: {
           id: order.id,
           seller_id: order.seller_id,
-          seller_name: order.seller_name,
           total_amount: order.total_amount,
           item_count: order.items.length,
           commit_deadline: order.commit_deadline,
           status: order.status,
           payment_reference: finalPaymentRef,
-          delivery_method: order.delivery_method,
         },
         // Legacy compatibility fields
         orderId: order.id,
@@ -678,12 +676,10 @@ serve(async (req) => {
       orders: createdOrders.map((order) => ({
         id: order.id,
         seller_id: order.seller_id,
-        seller_name: order.seller_name,
         total_amount: order.total_amount,
         item_count: order.items.length,
         commit_deadline: order.commit_deadline,
         status: order.status,
-        delivery_method: order.delivery_method,
       })),
       total_orders: createdOrders.length,
       total_amount: createdOrders.reduce((sum, order) => sum + order.total_amount, 0),
