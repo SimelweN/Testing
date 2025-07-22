@@ -398,6 +398,13 @@ const AdminDashboard = () => {
       description: "Check environment variables",
     },
     {
+      value: "transfer-receipt",
+      label: "Transfer Receipts",
+      icon: CreditCard,
+      color: "text-green-600",
+      description: "Test transfer receipt generation",
+    },
+    {
       value: "emails",
       label: "Emails",
       icon: Mail,
