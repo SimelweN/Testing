@@ -274,14 +274,12 @@ serve(async (req) => {
 
     const bookIds = finalItems.map(item => item.book_id);
 
-    // Mark books as sold atomically
+    // Mark books as sold atomically (only using existing fields)
     const { error: booksUpdateError } = await supabase
       .from("books")
       .update({
         sold: true,
-        updated_at: new Date().toISOString(),
-        sold_at: new Date().toISOString(),
-        buyer_id: finalBuyerId
+        updated_at: new Date().toISOString()
       })
       .in("id", bookIds)
       .eq("sold", false);
@@ -311,7 +309,7 @@ serve(async (req) => {
       const totalAmount = sellerItems.reduce((sum, item) => sum + (item.price || 0), 0);
       const commitDeadline = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
-      // Prepare order data with all fields for compatibility
+      // Prepare order data with only existing database fields
       const orderData = {
         buyer_id: finalBuyerId,
         buyer_email: finalBuyerEmail,
@@ -323,35 +321,7 @@ serve(async (req) => {
         payment_status: "paid",
         payment_reference: finalPaymentRef,
         shipping_address: finalShippingAddress,
-        commit_deadline: commitDeadline.toISOString(),
-        paid_at: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        
-        // Additional fields for compatibility
-        buyer_name: buyer.name || buyer.full_name || "",
-        seller_name: seller.name || seller.full_name || "",
-        seller_email: seller.email || "",
-        expires_at: commitDeadline.toISOString(),
-        paystack_ref: finalPaymentRef,
-        delivery_address: finalShippingAddress,
-        
-        // Add delivery information if available (from legacy format)
-        delivery_method: deliveryInfo?.service_name || requestData.deliveryOption || "Standard Delivery",
-        delivery_price: deliveryInfo?.price || 0,
-        delivery_courier: deliveryInfo?.courier || "",
-        delivery_estimated_days: deliveryInfo?.estimated_days || 3,
-        
-        // Enhanced metadata
-        metadata: {
-          item_count: sellerItems.length,
-          created_at: new Date().toISOString(),
-          created_from: requestData.bookId ? "legacy_checkout" : "cart",
-          payment_data: requestData.payment_data || null,
-          delivery_data: deliveryInfo,
-          request_type: requestData.bookId ? "single_book" : "multi_item",
-          user_agent: req.headers.get("user-agent") || "",
-          ip_address: req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || ""
-        }
+        commit_deadline: commitDeadline.toISOString()
       };
 
       const { data: order, error: orderError } = await supabase
@@ -537,7 +507,7 @@ serve(async (req) => {
     await supabase.from("mail_queue").insert({
       user_id: finalBuyerId,
       email: finalBuyerEmail,
-      subject: "🎉 Order Confirmed - Thank You!",
+      subject: "���� Order Confirmed - Thank You!",
       body: buyerHtml,
       status: "pending",
       created_at: new Date().toISOString()
