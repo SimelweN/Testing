@@ -127,6 +127,7 @@ function App() {
                         element={<ResetPassword />}
                       />
                       <Route path="/verify/*" element={<Verify />} />
+                      <Route path="/auth/callback" element={<AuthCallback />} />
 
                       {/* Protected User Routes */}
                       <Route
