@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import SystemHealthChecker from "./SystemHealthChecker";
 import { PaystackTransferTester } from "./PaystackTransferTester";
+import SubaccountDebugTest from "../debug/SubaccountDebugTest";
 
 interface TestResult {
   success: boolean;
