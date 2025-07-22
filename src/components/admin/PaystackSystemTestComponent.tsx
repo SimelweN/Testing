@@ -48,6 +48,58 @@ const PaystackSystemTestComponent: React.FC = () => {
   });
   const [creatingSubaccount, setCreatingSubaccount] = useState(false);
 
+  useEffect(() => {
+    const fetchBanks = async () => {
+      try {
+        const banksData = await paystackTransferService.getBanks();
+        setBanks(banksData);
+      } catch (error) {
+        console.error('Failed to fetch banks:', error);
+      }
+    };
+    fetchBanks();
+  }, []);
+
+  const handleCreateSubaccount = async () => {
+    if (!newSubaccount.business_name || !newSubaccount.email || !newSubaccount.bank_code || !newSubaccount.account_number) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    setCreatingSubaccount(true);
+    try {
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/create-paystack-subaccount`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify(newSubaccount)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success('Subaccount created successfully!');
+        // Reset form
+        setNewSubaccount({
+          business_name: "",
+          email: "",
+          bank_code: "",
+          account_number: "",
+          percentage_charge: 2.5,
+          description: ""
+        });
+      } else {
+        toast.error(`Failed to create subaccount: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      toast.error(`Subaccount creation failed: ${error.message}`);
+    } finally {
+      setCreatingSubaccount(false);
+    }
+  };
+
   const runSystemTest = async () => {
     setIsRunning(true);
     setResults([]);
