@@ -791,12 +791,139 @@ export const PaystackTransferTester: React.FC = () => {
       {results && (
         <Card>
           <CardHeader>
-            <CardTitle>Test Results</CardTitle>
+            <CardTitle>Basic Test Results</CardTitle>
           </CardHeader>
           <CardContent>
             <pre className="bg-muted p-4 rounded-lg overflow-auto text-sm">
               {JSON.stringify(results, null, 2)}
             </pre>
+          </CardContent>
+        </Card>
+      )}
+
+      {comprehensiveResults && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              Comprehensive Test Results
+              <Badge variant={comprehensiveResults.summary?.success_rate >= 80 ? "default" : "destructive"}>
+                {comprehensiveResults.summary?.success_rate?.toFixed(1)}% Success Rate
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Summary */}
+            {comprehensiveResults.summary && (
+              <div className="grid grid-cols-4 gap-4 p-4 bg-muted rounded-lg">
+                <div className="text-center">
+                  <div className="text-2xl font-bold">{comprehensiveResults.summary.total_tests}</div>
+                  <div className="text-sm text-muted-foreground">Total Tests</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{comprehensiveResults.summary.passed}</div>
+                  <div className="text-sm text-muted-foreground">Passed</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-600">{comprehensiveResults.summary.failed}</div>
+                  <div className="text-sm text-muted-foreground">Failed</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold">{comprehensiveResults.summary.success_rate.toFixed(1)}%</div>
+                  <div className="text-sm text-muted-foreground">Success Rate</div>
+                </div>
+              </div>
+            )}
+
+            {/* Test Categories */}
+            <Tabs defaultValue="recipients" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="recipients">Recipients</TabsTrigger>
+                <TabsTrigger value="transfers">Transfers</TabsTrigger>
+                <TabsTrigger value="refunds">Refunds</TabsTrigger>
+                <TabsTrigger value="data">Test Data</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="recipients" className="space-y-2">
+                <h3 className="font-semibold">Recipient Creation Tests</h3>
+                {comprehensiveResults.recipientTests?.map((test: any, index: number) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <div className="font-medium">{test.recipient}</div>
+                      {test.error && <div className="text-sm text-red-600">{test.error}</div>}
+                    </div>
+                    {test.success ? (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-500" />
+                    )}
+                  </div>
+                ))}
+              </TabsContent>
+
+              <TabsContent value="transfers" className="space-y-2">
+                <h3 className="font-semibold">Transfer Tests</h3>
+                {comprehensiveResults.transferTests?.map((test: any, index: number) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <div className="font-medium">{test.scenario}</div>
+                      <div className="text-sm text-muted-foreground">
+                        Expected: {test.expected} | Actual: {test.success ? 'success' : 'failure'}
+                      </div>
+                      {test.error && <div className="text-sm text-red-600">{test.error}</div>}
+                    </div>
+                    {test.passed ? (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-500" />
+                    )}
+                  </div>
+                ))}
+              </TabsContent>
+
+              <TabsContent value="refunds" className="space-y-2">
+                <h3 className="font-semibold">Refund Tests</h3>
+                {comprehensiveResults.refundTests?.map((test: any, index: number) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <div className="font-medium">{test.scenario}</div>
+                      <div className="text-sm text-muted-foreground">
+                        Amount: R{((test.refund_amount || test.order_amount * 100) / 100).toFixed(2)}
+                      </div>
+                      {test.error && <div className="text-sm text-red-600">{test.error}</div>}
+                    </div>
+                    {test.success ? (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-500" />
+                    )}
+                  </div>
+                ))}
+              </TabsContent>
+
+              <TabsContent value="data" className="space-y-2">
+                <h3 className="font-semibold">Test Data Overview</h3>
+                {comprehensiveResults.testData && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 border rounded-lg">
+                      <div className="font-medium">Real Subaccounts</div>
+                      <div className="text-2xl">{comprehensiveResults.testData.real_subaccounts?.length || 0}</div>
+                    </div>
+                    <div className="p-3 border rounded-lg">
+                      <div className="font-medium">Real Orders</div>
+                      <div className="text-2xl">{comprehensiveResults.testData.real_orders?.length || 0}</div>
+                    </div>
+                    <div className="p-3 border rounded-lg">
+                      <div className="font-medium">Real Transactions</div>
+                      <div className="text-2xl">{comprehensiveResults.testData.real_transactions?.length || 0}</div>
+                    </div>
+                    <div className="p-3 border rounded-lg">
+                      <div className="font-medium">Test Recipients</div>
+                      <div className="text-2xl">{comprehensiveResults.testData.test_recipients?.length || 0}</div>
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       )}
