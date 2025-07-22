@@ -467,10 +467,9 @@ serve(async (req) => {
         (order) => `
     <div class="order-item">
       <h4>Order #${order.id}</h4>
-      <p><strong>Seller:</strong> ${order.seller_name}</p>
+      <p><strong>Seller ID:</strong> ${order.seller_id}</p>
       <p><strong>Items:</strong> ${order.items.length} book(s)</p>
       <p><strong>Amount:</strong> R${order.total_amount.toFixed(2)}</p>
-      <p><strong>Delivery:</strong> ${order.delivery_method}</p>
       <p><strong>Commit Deadline:</strong> ${new Date(order.commit_deadline).toLocaleString()}</p>
     </div>
     `,
