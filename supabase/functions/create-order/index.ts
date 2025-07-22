@@ -73,6 +73,9 @@ serve(async (req) => {
 
     const requestData = bodyResult.data!;
 
+    console.log("📋 Processing request with fields:", Object.keys(requestData));
+    console.log("📋 Full request data:", JSON.stringify(requestData, null, 2));
+
     // Handle both new cart-based and legacy single-book request formats
     let finalBuyerId: string;
     let finalBuyerEmail: string;
