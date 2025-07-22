@@ -979,7 +979,7 @@ const PaystackTransferManagement = () => {
                     <div className="flex justify-between">
                       <span>Amount:</span>
                       <span className="font-medium">
-                        R{transferForm.amount.toFixed(2)}
+                        ₦{transferForm.amount.toFixed(2)}
                       </span>
                     </div>
                     <div className="flex justify-between">
