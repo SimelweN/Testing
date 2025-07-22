@@ -17,6 +17,9 @@ export const PaystackTransferTester: React.FC = () => {
   const [banks, setBanks] = useState<Bank[]>([]);
   const [recipients, setRecipients] = useState<any[]>([]);
   const [transfers, setTransfers] = useState<any[]>([]);
+  const [realSubaccounts, setRealSubaccounts] = useState<any[]>([]);
+  const [realOrders, setRealOrders] = useState<any[]>([]);
+  const [realPaymentTransactions, setRealPaymentTransactions] = useState<any[]>([]);
 
   // Form states
   const [verifyForm, setVerifyForm] = useState({
@@ -41,9 +44,70 @@ export const PaystackTransferTester: React.FC = () => {
 
   const [paymentReference, setPaymentReference] = useState(`test_ref_${Date.now()}`);
 
+  // Refund testing states
+  const [refundForm, setRefundForm] = useState({
+    transaction_reference: "",
+    order_id: "",
+    amount: "",
+    reason: "Admin test refund"
+  });
+
+  const [refundTesting, setRefundTesting] = useState(false);
+  const [refundResult, setRefundResult] = useState<any>(null);
+
+  const loadRealData = async () => {
+    try {
+      // Get real subaccounts from database
+      const { data: subaccounts } = await supabase
+        .from('banking_subaccounts')
+        .select('*')
+        .eq('is_active', true)
+        .limit(10);
+
+      if (subaccounts) {
+        setRealSubaccounts(subaccounts);
+        console.log(`Found ${subaccounts.length} real subaccounts`);
+      }
+
+      // Get real orders with payment data
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('*')
+        .not('payment_reference', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (orders) {
+        setRealOrders(orders);
+        console.log(`Found ${orders.length} real orders`);
+      }
+
+      // Get real payment transactions
+      const { data: transactions } = await supabase
+        .from('payment_transactions')
+        .select('*')
+        .eq('status', 'success')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (transactions) {
+        setRealPaymentTransactions(transactions);
+        console.log(`Found ${transactions.length} real payment transactions`);
+      }
+
+      toast.success('Real data loaded successfully');
+    } catch (error) {
+      console.error('Error loading real data:', error);
+      toast.error('Failed to load real data');
+    }
+  };
+
   const handleRunAllTests = async () => {
     setLoading(true);
     try {
+      // First load real data
+      await loadRealData();
+
       const testResults = await paystackTransferService.testFunctions();
       setResults(testResults);
       toast.success("All tests completed successfully!");
@@ -106,6 +170,77 @@ export const PaystackTransferTester: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleTestRefund = async () => {
+    if (!refundForm.transaction_reference && !refundForm.order_id) {
+      toast.error("Please provide either transaction reference or order ID");
+      return;
+    }
+
+    setRefundTesting(true);
+    setRefundResult(null);
+
+    try {
+      // Call refund management function
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/paystack-refund-management`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({
+          action: 'initiate_refund',
+          transaction_reference: refundForm.transaction_reference,
+          order_id: refundForm.order_id,
+          refund_amount: refundForm.amount ? parseFloat(refundForm.amount) * 100 : undefined, // Convert to kobo
+          refund_reason: refundForm.reason,
+          admin_initiated: true
+        }),
+      });
+
+      const result = await response.json();
+      setRefundResult(result);
+
+      if (result.success) {
+        toast.success('Refund processed successfully');
+      } else {
+        toast.error(`Refund failed: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      const errorResult = {
+        success: false,
+        error: 'REFUND_TEST_ERROR',
+        message: error.message
+      };
+      setRefundResult(errorResult);
+      toast.error(`Refund test failed: ${error.message}`);
+    } finally {
+      setRefundTesting(false);
+    }
+  };
+
+  const handleTestRealTransfer = async () => {
+    if (realSubaccounts.length === 0) {
+      await loadRealData();
+    }
+
+    if (realSubaccounts.length === 0) {
+      toast.error('No real subaccounts found. Please create some subaccounts first.');
+      return;
+    }
+
+    const testSubaccount = realSubaccounts[0];
+
+    // Use real banking details for transfer test
+    setTransferForm({
+      amount: 10, // R10 test amount
+      reference: `transfer_test_${Date.now()}`,
+      recipient: testSubaccount.recipient_code || 'test_recipient',
+      reason: `Test transfer to ${testSubaccount.business_name || 'Test Business'}`
+    });
+
+    toast.success(`Using real subaccount: ${testSubaccount.business_name}`);
   };
 
   const handleGetRecipients = async () => {
@@ -197,6 +332,8 @@ export const PaystackTransferTester: React.FC = () => {
           <TabsTrigger value="verify">Verify Account</TabsTrigger>
           <TabsTrigger value="recipients">Recipients</TabsTrigger>
           <TabsTrigger value="transfers">Transfers</TabsTrigger>
+          <TabsTrigger value="refunds">Refunds</TabsTrigger>
+          <TabsTrigger value="real-data">Real Data</TabsTrigger>
         </TabsList>
 
         <TabsContent value="payment" className="space-y-4">
@@ -370,6 +507,233 @@ export const PaystackTransferTester: React.FC = () => {
               ) : (
                 <p className="text-muted-foreground">No transfers found.</p>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="refunds" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Refund Testing</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="refund-reference">Transaction Reference</Label>
+                  <Input
+                    id="refund-reference"
+                    value={refundForm.transaction_reference}
+                    onChange={(e) => setRefundForm(prev => ({ ...prev, transaction_reference: e.target.value }))}
+                    placeholder="TXN_123456789"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="refund-order-id">Order ID (alternative)</Label>
+                  <Select onValueChange={(value) => setRefundForm(prev => ({ ...prev, order_id: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select real order" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {realOrders.map((order) => (
+                        <SelectItem key={order.id} value={order.id}>
+                          {order.id} - R{order.total_amount} ({order.status})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="refund-amount">Amount (Optional - leave blank for full refund)</Label>
+                  <Input
+                    id="refund-amount"
+                    type="number"
+                    step="0.01"
+                    value={refundForm.amount}
+                    onChange={(e) => setRefundForm(prev => ({ ...prev, amount: e.target.value }))}
+                    placeholder="Leave blank for full refund"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="refund-reason">Reason</Label>
+                  <Input
+                    id="refund-reason"
+                    value={refundForm.reason}
+                    onChange={(e) => setRefundForm(prev => ({ ...prev, reason: e.target.value }))}
+                    placeholder="Reason for refund"
+                  />
+                </div>
+              </div>
+              <div className="flex space-x-2">
+                <Button onClick={handleTestRefund} disabled={refundTesting}>
+                  {refundTesting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Test Refund
+                </Button>
+                <Button variant="outline" onClick={() => {
+                  if (realPaymentTransactions.length > 0) {
+                    setRefundForm(prev => ({
+                      ...prev,
+                      transaction_reference: realPaymentTransactions[0].reference
+                    }));
+                    toast.success('Used real transaction reference');
+                  } else {
+                    toast.error('No real transactions found');
+                  }
+                }}>
+                  Use Real Transaction
+                </Button>
+              </div>
+              {refundResult && (
+                <div className="mt-4 p-4 border rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    {refundResult.success ? (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-500" />
+                    )}
+                    <span className={refundResult.success ? "text-green-700" : "text-red-700"}>
+                      {refundResult.success ? "Refund Successful" : "Refund Failed"}
+                    </span>
+                  </div>
+                  <pre className="text-sm bg-muted p-2 rounded overflow-auto">
+                    {JSON.stringify(refundResult, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="real-data" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                Real Database Data
+                <Button onClick={loadRealData} disabled={loading} size="sm">
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Refresh Data
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <h3 className="font-semibold mb-2">Real Subaccounts ({realSubaccounts.length})</h3>
+                {realSubaccounts.length > 0 ? (
+                  <div className="space-y-2">
+                    {realSubaccounts.map((subaccount) => (
+                      <div key={subaccount.id} className="p-3 border rounded-lg">
+                        <div className="font-medium">{subaccount.business_name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          Code: {subaccount.subaccount_code}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setTransferForm(prev => ({
+                                ...prev,
+                                recipient: subaccount.subaccount_code,
+                                reason: `Transfer to ${subaccount.business_name}`
+                              }));
+                              toast.success('Subaccount selected for transfer');
+                            }}
+                            className="ml-2 h-6 w-6 p-0"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <Badge variant={subaccount.is_active ? "default" : "secondary"}>
+                          {subaccount.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No real subaccounts found.</p>
+                )}
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">Real Orders ({realOrders.length})</h3>
+                {realOrders.length > 0 ? (
+                  <div className="space-y-2">
+                    {realOrders.slice(0, 5).map((order) => (
+                      <div key={order.id} className="p-3 border rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium">R{order.total_amount}</div>
+                            <div className="text-sm text-muted-foreground">
+                              Ref: {order.payment_reference}
+                            </div>
+                          </div>
+                          <Badge variant={order.status === "completed" ? "default" : "secondary"}>
+                            {order.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No real orders found.</p>
+                )}
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">Real Payment Transactions ({realPaymentTransactions.length})</h3>
+                {realPaymentTransactions.length > 0 ? (
+                  <div className="space-y-2">
+                    {realPaymentTransactions.slice(0, 5).map((transaction) => (
+                      <div key={transaction.id} className="p-3 border rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium">R{(transaction.amount / 100).toFixed(2)}</div>
+                            <div className="text-sm text-muted-foreground">
+                              Ref: {transaction.reference}
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setPaymentReference(transaction.reference);
+                              setRefundForm(prev => ({
+                                ...prev,
+                                transaction_reference: transaction.reference
+                              }));
+                              toast.success('Transaction reference copied');
+                            }}
+                          >
+                            Use for Test
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No real payment transactions found.</p>
+                )}
+              </div>
+
+              <div className="border-t pt-4">
+                <h3 className="font-semibold mb-2">Quick Actions</h3>
+                <div className="flex space-x-2">
+                  <Button onClick={handleTestRealTransfer} size="sm">
+                    Setup Real Transfer Test
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (realPaymentTransactions.length > 0) {
+                        setPaymentReference(realPaymentTransactions[0].reference);
+                        toast.success('Real payment reference selected');
+                      }
+                    }}
+                  >
+                    Use Real Payment Ref
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
