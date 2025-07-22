@@ -794,10 +794,10 @@ const PaystackTransferManagement = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="NGN">NGN (Nigerian Naira)</SelectItem>
                       <SelectItem value="ZAR">
                         ZAR (South African Rand)
                       </SelectItem>
-                      <SelectItem value="NGN">NGN (Nigerian Naira)</SelectItem>
                       <SelectItem value="USD">USD (US Dollar)</SelectItem>
                     </SelectContent>
                   </Select>
