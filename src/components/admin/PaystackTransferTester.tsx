@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -312,6 +312,12 @@ export const PaystackTransferTester: React.FC = () => {
     navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard");
   };
+
+  // Auto-load data on component mount
+  useEffect(() => {
+    loadRealData();
+    handleGetBanks();
+  }, []);
 
   return (
     <div className="space-y-6">
