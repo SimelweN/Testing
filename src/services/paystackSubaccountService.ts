@@ -288,8 +288,7 @@ export class PaystackSubaccountService {
 
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Unknown error occurred",
+        error: this.formatError(error),
       };
     }
   }
@@ -431,8 +430,7 @@ export class PaystackSubaccountService {
       console.error("Error fetching subaccount details:", error);
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Unknown error occurred",
+        error: this.formatError(error),
       };
     }
   }
@@ -487,8 +485,7 @@ export class PaystackSubaccountService {
       console.error("Error updating subaccount:", error);
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Unknown error occurred",
+        error: this.formatError(error),
       };
     }
   }
@@ -542,8 +539,7 @@ export class PaystackSubaccountService {
       console.error("Error getting complete subaccount info:", error);
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Unknown error occurred",
+        error: this.formatError(error),
       };
     }
   }
