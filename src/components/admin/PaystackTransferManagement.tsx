@@ -101,6 +101,7 @@ const PaystackTransferManagement = () => {
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [transferring, setTransferring] = useState(false);
+  const [banksError, setBanksError] = useState<string | null>(null);
 
   // Create recipient form state
   const [recipientForm, setRecipientForm] = useState({
@@ -200,6 +201,7 @@ const PaystackTransferManagement = () => {
   };
 
   const loadBanks = async () => {
+    setBanksError(null);
     try {
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paystack-transfer-management?action=banks&country=south-africa&currency=ZAR`,
@@ -216,16 +218,27 @@ const PaystackTransferManagement = () => {
         const result = await response.json();
         if (result.success && Array.isArray(result.data)) {
           setBanks(result.data);
+          if (result.data.length === 0) {
+            setBanksError("No banks available for the selected country/currency");
+          }
         } else {
           console.warn("Unexpected banks response format:", result);
           setBanks([]);
+          setBanksError(result.details?.message || "Failed to load banks data");
         }
       } else {
         const errorResult = await response.json().catch(() => null);
         console.error("Failed to load banks:", errorResult);
+        setBanksError(
+          errorResult?.details?.message ||
+          errorResult?.error === "PAYSTACK_NOT_CONFIGURED"
+            ? "Paystack is not configured. Please contact administrator."
+            : "Failed to load banks. Please try again."
+        );
       }
     } catch (error) {
       console.error("Error loading banks:", error);
+      setBanksError("Network error loading banks. Please check your connection.");
     }
   };
 
@@ -726,9 +739,10 @@ const PaystackTransferManagement = () => {
                         bank_code: value,
                       }))
                     }
+                    disabled={loading || banks.length === 0}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select bank" />
+                      <SelectValue placeholder={loading ? "Loading banks..." : banks.length === 0 ? "No banks available" : "Select bank"} />
                     </SelectTrigger>
                     <SelectContent>
                       {banks.map((bank) => (
@@ -738,6 +752,17 @@ const PaystackTransferManagement = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                  {banksError && (
+                    <p className="text-sm text-red-600 mt-1">
+                      <AlertCircle className="h-4 w-4 inline mr-1" />
+                      {banksError}
+                    </p>
+                  )}
+                  {banks.length === 0 && !loading && !banksError && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      No banks loaded. Please refresh the page or contact support.
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="currency">Currency</Label>
