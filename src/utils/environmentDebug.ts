@@ -76,7 +76,6 @@ export const diagnoseEnvironment = (): EnvironmentDiagnostics => {
     "VITE_PAYSTACK_SECRET_KEY",
     "VITE_COURIER_GUY_API_KEY",
     "VITE_FASTWAY_API_KEY",
-    "VITE_SHIPLOGIC_API_KEY",
   ];
 
   apiKeys.forEach((key) => {
