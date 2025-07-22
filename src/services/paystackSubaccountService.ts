@@ -43,6 +43,27 @@ export interface SubaccountData {
 }
 
 export class PaystackSubaccountService {
+  // Helper method to format error messages properly
+  private static formatError(error: any): string {
+    if (!error) return "Unknown error occurred";
+
+    if (typeof error === "string") return error;
+
+    if (error.message) return error.message;
+
+    if (error.details) return error.details;
+
+    if (error.hint) return error.hint;
+
+    // If it's an object, try to stringify it properly
+    try {
+      const errorStr = JSON.stringify(error);
+      if (errorStr === "{}") return "Unknown error occurred";
+      return errorStr;
+    } catch {
+      return String(error);
+    }
+  }
   // 🏦 CREATE OR UPDATE SUBACCOUNT
   static async createOrUpdateSubaccount(
     details: SubaccountDetails,
