@@ -31,6 +31,7 @@ const Step2DeliveryOptions: React.FC<Step2DeliveryOptionsProps> = ({
   sellerAddress,
   onSelectDelivery,
   onBack,
+  onCancel,
   selectedDelivery,
 }) => {
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>([]);
