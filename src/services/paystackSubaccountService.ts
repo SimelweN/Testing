@@ -366,20 +366,27 @@ export class PaystackSubaccountService {
       }
 
       // 📚 UPDATE ALL USER'S BOOKS WITH SUBACCOUNT CODE
-      // First check if the column exists by trying to select it
+      // First check if the column exists by trying a minimal select
+      console.log("Checking if seller_subaccount_code column exists...");
       let columnExists = true;
       try {
-        await supabase
+        const { error: checkError } = await supabase
           .from("books")
           .select("seller_subaccount_code")
           .limit(1);
+
+        if (checkError) {
+          console.warn("Column check failed:", checkError.message);
+          columnExists = false;
+        }
       } catch (error) {
+        console.warn("seller_subaccount_code column doesn't exist in books table:", error);
         columnExists = false;
-        console.warn("seller_subaccount_code column doesn't exist in books table");
       }
 
       if (!columnExists) {
-        console.warn("Skipping book update - seller_subaccount_code column not found");
+        console.warn("Skipping book update - seller_subaccount_code column not found in database schema");
+        console.warn("This is expected if the database schema hasn't been updated yet");
         return true; // Return success since the main operation completed
       }
 
@@ -623,7 +630,7 @@ export class PaystackSubaccountService {
         } = await supabase.auth.getUser();
         if (!user) {
           console.log(
-            "❌ getUserSubaccountStatus: No authenticated user found",
+            "�� getUserSubaccountStatus: No authenticated user found",
           );
           return { hasSubaccount: false, canEdit: false };
         }
