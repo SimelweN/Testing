@@ -37,21 +37,30 @@ export const testDatabaseConnection = async () => {
       console.log("📭 No books found in database");
     }
     
-    // Test 3: Check if any books exist at all
-    console.log("3. Checking total books in database...");
+    // Test 3: Check if any books exist at all (including sold ones)
+    console.log("3. Checking ALL books in database (including sold)...");
     const { data: allBooks, error: allBooksError } = await supabase
       .from("books")
-      .select("id, title, sold")
-      .limit(100);
-    
+      .select("id, title, sold, created_at")
+      .order("created_at", { ascending: false })
+      .limit(50);
+
     if (allBooksError) {
       console.error("❌ All books query failed:", allBooksError);
     } else {
       const unsoldBooks = allBooks?.filter(book => !book.sold) || [];
+      const soldBooks = allBooks?.filter(book => book.sold) || [];
       console.log(`📊 Database stats:`);
       console.log(`   Total books: ${allBooks?.length || 0}`);
       console.log(`   Unsold books: ${unsoldBooks.length}`);
-      console.log(`   Sold books: ${(allBooks?.length || 0) - unsoldBooks.length}`);
+      console.log(`   Sold books: ${soldBooks.length}`);
+
+      if (allBooks && allBooks.length > 0) {
+        console.log("📚 Recent books in database:");
+        allBooks.slice(0, 10).forEach((book, index) => {
+          console.log(`   ${index + 1}. "${book.title}" (${book.sold ? 'SOLD' : 'AVAILABLE'}) - ${book.created_at}`);
+        });
+      }
     }
     
     return { 
