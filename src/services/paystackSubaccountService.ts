@@ -91,6 +91,11 @@ export class PaystackSubaccountService {
       );
 
       // 📡 CALL EDGE FUNCTION TO CREATE PAYSTACK SUBACCOUNT
+      console.log("🚀 Calling create-paystack-subaccount edge function with:", {
+        ...requestBody,
+        account_number: "***" + requestBody.account_number.slice(-4) // Don't log full account number
+      });
+
       const { data, error } = await supabase.functions.invoke(
         "create-paystack-subaccount",
         {
@@ -100,6 +105,13 @@ export class PaystackSubaccountService {
           },
         },
       );
+
+      console.log("📥 Edge function response:", {
+        success: data?.success,
+        error: error?.message,
+        hasSubaccountCode: !!data?.subaccount_code,
+        hasRecipientCode: !!data?.recipient_code
+      });
 
       // Check for edge function not deployed/available (development mode)
       if (
@@ -167,28 +179,31 @@ export class PaystackSubaccountService {
             console.log("Creating mock subaccount in database...");
 
             const { error: dbError } = await supabase
-              .from("banking_subaccounts")
-              .insert({
-                business_name: details.business_name,
-                email: details.email,
-                bank_name: details.bank_name,
-                bank_code: details.bank_code,
-                account_number: details.account_number,
-                subaccount_code: mockSubaccountCode,
-                status: "active",
-                paystack_response: {
-                  mock: true,
-                  created_at: new Date().toISOString(),
-                  user_id: userId, // Store in metadata since no user_id column
-                },
-              });
+            .from("banking_subaccounts")
+            .insert({
+              user_id: userId, // Add the missing user_id field
+              business_name: details.business_name,
+              email: details.email,
+              bank_name: details.bank_name,
+              bank_code: details.bank_code,
+              account_number: details.account_number,
+              subaccount_code: mockSubaccountCode,
+              status: "active",
+              paystack_response: {
+                mock: true,
+                created_at: new Date().toISOString(),
+                user_id: userId,
+              },
+            });
 
             if (dbError) {
               console.error(
                 "Database error creating mock subaccount:",
-                dbError,
+                JSON.stringify(dbError, null, 2),
               );
-              throw new Error("Failed to create mock subaccount in database");
+              // Try to provide more specific error information
+              const errorMsg = dbError.message || dbError.details || "Failed to create mock subaccount in database";
+              throw new Error(`Failed to create mock subaccount: ${errorMsg}`);
             }
 
             console.log("✅ Mock subaccount created:", mockSubaccountCode);
@@ -208,8 +223,18 @@ export class PaystackSubaccountService {
 
           // Simple fallback - just update the profile table
           try {
+            // Get userId from session again in case it's undefined
+            const {
+              data: { session: fallbackSession },
+            } = await supabase.auth.getSession();
+            const fallbackUserId = fallbackSession?.user?.id;
+
+            if (!fallbackUserId) {
+              throw new Error("No user session available for fallback");
+            }
+
             const simpleFallbackCode = `ACCT_dev_fallback_${Date.now()}`;
-            await this.updateUserProfileSubaccount(userId, simpleFallbackCode);
+            await this.updateUserProfileSubaccount(fallbackUserId, simpleFallbackCode);
 
             console.log(
               "✅ Simple fallback subaccount created:",
@@ -283,9 +308,10 @@ export class PaystackSubaccountService {
       if (error) {
         console.error(
           "Error updating books with seller_subaccount_code:",
-          error,
+          JSON.stringify(error, null, 2),
         );
-        return false;
+        // Don't return false immediately, log the error but continue
+        console.warn("Book update failed but continuing with subaccount creation");
       }
 
       const updatedCount = data?.length || 0;
