@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   Loader2,
   AlertTriangle,
+  X,
 } from "lucide-react";
 import { CheckoutAddress, DeliveryOption } from "@/types/checkout";
 import { supabase } from "@/integrations/supabase/client";
