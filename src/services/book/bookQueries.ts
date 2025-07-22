@@ -163,8 +163,8 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
     const booksData = await fetchBooksOperation();
 
     if (!booksData || booksData.length === 0) {
-      console.log("No books found in database, using fallback data");
-      return getFallbackBooks();
+      console.log("No books found");
+      return [];
     }
 
     // Get unique seller IDs
