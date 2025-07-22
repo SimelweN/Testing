@@ -127,12 +127,59 @@ serve(async (req) => {
     } else {
       // New cart-based order format
       console.log("🛒 Processing cart-based order format");
-      
+
       finalBuyerId = requestData.buyer_id || requestData.user_id || "";
       finalBuyerEmail = requestData.buyer_email || requestData.email || "";
       finalItems = requestData.cart_items || requestData.items || [];
       finalShippingAddress = requestData.shipping_address || requestData.shippingAddress;
       finalPaymentRef = requestData.payment_reference || `cart_ref_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    // If buyer email is missing, try to get it from the database
+    if (!finalBuyerEmail && finalBuyerId) {
+      console.log("📧 Buyer email missing, fetching from database...");
+      const supabaseTemp = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+      const { data: userProfile } = await supabaseTemp
+        .from("profiles")
+        .select("email")
+        .eq("id", finalBuyerId)
+        .single();
+
+      if (userProfile?.email) {
+        finalBuyerEmail = userProfile.email;
+        console.log("📧 Found buyer email in database:", finalBuyerEmail);
+      }
+    }
+
+    // Fill in missing book data for cart items
+    if (finalItems && finalItems.length > 0) {
+      console.log("📚 Enriching cart items with missing data...");
+      const supabaseTemp = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+      for (let i = 0; i < finalItems.length; i++) {
+        const item = finalItems[i];
+
+        // If title or author is missing, fetch from database
+        if (!item.title || !item.author) {
+          const { data: bookData } = await supabaseTemp
+            .from("books")
+            .select("title, author, condition, isbn, price")
+            .eq("id", item.book_id)
+            .single();
+
+          if (bookData) {
+            finalItems[i] = {
+              ...item,
+              title: item.title || bookData.title || "",
+              author: item.author || bookData.author || "",
+              condition: item.condition || bookData.condition || "",
+              isbn: item.isbn || bookData.isbn || "",
+              price: item.price || bookData.price || 0
+            };
+            console.log(`📚 Enriched item ${i}:`, finalItems[i]);
+          }
+        }
+      }
     }
 
     // Enhanced validation
