@@ -93,21 +93,7 @@ serve(async (req) => {
     console.log("✅ Order validation passed, proceeding with commit");
     const order = orderCheck;
 
-        if (orderError || !order) {
-            return errorResponse(
-        "ORDER_NOT_FOUND",
-        {
-          order_id,
-          seller_id,
-          possible_causes: [
-            "Order does not exist",
-            "Order does not belong to this seller",
-            "Order is not in pending_commit status"
-          ]
-        },
-        { status: 404 }
-      );
-    }
+
 
     // Ensure order.items is properly parsed if it's stored as JSONB
     if (order.items && typeof order.items === 'string') {
