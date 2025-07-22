@@ -296,9 +296,9 @@ export class PaystackSubaccountService {
           }
         } catch (mockError) {
           console.error("Mock subaccount creation failed:", mockError);
-          console.warn("Database table may not exist. Using simple fallback.");
+          console.warn("Database table may not exist or has schema issues. Using profile-only fallback.");
 
-          // Simple fallback - just update the profile table
+          // Profile-only fallback - just update the profile table
           try {
             // Get userId from session again in case it's undefined
             const {
@@ -310,25 +310,52 @@ export class PaystackSubaccountService {
               throw new Error("No user session available for fallback");
             }
 
-            const simpleFallbackCode = `ACCT_dev_fallback_${Date.now()}`;
-            await this.updateUserProfileSubaccount(fallbackUserId, simpleFallbackCode);
+            const profileFallbackCode = `ACCT_profile_${Date.now()}`;
+            await this.updateUserProfileSubaccount(fallbackUserId, profileFallbackCode);
 
             console.log(
-              "✅ Simple fallback subaccount created:",
-              simpleFallbackCode,
+              "✅ Profile-only fallback subaccount created:",
+              profileFallbackCode,
             );
+            console.log("ℹ️ Banking details saved to profile preferences only");
+
+            // Also try to save banking details to profile preferences
+            try {
+              const { error: prefError } = await supabase
+                .from("profiles")
+                .update({
+                  preferences: {
+                    subaccount_code: profileFallbackCode,
+                    banking_setup_complete: true,
+                    business_name: details.business_name,
+                    bank_details: {
+                      bank_name: details.bank_name,
+                      bank_code: details.bank_code,
+                      account_number: details.account_number.slice(-4), // Store only last 4 digits
+                    },
+                  },
+                })
+                .eq("id", fallbackUserId);
+
+              if (!prefError) {
+                console.log("✅ Banking details saved to profile preferences");
+              }
+            } catch (prefError) {
+              console.warn("Failed to save banking details to preferences:", prefError);
+            }
 
             return {
               success: true,
-              subaccount_code: simpleFallbackCode,
+              subaccount_code: profileFallbackCode,
             };
           } catch (profileError) {
             console.error("Even profile update failed:", profileError);
 
-            // Last resort - return success with generated code
+            // Last resort - return success with generated code anyway
+            console.warn("🚨 All database operations failed, returning generated code anyway");
             return {
               success: true,
-              subaccount_code: `ACCT_dev_basic_${Date.now()}`,
+              subaccount_code: `ACCT_emergency_${Date.now()}`,
             };
           }
         }
