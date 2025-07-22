@@ -711,10 +711,22 @@ serve(async (req) => {
             recipient_code = recipientData.data.recipient_code;
             console.log("Transfer recipient created successfully:", recipient_code);
 
-            // Update the subaccount record with recipient_code
+            // Update the subaccount record with recipient_code in paystack_response
+            const { data: existingRecord } = await supabase
+              .from("banking_subaccounts")
+              .select("paystack_response")
+              .eq("subaccount_code", subaccount_code)
+              .single();
+
+            const updatedResponse = {
+              ...(existingRecord?.paystack_response || {}),
+              recipient_code: recipient_code,
+              transfer_recipient_created_at: new Date().toISOString()
+            };
+
             await supabase
               .from("banking_subaccounts")
-              .update({ recipient_code: recipient_code })
+              .update({ paystack_response: updatedResponse })
               .eq("subaccount_code", subaccount_code);
           } else {
             console.warn("Transfer recipient creation failed:", recipientData.message);
