@@ -923,7 +923,7 @@ const PaystackTransferManagement = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="transfer-amount">Amount (ZAR)</Label>
+                  <Label htmlFor="transfer-amount">Amount (NGN)</Label>
                   <Input
                     id="transfer-amount"
                     type="number"
