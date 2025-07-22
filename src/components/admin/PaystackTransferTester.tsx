@@ -676,7 +676,7 @@ export const PaystackTransferTester: React.FC = () => {
                       <SelectValue placeholder="Select bank" />
                     </SelectTrigger>
                     <SelectContent>
-                      {banks.map((bank) => (
+                      {getDisplayBanks().map((bank) => (
                         <SelectItem key={bank.id} value={bank.code}>
                           {bank.name} ({bank.code})
                         </SelectItem>
@@ -911,7 +911,7 @@ export const PaystackTransferTester: React.FC = () => {
                 <div className="space-y-2">
                   <Label htmlFor="subaccount-bank" className="text-sm font-medium">Bank *</Label>
                   <Select onValueChange={(value) => {
-                    const selectedBank = banks.find(b => b.code === value);
+                    const selectedBank = getDisplayBanks().find(b => b.code === value);
                     setNewSubaccount(prev => ({
                       ...prev,
                       bank_code: value,
@@ -920,6 +920,10 @@ export const PaystackTransferTester: React.FC = () => {
                         account_number: '0123456789'
                       }),
                       ...(value === '011' && {
+                        account_number: '1234567890'
+                      }),
+                      // Add Nedbank test data
+                      ...(value === '198765' && {
                         account_number: '1234567890'
                       })
                     }));
@@ -931,7 +935,7 @@ export const PaystackTransferTester: React.FC = () => {
                       <SelectValue placeholder="Select bank" />
                     </SelectTrigger>
                     <SelectContent>
-                      {banks.map((bank) => (
+                      {getDisplayBanks().map((bank) => (
                         <SelectItem key={bank.id} value={bank.code}>
                           {bank.name} ({bank.code})
                         </SelectItem>
@@ -988,15 +992,15 @@ export const PaystackTransferTester: React.FC = () => {
               </div>
 
               {banks.length === 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-blue-700">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 text-green-700">
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
                     </svg>
-                    <span className="text-sm font-medium">Banks Loading</span>
+                    <span className="text-sm font-medium">Using Local Bank Configuration</span>
                   </div>
-                  <p className="text-sm text-blue-600 mt-1">
-                    Bank list will be fetched automatically when the component loads.
+                  <p className="text-sm text-green-600 mt-1">
+                    Using fallback banks including Nedbank, FNB, Standard Bank, and other SA banks.
                   </p>
                 </div>
               )}
@@ -1023,7 +1027,7 @@ export const PaystackTransferTester: React.FC = () => {
                         </div>
                         {results.subaccountCreation.recipient_code ? (
                           <div className="p-2 bg-green-50 border border-green-200 rounded">
-                            <div className="text-green-800 font-medium text-xs">💰 RECIPIENT (for direct transfers)</div>
+                            <div className="text-green-800 font-medium text-xs">���� RECIPIENT (for direct transfers)</div>
                             <code className="text-green-900 text-sm">{results.subaccountCreation.recipient_code}</code>
                           </div>
                         ) : (
