@@ -334,6 +334,9 @@ const AdminPaystackTestingTab: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Database Schema Checker */}
+      <DatabaseSchemaChecker />
+
       {/* Debug Test for Subaccount Creation */}
       <SubaccountDebugTest />
 
