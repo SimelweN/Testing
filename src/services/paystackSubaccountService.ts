@@ -263,9 +263,12 @@ export class PaystackSubaccountService {
                   .insert({
                     user_id: userId,
                     business_name: details.business_name,
+                    email: details.email,
+                    bank_name: details.bank_name,
                     bank_code: details.bank_code,
                     account_number: details.account_number,
                     subaccount_code: mockSubaccountCode,
+                    status: "active",
                   });
 
                 if (minimalError) {
