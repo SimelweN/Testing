@@ -330,11 +330,17 @@ export const PaystackTransferTester: React.FC = () => {
 
       if (result.success) {
         const hasRecipient = result.recipient_code;
-        const successMessage = hasRecipient
-          ? `Subaccount & transfer recipient created successfully! Subaccount: ${result.subaccount_code}, Recipient: ${result.recipient_code}`
-          : `Subaccount created successfully! Code: ${result.subaccount_code}`;
-
-        toast.success(successMessage);
+        if (hasRecipient) {
+          toast.success(`🎉 Complete setup successful!`, {
+            description: `📊 Subaccount: ${result.subaccount_code}\n💰 Recipient: ${result.recipient_code}`,
+            duration: 5000,
+          });
+        } else {
+          toast.success(`✅ Subaccount created: ${result.subaccount_code}`, {
+            description: "⚠️ Transfer recipient creation pending...",
+            duration: 4000,
+          });
+        }
         setResults({ subaccountCreation: result });
         // Reset form
         setNewSubaccount({
@@ -1156,7 +1162,7 @@ export const PaystackTransferTester: React.FC = () => {
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="text-xs bg-amber-50">
-                              ⚠��� No Recipient
+                              ⚠️ No Recipient
                             </Badge>
                           )}
                           <Button
