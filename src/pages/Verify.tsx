@@ -123,10 +123,20 @@ const Verify = () => {
               }
             }
 
-            setStatus("debug");
+            setStatus("error");
             setMessage(
-              "No verification parameters found in URL. Please see debug information below or try logging in directly.",
+              "Invalid verification link. Please try logging in directly or request a new verification email.",
             );
+
+            // Automatically redirect to login after a delay
+            setTimeout(() => {
+              navigate("/login", {
+                state: {
+                  message: "Please log in to your account. If you need to verify your email, use the resend option.",
+                  email
+                }
+              });
+            }, 3000);
           } else {
             setStatus("error");
             setMessage(errorMessage);
