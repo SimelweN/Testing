@@ -230,10 +230,9 @@ const PaystackTransferManagement = () => {
         const errorResult = await response.json().catch(() => null);
         console.error("Failed to load banks:", errorResult);
         setBanksError(
-          errorResult?.details?.message ||
           errorResult?.error === "PAYSTACK_NOT_CONFIGURED"
-            ? "Paystack is not configured. Please contact administrator."
-            : "Failed to load banks. Please try again."
+            ? "⚠️ Paystack integration is not configured. The PAYSTACK_SECRET_KEY environment variable needs to be set in the Supabase Edge Functions. Please contact your administrator to configure this."
+            : errorResult?.details?.message || "Failed to load banks. Please try again."
         );
       }
     } catch (error) {
