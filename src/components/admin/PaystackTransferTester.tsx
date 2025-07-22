@@ -542,23 +542,33 @@ export const PaystackTransferTester: React.FC = () => {
           </TabsList>
         </div>
 
-        <TabsContent value="payment" className="space-y-4">
+        <TabsContent value="payment" className="space-y-6 mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Payment Verification</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+                Payment Verification
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="payment-reference">Payment Reference</Label>
-                <div className="flex space-x-2">
+            <CardContent className="space-y-6">
+              <div className="space-y-3">
+                <Label htmlFor="payment-reference" className="text-sm font-medium">Payment Reference</Label>
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     id="payment-reference"
                     value={paymentReference}
                     onChange={(e) => setPaymentReference(e.target.value)}
-                    placeholder="Enter payment reference"
+                    placeholder="Enter payment reference (e.g., TXN_123456789)"
+                    className="flex-1"
                   />
-                  <Button onClick={() => setPaymentReference(`test_ref_${Date.now()}`)}>
-                    Generate Test Ref
+                  <Button
+                    onClick={() => setPaymentReference(`test_ref_${Date.now()}`)}
+                    variant="outline"
+                    className="whitespace-nowrap"
+                  >
+                    Generate Test
                   </Button>
                 </div>
               </div>
