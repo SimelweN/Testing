@@ -80,7 +80,12 @@ const PaystackSystemTestComponent: React.FC = () => {
       const result = await response.json();
 
       if (result.success) {
-        toast.success('Subaccount created successfully!');
+        const hasRecipient = result.recipient_code;
+        const successMessage = hasRecipient
+          ? `Subaccount & transfer recipient created successfully! Subaccount: ${result.subaccount_code}, Recipient: ${result.recipient_code}`
+          : `Subaccount created successfully! Code: ${result.subaccount_code}`;
+
+        toast.success(successMessage);
         // Reset form
         setNewSubaccount({
           business_name: "",
