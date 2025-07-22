@@ -1140,18 +1140,24 @@ export const PaystackTransferTester: React.FC = () => {
                       <div key={subaccount.id} className="p-3 border rounded-lg">
                         <div className="font-medium">{subaccount.business_name}</div>
                         <div className="text-sm text-muted-foreground space-y-1">
-                          <div>Subaccount: {subaccount.subaccount_code}</div>
-                          {subaccount.recipient_code && (
-                            <div>Recipient: {subaccount.recipient_code}</div>
+                          <div>📊 Subaccount: <code className="bg-blue-100 px-1 rounded text-xs">{subaccount.subaccount_code}</code></div>
+                          {subaccount.recipient_code ? (
+                            <div>💰 Recipient: <code className="bg-green-100 px-1 rounded text-xs">{subaccount.recipient_code}</code></div>
+                          ) : (
+                            <div className="text-amber-600">⚠️ No recipient code available</div>
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-2">
                           <Badge variant={subaccount.is_active ? "default" : "secondary"}>
                             {subaccount.is_active ? "Active" : "Inactive"}
                           </Badge>
-                          {subaccount.recipient_code && (
-                            <Badge variant="outline" className="text-xs">
-                              Has Recipient
+                          {subaccount.recipient_code ? (
+                            <Badge variant="outline" className="text-xs bg-green-50">
+                              ✅ Has Recipient
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs bg-amber-50">
+                              ⚠️ No Recipient
                             </Badge>
                           )}
                           <Button
