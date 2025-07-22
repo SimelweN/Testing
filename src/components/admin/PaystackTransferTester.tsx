@@ -624,30 +624,36 @@ export const PaystackTransferTester: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {banks.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {banks.slice(0, 12).map((bank) => (
-                    <div key={bank.id} className="p-3 border rounded-lg">
-                      <div className="font-medium">{bank.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        Code: {bank.code}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => copyToClipboard(bank.code)}
-                          className="ml-2 h-6 w-6 p-0"
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                      </div>
-                      <Badge variant={bank.active ? "default" : "secondary"}>
-                        {bank.active ? "Active" : "Inactive"}
-                      </Badge>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {getDisplayBanks().slice(0, 12).map((bank) => (
+                  <div key={bank.id} className="p-3 border rounded-lg">
+                    <div className="font-medium">{bank.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      Code: {bank.code}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(bank.code)}
+                        className="ml-2 h-6 w-6 p-0"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
                     </div>
-                  ))}
+                    <Badge variant={bank.active ? "default" : "secondary"}>
+                      {bank.active ? "Active" : "Inactive"}
+                    </Badge>
+                    {banks.length === 0 && (
+                      <Badge variant="outline" className="text-xs">
+                        Local Config
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {banks.length === 0 && (
+                <div className="mt-4 text-sm text-blue-600 bg-blue-50 p-3 rounded">
+                  ℹ️ Showing local bank configuration. Nedbank and other SA banks are available.
                 </div>
-              ) : (
-                <p className="text-muted-foreground">No banks loaded. Click "Fetch Banks" to load banks.</p>
               )}
             </CardContent>
           </Card>
@@ -1027,7 +1033,7 @@ export const PaystackTransferTester: React.FC = () => {
                         </div>
                         {results.subaccountCreation.recipient_code ? (
                           <div className="p-2 bg-green-50 border border-green-200 rounded">
-                            <div className="text-green-800 font-medium text-xs">���� RECIPIENT (for direct transfers)</div>
+                            <div className="text-green-800 font-medium text-xs">💰 RECIPIENT (for direct transfers)</div>
                             <code className="text-green-900 text-sm">{results.subaccountCreation.recipient_code}</code>
                           </div>
                         ) : (
