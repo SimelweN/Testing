@@ -973,6 +973,49 @@ export const PaystackTransferTester: React.FC = () => {
                   </p>
                 </div>
               )}
+
+              {results?.subaccountCreation && (
+                <div className="mt-4 p-4 border rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    {results.subaccountCreation.success ? (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-500" />
+                    )}
+                    <span className={results.subaccountCreation.success ? "text-green-700 font-medium" : "text-red-700 font-medium"}>
+                      {results.subaccountCreation.success ? "Subaccount Creation Successful" : "Subaccount Creation Failed"}
+                    </span>
+                  </div>
+
+                  {results.subaccountCreation.success && (
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-green-700 border-green-300">
+                          Subaccount: {results.subaccountCreation.subaccount_code}
+                        </Badge>
+                      </div>
+                      {results.subaccountCreation.recipient_code && (
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-blue-700 border-blue-300">
+                            Transfer Recipient: {results.subaccountCreation.recipient_code}
+                          </Badge>
+                        </div>
+                      )}
+                      {!results.subaccountCreation.recipient_code && (
+                        <div className="text-amber-600 text-xs">
+                          ⚠️ Transfer recipient creation failed or skipped
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {!results.subaccountCreation.success && (
+                    <pre className="text-sm bg-red-50 p-2 rounded overflow-auto text-red-800">
+                      {JSON.stringify(results.subaccountCreation, null, 2)}
+                    </pre>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
