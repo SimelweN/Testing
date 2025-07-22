@@ -85,11 +85,10 @@ export const PaystackTransferTester: React.FC = () => {
 
   const loadRealData = async () => {
     try {
-      // Get real subaccounts from database
+      // Get real subaccounts from database (including recipient_code)
       const { data: subaccounts } = await supabase
         .from('banking_subaccounts')
         .select('*, profiles!user_id(name, email)')
-        .eq('is_active', true)
         .limit(10);
 
       if (subaccounts) {
@@ -1157,7 +1156,7 @@ export const PaystackTransferTester: React.FC = () => {
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="text-xs bg-amber-50">
-                              ⚠️ No Recipient
+                              ⚠��� No Recipient
                             </Badge>
                           )}
                           <Button
