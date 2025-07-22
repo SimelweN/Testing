@@ -178,9 +178,15 @@ export class PaystackSubaccountService {
 
       if (!data?.success) {
         const errorMsg =
-          data.error ||
           data.message ||
+          data.error ||
           `Failed to ${isUpdate ? "update" : "create"} subaccount`;
+
+        // Enhanced error handling for the new response format
+        if (data.details && Array.isArray(data.details)) {
+          throw new Error(`${errorMsg}: ${data.details.join(', ')}`);
+        }
+
         throw new Error(errorMsg);
       }
 
