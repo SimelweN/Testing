@@ -31,6 +31,7 @@ import { useNavigate } from "react-router-dom";
 import SystemHealthChecker from "./SystemHealthChecker";
 import { PaystackTransferTester } from "./PaystackTransferTester";
 import SubaccountDebugTest from "../debug/SubaccountDebugTest";
+import DatabaseSchemaChecker from "../debug/DatabaseSchemaChecker";
 
 interface TestResult {
   success: boolean;
