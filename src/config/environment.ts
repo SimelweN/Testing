@@ -35,7 +35,6 @@ export const ENV = {
   ),
   VITE_COURIER_GUY_API_KEY: getEnvVar("VITE_COURIER_GUY_API_KEY"),
   VITE_FASTWAY_API_KEY: getEnvVar("VITE_FASTWAY_API_KEY"),
-  VITE_SHIPLOGIC_API_KEY: getEnvVar("VITE_SHIPLOGIC_API_KEY"),
   VITE_DEBUG: getEnvVar("VITE_DEBUG", "false") === "true",
   VITE_ENABLE_ANALYTICS: getEnvVar("VITE_ENABLE_ANALYTICS", "true") === "true",
 } as const;
