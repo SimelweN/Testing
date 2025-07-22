@@ -22,6 +22,8 @@ export const PaystackTransferTester: React.FC = () => {
   const [realSubaccounts, setRealSubaccounts] = useState<any[]>([]);
   const [realOrders, setRealOrders] = useState<any[]>([]);
   const [realPaymentTransactions, setRealPaymentTransactions] = useState<any[]>([]);
+  const [realSellers, setRealSellers] = useState<any[]>([]);
+  const [availableSubaccounts, setAvailableSubaccounts] = useState<any[]>([]);
 
   // Form states
   const [verifyForm, setVerifyForm] = useState({
@@ -61,6 +63,26 @@ export const PaystackTransferTester: React.FC = () => {
   const [comprehensiveTesting, setComprehensiveTesting] = useState(false);
   const [comprehensiveResults, setComprehensiveResults] = useState<any>(null);
 
+  // Subaccount creation states
+  const [newSubaccount, setNewSubaccount] = useState({
+    business_name: "",
+    email: "",
+    bank_code: "",
+    account_number: "",
+    percentage_charge: 2.5,
+    description: ""
+  });
+  const [creatingSubaccount, setCreatingSubaccount] = useState(false);
+
+  // Payout testing states
+  const [payoutForm, setPayoutForm] = useState({
+    seller_id: "",
+    amount: "",
+    reason: "Test seller payout"
+  });
+  const [payoutTesting, setPayoutTesting] = useState(false);
+  const [payoutResult, setPayoutResult] = useState<any>(null);
+
   const loadRealData = async () => {
     try {
       // Get real subaccounts from database
@@ -99,6 +121,19 @@ export const PaystackTransferTester: React.FC = () => {
       if (transactions) {
         setRealPaymentTransactions(transactions);
         console.log(`Found ${transactions.length} real payment transactions`);
+      }
+
+      // Get real sellers (users with subaccounts)
+      const { data: sellers } = await supabase
+        .from('profiles')
+        .select('id, name, email, subaccount_code')
+        .not('subaccount_code', 'is', null)
+        .limit(10);
+
+      if (sellers) {
+        setRealSellers(sellers);
+        setAvailableSubaccounts(sellers);
+        console.log(`Found ${sellers.length} real sellers`);
       }
 
       toast.success('Real data loaded successfully');
@@ -275,6 +310,95 @@ export const PaystackTransferTester: React.FC = () => {
     }
   };
 
+  const handleCreateSubaccount = async () => {
+    if (!newSubaccount.business_name || !newSubaccount.email || !newSubaccount.bank_code || !newSubaccount.account_number) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    setCreatingSubaccount(true);
+    try {
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/create-paystack-subaccount`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify(newSubaccount)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success('Subaccount created successfully!');
+        setResults({ subaccountCreation: result });
+        // Reset form
+        setNewSubaccount({
+          business_name: "",
+          email: "",
+          bank_code: "",
+          account_number: "",
+          percentage_charge: 2.5,
+          description: ""
+        });
+        // Reload data
+        await loadRealData();
+      } else {
+        toast.error(`Failed to create subaccount: ${result.error || 'Unknown error'}`);
+        setResults({ subaccountCreation: result });
+      }
+    } catch (error) {
+      toast.error(`Subaccount creation failed: ${error.message}`);
+    } finally {
+      setCreatingSubaccount(false);
+    }
+  };
+
+  const handleTestPayout = async () => {
+    if (!payoutForm.seller_id || !payoutForm.amount) {
+      toast.error("Please select seller and enter amount");
+      return;
+    }
+
+    setPayoutTesting(true);
+    setPayoutResult(null);
+
+    try {
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/pay-seller`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({
+          seller_id: payoutForm.seller_id,
+          amount: parseFloat(payoutForm.amount),
+          reason: payoutForm.reason,
+          trigger: 'admin_test'
+        })
+      });
+
+      const result = await response.json();
+      setPayoutResult(result);
+
+      if (result.success) {
+        toast.success('Payout test completed successfully');
+      } else {
+        toast.error(`Payout test failed: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      const errorResult = {
+        success: false,
+        error: 'PAYOUT_TEST_ERROR',
+        message: error.message
+      };
+      setPayoutResult(errorResult);
+      toast.error(`Payout test failed: ${error.message}`);
+    } finally {
+      setPayoutTesting(false);
+    }
+  };
+
   const handleGetRecipients = async () => {
     setLoading(true);
     try {
@@ -382,6 +506,8 @@ export const PaystackTransferTester: React.FC = () => {
           <TabsTrigger value="recipients">Recipients</TabsTrigger>
           <TabsTrigger value="transfers">Transfers</TabsTrigger>
           <TabsTrigger value="refunds">Refunds</TabsTrigger>
+          <TabsTrigger value="subaccounts">Create Subaccount</TabsTrigger>
+          <TabsTrigger value="payouts">Test Payouts</TabsTrigger>
           <TabsTrigger value="real-data">Real Data</TabsTrigger>
         </TabsList>
 
@@ -654,6 +780,217 @@ export const PaystackTransferTester: React.FC = () => {
           </Card>
         </TabsContent>
 
+        <TabsContent value="subaccounts" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Create New Subaccount</CardTitle>
+              <CardDescription>
+                Create a new Paystack subaccount for seller payouts. This will be linked to a seller's profile.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="business-name">Business Name *</Label>
+                  <Input
+                    id="business-name"
+                    value={newSubaccount.business_name}
+                    onChange={(e) => setNewSubaccount(prev => ({ ...prev, business_name: e.target.value }))}
+                    placeholder="John's Textbook Store"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="subaccount-email">Email *</Label>
+                  <Input
+                    id="subaccount-email"
+                    type="email"
+                    value={newSubaccount.email}
+                    onChange={(e) => setNewSubaccount(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="seller@example.com"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="subaccount-bank">Bank *</Label>
+                  <Select onValueChange={(value) => {
+                    const selectedBank = banks.find(b => b.code === value);
+                    setNewSubaccount(prev => ({
+                      ...prev,
+                      bank_code: value,
+                      // Auto-fill test data for common SA banks
+                      ...(value === '058' && {
+                        account_number: '0123456789'
+                      }),
+                      ...(value === '011' && {
+                        account_number: '1234567890'
+                      })
+                    }));
+                    if (selectedBank) {
+                      toast.success(`Selected ${selectedBank.name}`);
+                    }
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select bank" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {banks.map((bank) => (
+                        <SelectItem key={bank.id} value={bank.code}>
+                          {bank.name} ({bank.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="subaccount-account-number">Account Number *</Label>
+                  <Input
+                    id="subaccount-account-number"
+                    value={newSubaccount.account_number}
+                    onChange={(e) => setNewSubaccount(prev => ({ ...prev, account_number: e.target.value }))}
+                    placeholder="0123456789"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="percentage-charge">Percentage Charge (%)</Label>
+                  <Input
+                    id="percentage-charge"
+                    type="number"
+                    step="0.1"
+                    value={newSubaccount.percentage_charge}
+                    onChange={(e) => setNewSubaccount(prev => ({ ...prev, percentage_charge: parseFloat(e.target.value) || 2.5 }))}
+                    placeholder="2.5"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="subaccount-description">Description</Label>
+                  <Input
+                    id="subaccount-description"
+                    value={newSubaccount.description}
+                    onChange={(e) => setNewSubaccount(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Subaccount for seller payouts"
+                  />
+                </div>
+              </div>
+
+              <Button onClick={handleCreateSubaccount} disabled={creatingSubaccount} className="w-full">
+                {creatingSubaccount ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Create Subaccount
+              </Button>
+
+              {banks.length === 0 && (
+                <div className="text-sm text-muted-foreground">
+                  💡 No banks loaded. The banks will be fetched automatically when the component loads.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="payouts" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Test Seller Payouts</CardTitle>
+              <CardDescription>
+                Test payout functionality using real seller data from your database.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="payout-seller">Select Seller *</Label>
+                  <Select onValueChange={(value) => setPayoutForm(prev => ({ ...prev, seller_id: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a real seller" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {realSellers.map((seller) => (
+                        <SelectItem key={seller.id} value={seller.id}>
+                          {seller.name || seller.email} ({seller.subaccount_code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="payout-amount">Amount (ZAR) *</Label>
+                  <Input
+                    id="payout-amount"
+                    type="number"
+                    step="0.01"
+                    value={payoutForm.amount}
+                    onChange={(e) => setPayoutForm(prev => ({ ...prev, amount: e.target.value }))}
+                    placeholder="50.00"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="payout-reason">Reason</Label>
+                <Input
+                  id="payout-reason"
+                  value={payoutForm.reason}
+                  onChange={(e) => setPayoutForm(prev => ({ ...prev, reason: e.target.value }))}
+                  placeholder="Test seller payout"
+                />
+              </div>
+
+              <div className="flex space-x-2">
+                <Button onClick={handleTestPayout} disabled={payoutTesting}>
+                  {payoutTesting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Test Payout
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    if (realSellers.length > 0) {
+                      setPayoutForm(prev => ({
+                        ...prev,
+                        seller_id: realSellers[0].id,
+                        amount: "25.00",
+                        reason: `Test payout to ${realSellers[0].name || realSellers[0].email}`
+                      }));
+                      toast.success('Auto-filled with first seller');
+                    } else {
+                      toast.error('No sellers available');
+                    }
+                  }}
+                >
+                  Auto-fill First Seller
+                </Button>
+              </div>
+
+              {realSellers.length === 0 && (
+                <div className="text-sm text-yellow-600 bg-yellow-50 p-3 rounded">
+                  ⚠️ No sellers with subaccounts found. Create some subaccounts first or check the "Real Data" tab.
+                </div>
+              )}
+
+              {payoutResult && (
+                <div className="mt-4 p-4 border rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    {payoutResult.success ? (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-500" />
+                    )}
+                    <span className={payoutResult.success ? "text-green-700" : "text-red-700"}>
+                      {payoutResult.success ? "Payout Successful" : "Payout Failed"}
+                    </span>
+                  </div>
+                  <pre className="text-sm bg-muted p-2 rounded overflow-auto">
+                    {JSON.stringify(payoutResult, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="real-data" className="space-y-4">
           <Card>
             <CardHeader>
@@ -699,6 +1036,38 @@ export const PaystackTransferTester: React.FC = () => {
                   </div>
                 ) : (
                   <p className="text-muted-foreground">No real subaccounts found.</p>
+                )}
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">Real Sellers ({realSellers.length})</h3>
+                {realSellers.length > 0 ? (
+                  <div className="space-y-2">
+                    {realSellers.map((seller) => (
+                      <div key={seller.id} className="p-3 border rounded-lg">
+                        <div className="font-medium">{seller.name || seller.email}</div>
+                        <div className="text-sm text-muted-foreground">
+                          ID: {seller.id.slice(0, 8)}... | Subaccount: {seller.subaccount_code}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setPayoutForm(prev => ({
+                              ...prev,
+                              seller_id: seller.id,
+                              reason: `Test payout to ${seller.name || seller.email}`
+                            }));
+                            toast.success('Seller selected for payout test');
+                          }}
+                        >
+                          Use for Payout Test
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No sellers with subaccounts found.</p>
                 )}
               </div>
 
@@ -765,7 +1134,7 @@ export const PaystackTransferTester: React.FC = () => {
 
               <div className="border-t pt-4">
                 <h3 className="font-semibold mb-2">Quick Actions</h3>
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 flex-wrap gap-2">
                   <Button onClick={handleTestRealTransfer} size="sm">
                     Setup Real Transfer Test
                   </Button>
@@ -780,6 +1149,22 @@ export const PaystackTransferTester: React.FC = () => {
                     }}
                   >
                     Use Real Payment Ref
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (realSellers.length > 0) {
+                        setPayoutForm(prev => ({
+                          ...prev,
+                          seller_id: realSellers[0].id,
+                          amount: "50.00"
+                        }));
+                        toast.success('Real seller selected for payout');
+                      }
+                    }}
+                  >
+                    Use Real Seller
                   </Button>
                 </div>
               </div>
