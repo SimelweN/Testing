@@ -1,9 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   TestTube,
   Play,
@@ -14,8 +18,12 @@ import {
   RefreshCw,
   Download,
   Copy,
+  Plus,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { paystackTransferService } from "@/services/paystackTransferService";
 import {
   PaystackSystemTester,
   type PaystackTestResult,
@@ -27,6 +35,81 @@ const PaystackSystemTestComponent: React.FC = () => {
   const [testReport, setTestReport] = useState<string>("");
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [endTime, setEndTime] = useState<Date | null>(null);
+
+  // Subaccount creation states
+  const [banks, setBanks] = useState<any[]>([]);
+  const [newSubaccount, setNewSubaccount] = useState({
+    business_name: "",
+    email: "",
+    bank_code: "",
+    account_number: "",
+    percentage_charge: 2.5,
+    description: ""
+  });
+  const [creatingSubaccount, setCreatingSubaccount] = useState(false);
+
+  useEffect(() => {
+    const fetchBanks = async () => {
+      try {
+        const banksData = await paystackTransferService.getBanks();
+        setBanks(banksData);
+      } catch (error) {
+        console.error('Failed to fetch banks:', error);
+      }
+    };
+    fetchBanks();
+  }, []);
+
+  const handleCreateSubaccount = async () => {
+    if (!newSubaccount.business_name || !newSubaccount.email || !newSubaccount.bank_code || !newSubaccount.account_number) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    setCreatingSubaccount(true);
+    try {
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/create-paystack-subaccount`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify(newSubaccount)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const hasRecipient = result.recipient_code;
+        if (hasRecipient) {
+          toast.success(`🎉 Complete Banking Setup!`, {
+            description: `Subaccount: ${result.subaccount_code}\nRecipient: ${result.recipient_code}`,
+            duration: 5000,
+          });
+        } else {
+          toast.success(`✅ Subaccount Created: ${result.subaccount_code}`, {
+            description: "Transfer recipient pending...",
+            duration: 4000,
+          });
+        }
+        // Reset form
+        setNewSubaccount({
+          business_name: "",
+          email: "",
+          bank_code: "",
+          account_number: "",
+          percentage_charge: 2.5,
+          description: ""
+        });
+      } else {
+        toast.error(`Failed to create subaccount: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      toast.error(`Subaccount creation failed: ${error.message}`);
+    } finally {
+      setCreatingSubaccount(false);
+    }
+  };
 
   const runSystemTest = async () => {
     setIsRunning(true);
@@ -144,6 +227,13 @@ const PaystackSystemTestComponent: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <Tabs defaultValue="system-test" className="w-full">
+        <TabsList>
+          <TabsTrigger value="system-test">System Test</TabsTrigger>
+          <TabsTrigger value="subaccounts">Add Subaccounts</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="system-test" className="space-y-4">
       {/* Test Control */}
       <Card>
         <CardHeader>
@@ -366,6 +456,153 @@ const PaystackSystemTestComponent: React.FC = () => {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+
+        <TabsContent value="subaccounts" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Plus className="h-5 w-5" />
+                Create New Subaccount
+              </CardTitle>
+              <p className="text-sm text-gray-600">
+                Create a new Paystack subaccount for seller payouts. This will be linked to a seller's profile.
+              </p>
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start gap-2 text-blue-700">
+                  <svg className="h-4 w-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="text-sm">
+                    <strong>What happens when you create a subaccount:</strong>
+                    <ul className="mt-1 space-y-1">
+                      <li>• Creates a Paystack subaccount for receiving split payments</li>
+                      <li>• Automatically creates a transfer recipient for sending payouts</li>
+                      <li>• Links both to the seller's profile in the database</li>
+                      <li>• Updates all seller's books with the subaccount code</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="business-name" className="text-sm font-medium">Business Name *</Label>
+                  <Input
+                    id="business-name"
+                    value={newSubaccount.business_name}
+                    onChange={(e) => setNewSubaccount(prev => ({ ...prev, business_name: e.target.value }))}
+                    placeholder="John's Textbook Store"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="subaccount-email" className="text-sm font-medium">Email *</Label>
+                  <Input
+                    id="subaccount-email"
+                    type="email"
+                    value={newSubaccount.email}
+                    onChange={(e) => setNewSubaccount(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="seller@example.com"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="subaccount-bank" className="text-sm font-medium">Bank *</Label>
+                  <Select onValueChange={(value) => {
+                    const selectedBank = banks.find(b => b.code === value);
+                    setNewSubaccount(prev => ({
+                      ...prev,
+                      bank_code: value,
+                      // Auto-fill test data for common SA banks
+                      ...(value === '058' && {
+                        account_number: '0123456789'
+                      }),
+                      ...(value === '011' && {
+                        account_number: '1234567890'
+                      })
+                    }));
+                    if (selectedBank) {
+                      toast.success(`Selected ${selectedBank.name}`);
+                    }
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select bank" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {banks.map((bank) => (
+                        <SelectItem key={bank.id} value={bank.code}>
+                          {bank.name} ({bank.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="subaccount-account-number" className="text-sm font-medium">Account Number *</Label>
+                  <Input
+                    id="subaccount-account-number"
+                    value={newSubaccount.account_number}
+                    onChange={(e) => setNewSubaccount(prev => ({ ...prev, account_number: e.target.value }))}
+                    placeholder="0123456789"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="percentage-charge" className="text-sm font-medium">Percentage Charge (%)</Label>
+                  <Input
+                    id="percentage-charge"
+                    type="number"
+                    step="0.1"
+                    value={newSubaccount.percentage_charge}
+                    onChange={(e) => setNewSubaccount(prev => ({ ...prev, percentage_charge: parseFloat(e.target.value) || 2.5 }))}
+                    placeholder="2.5"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="subaccount-description" className="text-sm font-medium">Description</Label>
+                  <Input
+                    id="subaccount-description"
+                    value={newSubaccount.description}
+                    onChange={(e) => setNewSubaccount(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Subaccount for seller payouts"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 border-t">
+                <Button onClick={handleCreateSubaccount} disabled={creatingSubaccount} className="w-full md:w-auto">
+                  {creatingSubaccount ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                  Create Subaccount
+                </Button>
+              </div>
+
+              {banks.length === 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 text-blue-700">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-sm font-medium">Banks Loading</span>
+                  </div>
+                  <p className="text-sm text-blue-600 mt-1">
+                    Bank list will be fetched automatically when the component loads.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

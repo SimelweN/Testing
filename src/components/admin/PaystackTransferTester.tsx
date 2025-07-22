@@ -12,6 +12,7 @@ import { Loader2, CheckCircle, XCircle, Copy, TestTube, Zap } from "lucide-react
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PaystackTransferTestHelper } from "@/utils/paystackTransferTestUtils";
+import { SA_BANKS, getBankCode } from "@/config/paystack";
 
 export const PaystackTransferTester: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -85,11 +86,10 @@ export const PaystackTransferTester: React.FC = () => {
 
   const loadRealData = async () => {
     try {
-      // Get real subaccounts from database
+      // Get real subaccounts from database (including recipient_code)
       const { data: subaccounts } = await supabase
         .from('banking_subaccounts')
         .select('*, profiles!user_id(name, email)')
-        .eq('is_active', true)
         .limit(10);
 
       if (subaccounts) {
@@ -330,7 +330,18 @@ export const PaystackTransferTester: React.FC = () => {
       const result = await response.json();
 
       if (result.success) {
-        toast.success('Subaccount created successfully!');
+        const hasRecipient = result.recipient_code;
+        if (hasRecipient) {
+          toast.success(`🎉 Complete setup successful!`, {
+            description: `📊 Subaccount: ${result.subaccount_code}\n💰 Recipient: ${result.recipient_code}`,
+            duration: 5000,
+          });
+        } else {
+          toast.success(`✅ Subaccount created: ${result.subaccount_code}`, {
+            description: "⚠️ Transfer recipient creation pending...",
+            duration: 4000,
+          });
+        }
         setResults({ subaccountCreation: result });
         // Reset form
         setNewSubaccount({
@@ -468,6 +479,27 @@ export const PaystackTransferTester: React.FC = () => {
     toast.success("Copied to clipboard");
   };
 
+  // Create fallback banks from our config
+  const getFallbackBanks = (): Bank[] => {
+    return SA_BANKS.map((bankName) => ({
+      id: getBankCode(bankName),
+      name: bankName,
+      code: getBankCode(bankName),
+      active: true,
+      country: "ZA",
+      currency: "ZAR",
+      type: "bank"
+    }));
+  };
+
+  // Get banks to display (API banks or fallback to local config)
+  const getDisplayBanks = (): Bank[] => {
+    if (banks.length > 0) {
+      return banks;
+    }
+    return getFallbackBanks();
+  };
+
   // Auto-load data on component mount
   useEffect(() => {
     loadRealData();
@@ -592,30 +624,36 @@ export const PaystackTransferTester: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {banks.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {banks.slice(0, 12).map((bank) => (
-                    <div key={bank.id} className="p-3 border rounded-lg">
-                      <div className="font-medium">{bank.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        Code: {bank.code}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => copyToClipboard(bank.code)}
-                          className="ml-2 h-6 w-6 p-0"
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                      </div>
-                      <Badge variant={bank.active ? "default" : "secondary"}>
-                        {bank.active ? "Active" : "Inactive"}
-                      </Badge>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {getDisplayBanks().slice(0, 12).map((bank) => (
+                  <div key={bank.id} className="p-3 border rounded-lg">
+                    <div className="font-medium">{bank.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      Code: {bank.code}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(bank.code)}
+                        className="ml-2 h-6 w-6 p-0"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
                     </div>
-                  ))}
+                    <Badge variant={bank.active ? "default" : "secondary"}>
+                      {bank.active ? "Active" : "Inactive"}
+                    </Badge>
+                    {banks.length === 0 && (
+                      <Badge variant="outline" className="text-xs">
+                        Local Config
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {banks.length === 0 && (
+                <div className="mt-4 text-sm text-blue-600 bg-blue-50 p-3 rounded">
+                  ℹ️ Showing local bank configuration. Nedbank and other SA banks are available.
                 </div>
-              ) : (
-                <p className="text-muted-foreground">No banks loaded. Click "Fetch Banks" to load banks.</p>
               )}
             </CardContent>
           </Card>
@@ -644,7 +682,7 @@ export const PaystackTransferTester: React.FC = () => {
                       <SelectValue placeholder="Select bank" />
                     </SelectTrigger>
                     <SelectContent>
-                      {banks.map((bank) => (
+                      {getDisplayBanks().map((bank) => (
                         <SelectItem key={bank.id} value={bank.code}>
                           {bank.name} ({bank.code})
                         </SelectItem>
@@ -832,6 +870,22 @@ export const PaystackTransferTester: React.FC = () => {
               </CardTitle>
               <CardDescription>
                 Create a new Paystack subaccount for seller payouts. This will be linked to a seller's profile.
+                <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start gap-2 text-blue-700">
+                    <svg className="h-4 w-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="text-sm">
+                      <strong>What happens when you create a subaccount:</strong>
+                      <ul className="mt-1 space-y-1">
+                        <li>• Creates a Paystack subaccount for receiving split payments</li>
+                        <li>• Automatically creates a transfer recipient for sending payouts</li>
+                        <li>• Links both to the seller's profile in the database</li>
+                        <li>• Updates all seller's books with the subaccount code</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -863,7 +917,7 @@ export const PaystackTransferTester: React.FC = () => {
                 <div className="space-y-2">
                   <Label htmlFor="subaccount-bank" className="text-sm font-medium">Bank *</Label>
                   <Select onValueChange={(value) => {
-                    const selectedBank = banks.find(b => b.code === value);
+                    const selectedBank = getDisplayBanks().find(b => b.code === value);
                     setNewSubaccount(prev => ({
                       ...prev,
                       bank_code: value,
@@ -872,6 +926,10 @@ export const PaystackTransferTester: React.FC = () => {
                         account_number: '0123456789'
                       }),
                       ...(value === '011' && {
+                        account_number: '1234567890'
+                      }),
+                      // Add Nedbank test data
+                      ...(value === '198765' && {
                         account_number: '1234567890'
                       })
                     }));
@@ -883,7 +941,7 @@ export const PaystackTransferTester: React.FC = () => {
                       <SelectValue placeholder="Select bank" />
                     </SelectTrigger>
                     <SelectContent>
-                      {banks.map((bank) => (
+                      {getDisplayBanks().map((bank) => (
                         <SelectItem key={bank.id} value={bank.code}>
                           {bank.name} ({bank.code})
                         </SelectItem>
@@ -940,16 +998,62 @@ export const PaystackTransferTester: React.FC = () => {
               </div>
 
               {banks.length === 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-blue-700">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 text-green-700">
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
                     </svg>
-                    <span className="text-sm font-medium">Banks Loading</span>
+                    <span className="text-sm font-medium">Using Local Bank Configuration</span>
                   </div>
-                  <p className="text-sm text-blue-600 mt-1">
-                    Bank list will be fetched automatically when the component loads.
+                  <p className="text-sm text-green-600 mt-1">
+                    Using fallback banks including Nedbank, FNB, Standard Bank, and other SA banks.
                   </p>
+                </div>
+              )}
+
+              {results?.subaccountCreation && (
+                <div className="mt-4 p-4 border rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    {results.subaccountCreation.success ? (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-500" />
+                    )}
+                    <span className={results.subaccountCreation.success ? "text-green-700 font-medium" : "text-red-700 font-medium"}>
+                      {results.subaccountCreation.success ? "Subaccount Creation Successful" : "Subaccount Creation Failed"}
+                    </span>
+                  </div>
+
+                  {results.subaccountCreation.success && (
+                    <div className="space-y-3 text-sm">
+                      <div className="grid grid-cols-1 gap-2">
+                        <div className="p-2 bg-blue-50 border border-blue-200 rounded">
+                          <div className="text-blue-800 font-medium text-xs">📊 SUBACCOUNT (for split payments)</div>
+                          <code className="text-blue-900 text-sm">{results.subaccountCreation.subaccount_code}</code>
+                        </div>
+                        {results.subaccountCreation.recipient_code ? (
+                          <div className="p-2 bg-green-50 border border-green-200 rounded">
+                            <div className="text-green-800 font-medium text-xs">💰 RECIPIENT (for direct transfers)</div>
+                            <code className="text-green-900 text-sm">{results.subaccountCreation.recipient_code}</code>
+                          </div>
+                        ) : (
+                          <div className="p-2 bg-amber-50 border border-amber-200 rounded">
+                            <div className="text-amber-800 font-medium text-xs">⚠️ RECIPIENT CODE</div>
+                            <div className="text-amber-700 text-xs">Transfer recipient creation failed or skipped</div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                        💡 Both codes use the same banking details but serve different purposes in the payment flow
+                      </div>
+                    </div>
+                  )}
+
+                  {!results.subaccountCreation.success && (
+                    <pre className="text-sm bg-red-50 p-2 rounded overflow-auto text-red-800">
+                      {JSON.stringify(results.subaccountCreation, null, 2)}
+                    </pre>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -1076,18 +1180,24 @@ export const PaystackTransferTester: React.FC = () => {
                       <div key={subaccount.id} className="p-3 border rounded-lg">
                         <div className="font-medium">{subaccount.business_name}</div>
                         <div className="text-sm text-muted-foreground space-y-1">
-                          <div>Subaccount: {subaccount.subaccount_code}</div>
-                          {subaccount.recipient_code && (
-                            <div>Recipient: {subaccount.recipient_code}</div>
+                          <div>📊 Subaccount: <code className="bg-blue-100 px-1 rounded text-xs">{subaccount.subaccount_code}</code></div>
+                          {subaccount.recipient_code ? (
+                            <div>💰 Recipient: <code className="bg-green-100 px-1 rounded text-xs">{subaccount.recipient_code}</code></div>
+                          ) : (
+                            <div className="text-amber-600">⚠️ No recipient code available</div>
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-2">
                           <Badge variant={subaccount.is_active ? "default" : "secondary"}>
                             {subaccount.is_active ? "Active" : "Inactive"}
                           </Badge>
-                          {subaccount.recipient_code && (
-                            <Badge variant="outline" className="text-xs">
-                              Has Recipient
+                          {subaccount.recipient_code ? (
+                            <Badge variant="outline" className="text-xs bg-green-50">
+                              ✅ Has Recipient
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs bg-amber-50">
+                              ⚠️ No Recipient
                             </Badge>
                           )}
                           <Button

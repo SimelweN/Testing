@@ -218,7 +218,7 @@ const PaystackDemo = () => {
           healthCheck: false,
           errorMessage: error.message
         };
-        console.error(`❌ ${funcName} failed:`, error);
+        console.error(`��� ${funcName} failed:`, error);
       }
     }
 
@@ -692,7 +692,11 @@ const PaystackDemo = () => {
       });
 
       if (response.data) {
-        toast.success("✅ Subaccount creation successful!");
+        const hasRecipient = response.data.recipient_code;
+        const successMessage = hasRecipient
+          ? `✅ Subaccount & transfer recipient created! Subaccount: ${response.data.subaccount_code}, Recipient: ${response.data.recipient_code}`
+          : `✅ Subaccount created! Code: ${response.data.subaccount_code}`;
+        toast.success(successMessage);
       } else {
         toast.error("❌ Subaccount creation failed");
       }

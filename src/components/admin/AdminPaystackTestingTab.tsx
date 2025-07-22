@@ -30,6 +30,8 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import SystemHealthChecker from "./SystemHealthChecker";
 import { PaystackTransferTester } from "./PaystackTransferTester";
+import SubaccountDebugTest from "../debug/SubaccountDebugTest";
+import DatabaseSchemaChecker from "../debug/DatabaseSchemaChecker";
 
 interface TestResult {
   success: boolean;
@@ -331,6 +333,12 @@ const AdminPaystackTestingTab: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Database Schema Checker */}
+      <DatabaseSchemaChecker />
+
+      {/* Debug Test for Subaccount Creation */}
+      <SubaccountDebugTest />
 
       {/* Paystack Transfer & Payment Testing */}
       <PaystackTransferTester />

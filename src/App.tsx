@@ -39,6 +39,7 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Verify from "./pages/Verify";
+import AuthCallback from "./pages/AuthCallback";
 
 // Admin Pages
 import Admin from "./pages/Admin";
@@ -125,7 +126,8 @@ function App() {
                         path="/reset-password"
                         element={<ResetPassword />}
                       />
-                      <Route path="/verify" element={<Verify />} />
+                      <Route path="/verify/*" element={<Verify />} />
+                      <Route path="/auth/callback" element={<AuthCallback />} />
 
                       {/* Protected User Routes */}
                       <Route
