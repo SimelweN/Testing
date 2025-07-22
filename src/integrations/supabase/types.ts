@@ -487,6 +487,7 @@ export type Database = {
           id: string;
           user_id: string;
           subaccount_code: string;
+          recipient_code: string | null;
           business_name: string;
           business_description: string | null;
           bank_code: string;
@@ -503,6 +504,7 @@ export type Database = {
           id?: string;
           user_id: string;
           subaccount_code: string;
+          recipient_code?: string | null;
           business_name: string;
           business_description?: string | null;
           bank_code: string;
@@ -519,6 +521,7 @@ export type Database = {
           id?: string;
           user_id?: string;
           subaccount_code?: string;
+          recipient_code?: string | null;
           business_name?: string;
           business_description?: string | null;
           bank_code?: string;

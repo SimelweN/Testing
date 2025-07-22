@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmailVerificationService } from "@/services/emailVerificationService";
 import { supabase } from "@/integrations/supabase/client";
+import { BackupEmailService } from "@/utils/backupEmailService";
 
 const Verify = () => {
   const navigate = useNavigate();
@@ -33,6 +34,31 @@ const Verify = () => {
         console.log("🔍 Starting email verification process");
         console.log("📍 Current URL:", window.location.href);
 
+        // Check for backup/fallback verification first
+        const email = searchParams.get("email");
+        const fallback = searchParams.get("fallback");
+
+        if (fallback === "true" && email) {
+          console.log("🔄 Processing backup verification for:", email);
+          const success = BackupEmailService.verifyEmailFallback(email);
+
+          if (success) {
+            setStatus("success");
+            setMessage("Email verified successfully using backup method!");
+            toast.success("Email verified! You can now log in.");
+
+            setTimeout(() => {
+              navigate("/login", {
+                state: {
+                  message: "Email verified! You can now log in.",
+                  email
+                }
+              });
+            }, 2000);
+            return;
+          }
+        }
+
         // Extract parameters using the service
         const params =
           EmailVerificationService.extractParamsFromUrl(searchParams);
@@ -42,6 +68,8 @@ const Verify = () => {
           fullUrl: window.location.href,
           searchString: window.location.search,
           hash: window.location.hash,
+          email,
+          fallback
         };
 
         console.log("🔍 All URL parameters:", urlParams);
@@ -71,17 +99,44 @@ const Verify = () => {
             EmailVerificationService.getFormattedErrorMessage?.(result) ||
             result.message;
 
-          // If no verification parameters found, show debug mode
+          // If no verification parameters found, try backup verification or show debug mode
           if (
             !params.token_hash &&
             !params.token &&
             !params.code &&
             !params.error_code
           ) {
-            setStatus("debug");
+            // Try backup verification if email is present
+            if (email) {
+              console.log("🔄 Trying backup verification for:", email);
+              const backupSuccess = BackupEmailService.verifyEmailFallback(email);
+
+              if (backupSuccess) {
+                setStatus("success");
+                setMessage("Email verified successfully!");
+                toast.success("Email verified! You can now log in.");
+
+                setTimeout(() => {
+                  navigate("/login", { state: { email } });
+                }, 2000);
+                return;
+              }
+            }
+
+            setStatus("error");
             setMessage(
-              "No verification parameters found in URL. Please see debug information below.",
+              "Invalid verification link. Please try logging in directly or request a new verification email.",
             );
+
+            // Automatically redirect to login after a delay
+            setTimeout(() => {
+              navigate("/login", {
+                state: {
+                  message: "Please log in to your account. If you need to verify your email, use the resend option.",
+                  email
+                }
+              });
+            }, 3000);
           } else {
             setStatus("error");
             setMessage(errorMessage);
@@ -235,30 +290,7 @@ const Verify = () => {
                   {message}
                 </p>
 
-                {debugInfo && (
-                  <Card className="mb-6 text-left">
-                    <CardContent className="p-4">
-                      <h4 className="font-semibold mb-2 text-sm">
-                        Debug Information:
-                      </h4>
-                      <div className="text-xs text-gray-600 space-y-1">
-                        <div>URL: {debugInfo.fullUrl}</div>
-                        <div>Type: {debugInfo.type || "none"}</div>
-                        <div>
-                          Token Hash:{" "}
-                          {debugInfo.token_hash ? "present" : "none"}
-                        </div>
-                        <div>
-                          Legacy Token: {debugInfo.token ? "present" : "none"}
-                        </div>
-                        <div>Code: {debugInfo.code ? "present" : "none"}</div>
-                        {debugInfo.error_code && (
-                          <div>Error Code: {debugInfo.error_code}</div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+
 
                 {/* Verification Tools */}
                 <Card className="mb-6">
@@ -344,99 +376,7 @@ const Verify = () => {
               </>
             )}
 
-            {status === "debug" && (
-              <>
-                <Info className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-                <h2 className="text-xl md:text-2xl font-semibent mb-2 text-gray-800">
-                  Debug Information
-                </h2>
-                <p className="text-gray-600 mb-6 text-sm md:text-base">
-                  {message}
-                </p>
 
-                {debugInfo && (
-                  <Card className="mb-6 text-left">
-                    <CardContent className="p-4">
-                      <h4 className="font-semibold mb-2">
-                        Email Verification Debug Info:
-                      </h4>
-                      <div className="text-sm text-gray-700 space-y-2">
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="font-medium">Full URL:</div>
-                          <div className="break-all">{debugInfo.fullUrl}</div>
-
-                          <div className="font-medium">Search String:</div>
-                          <div>{debugInfo.searchString || "none"}</div>
-
-                          <div className="font-medium">Hash:</div>
-                          <div>{debugInfo.hash || "none"}</div>
-
-                          <div className="font-medium">Type:</div>
-                          <div>{debugInfo.type || "none"}</div>
-
-                          <div className="font-medium">Token Hash:</div>
-                          <div>{debugInfo.token_hash ? "present" : "none"}</div>
-
-                          <div className="font-medium">Legacy Token:</div>
-                          <div>{debugInfo.token ? "present" : "none"}</div>
-
-                          <div className="font-medium">PKCE Code:</div>
-                          <div>{debugInfo.code ? "present" : "none"}</div>
-
-                          {debugInfo.error_code && (
-                            <>
-                              <div className="font-medium">Error Code:</div>
-                              <div>{debugInfo.error_code}</div>
-                            </>
-                          )}
-
-                          {debugInfo.error_description && (
-                            <>
-                              <div className="font-medium">
-                                Error Description:
-                              </div>
-                              <div>{debugInfo.error_description}</div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                <div className="space-y-3">
-                  <p className="text-sm text-gray-600 mb-4">
-                    Please share this information with support if you need help.
-                  </p>
-                  <Button
-                    onClick={() => window.location.reload()}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-2 rounded-lg transition-colors text-sm md:text-base w-full"
-                  >
-                    Try Again
-                  </Button>
-                  <Button
-                    onClick={() => navigate("/login")}
-                    className="bg-book-600 hover:bg-book-700 text-white px-4 md:px-6 py-2 rounded-lg transition-colors text-sm md:text-base w-full"
-                  >
-                    Go to Login
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate("/register")}
-                    className="px-4 md:px-6 py-2 rounded-lg transition-colors text-sm md:text-base w-full"
-                  >
-                    Register Again
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => navigate("/")}
-                    className="text-sm text-gray-500 w-full"
-                  >
-                    Go to Home Page
-                  </Button>
-                </div>
-              </>
-            )}
           </div>
         </div>
       </div>
