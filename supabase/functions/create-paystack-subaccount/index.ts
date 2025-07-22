@@ -711,23 +711,24 @@ serve(async (req) => {
             recipient_code = recipientData.data.recipient_code;
             console.log("Transfer recipient created successfully:", recipient_code);
 
-            // Update the subaccount record with recipient_code in paystack_response
-            const { data: existingRecord } = await supabase
+            // Update the subaccount record with recipient_code in the dedicated column
+            const { error: updateError } = await supabase
               .from("banking_subaccounts")
-              .select("paystack_response")
-              .eq("subaccount_code", subaccount_code)
-              .single();
-
-            const updatedResponse = {
-              ...(existingRecord?.paystack_response || {}),
-              recipient_code: recipient_code,
-              transfer_recipient_created_at: new Date().toISOString()
-            };
-
-            await supabase
-              .from("banking_subaccounts")
-              .update({ paystack_response: updatedResponse })
+              .update({
+                recipient_code: recipient_code,
+                paystack_response: {
+                  ...paystackData,
+                  transfer_recipient_created_at: new Date().toISOString(),
+                  recipient_code: recipient_code // Also keep in JSON for reference
+                }
+              })
               .eq("subaccount_code", subaccount_code);
+
+            if (updateError) {
+              console.error("Failed to update recipient_code:", updateError);
+            } else {
+              console.log("✅ recipient_code stored in dedicated column");
+            }
           } else {
             console.warn("Transfer recipient creation failed:", recipientData.message);
           }
