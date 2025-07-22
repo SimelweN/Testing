@@ -213,7 +213,7 @@ serve(async (req) => {
         }
         // Title and author are nice to have but not strictly required (we can fetch them)
         if (!item.title) {
-          console.warn(`���️ Item ${index} missing title, will try to fetch from database`);
+          console.warn(`⚠️ Item ${index} missing title, will try to fetch from database`);
         }
         if (!item.author) {
           console.warn(`⚠️ Item ${index} missing author, will try to fetch from database`);
@@ -634,14 +634,23 @@ serve(async (req) => {
 </body>
 </html>`;
 
-      await supabase.from("mail_queue").insert({
-        user_id: order.seller_id,
-        email: order.seller_email,
-        subject: "📚 New Order - Action Required (48 hours)",
-        body: sellerHtml,
-        status: "pending",
-        created_at: new Date().toISOString()
-      });
+      // Get seller email from seller profile
+      const { data: sellerProfile } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("id", order.seller_id)
+        .single();
+
+      if (sellerProfile?.email) {
+        await supabase.from("mail_queue").insert({
+          user_id: order.seller_id,
+          email: sellerProfile.email,
+          subject: "📚 New Order - Action Required (48 hours)",
+          body: sellerHtml,
+          status: "pending",
+          created_at: new Date().toISOString()
+        });
+      }
     }
 
     // Prepare response for legacy single-book format compatibility
