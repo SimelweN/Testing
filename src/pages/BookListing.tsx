@@ -111,19 +111,6 @@ const BookListing = () => {
   // Initial load
   useEffect(() => {
     console.log("BookListing component mounted");
-
-    // Run database test first
-    testDatabaseConnection().then(result => {
-      console.log("Database test result:", result);
-      if (!result.success) {
-        console.error("Database connection test failed:", result.error);
-        toast.error("Database connection failed: " + result.error);
-      } else if (!result.hasData) {
-        console.warn("Database is empty - no books found");
-        toast.info("No books found in database");
-      }
-    });
-
     loadBooks();
   }, [loadBooks]);
 
