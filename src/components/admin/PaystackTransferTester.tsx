@@ -479,6 +479,27 @@ export const PaystackTransferTester: React.FC = () => {
     toast.success("Copied to clipboard");
   };
 
+  // Create fallback banks from our config
+  const getFallbackBanks = (): Bank[] => {
+    return SA_BANKS.map((bankName) => ({
+      id: getBankCode(bankName),
+      name: bankName,
+      code: getBankCode(bankName),
+      active: true,
+      country: "ZA",
+      currency: "ZAR",
+      type: "bank"
+    }));
+  };
+
+  // Get banks to display (API banks or fallback to local config)
+  const getDisplayBanks = (): Bank[] => {
+    if (banks.length > 0) {
+      return banks;
+    }
+    return getFallbackBanks();
+  };
+
   // Auto-load data on component mount
   useEffect(() => {
     loadRealData();
