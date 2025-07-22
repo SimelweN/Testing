@@ -181,19 +181,17 @@ export class PaystackSubaccountService {
             const { error: dbError } = await supabase
             .from("banking_subaccounts")
             .insert({
-              user_id: userId, // Add the missing user_id field
+              user_id: userId,
               business_name: details.business_name,
-              email: details.email,
-              bank_name: details.bank_name,
               bank_code: details.bank_code,
               account_number: details.account_number,
               subaccount_code: mockSubaccountCode,
-              status: "active",
-              paystack_response: {
-                mock: true,
-                created_at: new Date().toISOString(),
-                user_id: userId,
-              },
+              business_description: `Mock subaccount for ${details.business_name}`,
+              account_name: details.business_name, // Use business name as account name
+              percentage_charge: 10, // Default 10% charge
+              settlement_bank: details.bank_code,
+              is_verified: false, // Mock accounts are not verified
+              is_active: true, // But they are active for testing
             });
 
             if (dbError) {
