@@ -1075,27 +1075,38 @@ export const PaystackTransferTester: React.FC = () => {
                     {realSubaccounts.map((subaccount) => (
                       <div key={subaccount.id} className="p-3 border rounded-lg">
                         <div className="font-medium">{subaccount.business_name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          Code: {subaccount.subaccount_code}
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          <div>Subaccount: {subaccount.subaccount_code}</div>
+                          {subaccount.recipient_code && (
+                            <div>Recipient: {subaccount.recipient_code}</div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant={subaccount.is_active ? "default" : "secondary"}>
+                            {subaccount.is_active ? "Active" : "Inactive"}
+                          </Badge>
+                          {subaccount.recipient_code && (
+                            <Badge variant="outline" className="text-xs">
+                              Has Recipient
+                            </Badge>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => {
+                              const recipientCode = subaccount.recipient_code || subaccount.subaccount_code;
                               setTransferForm(prev => ({
                                 ...prev,
-                                recipient: subaccount.subaccount_code,
+                                recipient: recipientCode,
                                 reason: `Transfer to ${subaccount.business_name}`
                               }));
-                              toast.success('Subaccount selected for transfer');
+                              toast.success(`${subaccount.recipient_code ? 'Recipient' : 'Subaccount'} selected for transfer`);
                             }}
-                            className="ml-2 h-6 w-6 p-0"
+                            className="h-6 w-6 p-0"
                           >
                             <Copy className="h-3 w-3" />
                           </Button>
                         </div>
-                        <Badge variant={subaccount.is_active ? "default" : "secondary"}>
-                          {subaccount.is_active ? "Active" : "Inactive"}
-                        </Badge>
                       </div>
                     ))}
                   </div>
