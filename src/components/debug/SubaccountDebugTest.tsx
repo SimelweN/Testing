@@ -35,8 +35,13 @@ const SubaccountDebugTest: React.FC = () => {
       setResult(result);
       
       if (result.success) {
-        toast.success(`✅ Subaccount created successfully! Code: ${result.subaccount_code}`);
-        
+        const hasRecipient = result.recipient_code;
+        const successMessage = hasRecipient
+          ? `✅ Complete setup! Subaccount: ${result.subaccount_code}, Recipient: ${result.recipient_code}`
+          : `✅ Subaccount created: ${result.subaccount_code} (Recipient pending)`;
+
+        toast.success(successMessage, { duration: 5000 });
+
         // Test book linking
         if (result.subaccount_code) {
           console.log("🧪 Testing book linking...");
@@ -45,7 +50,8 @@ const SubaccountDebugTest: React.FC = () => {
           toast.info(linkResult ? "📚 Book linking successful" : "⚠️ Book linking had issues (but this is expected in dev)");
         }
       } else {
-        toast.error(`❌ Test failed: ${result.error}`);
+        const errorMessage = result.message || result.error || "Unknown error";
+        toast.error(`❌ Test failed: ${errorMessage}`);
       }
     } catch (error) {
       console.error("🧪 Test error:", error);
