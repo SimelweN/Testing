@@ -393,6 +393,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
               sellerAddress={checkoutState.seller_address}
               onSelectDelivery={handleDeliverySelection}
               onBack={() => goToStep(1)}
+              onCancel={handleCancelCheckout}
               selectedDelivery={checkoutState.selected_delivery}
             />
           )}
