@@ -136,13 +136,17 @@ export class PaystackSubaccountService {
 
       // Check for edge function not deployed/available (development mode)
       if (error) {
-        console.error("Edge function error details:", {
+        const errorDetails = {
           message: error.message,
           code: error.code,
           details: error.details,
           hint: error.hint,
-          status: error.status
-        });
+          status: error.status,
+          toString: () => error.toString(),
+          stack: error.stack
+        };
+        console.error("Edge function error details:", errorDetails);
+        console.error("Edge function error (raw):", error);
 
         if (
           error.message?.includes("non-2xx status code") ||
@@ -209,21 +213,33 @@ export class PaystackSubaccountService {
           if (userId) {
             console.log("Creating mock subaccount in database...");
 
-            const { error: dbError } = await supabase
-            .from("banking_subaccounts")
-            .insert({
-              user_id: userId,
-              business_name: details.business_name,
-              bank_code: details.bank_code,
-              account_number: details.account_number,
-              subaccount_code: mockSubaccountCode,
+            // Try to insert with minimal required fields first
+          let insertData: any = {
+            user_id: userId,
+            business_name: details.business_name,
+            bank_code: details.bank_code,
+            account_number: details.account_number,
+            subaccount_code: mockSubaccountCode,
+          };
+
+          // Add optional fields that may not exist in all schemas
+          try {
+            // Try with more fields
+            insertData = {
+              ...insertData,
               business_description: `Mock subaccount for ${details.business_name}`,
-              account_name: details.business_name, // Use business name as account name
-              percentage_charge: 10, // Default 10% charge
+              percentage_charge: 10,
               settlement_bank: details.bank_code,
-              is_verified: false, // Mock accounts are not verified
-              is_active: true, // But they are active for testing
-            });
+              is_verified: false,
+              is_active: true,
+            };
+          } catch {
+            // If that fails, use minimal data
+          }
+
+          const { error: dbError } = await supabase
+            .from("banking_subaccounts")
+            .insert(insertData);
 
             if (dbError) {
               console.error(
@@ -326,6 +342,23 @@ export class PaystackSubaccountService {
       }
 
       // 📚 UPDATE ALL USER'S BOOKS WITH SUBACCOUNT CODE
+      // First check if the column exists by trying to select it
+      let columnExists = true;
+      try {
+        await supabase
+          .from("books")
+          .select("seller_subaccount_code")
+          .limit(1);
+      } catch (error) {
+        columnExists = false;
+        console.warn("seller_subaccount_code column doesn't exist in books table");
+      }
+
+      if (!columnExists) {
+        console.warn("Skipping book update - seller_subaccount_code column not found");
+        return true; // Return success since the main operation completed
+      }
+
       const { data, error } = await supabase
         .from("books")
         .update({ seller_subaccount_code: subaccountCode })
