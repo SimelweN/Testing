@@ -22,6 +22,7 @@ interface Step2DeliveryOptionsProps {
   sellerAddress: CheckoutAddress;
   onSelectDelivery: (option: DeliveryOption) => void;
   onBack: () => void;
+  onCancel?: () => void;
   selectedDelivery?: DeliveryOption;
 }
 
