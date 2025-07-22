@@ -116,7 +116,7 @@ const PaystackTransferManagement = () => {
     name: "",
     account_number: "",
     bank_code: "",
-    currency: "ZAR",
+    currency: "NGN",
     type: "nuban",
   });
 
@@ -329,7 +329,7 @@ const PaystackTransferManagement = () => {
           name: "",
           account_number: "",
           bank_code: "",
-          currency: "ZAR",
+          currency: "NGN",
           type: "nuban",
         });
         setVerificationResult(null);
