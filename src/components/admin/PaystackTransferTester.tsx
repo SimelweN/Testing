@@ -12,6 +12,7 @@ import { Loader2, CheckCircle, XCircle, Copy, TestTube, Zap } from "lucide-react
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PaystackTransferTestHelper } from "@/utils/paystackTransferTestUtils";
+import { SA_BANKS, getBankCode } from "@/config/paystack";
 
 export const PaystackTransferTester: React.FC = () => {
   const [loading, setLoading] = useState(false);
