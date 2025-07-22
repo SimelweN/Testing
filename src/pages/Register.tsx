@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Mail, Lock, User, Loader2 } from "lucide-react";
-import EmailConfirmationFix from "@/components/EmailConfirmationFix";
+import { BackupEmailService } from "@/utils/backupEmailService";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -17,7 +17,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showEmailFix, setShowEmailFix] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -131,11 +131,47 @@ const Register = () => {
         errorMessage.toLowerCase().includes("email") ||
         errorMessage.toLowerCase().includes("confirmation")
       ) {
+        // Try to send backup confirmation email
+        console.log("📧 Email issue detected, trying backup email service...");
         setUserEmail(email);
-        setShowEmailFix(true);
-        toast.error(
-          "Email confirmation issue detected. Please use the fix tool below.",
-        );
+
+        try {
+          const backupResult = await BackupEmailService.sendConfirmationEmail({ to: email });
+
+          if (backupResult.success) {
+            setEmailSent(true);
+            toast.success("Account created! Confirmation email sent via backup service.", {
+              duration: 6000
+            });
+            toast.info("Please check your email (including spam folder) for the confirmation link.", {
+              duration: 8000
+            });
+
+            setTimeout(() => {
+              navigate("/login", {
+                state: {
+                  message: "Account created! Please check your email for the confirmation link.",
+                  email,
+                },
+              });
+            }, 3000);
+          } else {
+            toast.warning("Account created successfully! You can log in, but email confirmation may be delayed.", {
+              duration: 8000
+            });
+            setTimeout(() => {
+              navigate("/login", { state: { email } });
+            }, 3000);
+          }
+        } catch (backupError) {
+          console.error("Backup email also failed:", backupError);
+          toast.warning("Account created! Email service is temporarily unavailable, but you can still log in.", {
+            duration: 8000
+          });
+          setTimeout(() => {
+            navigate("/login", { state: { email } });
+          }, 2000);
+        }
       } else {
         // Show the error to the user
         toast.error(errorMessage);
@@ -155,22 +191,16 @@ const Register = () => {
                 Create an Account
               </h1>
 
-              {showEmailFix && (
-                <div className="mb-6">
-                  <EmailConfirmationFix
-                    userEmail={userEmail}
-                    onSuccess={() => {
-                      setShowEmailFix(false);
-                      toast.success(
-                        "Email confirmation fixed! You can now log in.",
-                      );
-                      setTimeout(
-                        () =>
-                          navigate("/login", { state: { email: userEmail } }),
-                        1500,
-                      );
-                    }}
-                  />
+              {emailSent && (
+                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-green-800">
+                    <Mail className="h-5 w-5" />
+                    <span className="font-medium">Email Sent Successfully!</span>
+                  </div>
+                  <p className="text-green-700 text-sm mt-2">
+                    A confirmation email has been sent to <strong>{userEmail}</strong>.
+                    Please check your inbox (and spam folder) for the verification link.
+                  </p>
                 </div>
               )}
 
