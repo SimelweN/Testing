@@ -152,7 +152,110 @@ serve(async (req) => {
 
 async function handleCreateRefund(req: Request): Promise<Response> {
   try {
-    const refundData: RefundRequest = await req.json();
+    const requestData = await req.json();
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+    let transactionReference = requestData.transaction_reference;
+
+    // If no transaction reference but order_id provided, get it from order
+    if (!transactionReference && requestData.order_id) {
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .select('payment_reference')
+        .eq('id', requestData.order_id)
+        .single();
+
+      if (orderError || !order) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "ORDER_NOT_FOUND",
+            details: {
+              order_id: requestData.order_id,
+              message: "Order not found or has no payment reference"
+            }
+          }),
+          {
+            status: 404,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      transactionReference = order.payment_reference;
+    }
+
+    if (!transactionReference) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "TRANSACTION_REFERENCE_REQUIRED",
+          details: {
+            message: "Either transaction_reference or order_id with valid payment reference is required"
+          }
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Handle test/mock references
+    if (transactionReference.includes('test_') || transactionReference.includes('mock_')) {
+      console.log('Processing mock refund for reference:', transactionReference);
+
+      // Create mock refund response
+      const mockRefund = {
+        id: Date.now(),
+        transaction: {
+          reference: transactionReference,
+          amount: requestData.refund_amount || 10000, // Default R100 in kobo
+          currency: 'ZAR'
+        },
+        amount: requestData.refund_amount || 10000,
+        currency: 'ZAR',
+        status: 'pending',
+        refunded_at: new Date().toISOString(),
+        customer_note: requestData.reason || 'Admin test refund',
+        merchant_note: 'Mock refund processed successfully'
+      };
+
+      // Store refund record in database
+      await supabase.from('refund_transactions').insert({
+        transaction_reference: transactionReference,
+        order_id: requestData.order_id,
+        amount: requestData.refund_amount || 10000,
+        reason: requestData.reason || 'Admin test refund',
+        status: 'completed',
+        admin_initiated: requestData.admin_initiated || false,
+        paystack_response: mockRefund,
+        created_at: new Date().toISOString()
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: mockRefund,
+          mock: true,
+          message: 'Mock refund processed successfully',
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Prepare refund data for Paystack
+    const refundData: RefundRequest = {
+      transaction: transactionReference,
+      amount: requestData.refund_amount,
+      currency: requestData.currency || 'ZAR',
+      customer_note: requestData.reason || 'Refund processed',
+      merchant_note: requestData.admin_initiated ? 'Admin initiated refund' : 'Customer refund request'
+    };
 
     const response = await fetch("https://api.paystack.co/refund", {
       method: "POST",
@@ -164,6 +267,20 @@ async function handleCreateRefund(req: Request): Promise<Response> {
     });
 
     const result = await response.json();
+
+    // Store refund record in database
+    if (response.ok) {
+      await supabase.from('refund_transactions').insert({
+        transaction_reference: transactionReference,
+        order_id: requestData.order_id,
+        amount: requestData.refund_amount,
+        reason: requestData.reason,
+        status: result.data?.status || 'pending',
+        admin_initiated: requestData.admin_initiated || false,
+        paystack_response: result.data,
+        created_at: new Date().toISOString()
+      });
+    }
 
     return new Response(
       JSON.stringify({
