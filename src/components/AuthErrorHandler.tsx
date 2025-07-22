@@ -9,9 +9,23 @@ const AuthErrorHandler = () => {
       const error = urlParams.get("error");
       const errorDescription = urlParams.get("error_description");
       const hasCode = urlParams.has("code");
+      const hasToken = urlParams.has("token");
+      const hasTokenHash = urlParams.has("token_hash");
+      const hasType = urlParams.has("type");
 
       let needsUrlCleanup = false;
       const url = new URL(window.location.href);
+
+      // If we're on the home page but have verification parameters, clean them up
+      if (window.location.pathname === "/" && (hasToken || hasTokenHash || hasType)) {
+        console.warn("🧹 Cleaning verification parameters from home page URL");
+        url.searchParams.delete("token");
+        url.searchParams.delete("token_hash");
+        url.searchParams.delete("type");
+        url.searchParams.delete("email");
+        url.searchParams.delete("fallback");
+        needsUrlCleanup = true;
+      }
 
       if (error) {
         console.warn("🚨 Auth error detected in URL:", {
