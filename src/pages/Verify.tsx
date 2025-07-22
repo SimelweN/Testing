@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmailVerificationService } from "@/services/emailVerificationService";
 import { supabase } from "@/integrations/supabase/client";
+import { BackupEmailService } from "@/utils/backupEmailService";
 
 const Verify = () => {
   const navigate = useNavigate();
@@ -33,6 +34,31 @@ const Verify = () => {
         console.log("🔍 Starting email verification process");
         console.log("📍 Current URL:", window.location.href);
 
+        // Check for backup/fallback verification first
+        const email = searchParams.get("email");
+        const fallback = searchParams.get("fallback");
+
+        if (fallback === "true" && email) {
+          console.log("🔄 Processing backup verification for:", email);
+          const success = BackupEmailService.verifyEmailFallback(email);
+
+          if (success) {
+            setStatus("success");
+            setMessage("Email verified successfully using backup method!");
+            toast.success("Email verified! You can now log in.");
+
+            setTimeout(() => {
+              navigate("/login", {
+                state: {
+                  message: "Email verified! You can now log in.",
+                  email
+                }
+              });
+            }, 2000);
+            return;
+          }
+        }
+
         // Extract parameters using the service
         const params =
           EmailVerificationService.extractParamsFromUrl(searchParams);
@@ -42,6 +68,8 @@ const Verify = () => {
           fullUrl: window.location.href,
           searchString: window.location.search,
           hash: window.location.hash,
+          email,
+          fallback
         };
 
         console.log("🔍 All URL parameters:", urlParams);
@@ -71,16 +99,33 @@ const Verify = () => {
             EmailVerificationService.getFormattedErrorMessage?.(result) ||
             result.message;
 
-          // If no verification parameters found, show debug mode
+          // If no verification parameters found, try backup verification or show debug mode
           if (
             !params.token_hash &&
             !params.token &&
             !params.code &&
             !params.error_code
           ) {
+            // Try backup verification if email is present
+            if (email) {
+              console.log("🔄 Trying backup verification for:", email);
+              const backupSuccess = BackupEmailService.verifyEmailFallback(email);
+
+              if (backupSuccess) {
+                setStatus("success");
+                setMessage("Email verified successfully!");
+                toast.success("Email verified! You can now log in.");
+
+                setTimeout(() => {
+                  navigate("/login", { state: { email } });
+                }, 2000);
+                return;
+              }
+            }
+
             setStatus("debug");
             setMessage(
-              "No verification parameters found in URL. Please see debug information below.",
+              "No verification parameters found in URL. Please see debug information below or try logging in directly.",
             );
           } else {
             setStatus("error");
