@@ -136,26 +136,34 @@ export class PaystackSubaccountService {
 
       // Check for edge function not deployed/available (development mode)
       if (error) {
-        const errorDetails = {
-          message: error.message,
-          code: error.code,
-          details: error.details,
-          hint: error.hint,
-          status: error.status,
-          toString: () => error.toString(),
-          stack: error.stack
-        };
-        console.error("Edge function error details:", errorDetails);
-        console.error("Edge function error (raw):", error);
+        console.error("🚨 Edge function error occurred:");
+        console.error("- Error object:", error);
+        console.error("- Error message:", error.message);
+        console.error("- Error details:", error.details);
+        console.error("- Error code:", error.code);
+        console.error("- Error status:", error.status);
+
+        // Try to extract more meaningful error info
+        let errorSummary = "Unknown edge function error";
+        if (error.message) {
+          errorSummary = error.message;
+        } else if (error.details) {
+          errorSummary = error.details;
+        } else if (typeof error === "string") {
+          errorSummary = error;
+        }
+
+        console.error("📋 Error summary:", errorSummary);
 
         if (
-          error.message?.includes("non-2xx status code") ||
-          error.message?.includes("404") ||
-          error.message?.includes("Function not found") ||
-          error.message?.includes("FunctionsError") ||
-          !error.message
+          errorSummary.includes("non-2xx status code") ||
+          errorSummary.includes("404") ||
+          errorSummary.includes("Function not found") ||
+          errorSummary.includes("FunctionsError") ||
+          errorSummary.includes("fetch") ||
+          errorSummary === "Unknown edge function error"
         ) {
-          console.warn("Edge function not available, using development fallback");
+          console.warn("🔧 Edge function not available, using development fallback");
           throw new Error("non-2xx status code"); // This will trigger the development fallback below
         }
       }
@@ -630,7 +638,7 @@ export class PaystackSubaccountService {
         } = await supabase.auth.getUser();
         if (!user) {
           console.log(
-            "�� getUserSubaccountStatus: No authenticated user found",
+            "❌ getUserSubaccountStatus: No authenticated user found",
           );
           return { hasSubaccount: false, canEdit: false };
         }
