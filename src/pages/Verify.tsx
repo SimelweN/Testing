@@ -290,30 +290,7 @@ const Verify = () => {
                   {message}
                 </p>
 
-                {debugInfo && (
-                  <Card className="mb-6 text-left">
-                    <CardContent className="p-4">
-                      <h4 className="font-semibold mb-2 text-sm">
-                        Debug Information:
-                      </h4>
-                      <div className="text-xs text-gray-600 space-y-1">
-                        <div>URL: {debugInfo.fullUrl}</div>
-                        <div>Type: {debugInfo.type || "none"}</div>
-                        <div>
-                          Token Hash:{" "}
-                          {debugInfo.token_hash ? "present" : "none"}
-                        </div>
-                        <div>
-                          Legacy Token: {debugInfo.token ? "present" : "none"}
-                        </div>
-                        <div>Code: {debugInfo.code ? "present" : "none"}</div>
-                        {debugInfo.error_code && (
-                          <div>Error Code: {debugInfo.error_code}</div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+
 
                 {/* Verification Tools */}
                 <Card className="mb-6">
