@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { paystackTransferService, Bank, TransferRecipient, TransferRequest } from "@/services/paystackTransferService";
-import { Loader2, CheckCircle, XCircle, Copy, TestTube } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, Copy, TestTube, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { PaystackTransferTestHelper } from "@/utils/paystackTransferTestUtils";
 
 export const PaystackTransferTester: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -55,6 +56,10 @@ export const PaystackTransferTester: React.FC = () => {
 
   const [refundTesting, setRefundTesting] = useState(false);
   const [refundResult, setRefundResult] = useState<any>(null);
+
+  // Comprehensive testing states
+  const [comprehensiveTesting, setComprehensiveTesting] = useState(false);
+  const [comprehensiveResults, setComprehensiveResults] = useState<any>(null);
 
   const loadRealData = async () => {
     try {
@@ -244,6 +249,32 @@ export const PaystackTransferTester: React.FC = () => {
     toast.success(`Using real subaccount: ${testSubaccount.business_name}`);
   };
 
+  const handleComprehensiveTest = async () => {
+    setComprehensiveTesting(true);
+    setComprehensiveResults(null);
+
+    try {
+      toast.info('Starting comprehensive test suite with real data...');
+      const results = await PaystackTransferTestHelper.runComprehensiveTests();
+      setComprehensiveResults(results);
+
+      const { summary } = results;
+      if (summary.success_rate >= 80) {
+        toast.success(`Comprehensive tests completed! ${summary.passed}/${summary.total_tests} passed (${summary.success_rate.toFixed(1)}%)`);
+      } else {
+        toast.warning(`Tests completed with issues: ${summary.passed}/${summary.total_tests} passed (${summary.success_rate.toFixed(1)}%)`);
+      }
+    } catch (error) {
+      toast.error(`Comprehensive test failed: ${error.message}`);
+      setComprehensiveResults({
+        error: error.message,
+        summary: { total_tests: 0, passed: 0, failed: 1, success_rate: 0 }
+      });
+    } finally {
+      setComprehensiveTesting(false);
+    }
+  };
+
   const handleGetRecipients = async () => {
     setLoading(true);
     try {
@@ -326,10 +357,21 @@ export const PaystackTransferTester: React.FC = () => {
           <h2 className="text-2xl font-bold">Paystack Transfer & Payment Testing</h2>
           <p className="text-muted-foreground">Test Paystack transfer management and payment verification functions</p>
         </div>
-        <Button onClick={handleRunAllTests} disabled={loading} className="flex items-center gap-2">
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <TestTube className="h-4 w-4" />}
-          Run All Tests
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleRunAllTests} disabled={loading} className="flex items-center gap-2">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <TestTube className="h-4 w-4" />}
+            Basic Tests
+          </Button>
+          <Button
+            onClick={handleComprehensiveTest}
+            disabled={comprehensiveTesting}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            {comprehensiveTesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+            Comprehensive Real Data Tests
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="payment" className="space-y-4">
