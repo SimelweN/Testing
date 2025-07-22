@@ -97,7 +97,13 @@ interface Bank {
 const PaystackTransferManagement = () => {
   const [recipients, setRecipients] = useState<TransferRecipient[]>([]);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
-  const [banks, setBanks] = useState<Bank[]>([]);
+  const [banks, setBanks] = useState<Bank[]>([
+    { id: 1, name: "ABSA Bank", code: "632005", longcode: "632005", gateway: "test", pay_with_bank: true, active: true, country: "ZA", currency: "ZAR", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
+    { id: 2, name: "Standard Bank", code: "051001", longcode: "051001", gateway: "test", pay_with_bank: true, active: true, country: "ZA", currency: "ZAR", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
+    { id: 3, name: "FNB", code: "250655", longcode: "250655", gateway: "test", pay_with_bank: true, active: true, country: "ZA", currency: "ZAR", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
+    { id: 4, name: "Nedbank", code: "198765", longcode: "198765", gateway: "test", pay_with_bank: true, active: true, country: "ZA", currency: "ZAR", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
+    { id: 5, name: "Capitec Bank", code: "470010", longcode: "470010", gateway: "test", pay_with_bank: true, active: true, country: "ZA", currency: "ZAR", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" }
+  ]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [transferring, setTransferring] = useState(false);
