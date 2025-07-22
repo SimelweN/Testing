@@ -679,18 +679,71 @@ serve(async (req) => {
       );
     }
 
+    // Step 9: Create transfer recipient using the same banking information
+    let recipient_code = null;
+    try {
+      console.log("Creating transfer recipient for subaccount:", subaccount_code);
+
+      const recipientPayload = {
+        type: "nuban",
+        name: business_name,
+        description: `Transfer recipient for ${business_name}`,
+        account_number: account_number,
+        bank_code: bank_code,
+        currency: "ZAR",
+        email: email,
+      };
+
+      const paystackSecretKey = Deno.env.get("PAYSTACK_SECRET_KEY");
+      if (paystackSecretKey) {
+        const recipientResponse = await fetch("https://api.paystack.co/transferrecipient", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${paystackSecretKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(recipientPayload),
+        });
+
+        if (recipientResponse.ok) {
+          const recipientData = await recipientResponse.json();
+          if (recipientData.status && recipientData.data) {
+            recipient_code = recipientData.data.recipient_code;
+            console.log("Transfer recipient created successfully:", recipient_code);
+
+            // Update the subaccount record with recipient_code
+            await supabase
+              .from("banking_subaccounts")
+              .update({ recipient_code: recipient_code })
+              .eq("subaccount_code", subaccount_code);
+          } else {
+            console.warn("Transfer recipient creation failed:", recipientData.message);
+          }
+        } else {
+          console.warn("Transfer recipient API call failed:", recipientResponse.status);
+        }
+      } else {
+        console.warn("PAYSTACK_SECRET_KEY not configured, skipping transfer recipient creation");
+      }
+    } catch (recipientError) {
+      console.error("Error creating transfer recipient:", recipientError);
+      // Don't fail the main request if recipient creation fails
+    }
+
     console.log(
       `Successfully ${shouldUpdate ? "updated" : "created"} subaccount and updated profile`,
     );
 
     return jsonResponse({
       success: true,
-      message: `Banking details and subaccount ${shouldUpdate ? "updated" : "created"} successfully!`,
+      message: `Banking details and subaccount ${shouldUpdate ? "updated" : "created"} successfully!${recipient_code ? " Transfer recipient also created." : ""}`,
       subaccount_code: subaccount_code,
+      recipient_code: recipient_code,
       user_id: user.id,
       is_update: shouldUpdate,
       data: {
         subaccount_code,
+        recipient_code,
         business_name,
         bank_name,
         account_number_masked: `****${account_number.slice(-4)}`,
