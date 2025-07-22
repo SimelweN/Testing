@@ -993,24 +993,27 @@ export const PaystackTransferTester: React.FC = () => {
                   </div>
 
                   {results.subaccountCreation.success && (
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-green-700 border-green-300">
-                          Subaccount: {results.subaccountCreation.subaccount_code}
-                        </Badge>
+                    <div className="space-y-3 text-sm">
+                      <div className="grid grid-cols-1 gap-2">
+                        <div className="p-2 bg-blue-50 border border-blue-200 rounded">
+                          <div className="text-blue-800 font-medium text-xs">📊 SUBACCOUNT (for split payments)</div>
+                          <code className="text-blue-900 text-sm">{results.subaccountCreation.subaccount_code}</code>
+                        </div>
+                        {results.subaccountCreation.recipient_code ? (
+                          <div className="p-2 bg-green-50 border border-green-200 rounded">
+                            <div className="text-green-800 font-medium text-xs">💰 RECIPIENT (for direct transfers)</div>
+                            <code className="text-green-900 text-sm">{results.subaccountCreation.recipient_code}</code>
+                          </div>
+                        ) : (
+                          <div className="p-2 bg-amber-50 border border-amber-200 rounded">
+                            <div className="text-amber-800 font-medium text-xs">⚠️ RECIPIENT CODE</div>
+                            <div className="text-amber-700 text-xs">Transfer recipient creation failed or skipped</div>
+                          </div>
+                        )}
                       </div>
-                      {results.subaccountCreation.recipient_code && (
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-blue-700 border-blue-300">
-                            Transfer Recipient: {results.subaccountCreation.recipient_code}
-                          </Badge>
-                        </div>
-                      )}
-                      {!results.subaccountCreation.recipient_code && (
-                        <div className="text-amber-600 text-xs">
-                          ⚠️ Transfer recipient creation failed or skipped
-                        </div>
-                      )}
+                      <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                        💡 Both codes use the same banking details but serve different purposes in the payment flow
+                      </div>
                     </div>
                   )}
 
