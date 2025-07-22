@@ -213,7 +213,7 @@ serve(async (req) => {
         }
         // Title and author are nice to have but not strictly required (we can fetch them)
         if (!item.title) {
-          console.warn(`⚠️ Item ${index} missing title, will try to fetch from database`);
+          console.warn(`���️ Item ${index} missing title, will try to fetch from database`);
         }
         if (!item.author) {
           console.warn(`⚠️ Item ${index} missing author, will try to fetch from database`);
@@ -588,7 +588,7 @@ serve(async (req) => {
       <h1>📚 New Order - Action Required!</h1>
     </div>
 
-    <h2>Hi ${order.seller_name}!</h2>
+    <h2>Hi Seller!</h2>
     <p>Great news! You have a new order from <strong>${buyer.name || buyer.full_name || "Customer"}</strong>.</p>
 
     <div class="info-box">
@@ -597,7 +597,6 @@ serve(async (req) => {
       <p><strong>Buyer:</strong> ${buyer.name || buyer.full_name || "Customer"} (${finalBuyerEmail})</p>
       <p><strong>Items:</strong> ${order.items.length} book(s)</p>
       <p><strong>Total Amount:</strong> R${order.total_amount.toFixed(2)}</p>
-      <p><strong>Delivery Method:</strong> ${order.delivery_method}</p>
       <p><strong>Payment Reference:</strong> ${finalPaymentRef}</p>
     </div>
 
