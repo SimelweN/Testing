@@ -216,6 +216,8 @@ const BookListing = () => {
       />
 
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+        <DatabaseDebugger />
+
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-8 px-2 sm:px-0">
           <h1 className="text-2xl sm:text-3xl font-bold text-book-800 mb-4 sm:mb-0">
             Browse Books
