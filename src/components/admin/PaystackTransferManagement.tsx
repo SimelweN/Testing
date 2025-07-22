@@ -996,7 +996,7 @@ const PaystackTransferManagement = () => {
                     <div className="flex justify-between">
                       <span>Processing Fee:</span>
                       <span className="font-medium">
-                        ~R{(transferForm.amount * 0.005).toFixed(2)}
+                        ~₦{(transferForm.amount * 0.005).toFixed(2)}
                       </span>
                     </div>
                   </div>
