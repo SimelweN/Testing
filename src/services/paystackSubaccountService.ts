@@ -325,13 +325,15 @@ export class PaystackSubaccountService {
         .select("id");
 
       if (error) {
+        const formattedError = this.formatError(error);
         console.error(
           "Error updating books with seller_subaccount_code:",
-          JSON.stringify(error, null, 2),
+          formattedError,
         );
         // Don't return false immediately, log the error but continue
         console.warn("Book update failed but continuing with subaccount creation");
         console.warn("This might be because the books table doesn't have the seller_subaccount_code column yet");
+        console.warn("Error details:", formattedError);
         // Return true to not fail the subaccount creation process
         return true;
       }
