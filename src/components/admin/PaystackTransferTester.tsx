@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { paystackTransferService, Bank, TransferRecipient, TransferRequest } from "@/services/paystackTransferService";
 import { Loader2, CheckCircle, XCircle, Copy, TestTube } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export const PaystackTransferTester: React.FC = () => {
   const [loading, setLoading] = useState(false);
