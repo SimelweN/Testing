@@ -22,7 +22,15 @@ interface CartItem {
   isbn?: string;
 }
 
+interface DeliveryData {
+  courier?: string;
+  service_name?: string;
+  estimated_days?: number;
+  price?: number;
+}
+
 interface CreateOrderRequest {
+  // Primary fields (new standard)
   buyer_id?: string;
   user_id?: string;
   buyer_email?: string;
@@ -32,6 +40,17 @@ interface CreateOrderRequest {
   shipping_address: any;
   payment_reference?: string;
   payment_data?: any;
+
+  // Legacy fields (for backward compatibility with existing checkout)
+  bookId?: string;
+  buyerId?: string;
+  sellerId?: string;
+  amount?: number;
+  deliveryOption?: string;
+  deliveryData?: DeliveryData;
+  shippingAddress?: any;
+  paystackReference?: string;
+  paystackSubaccount?: string;
 }
 
 serve(async (req) => {
@@ -42,7 +61,7 @@ serve(async (req) => {
   // 🧪 TEST MODE: Check if this is a test request with mock data
   const testResult = await testFunction("create-order", req);
   if (testResult.isTest) {
-    return testResult.response;
+    return testResult.response!;
   }
 
   try {
@@ -52,21 +71,66 @@ serve(async (req) => {
     const bodyResult = await enhancedParseRequestBody<CreateOrderRequest>(req, corsHeaders);
     if (!bodyResult.success) return bodyResult.errorResponse!;
 
-    const {
-      buyer_id,
-      user_id,
-      buyer_email,
-      email,
-      cart_items,
-      items,
-      shipping_address,
-      payment_reference,
-      payment_data
-    } = bodyResult.data!;
+    const requestData = bodyResult.data!;
 
-    const finalBuyerId = buyer_id || user_id;
-    const finalBuyerEmail = buyer_email || email;
-    const finalItems = cart_items || items;
+    // Handle both new cart-based and legacy single-book request formats
+    let finalBuyerId: string;
+    let finalBuyerEmail: string;
+    let finalItems: CartItem[];
+    let finalShippingAddress: any;
+    let finalPaymentRef: string;
+    let deliveryInfo: DeliveryData | null = null;
+
+    // Detect request format and normalize data
+    if (requestData.bookId && requestData.buyerId && requestData.sellerId) {
+      // Legacy single-book order format from Step3Payment
+      console.log("📚 Processing legacy single-book order format");
+      
+      finalBuyerId = requestData.buyerId;
+      finalBuyerEmail = requestData.buyer_email || requestData.email || "";
+      finalShippingAddress = requestData.shippingAddress || requestData.shipping_address;
+      finalPaymentRef = requestData.paystackReference || requestData.payment_reference || `legacy_ref_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      deliveryInfo = requestData.deliveryData || null;
+
+      // Convert single book to cart item format
+      finalItems = [{
+        book_id: requestData.bookId,
+        title: "", // Will be filled from database
+        author: "", // Will be filled from database
+        price: (requestData.amount || 0) / 100, // Convert from kobo if needed
+        seller_id: requestData.sellerId,
+        condition: "",
+        isbn: ""
+      }];
+
+      // Get book details from database for legacy format
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+      const { data: bookData, error: bookError } = await supabase
+        .from("books")
+        .select("title, author, condition, isbn, price")
+        .eq("id", requestData.bookId)
+        .single();
+
+      if (bookData) {
+        finalItems[0].title = bookData.title || "";
+        finalItems[0].author = bookData.author || "";
+        finalItems[0].condition = bookData.condition || "";
+        finalItems[0].isbn = bookData.isbn || "";
+        // Use database price if amount wasn't provided
+        if (!requestData.amount && bookData.price) {
+          finalItems[0].price = bookData.price;
+        }
+      }
+    } else {
+      // New cart-based order format
+      console.log("🛒 Processing cart-based order format");
+      
+      finalBuyerId = requestData.buyer_id || requestData.user_id || "";
+      finalBuyerEmail = requestData.buyer_email || requestData.email || "";
+      finalItems = requestData.cart_items || requestData.items || [];
+      finalShippingAddress = requestData.shipping_address || requestData.shippingAddress;
+      finalPaymentRef = requestData.payment_reference || `cart_ref_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
 
     // Enhanced validation
     const validationErrors = [];
@@ -85,7 +149,7 @@ serve(async (req) => {
       validationErrors.push("cart_items or items must be a non-empty array");
     }
 
-    if (!shipping_address) {
+    if (!finalShippingAddress) {
       validationErrors.push("shipping_address is required");
     }
 
@@ -93,8 +157,6 @@ serve(async (req) => {
     if (finalItems && Array.isArray(finalItems)) {
       finalItems.forEach((item, index) => {
         if (!item.book_id) validationErrors.push(`cart_items[${index}].book_id is required`);
-        if (!item.title) validationErrors.push(`cart_items[${index}].title is required`);
-        if (!item.author) validationErrors.push(`cart_items[${index}].author is required`);
         if (!item.seller_id) validationErrors.push(`cart_items[${index}].seller_id is required`);
         if (typeof item.price !== 'number' || item.price <= 0) {
           validationErrors.push(`cart_items[${index}].price must be a positive number`);
@@ -105,7 +167,7 @@ serve(async (req) => {
     if (validationErrors.length > 0) {
       return errorResponse("VALIDATION_FAILED", {
         validation_errors: validationErrors,
-        provided_fields: Object.keys(bodyResult.data!),
+        provided_fields: Object.keys(requestData),
         expected_format: {
           buyer_id: "string (UUID)",
           buyer_email: "string (valid email)",
@@ -174,7 +236,6 @@ serve(async (req) => {
     }
 
     const createdOrders = [];
-    const finalPaymentRef = payment_reference || `test_ref_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Create orders for each seller
     for (const [sellerId, sellerItems] of Object.entries(ordersBySeller)) {
@@ -193,36 +254,52 @@ serve(async (req) => {
       const totalAmount = sellerItems.reduce((sum, item) => sum + (item.price || 0), 0);
       const commitDeadline = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
+      // Prepare order data with all fields for compatibility
+      const orderData = {
+        buyer_id: finalBuyerId,
+        buyer_email: finalBuyerEmail,
+        seller_id: sellerId,
+        items: sellerItems,
+        amount: Math.round(totalAmount * 100), // Amount in kobo
+        total_amount: totalAmount,
+        status: "pending_commit",
+        payment_status: "paid",
+        payment_reference: finalPaymentRef,
+        shipping_address: finalShippingAddress,
+        commit_deadline: commitDeadline.toISOString(),
+        paid_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        
+        // Additional fields for compatibility
+        buyer_name: buyer.name || buyer.full_name || "",
+        seller_name: seller.name || seller.full_name || "",
+        seller_email: seller.email || "",
+        expires_at: commitDeadline.toISOString(),
+        paystack_ref: finalPaymentRef,
+        delivery_address: finalShippingAddress,
+        
+        // Add delivery information if available (from legacy format)
+        delivery_method: deliveryInfo?.service_name || requestData.deliveryOption || "Standard Delivery",
+        delivery_price: deliveryInfo?.price || 0,
+        delivery_courier: deliveryInfo?.courier || "",
+        delivery_estimated_days: deliveryInfo?.estimated_days || 3,
+        
+        // Enhanced metadata
+        metadata: {
+          item_count: sellerItems.length,
+          created_at: new Date().toISOString(),
+          created_from: requestData.bookId ? "legacy_checkout" : "cart",
+          payment_data: requestData.payment_data || null,
+          delivery_data: deliveryInfo,
+          request_type: requestData.bookId ? "single_book" : "multi_item",
+          user_agent: req.headers.get("user-agent") || "",
+          ip_address: req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || ""
+        }
+      };
+
       const { data: order, error: orderError } = await supabase
         .from("orders")
-        .insert({
-          buyer_id: finalBuyerId,
-          buyer_email: finalBuyerEmail,
-          seller_id: sellerId,
-          items: sellerItems,
-          amount: Math.round(totalAmount * 100),
-          total_amount: totalAmount,
-          status: "pending_commit",
-          payment_status: "paid",
-          payment_reference: finalPaymentRef,
-          shipping_address,
-          commit_deadline: commitDeadline.toISOString(),
-          paid_at: new Date().toISOString(),
-          // Additional fields for compatibility
-          buyer_name: buyer.name,
-          seller_name: seller.name,
-          seller_email: seller.email,
-          expires_at: commitDeadline.toISOString(),
-          created_at: new Date().toISOString(),
-          paystack_ref: finalPaymentRef,
-          delivery_address: shipping_address,
-          metadata: {
-            item_count: sellerItems.length,
-            created_at: new Date().toISOString(),
-            created_from: "cart",
-            payment_data: payment_data || null
-          }
-        })
+        .insert(orderData)
         .select()
         .single();
 
@@ -260,7 +337,9 @@ serve(async (req) => {
         metadata: {
           total_amount: totalAmount,
           items_count: sellerItems.length,
-          payment_reference: finalPaymentRef
+          payment_reference: finalPaymentRef,
+          delivery_method: order.delivery_method,
+          order_type: requestData.bookId ? "single_book" : "multi_item"
         }
       });
     }
@@ -345,7 +424,7 @@ serve(async (req) => {
       <h1>🎉 Order Confirmed!</h1>
     </div>
 
-    <h2>Thank you, ${buyer.name}!</h2>
+    <h2>Thank you, ${buyer.name || buyer.full_name || "Customer"}!</h2>
     <p>Your order has been confirmed and the sellers have been notified.</p>
 
     <div class="info-box">
@@ -353,6 +432,7 @@ serve(async (req) => {
       <p><strong>Total Orders:</strong> ${createdOrders.length}</p>
       <p><strong>Total Amount:</strong> R${createdOrders.reduce((sum, order) => sum + order.total_amount, 0).toFixed(2)}</p>
       <p><strong>Total Books:</strong> ${finalItems.length}</p>
+      <p><strong>Payment Reference:</strong> ${finalPaymentRef}</p>
     </div>
 
     ${createdOrders
@@ -363,7 +443,8 @@ serve(async (req) => {
       <p><strong>Seller:</strong> ${order.seller_name}</p>
       <p><strong>Items:</strong> ${order.items.length} book(s)</p>
       <p><strong>Amount:</strong> R${order.total_amount.toFixed(2)}</p>
-      <p><strong>Expires:</strong> ${new Date(order.expires_at).toLocaleString()}</p>
+      <p><strong>Delivery:</strong> ${order.delivery_method}</p>
+      <p><strong>Commit Deadline:</strong> ${new Date(order.commit_deadline).toLocaleString()}</p>
     </div>
     `,
       )
@@ -482,14 +563,16 @@ serve(async (req) => {
     </div>
 
     <h2>Hi ${order.seller_name}!</h2>
-    <p>Great news! You have a new order from <strong>${buyer.name}</strong>.</p>
+    <p>Great news! You have a new order from <strong>${buyer.name || buyer.full_name || "Customer"}</strong>.</p>
 
     <div class="info-box">
       <h3>📋 Order Details</h3>
       <p><strong>Order ID:</strong> ${order.id}</p>
-      <p><strong>Buyer:</strong> ${buyer.name} (${finalBuyerEmail})</p>
+      <p><strong>Buyer:</strong> ${buyer.name || buyer.full_name || "Customer"} (${finalBuyerEmail})</p>
       <p><strong>Items:</strong> ${order.items.length} book(s)</p>
       <p><strong>Total Amount:</strong> R${order.total_amount.toFixed(2)}</p>
+      <p><strong>Delivery Method:</strong> ${order.delivery_method}</p>
+      <p><strong>Payment Reference:</strong> ${finalPaymentRef}</p>
     </div>
 
     <div class="info-box">
@@ -506,7 +589,7 @@ serve(async (req) => {
 
     <div class="warning">
       <h3>⏰ Action Required Within 48 Hours</h3>
-      <p><strong>Expires:</strong> ${new Date(order.expires_at).toLocaleString()}</p>
+      <p><strong>Deadline:</strong> ${new Date(order.commit_deadline).toLocaleString()}</p>
       <p>You must commit to this order within 48 hours or it will be automatically cancelled and refunded.</p>
     </div>
 
@@ -536,6 +619,32 @@ serve(async (req) => {
       });
     }
 
+    // Prepare response for legacy single-book format compatibility
+    if (requestData.bookId && createdOrders.length === 1) {
+      const order = createdOrders[0];
+      return jsonResponse({
+        success: true,
+        message: "Order created successfully",
+        order: {
+          id: order.id,
+          seller_id: order.seller_id,
+          seller_name: order.seller_name,
+          total_amount: order.total_amount,
+          item_count: order.items.length,
+          commit_deadline: order.commit_deadline,
+          status: order.status,
+          payment_reference: finalPaymentRef,
+          delivery_method: order.delivery_method,
+        },
+        // Legacy compatibility fields
+        orderId: order.id,
+        reference: finalPaymentRef,
+        books_marked_sold: bookIds.length,
+        emails_queued: 2 // buyer + seller
+      });
+    }
+
+    // Standard cart-based response
     return jsonResponse({
       success: true,
       message: `Successfully created ${createdOrders.length} order(s)`,
@@ -545,8 +654,9 @@ serve(async (req) => {
         seller_name: order.seller_name,
         total_amount: order.total_amount,
         item_count: order.items.length,
-        commit_deadline: order.expires_at,
+        commit_deadline: order.commit_deadline,
         status: order.status,
+        delivery_method: order.delivery_method,
       })),
       total_orders: createdOrders.length,
       total_amount: createdOrders.reduce((sum, order) => sum + order.total_amount, 0),
