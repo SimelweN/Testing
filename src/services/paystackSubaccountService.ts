@@ -221,7 +221,7 @@ export class PaystackSubaccountService {
                 JSON.stringify(dbError, null, 2),
               );
               // Try to provide more specific error information
-              const errorMsg = dbError.message || dbError.details || "Failed to create mock subaccount in database";
+              const errorMsg = this.formatError(dbError);
               throw new Error(`Failed to create mock subaccount: ${errorMsg}`);
             }
 
