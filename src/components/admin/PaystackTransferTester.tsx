@@ -476,13 +476,20 @@ export const PaystackTransferTester: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Paystack Transfer & Payment Testing</h2>
-          <p className="text-muted-foreground">Test Paystack transfer management and payment verification functions</p>
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-bold tracking-tight">Paystack Transfer & Payment Testing</h2>
+          <p className="text-muted-foreground max-w-2xl">
+            Test Paystack transfer management and payment verification functions with real data from your database
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={handleRunAllTests} disabled={loading} className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button
+            onClick={handleRunAllTests}
+            disabled={loading}
+            variant="default"
+            className="flex items-center gap-2 min-w-[140px]"
+          >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <TestTube className="h-4 w-4" />}
             Basic Tests
           </Button>
@@ -490,10 +497,10 @@ export const PaystackTransferTester: React.FC = () => {
             onClick={handleComprehensiveTest}
             disabled={comprehensiveTesting}
             variant="outline"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 min-w-[200px]"
           >
             {comprehensiveTesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-            Comprehensive Real Data Tests
+            Real Data Tests
           </Button>
         </div>
       </div>
