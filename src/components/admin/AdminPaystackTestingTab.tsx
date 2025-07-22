@@ -333,6 +333,9 @@ const AdminPaystackTestingTab: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Debug Test for Subaccount Creation */}
+      <SubaccountDebugTest />
+
       {/* Paystack Transfer & Payment Testing */}
       <PaystackTransferTester />
 
