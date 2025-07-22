@@ -837,6 +837,22 @@ export const PaystackTransferTester: React.FC = () => {
               </CardTitle>
               <CardDescription>
                 Create a new Paystack subaccount for seller payouts. This will be linked to a seller's profile.
+                <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start gap-2 text-blue-700">
+                    <svg className="h-4 w-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="text-sm">
+                      <strong>What happens when you create a subaccount:</strong>
+                      <ul className="mt-1 space-y-1">
+                        <li>• Creates a Paystack subaccount for receiving split payments</li>
+                        <li>• Automatically creates a transfer recipient for sending payouts</li>
+                        <li>• Links both to the seller's profile in the database</li>
+                        <li>• Updates all seller's books with the subaccount code</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
