@@ -111,6 +111,12 @@ const BookListing = () => {
   // Initial load
   useEffect(() => {
     console.log("BookListing component mounted");
+
+    // Test database to find missing books
+    testDatabaseConnection().then(result => {
+      console.log("🔍 Database test completed:", result);
+    });
+
     loadBooks();
   }, [loadBooks]);
 
