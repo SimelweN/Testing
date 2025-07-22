@@ -100,8 +100,18 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
         </CardContent>
       </Card>
 
-      {/* Next Button */}
-      <div className="flex justify-center pt-6">
+      {/* Action Buttons */}
+      <div className="flex justify-between items-center pt-6">
+        <Button
+          onClick={onCancel}
+          variant="outline"
+          disabled={loading}
+          className="px-6 py-3"
+        >
+          <X className="w-4 h-4 mr-2" />
+          Cancel
+        </Button>
+
         <Button
           onClick={onNext}
           disabled={loading}
