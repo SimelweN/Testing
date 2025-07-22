@@ -2,13 +2,14 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, User, MapPin, ArrowRight } from "lucide-react";
+import { Package, User, MapPin, ArrowRight, X } from "lucide-react";
 import { CheckoutBook, CheckoutAddress } from "@/types/checkout";
 
 interface Step1OrderSummaryProps {
   book: CheckoutBook;
   sellerAddress: CheckoutAddress | null;
   onNext: () => void;
+  onCancel?: () => void;
   loading?: boolean;
 }
 
