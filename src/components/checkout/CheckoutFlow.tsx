@@ -246,6 +246,11 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
     navigate("/books");
   };
 
+  const handleCancelCheckout = () => {
+    // Navigate back to the book details page
+    navigate(`/book/${book.id}`);
+  };
+
   const handleAddressSubmit = (address: CheckoutAddress) => {
     setCheckoutState((prev) => ({
       ...prev,
