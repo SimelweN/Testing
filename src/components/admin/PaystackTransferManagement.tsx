@@ -375,9 +375,10 @@ const PaystackTransferManagement = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            ...transferForm,
-            reference,
+            recipient: transferForm.recipient_code,
             amount: Math.round(transferForm.amount * 100), // Convert to kobo
+            reference,
+            reason: transferForm.reason,
           }),
         },
       );
