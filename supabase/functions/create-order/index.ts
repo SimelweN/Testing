@@ -203,13 +203,20 @@ serve(async (req) => {
       validationErrors.push("shipping_address is required");
     }
 
-    // Validate each cart item
+    // Validate each cart item (more flexible)
     if (finalItems && Array.isArray(finalItems)) {
       finalItems.forEach((item, index) => {
-        if (!item.book_id) validationErrors.push(`cart_items[${index}].book_id is required`);
-        if (!item.seller_id) validationErrors.push(`cart_items[${index}].seller_id is required`);
+        if (!item.book_id) validationErrors.push(`items[${index}].book_id is required`);
+        if (!item.seller_id) validationErrors.push(`items[${index}].seller_id is required`);
         if (typeof item.price !== 'number' || item.price <= 0) {
-          validationErrors.push(`cart_items[${index}].price must be a positive number`);
+          validationErrors.push(`items[${index}].price must be a positive number`);
+        }
+        // Title and author are nice to have but not strictly required (we can fetch them)
+        if (!item.title) {
+          console.warn(`⚠️ Item ${index} missing title, will try to fetch from database`);
+        }
+        if (!item.author) {
+          console.warn(`⚠️ Item ${index} missing author, will try to fetch from database`);
         }
       });
     }
