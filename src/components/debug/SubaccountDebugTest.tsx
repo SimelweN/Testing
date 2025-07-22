@@ -164,10 +164,15 @@ const SubaccountDebugTest: React.FC = () => {
           <ul className="space-y-1 text-xs">
             <li>• Attempts to create a subaccount using the PaystackSubaccountService</li>
             <li>• Tests both the edge function call AND the fallback mock creation</li>
-            <li>• Attempts to link books to the created subaccount</li>
+            <li>• Uses the correct database schema: business_name, email, bank_name, bank_code, account_number, subaccount_code, status</li>
+            <li>• Attempts to link books to the created subaccount (using seller_subaccount_code column)</li>
             <li>• Shows detailed error information to help debug issues</li>
             <li>• Logs all steps to the browser console for debugging</li>
           </ul>
+          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+            <div className="font-medium text-blue-800 mb-1">✅ Database Schema Aligned</div>
+            <div className="text-blue-700">The code now uses only the actual database columns from your banking_subaccounts table.</div>
+          </div>
         </div>
       </CardContent>
     </Card>
