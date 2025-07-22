@@ -11,6 +11,22 @@ import ReadyToGetStarted from "@/components/home/ReadyToGetStarted";
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Check if this is actually a verification link that ended up on the homepage
+  useEffect(() => {
+    const hasVerificationParams =
+      searchParams.has("token") ||
+      searchParams.has("token_hash") ||
+      (searchParams.has("type") && searchParams.has("email"));
+
+    if (hasVerificationParams) {
+      console.log("🔄 Detected verification parameters on homepage, redirecting to /verify");
+      // Preserve all search parameters and redirect to verify page
+      navigate(`/verify?${searchParams.toString()}`, { replace: true });
+      return;
+    }
+  }, [searchParams, navigate]);
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
