@@ -88,7 +88,7 @@ export const PaystackTransferTester: React.FC = () => {
       // Get real subaccounts from database
       const { data: subaccounts } = await supabase
         .from('banking_subaccounts')
-        .select('*')
+        .select('*, profiles!user_id(name, email)')
         .eq('is_active', true)
         .limit(10);
 
