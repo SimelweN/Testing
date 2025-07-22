@@ -17,6 +17,7 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
   book,
   sellerAddress,
   onNext,
+  onCancel,
   loading = false,
 }) => {
   return (
