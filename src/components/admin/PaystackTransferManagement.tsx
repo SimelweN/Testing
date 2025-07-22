@@ -752,10 +752,20 @@ const PaystackTransferManagement = () => {
                     </SelectContent>
                   </Select>
                   {banksError && (
-                    <p className="text-sm text-red-600 mt-1">
-                      <AlertCircle className="h-4 w-4 inline mr-1" />
-                      {banksError}
-                    </p>
+                    <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                        <div className="text-sm text-red-700">
+                          <p className="font-medium mb-1">Banks not available</p>
+                          <p>{banksError}</p>
+                          {banksError.includes("PAYSTACK_SECRET_KEY") && (
+                            <div className="mt-2 text-xs text-red-600">
+                              <p><strong>For developers:</strong> Set the PAYSTACK_SECRET_KEY in your Supabase project settings under Edge Functions environment variables.</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   )}
                   {banks.length === 0 && !loading && !banksError && (
                     <p className="text-sm text-gray-500 mt-1">
