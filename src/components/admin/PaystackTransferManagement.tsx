@@ -98,11 +98,13 @@ const PaystackTransferManagement = () => {
   const [recipients, setRecipients] = useState<TransferRecipient[]>([]);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [banks, setBanks] = useState<Bank[]>([
-    { id: 1, name: "ABSA Bank", code: "632005", longcode: "632005", gateway: "test", pay_with_bank: true, active: true, country: "ZA", currency: "ZAR", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
-    { id: 2, name: "Standard Bank", code: "051001", longcode: "051001", gateway: "test", pay_with_bank: true, active: true, country: "ZA", currency: "ZAR", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
-    { id: 3, name: "FNB", code: "250655", longcode: "250655", gateway: "test", pay_with_bank: true, active: true, country: "ZA", currency: "ZAR", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
-    { id: 4, name: "Nedbank", code: "198765", longcode: "198765", gateway: "test", pay_with_bank: true, active: true, country: "ZA", currency: "ZAR", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
-    { id: 5, name: "Capitec Bank", code: "470010", longcode: "470010", gateway: "test", pay_with_bank: true, active: true, country: "ZA", currency: "ZAR", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" }
+    { id: 1, name: "Access Bank", code: "044", longcode: "044150149", gateway: "test", pay_with_bank: true, active: true, country: "NG", currency: "NGN", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
+    { id: 2, name: "GTBank", code: "058", longcode: "058152036", gateway: "test", pay_with_bank: true, active: true, country: "NG", currency: "NGN", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
+    { id: 3, name: "First Bank", code: "011", longcode: "011151003", gateway: "test", pay_with_bank: true, active: true, country: "NG", currency: "NGN", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
+    { id: 4, name: "Zenith Bank", code: "057", longcode: "057150013", gateway: "test", pay_with_bank: true, active: true, country: "NG", currency: "NGN", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
+    { id: 5, name: "UBA", code: "033", longcode: "033153513", gateway: "test", pay_with_bank: true, active: true, country: "NG", currency: "NGN", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
+    { id: 6, name: "Fidelity Bank", code: "070", longcode: "070150003", gateway: "test", pay_with_bank: true, active: true, country: "NG", currency: "NGN", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" },
+    { id: 7, name: "FCMB", code: "214", longcode: "214150018", gateway: "test", pay_with_bank: true, active: true, country: "NG", currency: "NGN", type: "nuban", is_deleted: false, createdAt: "", updatedAt: "" }
   ]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
