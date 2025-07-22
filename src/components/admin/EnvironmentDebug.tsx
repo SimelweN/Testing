@@ -23,8 +23,7 @@ export default function EnvironmentDebug() {
       "VITE_PAYSTACK_PUBLIC_KEY",
       "VITE_APP_URL",
       "VITE_COURIER_GUY_API_KEY",
-      "VITE_FASTWAY_API_KEY",
-      "VITE_SHIPLOGIC_API_KEY"
+VITE_FASTWAY_API_KEY
     ],
     "Server-side API Functions": [
       "SUPABASE_URL",
