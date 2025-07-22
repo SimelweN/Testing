@@ -485,54 +485,45 @@ export type Database = {
       banking_subaccounts: {
         Row: {
           id: string;
-          user_id: string;
-          subaccount_code: string;
-          recipient_code: string | null;
+          user_id: string | null;
           business_name: string;
-          business_description: string | null;
+          email: string;
+          bank_name: string;
           bank_code: string;
           account_number: string;
-          account_name: string | null;
-          percentage_charge: number;
-          settlement_bank: string | null;
-          is_verified: boolean;
-          is_active: boolean;
-          created_at: string;
-          updated_at: string;
+          subaccount_code: string | null;
+          paystack_response: any | null;
+          status: string | null;
+          created_at: string | null;
+          updated_at: string | null;
         };
         Insert: {
           id?: string;
-          user_id: string;
-          subaccount_code: string;
-          recipient_code?: string | null;
+          user_id?: string | null;
           business_name: string;
-          business_description?: string | null;
+          email: string;
+          bank_name: string;
           bank_code: string;
           account_number: string;
-          account_name?: string | null;
-          percentage_charge?: number;
-          settlement_bank?: string | null;
-          is_verified?: boolean;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
+          subaccount_code?: string | null;
+          paystack_response?: any | null;
+          status?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
         };
         Update: {
           id?: string;
-          user_id?: string;
-          subaccount_code?: string;
-          recipient_code?: string | null;
+          user_id?: string | null;
           business_name?: string;
-          business_description?: string | null;
+          email?: string;
+          bank_name?: string;
           bank_code?: string;
           account_number?: string;
-          account_name?: string | null;
-          percentage_charge?: number;
-          settlement_bank?: string | null;
-          is_verified?: boolean;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
+          subaccount_code?: string | null;
+          paystack_response?: any | null;
+          status?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
         };
         Relationships: [
           {
