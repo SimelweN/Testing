@@ -300,7 +300,7 @@ export class PaystackSystemTester {
   private async testEdgeFunctionHealth() {
     const functions = [
       "paystack-split-management",
-      "paystack-transfer-management",
+      // "paystack-transfer-management", - removed - no automated transfers
       "manage-paystack-subaccount",
       "paystack-refund-management",
       "initialize-paystack-payment",
