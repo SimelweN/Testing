@@ -564,56 +564,7 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="examples" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-              <AdminUsageExamples />
-            </div>
-          </TabsContent>
 
-                    <TabsContent value="functions" className="space-y-4 mt-0">
-            <div className="space-y-6">
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-                <EdgeFunctionDebugPanel />
-              </div>
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-                <EdgeFunctionTester />
-              </div>
-            </div>
-          </TabsContent>
-
-                    <TabsContent value="api-testing" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-              <APIFunctionTester />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="emails" className="space-y-4 mt-0">
-            <CleanEmailTester />
-          </TabsContent>
-
-          <TabsContent value="email-testing" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-              <AdminEmailTestingTab />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="signup-email-test" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-              <SignupEmailTest />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="email-verification" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-              <EmailVerificationDiagnostic />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="paystack-testing" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-              <AdminPaystackTestingTab />
-            </div>
-          </TabsContent>
 
           <TabsContent value="paystack-verification" className="space-y-4 mt-0">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
