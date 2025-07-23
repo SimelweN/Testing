@@ -46,8 +46,8 @@ export const TransferReceiptTester: React.FC = () => {
 
   const loadAvailableSellers = async () => {
     try {
-      // Get users who have banking subaccounts (real sellers)
-      const { data: sellers, error } = await supabase
+      // First, try the banking_subaccounts table
+      let { data: sellers, error } = await supabase
         .from('banking_subaccounts')
         .select(`
           user_id,
@@ -55,26 +55,49 @@ export const TransferReceiptTester: React.FC = () => {
           email,
           bank_name,
           account_number,
-          status,
-          profiles!user_id (
-            name,
-            email
-          )
+          status
         `)
         .eq('status', 'active')
         .limit(10);
 
       if (error) {
-        console.error('Error loading sellers:', {
+        console.error('Error loading from banking_subaccounts:', {
           message: error.message,
           details: error.details,
           hint: error.hint,
           code: error.code
         });
 
-        // Check if table doesn't exist
+        // Check if table doesn't exist, try fallback
         if (error.code === '42P01' || error.message?.includes('does not exist')) {
-          toast.error('Banking subaccounts table not found. Please set up the banking system first.');
+          console.log('Banking subaccounts table not found, trying profiles table...');
+
+          // Fallback to profiles table for testing
+          const { data: profileSellers, error: profileError } = await supabase
+            .from('profiles')
+            .select('id, name, email')
+            .limit(5);
+
+          if (profileError) {
+            toast.error('No seller data available for testing');
+            return;
+          }
+
+          // Create mock sellers from profiles
+          const mockSellers = (profileSellers || []).map(profile => ({
+            user_id: profile.id,
+            business_name: profile.name || 'Test Seller',
+            email: profile.email,
+            bank_name: 'Test Bank',
+            account_number: '****1234',
+            status: 'active'
+          }));
+
+          setAvailableSellers(mockSellers);
+          if (mockSellers.length > 0) {
+            setSelectedTestSeller(mockSellers[0].user_id);
+          }
+          toast.warning('Using mock seller data for testing (banking_subaccounts table not found)');
           return;
         }
 
@@ -88,6 +111,7 @@ export const TransferReceiptTester: React.FC = () => {
       // Auto-select first seller
       if (sellers && sellers.length > 0) {
         setSelectedTestSeller(sellers[0].user_id);
+        toast.success(`Found ${sellers.length} sellers with banking accounts`);
       } else {
         toast.warning('No active sellers with banking accounts found');
       }
