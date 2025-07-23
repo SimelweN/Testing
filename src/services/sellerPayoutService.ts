@@ -1,250 +1,201 @@
 import { supabase } from "@/integrations/supabase/client";
-import { createDenialEmailTemplate, DenialEmailData } from "@/utils/emailTemplates/denialEmailTemplate";
 
-export interface PayoutApprovalData {
-  orderId: string;
-  sellerId: string;
-  sellerEmail: string;
-  sellerName: string;
-  bookTitle: string;
-  sellerEarnings: number;
-  paystackRecipientCode?: string;
+export interface SellerPayout {
+  id: string;
+  seller_id: string;
+  amount: number;
+  status: string;
+  reviewed_by?: string;
+  reviewed_at?: string;
+  review_notes?: string;
+  bank_details_snapshot?: any;
+  paystack_transfer_code?: string;
+  paystack_recipient_code?: string;
+  created_at: string;
+  updated_at: string;
+  metadata?: any;
 }
 
-export interface PayoutDenialData {
-  orderId: string;
-  sellerId: string;
-  sellerEmail: string;
-  sellerName: string;
-  bookTitle: string;
-  sellerEarnings: number;
-  orderDate: string;
-  deliveryDate: string;
-  denialReason: string;
+export interface PayoutStatistics {
+  pending_count: number;
+  approved_count: number;
+  denied_count: number;
+  total_approved_amount: number;
+}
+
+export interface PayoutItem {
+  id: string;
+  book_title: string;
+  sale_amount: number;
+  commission_amount: number;
+  seller_amount: number;
+  sale_date: string;
+}
+
+export interface PayoutDetails extends SellerPayout {
+  seller_name?: string;
+  seller_email?: string;
+  reviewer_name?: string;
+  payout_items?: PayoutItem[];
 }
 
 class SellerPayoutService {
-  /**
-   * Approve a seller payout
-   * 1. Create Paystack recipient if not exists
-   * 2. Update transfer status to approved
-   * 3. Send approval email to seller
-   */
-  async approvePayout(data: PayoutApprovalData): Promise<void> {
-    try {
-      console.log(`🟢 Approving payout for order ${data.orderId}`);
-
-      // Step 1: Create Paystack recipient if not exists
-      if (!data.paystackRecipientCode) {
-        console.log(`Creating Paystack recipient for seller ${data.sellerId}`);
-        
-        // This would call your Paystack edge function
-        const { data: paystackResponse, error: paystackError } = await supabase.functions.invoke(
-          'create-paystack-subaccount',
-          {
-            body: {
-              sellerId: data.sellerId,
-              sellerEmail: data.sellerEmail,
-              sellerName: data.sellerName,
-            }
-          }
-        );
-
-        if (paystackError) {
-          console.error("Failed to create Paystack recipient:", paystackError);
-          // Continue without Paystack for now - manual EFT can still be done
-        }
-      }
-
-      // Step 2: Update transfer status in database
-      // This would update your orders/transfers table
-      console.log(`Updating transfer status for order ${data.orderId} to approved`);
-      
-      // Example database update:
-      // const { error: updateError } = await supabase
-      //   .from('order_transfers')
-      //   .update({ 
-      //     transfer_status: 'approved',
-      //     approved_at: new Date().toISOString(),
-      //     approved_by: 'admin'
-      //   })
-      //   .eq('order_id', data.orderId);
-
-      // Step 3: Send approval email to seller
-      await this.sendApprovalEmail(data);
-
-      console.log(`✅ Payout approved successfully for order ${data.orderId}`);
-      
-    } catch (error) {
-      console.error("Error approving payout:", error);
-      throw new Error(`Failed to approve payout: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  async getPayoutStatistics(): Promise<PayoutStatistics> {
+    const { data, error } = await supabase.rpc('get_payout_statistics');
+    
+    if (error) {
+      console.error('Error fetching payout statistics:', error);
+      throw new Error('Failed to fetch payout statistics');
     }
+    
+    return data[0] || {
+      pending_count: 0,
+      approved_count: 0,
+      denied_count: 0,
+      total_approved_amount: 0
+    };
   }
 
-  /**
-   * Deny a seller payout
-   * 1. Update transfer status to denied
-   * 2. Send denial email to seller with reason
-   */
-  async denyPayout(data: PayoutDenialData): Promise<void> {
-    try {
-      console.log(`🔴 Denying payout for order ${data.orderId}`);
+  async getPayoutsByStatus(status: string): Promise<SellerPayout[]> {
+    const { data, error } = await supabase
+      .from('seller_payouts')
+      .select('*')
+      .eq('status', status)
+      .order('created_at', { ascending: false });
 
-      // Step 1: Update transfer status in database
-      console.log(`Updating transfer status for order ${data.orderId} to denied`);
-      
-      // Example database update:
-      // const { error: updateError } = await supabase
-      //   .from('order_transfers')
-      //   .update({ 
-      //     transfer_status: 'denied',
-      //     denied_at: new Date().toISOString(),
-      //     denied_by: 'admin',
-      //     denial_reason: data.denialReason
-      //   })
-      //   .eq('order_id', data.orderId);
-
-      // Step 2: Send denial email to seller
-      await this.sendDenialEmail(data);
-
-      console.log(`✅ Payout denied successfully for order ${data.orderId}`);
-      
-    } catch (error) {
-      console.error("Error denying payout:", error);
-      throw new Error(`Failed to deny payout: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    if (error) {
+      console.error('Error fetching payouts:', error);
+      throw new Error('Failed to fetch payouts');
     }
+
+    return data || [];
   }
 
-  /**
-   * Send approval email to seller (using existing template)
-   */
-  private async sendApprovalEmail(data: PayoutApprovalData): Promise<void> {
-    try {
-      console.log(`📧 Sending approval email to ${data.sellerEmail}`);
+  async getPayoutDetails(payoutId: string): Promise<PayoutDetails | null> {
+    const { data, error } = await supabase
+      .from('seller_payouts')
+      .select('*')
+      .eq('id', payoutId)
+      .single();
 
-      // Use the existing approval email template
-      const emailData = {
-        to: data.sellerEmail,
-        sellerName: data.sellerName,
-        bookTitle: data.bookTitle,
-        amount: data.sellerEarnings,
-        orderId: data.orderId,
-        type: 'payout_approved'
-      };
+    if (error) {
+      console.error('Error fetching payout details:', error);
+      throw new Error('Failed to fetch payout details');
+    }
 
-      // This would call your email edge function
-      const { error: emailError } = await supabase.functions.invoke('send-email', {
-        body: emailData
+    return data || null;
+  }
+
+  async approvePayout(payoutId: string, notes?: string): Promise<boolean> {
+    const { data: user } = await supabase.auth.getUser();
+    
+    if (!user.user) {
+      throw new Error('User not authenticated');
+    }
+
+    const { data, error } = await supabase.rpc('approve_seller_payout', {
+      p_payout_id: payoutId,
+      p_reviewer_id: user.user.id,
+      p_notes: notes || null
+    });
+
+    if (error) {
+      console.error('Error approving payout:', error);
+      throw new Error('Failed to approve payout: ' + error.message);
+    }
+
+    return data;
+  }
+
+  async denyPayout(payoutId: string, reason: string): Promise<boolean> {
+    const { data: user } = await supabase.auth.getUser();
+    
+    if (!user.user) {
+      throw new Error('User not authenticated');
+    }
+
+    if (!reason || reason.trim() === '') {
+      throw new Error('Denial reason is required');
+    }
+
+    const { data, error } = await supabase.rpc('deny_seller_payout', {
+      p_payout_id: payoutId,
+      p_reviewer_id: user.user.id,
+      p_reason: reason
+    });
+
+    if (error) {
+      console.error('Error denying payout:', error);
+      throw new Error('Failed to deny payout: ' + error.message);
+    }
+
+    return data;
+  }
+
+  async createPayoutNotification(
+    payoutId: string,
+    type: 'approval' | 'denial' | 'completion',
+    emailAddress: string,
+    templateData?: any
+  ): Promise<void> {
+    const { error } = await supabase
+      .from('payout_notifications')
+      .insert({
+        payout_id: payoutId,
+        notification_type: type,
+        email_address: emailAddress,
+        template_data: templateData,
+        status: 'pending'
       });
 
-      if (emailError) {
-        console.error("Failed to send approval email:", emailError);
-        // Don't throw - payout can still be processed manually
-      } else {
-        console.log(`✅ Approval email sent to ${data.sellerEmail}`);
-      }
-
-    } catch (error) {
-      console.error("Error sending approval email:", error);
-      // Don't throw - payout approval should still succeed
+    if (error) {
+      console.error('Error creating notification:', error);
+      throw new Error('Failed to create notification');
     }
   }
 
-  /**
-   * Send denial email to seller (using new template)
-   */
-  private async sendDenialEmail(data: PayoutDenialData): Promise<void> {
-    try {
-      console.log(`📧 Sending denial email to ${data.sellerEmail}`);
+  async getAuditLog(payoutId: string) {
+    const { data, error } = await supabase
+      .from('payout_audit_log')
+      .select(`
+        *,
+        profiles!performed_by(full_name)
+      `)
+      .eq('payout_id', payoutId)
+      .order('created_at', { ascending: false });
 
-      // Create the denial email template
-      const emailTemplate = createDenialEmailTemplate({
-        sellerName: data.sellerName,
-        bookTitle: data.bookTitle,
-        orderId: data.orderId,
-        denialReason: data.denialReason,
-        sellerEarnings: data.sellerEarnings,
-        orderDate: data.orderDate,
-        deliveryDate: data.deliveryDate,
-      });
-
-      // Send via email edge function
-      const emailData = {
-        to: data.sellerEmail,
-        subject: emailTemplate.subject,
-        html: emailTemplate.html,
-        text: emailTemplate.text,
-      };
-
-      const { error: emailError } = await supabase.functions.invoke('send-email', {
-        body: emailData
-      });
-
-      if (emailError) {
-        console.error("Failed to send denial email:", emailError);
-        throw new Error("Failed to send denial notification email");
-      } else {
-        console.log(`✅ Denial email sent to ${data.sellerEmail}`);
-      }
-
-    } catch (error) {
-      console.error("Error sending denial email:", error);
-      throw error; // This should fail the denial process if email can't be sent
+    if (error) {
+      console.error('Error fetching audit log:', error);
+      throw new Error('Failed to fetch audit log');
     }
+
+    return data || [];
   }
 
-  /**
-   * Get all pending transfer receipts
-   */
-  async getPendingTransfers(): Promise<any[]> {
-    try {
-      // This would fetch from your database
-      // Example query:
-      // const { data, error } = await supabase
-      //   .from('order_transfers')
-      //   .select(`
-      //     *,
-      //     orders (*),
-      //     books (*),
-      //     buyer_profiles (*),
-      //     seller_profiles (*)
-      //   `)
-      //   .eq('transfer_status', 'pending')
-      //   .order('created_at', { ascending: false });
+  calculateCommission(bookPrice: number, deliveryFee: number = 0): {
+    sellerAmount: number;
+    platformFee: number;
+    totalAmount: number;
+  } {
+    const platformCommissionRate = 0.10; // 10%
+    const platformCommission = bookPrice * platformCommissionRate;
+    const sellerAmount = bookPrice - platformCommission;
+    const platformFee = platformCommission + deliveryFee;
+    const totalAmount = bookPrice + deliveryFee;
 
-      // For now, return mock data
-      return [];
-      
-    } catch (error) {
-      console.error("Error fetching pending transfers:", error);
-      throw error;
-    }
+    return {
+      sellerAmount: Number(sellerAmount.toFixed(2)),
+      platformFee: Number(platformFee.toFixed(2)),
+      totalAmount: Number(totalAmount.toFixed(2))
+    };
   }
 
-  /**
-   * Create Paystack recipient for seller
-   */
-  async createPaystackRecipient(sellerId: string, bankDetails: any): Promise<string> {
-    try {
-      console.log(`Creating Paystack recipient for seller ${sellerId}`);
-
-      const { data, error } = await supabase.functions.invoke('create-paystack-subaccount', {
-        body: {
-          sellerId,
-          bankDetails,
-        }
-      });
-
-      if (error) {
-        throw new Error(`Paystack recipient creation failed: ${error.message}`);
-      }
-
-      return data.recipient_code;
-      
-    } catch (error) {
-      console.error("Error creating Paystack recipient:", error);
-      throw error;
-    }
+  formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('en-ZA', {
+      style: 'currency',
+      currency: 'ZAR',
+      minimumFractionDigits: 2
+    }).format(amount);
   }
 }
 
