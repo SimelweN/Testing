@@ -94,20 +94,21 @@ const AdminPayoutTab = () => {
   const loadPayoutData = async () => {
     setIsLoading(true);
     try {
-      // Fetch payout requests from API
-      const response = await fetch('/api/get-payout-requests');
+      // Fetch payout requests from API (using mock data for now)
+      const response = await fetch('/api/mock-payout-data');
       if (!response.ok) {
         throw new Error('Failed to fetch payout requests');
       }
 
       const data = await response.json();
-      setPayoutRequests(data.payouts || []);
+      const payouts = data.payouts || [];
+      setPayoutRequests(payouts);
 
       const stats = {
-        pending: data.payouts.filter(p => p.status === 'pending').length,
-        approved: data.payouts.filter(p => p.status === 'approved').length,
-        denied: data.payouts.filter(p => p.status === 'denied').length,
-        total_approved_amount: data.payouts
+        pending: payouts.filter(p => p.status === 'pending').length,
+        approved: payouts.filter(p => p.status === 'approved').length,
+        denied: payouts.filter(p => p.status === 'denied').length,
+        total_approved_amount: payouts
           .filter(p => p.status === 'approved')
           .reduce((sum, p) => sum + p.total_amount, 0),
       };
