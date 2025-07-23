@@ -1,9 +1,5 @@
-/* Mobile Improvements */
-@import "./styles/mobile-improvements.css";
-@import "./styles/campus-enhanced.css";
-
-/* Campus transitions and animations */
-@import "./styles/campus-transitions.css";
+/* Import existing styles */
+@import "./styles/university-profile-mobile.css";
 
 @tailwind base;
 @tailwind components;
