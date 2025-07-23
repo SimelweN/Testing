@@ -397,26 +397,6 @@ class SellerPayoutService {
     }
   }
 
-  private async denyPayoutFallback(payoutId: string, reviewerId: string, reason: string): Promise<boolean> {
-    const { error } = await supabase
-      .from('seller_payouts')
-      .update({
-        status: 'denied',
-        reviewed_by: reviewerId,
-        reviewed_at: new Date().toISOString(),
-        review_notes: reason,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', payoutId);
-
-    if (error) {
-      console.error('Fallback deny error:', error);
-      throw new Error('Failed to deny payout: ' + error.message);
-    }
-
-    return true;
-  }
-
   async createPayoutNotification(
     payoutId: string,
     type: 'approval' | 'denial' | 'completion',
