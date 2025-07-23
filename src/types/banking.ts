@@ -209,11 +209,7 @@ export enum OrderStatus {
   CANCELLED = "cancelled",
 }
 
-export enum PayoutStatus {
-  PENDING = "pending",
-  COMPLETED = "completed",
-  FAILED = "failed",
-}
+
 
 export enum BankingStatusEnum {
   PENDING = "pending",
