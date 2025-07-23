@@ -49,7 +49,7 @@ Three main tables with Row Level Security:
 - Initialize split payments (90% seller, 10% platform)
 - Verify payments with Paystack
 - Manage escrow (hold payments until collection)
-- Trigger automatic seller payouts
+# - Trigger automatic seller payouts - REMOVED - all payments manual
 
 ### 4. React Components
 
