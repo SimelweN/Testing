@@ -278,7 +278,7 @@ const AdminDashboard = () => {
     );
   }
 
-  // Define tab configuration with icons
+  // Define tab configuration with icons - Business-focused only
   const tabConfig = [
     {
       value: "earnings",
@@ -317,7 +317,6 @@ const AdminDashboard = () => {
       color: "text-amber-600",
       description: "Study resources and tips",
     },
-
     {
       value: "contact",
       label: "Messages",
@@ -332,48 +331,6 @@ const AdminDashboard = () => {
       icon: Settings,
       color: "text-gray-600",
       description: "System configuration",
-    },
-    {
-      value: "examples",
-      label: "Examples",
-      icon: Code,
-      color: "text-teal-600",
-      description: "Code examples",
-    },
-        {
-      value: "functions",
-      label: "Edge Functions",
-      icon: TestTube,
-      color: "text-blue-600",
-      description: "Test all Supabase Edge Functions",
-    },
-        {
-      value: "api-testing",
-      label: "API Testing",
-      icon: Code,
-      color: "text-yellow-600",
-      description: "Test API folder functions",
-    },
-        {
-      value: "network-debug",
-      label: "Network Debug",
-      icon: Wifi,
-      color: "text-blue-600",
-      description: "Debug connectivity issues",
-    },
-    {
-      value: "env-debug",
-      label: "Environment Debug",
-      icon: Settings,
-      color: "text-gray-600",
-      description: "Check environment variables",
-    },
-    {
-      value: "transfer-receipt",
-      label: "Transfer Receipts",
-      icon: CreditCard,
-      color: "text-green-600",
-      description: "Test transfer receipt generation",
     },
     {
       value: "seller-payouts",
