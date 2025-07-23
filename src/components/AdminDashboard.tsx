@@ -35,20 +35,11 @@ import {
   Users,
   BookOpen,
   MessageSquare,
-  FileText,
   Settings,
   GraduationCap,
   Lightbulb,
-  Trash2,
-  Code,
-  TestTube,
-  Mail,
   CreditCard,
-  Database,
-  Split,
-    ArrowUpRight,
-  ShieldCheck,
-  Wifi,
+  Terminal,
 } from "lucide-react";
 
 const AdminDashboard = () => {
