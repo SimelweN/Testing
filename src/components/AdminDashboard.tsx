@@ -390,6 +390,13 @@ const AdminDashboard = () => {
       description: "Contact form messages",
     },
     {
+      value: "development",
+      label: "Development",
+      icon: Code,
+      color: "text-purple-600",
+      description: "Development tools and testing",
+    },
+    {
       value: "settings",
       label: "Settings",
       icon: Settings,
