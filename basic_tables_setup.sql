@@ -133,15 +133,15 @@ CREATE TRIGGER update_reports_updated_at BEFORE UPDATE ON reports FOR EACH ROW E
 -- 8. CREATE ADMIN USER (UPDATE EMAIL)
 -- ==============================================
 -- Replace 'your-email@example.com' with your actual email
-INSERT INTO profiles (id, name, email, role, is_admin) 
-SELECT 
+INSERT INTO profiles (id, name, email, role, is_admin)
+SELECT
     auth.uid(),
     'Admin User',
-    'your-email@example.com',  -- CHANGE THIS TO YOUR EMAIL
+    'adminsimnli@gmail.com',
     'admin',
     true
 WHERE NOT EXISTS (
-    SELECT 1 FROM profiles WHERE email = 'your-email@example.com'  -- CHANGE THIS TOO
+    SELECT 1 FROM profiles WHERE email = 'adminsimnli@gmail.com'
 );
 
 -- ==============================================
