@@ -287,10 +287,10 @@ ${index + 1}. ${order.book?.title || 'Unknown Book'}
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Receipt className="w-6 h-6 text-blue-600" />
+          <UserPlus className="w-6 h-6 text-blue-600" />
           <div>
-            <h3 className="text-xl font-semibold">Seller Payout Receipt Tester</h3>
-            <p className="text-gray-600">Test receipt creation function with real seller data</p>
+            <h3 className="text-xl font-semibold">Paystack Recipient Creator</h3>
+            <p className="text-gray-600">Create Paystack recipients for seller payouts (NO TRANSFERS INITIATED)</p>
           </div>
         </div>
       </div>
@@ -300,15 +300,15 @@ ${index + 1}. ${order.book?.title || 'Unknown Book'}
         <CardHeader>
           <CardTitle className="text-green-800 flex items-center gap-2">
             <Database className="w-5 h-5" />
-            Edge Function Testing: create-paystack-subaccount
+            Paystack Recipient Creation: create-paystack-subaccount
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Alert className="border-blue-200 bg-blue-50">
             <Database className="h-4 w-4 text-blue-600" />
             <AlertDescription className="text-blue-800">
-              This tests the <code>create-paystack-subaccount</code> edge function with real seller data and mock order information. 
-              It creates Paystack recipients and generates detailed payment breakdowns.
+              This function creates Paystack recipients for seller payouts with real seller data and payment breakdown details.
+              <strong>IMPORTANT: This does NOT initiate any transfers - it only creates the recipient for manual processing.</strong>
             </AlertDescription>
           </Alert>
 
