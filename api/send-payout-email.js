@@ -95,11 +95,11 @@ export default async function handler(req, res) {
         };
 
     // Call Supabase edge function to send email
-    const response = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+    const response = await fetch(`${process.env.SUPABASE_URL}/functions/v1/send-email`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseServiceKey}`,
+        'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
       },
       body: JSON.stringify({
         to: 'seller@example.com', // This should be fetched from the payout request
