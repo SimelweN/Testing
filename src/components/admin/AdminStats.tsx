@@ -234,8 +234,7 @@ const AdminStats = ({ stats }: AdminStatsProps) => {
             );
           })}
 
-          {/* Paystack Health Summary */}
-          <PaystackHealthSummary />
+
         </div>
       </div>
 
