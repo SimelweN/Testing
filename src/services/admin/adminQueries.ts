@@ -383,6 +383,11 @@ export const getUserBookListings = async (userId: string): Promise<AdminListing[
       user: userName,
       sellerId: book.seller_id,
       created_at: book.created_at,
+      description: book.description,
+      category: book.category,
+      grade: book.grade,
+      university: book.university,
+      image_url: book.image_url,
     }));
   } catch (error) {
     console.error("Error in getUserBookListings:", error);
