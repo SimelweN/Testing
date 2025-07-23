@@ -29,6 +29,7 @@ import AdminContactTab from "@/components/admin/AdminContactTab";
 import AdminResourcesTab from "@/components/admin/AdminResourcesTab";
 import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
 import { SellerPayoutManager } from "@/components/admin/SellerPayoutManager";
+import { DevelopmentDashboard } from "@/components/admin/DevelopmentDashboard";
 
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -49,6 +50,7 @@ import {
   UserCheck,
   Bell,
   ChevronRight,
+  Code,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -390,6 +392,13 @@ const AdminDashboard = () => {
       description: "Contact form messages",
     },
     {
+      value: "development",
+      label: "Development",
+      icon: Code,
+      color: "text-purple-600",
+      description: "Development tools and testing",
+    },
+    {
       value: "settings",
       label: "Settings",
       icon: Settings,
@@ -603,6 +612,14 @@ const AdminDashboard = () => {
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-6">
                   <SellerPayoutManager />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="development" className="mt-0 space-y-6">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-6">
+                  <DevelopmentDashboard />
                 </CardContent>
               </Card>
             </TabsContent>

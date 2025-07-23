@@ -1,251 +1,676 @@
 import { supabase } from "@/integrations/supabase/client";
-import { createDenialEmailTemplate, DenialEmailData } from "@/utils/emailTemplates/denialEmailTemplate";
 
-export interface PayoutApprovalData {
-  orderId: string;
-  sellerId: string;
-  sellerEmail: string;
-  sellerName: string;
-  bookTitle: string;
-  sellerEarnings: number;
-  paystackRecipientCode?: string;
+export interface SellerPayout {
+  id: string;
+  seller_id: string;
+  amount: number;
+  status: string;
+  reviewed_by?: string;
+  reviewed_at?: string;
+  review_notes?: string;
+  bank_details_snapshot?: any;
+  paystack_transfer_code?: string;
+  paystack_recipient_code?: string;
+  created_at: string;
+  updated_at?: string;
+  metadata?: any;
+  // Handle any additional fields that might exist
+  [key: string]: any;
 }
 
-export interface PayoutDenialData {
-  orderId: string;
-  sellerId: string;
-  sellerEmail: string;
-  sellerName: string;
-  bookTitle: string;
-  sellerEarnings: number;
-  orderDate: string;
-  deliveryDate: string;
-  denialReason: string;
+export interface PayoutStatistics {
+  pending_count: number;
+  approved_count: number;
+  denied_count: number;
+  total_approved_amount: number;
+}
+
+export interface PayoutItem {
+  id: string;
+  book_title: string;
+  sale_amount: number;
+  commission_amount: number;
+  seller_amount: number;
+  sale_date: string;
+}
+
+export interface PayoutDetails extends SellerPayout {
+  seller_name?: string;
+  seller_email?: string;
+  reviewer_name?: string;
+  payout_items?: PayoutItem[];
 }
 
 class SellerPayoutService {
-  /**
-   * Approve a seller payout
-   * 1. Create Paystack recipient if not exists
-   * 2. Update transfer status to approved
-   * 3. Send approval email to seller
-   */
-  async approvePayout(data: PayoutApprovalData): Promise<void> {
+  async getPayoutStatistics(): Promise<PayoutStatistics> {
     try {
-      console.log(`🟢 Approving payout for order ${data.orderId}`);
+      const { data, error } = await supabase.rpc('get_payout_statistics');
 
-      // Step 1: Create Paystack recipient if not exists
-      if (!data.paystackRecipientCode) {
-        console.log(`Creating Paystack recipient for seller ${data.sellerId}`);
-        
-        // This would call your Paystack edge function
-        const { data: paystackResponse, error: paystackError } = await supabase.functions.invoke(
-          'create-paystack-subaccount',
-          {
-            body: {
-              sellerId: data.sellerId,
-              sellerEmail: data.sellerEmail,
-              sellerName: data.sellerName,
-            }
-          }
-        );
-
-        if (paystackError) {
-          console.error("Failed to create Paystack recipient:", paystackError);
-          // Continue without Paystack for now - manual EFT can still be done
-        }
+      if (error) {
+        console.error('Error fetching payout statistics:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw new Error(`Failed to fetch payout statistics: ${error.message}`);
       }
 
-      // Step 2: Update transfer status in database
-      // This would update your orders/transfers table
-      console.log(`Updating transfer status for order ${data.orderId} to approved`);
-      
-      // Example database update:
-      // const { error: updateError } = await supabase
-      //   .from('order_transfers')
-      //   .update({ 
-      //     transfer_status: 'approved',
-      //     approved_at: new Date().toISOString(),
-      //     approved_by: 'admin'
-      //   })
-      //   .eq('order_id', data.orderId);
-
-      // Step 3: Send approval email to seller
-      await this.sendApprovalEmail(data);
-
-      console.log(`✅ Payout approved successfully for order ${data.orderId}`);
-      
-    } catch (error) {
-      console.error("Error approving payout:", error);
-      throw new Error(`Failed to approve payout: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-
-  /**
-   * Deny a seller payout
-   * 1. Update transfer status to denied
-   * 2. Send denial email to seller with reason
-   */
-  async denyPayout(data: PayoutDenialData): Promise<void> {
-    try {
-      console.log(`🔴 Denying payout for order ${data.orderId}`);
-
-      // Step 1: Update transfer status in database
-      console.log(`Updating transfer status for order ${data.orderId} to denied`);
-      
-      // Example database update:
-      // const { error: updateError } = await supabase
-      //   .from('order_transfers')
-      //   .update({ 
-      //     transfer_status: 'denied',
-      //     denied_at: new Date().toISOString(),
-      //     denied_by: 'admin',
-      //     denial_reason: data.denialReason
-      //   })
-      //   .eq('order_id', data.orderId);
-
-      // Step 2: Send denial email to seller
-      await this.sendDenialEmail(data);
-
-      console.log(`✅ Payout denied successfully for order ${data.orderId}`);
-      
-    } catch (error) {
-      console.error("Error denying payout:", error);
-      throw new Error(`Failed to deny payout: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-
-  /**
-   * Send approval email to seller (using existing template)
-   */
-  private async sendApprovalEmail(data: PayoutApprovalData): Promise<void> {
-    try {
-      console.log(`📧 Sending approval email to ${data.sellerEmail}`);
-
-      // Use the existing approval email template
-      const emailData = {
-        to: data.sellerEmail,
-        sellerName: data.sellerName,
-        bookTitle: data.bookTitle,
-        amount: data.sellerEarnings,
-        orderId: data.orderId,
-        type: 'payout_approved'
+      return data[0] || {
+        pending_count: 0,
+        approved_count: 0,
+        denied_count: 0,
+        total_approved_amount: 0
       };
-
-      // This would call your email edge function
-      const { error: emailError } = await supabase.functions.invoke('send-email', {
-        body: emailData
-      });
-
-      if (emailError) {
-        console.error("Failed to send approval email:", emailError);
-        // Don't throw - payout can still be processed manually
-      } else {
-        console.log(`✅ Approval email sent to ${data.sellerEmail}`);
-      }
-
     } catch (error) {
-      console.error("Error sending approval email:", error);
-      // Don't throw - payout approval should still succeed
-    }
-  }
-
-  /**
-   * Send denial email to seller (using new template)
-   */
-  private async sendDenialEmail(data: PayoutDenialData): Promise<void> {
-    try {
-      console.log(`📧 Sending denial email to ${data.sellerEmail}`);
-
-      // Create the denial email template
-      const emailTemplate = createDenialEmailTemplate({
-        sellerName: data.sellerName,
-        bookTitle: data.bookTitle,
-        orderId: data.orderId,
-        denialReason: data.denialReason,
-        sellerEarnings: data.sellerEarnings,
-        orderDate: data.orderDate,
-        deliveryDate: data.deliveryDate,
-      });
-
-      // Send via email edge function
-      const emailData = {
-        to: data.sellerEmail,
-        subject: emailTemplate.subject,
-        html: emailTemplate.html,
-        text: emailTemplate.text,
-      };
-
-      const { error: emailError } = await supabase.functions.invoke('send-email', {
-        body: emailData
-      });
-
-      if (emailError) {
-        console.error("Failed to send denial email:", emailError);
-        throw new Error("Failed to send denial notification email");
-      } else {
-        console.log(`✅ Denial email sent to ${data.sellerEmail}`);
-      }
-
-    } catch (error) {
-      console.error("Error sending denial email:", error);
-      throw error; // This should fail the denial process if email can't be sent
-    }
-  }
-
-  /**
-   * Get all pending transfer receipts
-   */
-  async getPendingTransfers(): Promise<any[]> {
-    try {
-      // This would fetch from your database
-      // Example query:
-      // const { data, error } = await supabase
-      //   .from('order_transfers')
-      //   .select(`
-      //     *,
-      //     orders (*),
-      //     books (*),
-      //     buyer_profiles (*),
-      //     seller_profiles (*)
-      //   `)
-      //   .eq('transfer_status', 'pending')
-      //   .order('created_at', { ascending: false });
-
-      // For now, return mock data
-      return [];
-      
-    } catch (error) {
-      console.error("Error fetching pending transfers:", error);
+      console.error('Exception in getPayoutStatistics:', error);
       throw error;
     }
   }
 
-  /**
-   * Create Paystack recipient for seller
-   */
-  async createPaystackRecipient(sellerId: string, bankDetails: any): Promise<string> {
+  private async getStatisticsFallback(): Promise<PayoutStatistics> {
     try {
-      console.log(`Creating Paystack recipient for seller ${sellerId}`);
+      // Try manual statistics calculation as fallback
+      const { data: payouts, error } = await supabase
+        .from('seller_payouts')
+        .select('status, amount');
 
-      const { data, error } = await supabase.functions.invoke('create-paystack-subaccount', {
-        body: {
-          sellerId,
-          bankDetails,
+      if (error) {
+        console.warn('Fallback statistics error, using mock data:', error);
+        return this.getMockStatistics();
+      }
+
+      const stats = (payouts || []).reduce((acc, payout) => {
+        switch (payout.status) {
+          case 'pending':
+            acc.pending_count++;
+            break;
+          case 'approved':
+            acc.approved_count++;
+            acc.total_approved_amount += payout.amount || 0;
+            break;
+          case 'denied':
+            acc.denied_count++;
+            break;
         }
+        return acc;
+      }, {
+        pending_count: 0,
+        approved_count: 0,
+        denied_count: 0,
+        total_approved_amount: 0
+      });
+
+      return stats;
+    } catch (error) {
+      console.warn('Fallback statistics exception, using mock data:', error);
+      return this.getMockStatistics();
+    }
+  }
+
+  private getMockStatistics(): PayoutStatistics {
+    return {
+      pending_count: 1,
+      approved_count: 1,
+      denied_count: 1,
+      total_approved_amount: 200.50
+    };
+  }
+
+  async getPayoutsByStatus(status: string): Promise<SellerPayout[]> {
+    try {
+      // First, try to get just basic columns to see what exists
+      const { data, error } = await supabase
+        .from('seller_payouts')
+        .select('*')
+        .eq('status', status)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching payouts by status:', {
+          status,
+          errorMessage: error.message,
+          errorDetails: error.details,
+          errorHint: error.hint,
+          errorCode: error.code
+        });
+
+        throw new Error(`Failed to fetch payouts: ${error.message}`);
+      }
+
+      console.log(`Fetched ${data?.length || 0} payouts with status: ${status}`);
+      console.log('Sample payout structure:', data?.[0] ? Object.keys(data[0]) : 'No data');
+
+      return data || [];
+    } catch (error) {
+      console.error('Exception in getPayoutsByStatus:', {
+        status,
+        errorType: error?.constructor?.name,
+        errorMessage: error instanceof Error ? error.message : String(error)
+      });
+
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Unexpected error fetching payouts');
+    }
+  }
+
+  private getMockPayoutsByStatus(status: string): SellerPayout[] {
+    const mockPayouts: SellerPayout[] = [
+      {
+        id: '550e8400-e29b-41d4-a716-446655440001',
+        seller_id: '550e8400-e29b-41d4-a716-446655440000',
+        amount: 150.00,
+        status: 'pending',
+        created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: '550e8400-e29b-41d4-a716-446655440002',
+        seller_id: '550e8400-e29b-41d4-a716-446655440001',
+        amount: 200.50,
+        status: 'approved',
+        reviewed_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+        review_notes: 'Approved by admin',
+        created_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: '550e8400-e29b-41d4-a716-446655440003',
+        seller_id: '550e8400-e29b-41d4-a716-446655440002',
+        amount: 75.25,
+        status: 'denied',
+        reviewed_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+        review_notes: 'Insufficient documentation provided',
+        created_at: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+
+    return mockPayouts.filter(payout => payout.status === status);
+  }
+
+  async getPayoutsWithSellerDetails(status: string): Promise<PayoutDetails[]> {
+    const payouts = await this.getPayoutsByStatus(status);
+
+    // Get seller details for each payout
+    const payoutsWithDetails = await Promise.all(
+      payouts.map(async (payout) => {
+        try {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('name, email')
+            .eq('id', payout.seller_id)
+            .single();
+
+          if (error) {
+            console.error('Error fetching seller profile:', error);
+          }
+
+          return {
+            ...payout,
+            seller_name: profile?.name || 'Unknown Seller',
+            seller_email: profile?.email || 'unknown@email.com'
+          } as PayoutDetails;
+        } catch (error) {
+          console.error('Exception fetching seller profile:', error);
+          return {
+            ...payout,
+            seller_name: 'Unknown Seller',
+            seller_email: 'unknown@email.com'
+          } as PayoutDetails;
+        }
+      })
+    );
+
+    return payoutsWithDetails;
+  }
+
+  private getMockSellerName(sellerId: string): string {
+    const names = ['John Smith', 'Sarah Johnson', 'Mike Brown', 'Lisa Davis', 'David Wilson'];
+    const hash = sellerId.charCodeAt(0) % names.length;
+    return names[hash];
+  }
+
+  private getMockSellerEmail(sellerId: string): string {
+    const name = this.getMockSellerName(sellerId).toLowerCase().replace(' ', '.');
+    return `${name}@example.com`;
+  }
+
+  async getPayoutDetails(payoutId: string): Promise<PayoutDetails | null> {
+    const { data, error } = await supabase
+      .from('seller_payouts')
+      .select('*')
+      .eq('id', payoutId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching payout details:', error);
+      throw new Error('Failed to fetch payout details');
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    // Get seller details separately from profiles table
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('name, email')
+      .eq('id', data.seller_id)
+      .single();
+
+    // Get payout items (handle case where table might not exist)
+    let payoutItems = [];
+    try {
+      const { data: items } = await supabase
+        .from('payout_items')
+        .select(`
+          id,
+          book_title,
+          sale_amount,
+          commission_amount,
+          seller_amount,
+          sale_date
+        `)
+        .eq('payout_id', payoutId);
+      payoutItems = items || [];
+    } catch (itemsError) {
+      console.warn('Could not fetch payout items:', itemsError);
+    }
+
+    // Get reviewer details if available and reviewed_by field exists
+    let reviewerName = null;
+    if (data.reviewed_by) {
+      try {
+        const { data: reviewer } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', data.reviewed_by)
+          .single();
+        reviewerName = reviewer?.name;
+      } catch (reviewerError) {
+        console.warn('Could not fetch reviewer details:', reviewerError);
+      }
+    }
+
+    return {
+      ...data,
+      seller_name: profile?.name || 'Unknown Seller',
+      seller_email: profile?.email || 'unknown@email.com',
+      reviewer_name: reviewerName,
+      payout_items: payoutItems
+    } as PayoutDetails;
+  }
+
+  async approvePayout(payoutId: string, notes?: string): Promise<boolean> {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+
+      if (!user.user) {
+        throw new Error('User not authenticated');
+      }
+
+      const { data, error } = await supabase.rpc('approve_seller_payout', {
+        p_payout_id: payoutId,
+        p_reviewer_id: user.user.id,
+        p_notes: notes || null
       });
 
       if (error) {
-        throw new Error(`Paystack recipient creation failed: ${error.message}`);
+        console.error('RPC function failed, trying direct update:', {
+          payoutId,
+          error: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+
+        // Fallback to direct update if RPC doesn't exist
+        const { error: updateError } = await supabase
+          .from('seller_payouts')
+          .update({
+            status: 'approved',
+            updated_at: new Date().toISOString(),
+            ...(notes && { notes: notes }) // Only add notes if provided
+          })
+          .eq('id', payoutId);
+
+        if (updateError) {
+          throw new Error('Failed to approve payout: ' + updateError.message);
+        }
+
+        return true;
       }
 
-      return data.recipient_code;
-      
+      return data;
     } catch (error) {
-      console.error("Error creating Paystack recipient:", error);
+      console.error('Exception in approvePayout:', error);
       throw error;
     }
   }
+
+  async denyPayout(payoutId: string, reason: string): Promise<boolean> {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+
+      if (!user.user) {
+        throw new Error('User not authenticated');
+      }
+
+      if (!reason || reason.trim() === '') {
+        throw new Error('Denial reason is required');
+      }
+
+      const { data, error } = await supabase.rpc('deny_seller_payout', {
+        p_payout_id: payoutId,
+        p_reviewer_id: user.user.id,
+        p_reason: reason
+      });
+
+      if (error) {
+        console.error('RPC function failed, trying direct update:', {
+          payoutId,
+          error: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+
+        // Fallback to direct update if RPC doesn't exist
+        const { error: updateError } = await supabase
+          .from('seller_payouts')
+          .update({
+            status: 'denied',
+            updated_at: new Date().toISOString(),
+            notes: reason // Use notes field for denial reason
+          })
+          .eq('id', payoutId);
+
+        if (updateError) {
+          throw new Error('Failed to deny payout: ' + updateError.message);
+        }
+
+        return true;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Exception in denyPayout:', error);
+      throw error;
+    }
+  }
+
+  async createPayoutNotification(
+    payoutId: string,
+    type: 'approval' | 'denial' | 'completion',
+    emailAddress: string,
+    templateData?: any
+  ): Promise<void> {
+    const { error } = await supabase
+      .from('payout_notifications')
+      .insert({
+        payout_id: payoutId,
+        notification_type: type,
+        email_address: emailAddress,
+        template_data: templateData,
+        status: 'pending'
+      });
+
+    if (error) {
+      console.error('Error creating notification:', error);
+      throw new Error('Failed to create notification');
+    }
+  }
+
+  async createPaystackRecipient(sellerId: string): Promise<{
+    success: boolean;
+    recipient_code?: string;
+    payment_breakdown?: any;
+    seller_info?: any;
+    message?: string;
+    error?: string;
+  }> {
+    try {
+      console.log('Creating Paystack recipient for seller:', sellerId);
+
+      const { data, error } = await supabase.functions.invoke('create-paystack-subaccount', {
+        method: 'POST',
+        body: { sellerId }
+      });
+
+      if (error) {
+        console.error('Error creating Paystack recipient:', error);
+        throw new Error(`Failed to create recipient: ${error.message}`);
+      }
+
+      console.log('Paystack recipient created successfully:', data);
+      return data;
+    } catch (error) {
+      console.error('Exception creating Paystack recipient:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error creating recipient'
+      };
+    }
+  }
+
+  async generatePayoutReceipt(payoutId: string): Promise<{
+    success: boolean;
+    receipt?: string;
+    payment_breakdown?: any;
+    error?: string;
+  }> {
+    try {
+      // Get payout details
+      const payoutDetails = await this.getPayoutDetails(payoutId);
+      if (!payoutDetails) {
+        throw new Error('Payout not found');
+      }
+
+      // Create Paystack recipient if needed
+      const recipientResult = await this.createPaystackRecipient(payoutDetails.seller_id);
+
+      if (!recipientResult.success) {
+        throw new Error(recipientResult.error || 'Failed to create recipient');
+      }
+
+      // Generate receipt text
+      const receiptText = this.formatReceiptText(payoutDetails, recipientResult);
+
+      return {
+        success: true,
+        receipt: receiptText,
+        payment_breakdown: recipientResult.payment_breakdown
+      };
+    } catch (error) {
+      console.error('Error generating payout receipt:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error generating receipt'
+      };
+    }
+  }
+
+  private formatReceiptText(payoutDetails: PayoutDetails, recipientResult: any): string {
+    const date = new Date().toLocaleString();
+    const breakdown = recipientResult.payment_breakdown || {};
+    const sellerInfo = recipientResult.seller_info || {};
+
+    return `
+SELLER PAYOUT RECEIPT - REBOOKED SOLUTIONS
+==========================================
+
+Receipt Generated: ${date}
+Payout ID: ${payoutDetails.id}
+Status: ${payoutDetails.status.toUpperCase()}
+
+SELLER INFORMATION
+------------------
+Name: ${payoutDetails.seller_name || 'Unknown'}
+Email: ${payoutDetails.seller_email || 'Unknown'}
+Account: ${sellerInfo.account_number || 'N/A'}
+Bank: ${sellerInfo.bank_name || 'N/A'}
+
+PAYMENT BREAKDOWN
+-----------------
+Total Orders: ${breakdown.total_orders || 0}
+Total Book Sales: ${this.formatCurrency(breakdown.total_book_sales || 0)}
+Total Delivery Fees: ${this.formatCurrency(breakdown.total_delivery_fees || 0)}
+
+Platform Commission (10%): ${this.formatCurrency(breakdown.platform_earnings?.book_commission || 0)}
+Platform Delivery Fees: ${this.formatCurrency(breakdown.platform_earnings?.delivery_fees || 0)}
+Total Platform Earnings: ${this.formatCurrency(breakdown.platform_earnings?.total || 0)}
+
+SELLER PAYOUT AMOUNT: ${this.formatCurrency(breakdown.seller_amount || payoutDetails.amount)}
+
+PAYSTACK DETAILS
+----------------
+Recipient Code: ${recipientResult.recipient_code || 'N/A'}
+Development Mode: ${recipientResult.development_mode ? 'Yes' : 'No'}
+
+ORDER DETAILS
+-------------
+${this.formatOrderDetails(breakdown.order_details || [])}
+
+PAYOUT ITEMS
+------------
+${this.formatPayoutItems(payoutDetails.payout_items || [])}
+
+REVIEW INFORMATION
+------------------
+${payoutDetails.status === 'approved' ? `Approved: ${payoutDetails.reviewed_at || 'Recently'}` : ''}
+${payoutDetails.status === 'denied' ? `Denied: ${payoutDetails.reviewed_at || 'Recently'}` : ''}
+${payoutDetails.review_notes ? `Notes: ${payoutDetails.review_notes}` : ''}
+${payoutDetails.reviewer_name ? `Reviewed by: ${payoutDetails.reviewer_name}` : ''}
+
+INSTRUCTIONS
+------------
+${recipientResult.instructions || 'Recipient created successfully. You can now manually process payment using this recipient code.'}
+
+Generated by ReBooked Solutions Admin Dashboard
+Time: ${date}
+    `.trim();
+  }
+
+  private formatOrderDetails(orderDetails: any[]): string {
+    if (!orderDetails || orderDetails.length === 0) {
+      return 'No order details available';
+    }
+
+    return orderDetails.map((order, index) => `
+${index + 1}. ${order.book?.title || 'Unknown Book'}
+   Price: ${this.formatCurrency(order.book?.price || 0)}
+   Buyer: ${order.buyer?.name || 'Unknown'} (${order.buyer?.email || 'N/A'})
+   Delivered: ${order.timeline?.delivered || 'Recently'}
+   Seller Earnings: ${this.formatCurrency(order.amounts?.seller_earnings || 0)}
+`).join('\n');
+  }
+
+  private formatPayoutItems(items: PayoutItem[]): string {
+    if (!items || items.length === 0) {
+      return 'No payout items available';
+    }
+
+    return items.map((item, index) => `
+${index + 1}. ${item.book_title}
+   Sale Amount: ${this.formatCurrency(item.sale_amount)}
+   Commission: ${this.formatCurrency(item.commission_amount)}
+   Seller Amount: ${this.formatCurrency(item.seller_amount)}
+   Sale Date: ${new Date(item.sale_date).toLocaleDateString()}
+`).join('\n');
+  }
+
+  async getAuditLog(payoutId: string) {
+    const { data, error } = await supabase
+      .from('payout_audit_log')
+      .select('*')
+      .eq('payout_id', payoutId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching audit log:', error);
+      throw new Error('Failed to fetch audit log');
+    }
+
+    return data || [];
+  }
+
+  calculateCommission(bookPrice: number, deliveryFee: number = 0): {
+    sellerAmount: number;
+    platformFee: number;
+    totalAmount: number;
+  } {
+    const platformCommissionRate = 0.10; // 10%
+    const platformCommission = bookPrice * platformCommissionRate;
+    const sellerAmount = bookPrice - platformCommission;
+    const platformFee = platformCommission + deliveryFee;
+    const totalAmount = bookPrice + deliveryFee;
+
+    return {
+      sellerAmount: Number(sellerAmount.toFixed(2)),
+      platformFee: Number(platformFee.toFixed(2)),
+      totalAmount: Number(totalAmount.toFixed(2))
+    };
+  }
+
+  formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('en-ZA', {
+      style: 'currency',
+      currency: 'ZAR',
+      minimumFractionDigits: 2
+    }).format(amount);
+  }
+
+  async checkTableExists(): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('seller_payouts')
+        .select('id')
+        .limit(1);
+
+      if (error) {
+        console.error('seller_payouts table check failed:', {
+          code: error.code,
+          message: error.message,
+          details: error.details
+        });
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error checking table existence:', {
+        errorType: error?.constructor?.name,
+        errorMessage: error instanceof Error ? error.message : String(error)
+      });
+      return false;
+    }
+  }
+
+  async getTableStructure(): Promise<string[]> {
+    try {
+      const { data, error } = await supabase
+        .from('seller_payouts')
+        .select('*')
+        .limit(1);
+
+      if (error || !data || data.length === 0) {
+        console.warn('Could not determine table structure');
+        return [];
+      }
+
+      const columns = Object.keys(data[0]);
+      console.log('seller_payouts table columns:', columns);
+      return columns;
+    } catch (error) {
+      console.error('Error getting table structure:', error);
+      return [];
+    }
+  }
+
+
 }
 
 export const sellerPayoutService = new SellerPayoutService();

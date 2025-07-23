@@ -21,9 +21,11 @@ import {
   CheckCircle,
   Clock,
   TrendingUp,
+  UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { sellerPayoutService, type PayoutDetails } from "@/services/sellerPayoutService";
 
 interface TransferReceiptData {
   orderId: string;
@@ -66,6 +68,7 @@ export const SellerPayoutManager: React.FC = () => {
     denied: 0,
     totalEarnings: 0,
   });
+  const [isUsingMockData, setIsUsingMockData] = useState(false);
 
   // Real data fetching from database
 
@@ -76,41 +79,38 @@ export const SellerPayoutManager: React.FC = () => {
   const loadReceipts = async () => {
     setIsLoading(true);
     try {
-      // Fetch real seller payouts from database
-      const { data: payouts, error } = await supabase
-        .from('seller_payouts')
-        .select(`
-          id,
-          seller_id,
-          amount,
-          status,
-          created_at,
-          reviewed_at,
-          review_notes,
-          bank_name,
-          account_number,
-          profiles!seller_id (
-            name,
-            email
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching payouts:', error);
-        // Handle case where table doesn't exist yet
-        if (error.message?.includes('does not exist') || error.code === 'PGRST116') {
-          console.log('Seller payouts table not found - using empty data');
-          setReceipts([]);
-        } else {
-          toast.error('Failed to load payouts');
-          setReceipts([]);
-        }
+      // Check if table exists
+      const tableExists = await sellerPayoutService.checkTableExists();
+      if (!tableExists) {
+        console.error('Seller payouts table not found');
+        toast.error('Seller payouts system not configured yet');
+        setIsUsingMockData(true);
+        setReceipts([]);
+        setStats({ pending: 0, approved: 0, denied: 0, totalEarnings: 0 });
         return;
       }
+      setIsUsingMockData(false);
 
-      // Transform database payouts to receipt format
-      const transformedReceipts: TransferReceiptData[] = (payouts || []).map(payout => ({
+      // Fetch statistics
+      const statistics = await sellerPayoutService.getPayoutStatistics();
+      setStats({
+        pending: statistics.pending_count,
+        approved: statistics.approved_count,
+        denied: statistics.denied_count,
+        totalEarnings: statistics.total_approved_amount
+      });
+
+      // Fetch all payouts with seller details
+      const [pendingPayouts, approvedPayouts, deniedPayouts] = await Promise.all([
+        sellerPayoutService.getPayoutsWithSellerDetails('pending'),
+        sellerPayoutService.getPayoutsWithSellerDetails('approved'),
+        sellerPayoutService.getPayoutsWithSellerDetails('denied')
+      ]);
+
+      const allPayouts = [...pendingPayouts, ...approvedPayouts, ...deniedPayouts];
+
+      // Transform payouts to receipt format
+      const transformedReceipts: TransferReceiptData[] = allPayouts.map(payout => ({
         orderId: payout.id,
         bookTitle: `Payout Request ${payout.id.slice(-8)}`,
         bookPrice: payout.amount,
@@ -124,33 +124,46 @@ export const SellerPayoutManager: React.FC = () => {
         },
         seller: {
           id: payout.seller_id,
-          name: payout.profiles?.name || 'Unknown',
-          email: payout.profiles?.email || 'unknown@email.com'
+          name: payout.seller_name || 'Unknown',
+          email: payout.seller_email || 'unknown@email.com'
         },
         timestamps: {
           orderPlaced: payout.created_at,
-          bookDelivered: payout.reviewed_at || payout.created_at
+          bookDelivered: payout.reviewed_at || payout.updated_at || payout.created_at
         },
         transferStatus: payout.status === 'pending' ? 'pending' :
                        payout.status === 'approved' ? 'approved' : 'denied',
-        transferDate: payout.reviewed_at,
-        denialReason: payout.review_notes
+        transferDate: payout.reviewed_at || payout.updated_at,
+        denialReason: payout.review_notes || payout.notes
       }));
 
       setReceipts(transformedReceipts);
 
-      // Calculate stats from real data
-      const pending = transformedReceipts.filter(r => r.transferStatus === "pending").length;
-      const approved = transformedReceipts.filter(r => r.transferStatus === "approved").length;
-      const denied = transformedReceipts.filter(r => r.transferStatus === "denied").length;
-      const totalEarnings = transformedReceipts
-        .filter(r => r.transferStatus === "approved")
-        .reduce((sum, r) => sum + r.sellerEarnings, 0);
-
-      setStats({ pending, approved, denied, totalEarnings });
     } catch (error) {
       console.error("Error loading receipts:", error);
-      toast.error("Failed to load transfer receipts");
+
+      // Better error message handling
+      let errorMessage = "Failed to load transfer receipts";
+      if (error instanceof Error) {
+        errorMessage = `Failed to load payouts: ${error.message}`;
+        console.error("Detailed error:", {
+          message: error.message,
+          stack: error.stack,
+          name: error.name,
+          cause: error.cause
+        });
+      } else {
+        console.error("Non-Error object thrown:", {
+          error,
+          errorType: typeof error,
+          errorString: String(error)
+        });
+        errorMessage = "Unexpected error loading payouts";
+      }
+
+      toast.error(errorMessage);
+      setReceipts([]);
+      setStats({ pending: 0, approved: 0, denied: 0, totalEarnings: 0 });
     } finally {
       setIsLoading(false);
     }
@@ -158,20 +171,54 @@ export const SellerPayoutManager: React.FC = () => {
 
   const handleApprove = async (orderId: string, sellerId: string) => {
     try {
-      // 1. Create Paystack Recipient if not exists
-      console.log(`Creating Paystack recipient for seller ${sellerId}`);
-      
-      // 2. Update transfer status
-      setReceipts(prev => prev.map(receipt => 
-        receipt.orderId === orderId 
-          ? { ...receipt, transferStatus: "approved" as const, transferDate: new Date().toISOString() }
+      console.log(`Approving payout ${orderId} for seller ${sellerId}`);
+
+      // 1. Create Paystack recipient first
+      toast.info('Creating Paystack recipient...');
+      const recipientResult = await sellerPayoutService.createPaystackRecipient(sellerId);
+
+      if (!recipientResult.success) {
+        throw new Error(recipientResult.error || 'Failed to create Paystack recipient');
+      }
+
+      toast.success(`Paystack recipient created: ${recipientResult.recipient_code}`);
+
+      // 2. Approve the payout
+      await sellerPayoutService.approvePayout(orderId, 'Approved by admin - Paystack recipient created');
+
+      // 3. Generate and download receipt
+      toast.info('Generating payout receipt...');
+      const receiptResult = await sellerPayoutService.generatePayoutReceipt(orderId);
+
+      if (receiptResult.success && receiptResult.receipt) {
+        // Auto-download the receipt
+        const blob = new Blob([receiptResult.receipt], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `payout-receipt-${orderId}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      // 4. Update local state
+      setReceipts(prev => prev.map(receipt =>
+        receipt.orderId === orderId
+          ? {
+              ...receipt,
+              transferStatus: "approved" as const,
+              transferDate: new Date().toISOString(),
+              seller: {
+                ...receipt.seller,
+                paystackRecipientCode: recipientResult.recipient_code
+              }
+            }
           : receipt
       ));
 
-      // 3. Send approval email to seller
-      console.log(`Sending approval email for order ${orderId}`);
-      
-      // 4. Update stats
+      // 5. Update stats
       setStats(prev => ({
         ...prev,
         pending: prev.pending - 1,
@@ -179,53 +226,94 @@ export const SellerPayoutManager: React.FC = () => {
         totalEarnings: prev.totalEarnings + (receipts.find(r => r.orderId === orderId)?.sellerEarnings || 0),
       }));
 
-      // TODO: Implement actual Paystack integration and email sending
-      // await paystackService.createRecipient(seller);
-      // await emailService.sendApprovalEmail(seller, orderDetails);
-      
+      toast.success('Payout approved! Paystack recipient created and receipt downloaded.');
+
     } catch (error) {
       console.error("Error approving payout:", error);
+      let errorMessage = "Failed to approve payout";
+      if (error instanceof Error) {
+        errorMessage = `Failed to approve payout: ${error.message}`;
+      }
+      toast.error(errorMessage);
       throw error;
     }
   };
 
   const handleDeny = async (orderId: string, reason: string) => {
     try {
-      // 1. Update transfer status with denial reason
-      setReceipts(prev => prev.map(receipt => 
-        receipt.orderId === orderId 
-          ? { 
-              ...receipt, 
-              transferStatus: "denied" as const, 
+      if (!reason || reason.trim() === '') {
+        throw new Error('Denial reason is required');
+      }
+
+      console.log(`Denying payout ${orderId} with reason: ${reason}`);
+
+      // Use the service to deny the payout
+      await sellerPayoutService.denyPayout(orderId, reason);
+
+      // Update local state
+      setReceipts(prev => prev.map(receipt =>
+        receipt.orderId === orderId
+          ? {
+              ...receipt,
+              transferStatus: "denied" as const,
               transferDate: new Date().toISOString(),
               denialReason: reason
             }
           : receipt
       ));
 
-      // 2. Send denial email to seller
-      console.log(`Sending denial email for order ${orderId} with reason: ${reason}`);
-
-      // 3. Update stats
+      // Update stats
       setStats(prev => ({
         ...prev,
         pending: prev.pending - 1,
         denied: prev.denied + 1,
       }));
 
-      // TODO: Implement actual email sending
-      // await emailService.sendDenialEmail(seller, orderDetails, reason);
-      
+      toast.success('Payout denied and seller notified');
+
     } catch (error) {
       console.error("Error denying payout:", error);
+      let errorMessage = "Failed to deny payout";
+      if (error instanceof Error) {
+        errorMessage = `Failed to deny payout: ${error.message}`;
+      }
+      toast.error(errorMessage);
       throw error;
     }
   };
 
-  const handleDownload = (receipt: TransferReceiptData) => {
-    const receiptText = `
-TRANSFER RECEIPT - REBOOKED SOLUTIONS
-====================================
+  const handleDownload = async (receipt: TransferReceiptData) => {
+    try {
+      toast.info('Generating detailed receipt...');
+
+      // Use the new receipt generation service
+      const receiptResult = await sellerPayoutService.generatePayoutReceipt(receipt.orderId);
+
+      if (receiptResult.success && receiptResult.receipt) {
+        // Download the detailed receipt
+        const blob = new Blob([receiptResult.receipt], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `detailed-payout-receipt-${receipt.orderId}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        toast.success('Detailed receipt downloaded successfully!');
+      } else {
+        throw new Error(receiptResult.error || 'Failed to generate receipt');
+      }
+    } catch (error) {
+      console.error('Error generating receipt:', error);
+
+      // Fallback to basic receipt
+      toast.warning('Using basic receipt format...');
+
+      const basicReceiptText = `
+BASIC TRANSFER RECEIPT - REBOOKED SOLUTIONS
+==========================================
 
 Order ID: ${receipt.orderId}
 Date Generated: ${new Date().toLocaleString()}
@@ -242,23 +330,11 @@ PAYMENT BREAKDOWN
 Platform Fee (10% book + delivery): R${receipt.platformFee.toFixed(2)}
 Seller Earnings (90% book price): R${receipt.sellerEarnings.toFixed(2)}
 
-BUYER INFORMATION
------------------
-Name: ${receipt.buyer.name}
-Email: ${receipt.buyer.email}
-
 SELLER INFORMATION
 ------------------
 Name: ${receipt.seller.name}
 Email: ${receipt.seller.email}
 ${receipt.seller.paystackRecipientCode ? `Paystack Recipient: ${receipt.seller.paystackRecipientCode}` : ''}
-
-ORDER TIMELINE
---------------
-Order Placed: ${new Date(receipt.timestamps.orderPlaced).toLocaleString()}
-${receipt.timestamps.bookCollected ? `Book Collected: ${new Date(receipt.timestamps.bookCollected).toLocaleString()}` : ''}
-Book Delivered: ${new Date(receipt.timestamps.bookDelivered).toLocaleString()}
-${receipt.transferDate ? `Transfer ${receipt.transferStatus}: ${new Date(receipt.transferDate).toLocaleString()}` : ''}
 
 TRANSFER STATUS
 ---------------
@@ -266,18 +342,61 @@ Status: ${receipt.transferStatus.toUpperCase()}
 ${receipt.denialReason ? `Reason: ${receipt.denialReason}` : ''}
 
 Generated by ReBooked Solutions Admin Dashboard
-    `.trim();
+      `.trim();
 
-    const blob = new Blob([receiptText], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `transfer-receipt-${receipt.orderId}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      const blob = new Blob([basicReceiptText], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `basic-receipt-${receipt.orderId}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   };
+
+  const handleCreateRecipient = async (receipt: TransferReceiptData) => {
+    try {
+      toast.info('Creating Paystack recipient...');
+
+      const recipientResult = await sellerPayoutService.createPaystackRecipient(receipt.seller.id);
+
+      if (!recipientResult.success) {
+        throw new Error(recipientResult.error || 'Failed to create Paystack recipient');
+      }
+
+      // Update local state with recipient code
+      setReceipts(prev => prev.map(r =>
+        r.orderId === receipt.orderId
+          ? {
+              ...r,
+              seller: {
+                ...r.seller,
+                paystackRecipientCode: recipientResult.recipient_code
+              }
+            }
+          : r
+      ));
+
+      toast.success(`Paystack recipient created successfully: ${recipientResult.recipient_code}`);
+
+      // Show payment breakdown if available
+      if (recipientResult.payment_breakdown) {
+        console.log('Payment breakdown:', recipientResult.payment_breakdown);
+      }
+
+    } catch (error) {
+      console.error("Error creating recipient:", error);
+      let errorMessage = "Failed to create Paystack recipient";
+      if (error instanceof Error) {
+        errorMessage = `Failed to create recipient: ${error.message}`;
+      }
+      toast.error(errorMessage);
+    }
+  };
+
+
 
   const pendingReceipts = receipts.filter(r => r.transferStatus === "pending");
   const approvedReceipts = receipts.filter(r => r.transferStatus === "approved");
@@ -360,11 +479,24 @@ Generated by ReBooked Solutions Admin Dashboard
         </Button>
       </div>
 
+      {/* Database Error Alert */}
+      {isUsingMockData && (
+        <Alert className="border-red-200 bg-red-50 mb-4">
+          <AlertCircle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-800">
+            <strong>Database Error:</strong> The seller payouts system tables are not configured or accessible.
+            Please contact your system administrator to set up the seller payouts database tables and functions.
+          </AlertDescription>
+        </Alert>
+      )}
+
+
+
       {/* Info Alert */}
       <Alert className="border-blue-200 bg-blue-50">
         <AlertCircle className="h-4 w-4 text-blue-600" />
         <AlertDescription className="text-blue-800">
-          <strong>Manual Payout Process:</strong> After approving a payout, proceed with manual EFT transfer via your banking system or Paystack dashboard. 
+          <strong>Manual Payout Process:</strong> After approving a payout, proceed with manual EFT transfer via your banking system or Paystack dashboard.
           The seller will be notified via email once approved.
         </AlertDescription>
       </Alert>
@@ -402,6 +534,7 @@ Generated by ReBooked Solutions Admin Dashboard
                 onApprove={handleApprove}
                 onDeny={handleDeny}
                 onDownload={handleDownload}
+                onCreateRecipient={handleCreateRecipient}
               />
             ))
           )}
@@ -423,6 +556,7 @@ Generated by ReBooked Solutions Admin Dashboard
                 onApprove={handleApprove}
                 onDeny={handleDeny}
                 onDownload={handleDownload}
+                onCreateRecipient={handleCreateRecipient}
               />
             ))
           )}
@@ -444,6 +578,7 @@ Generated by ReBooked Solutions Admin Dashboard
                 onApprove={handleApprove}
                 onDeny={handleDeny}
                 onDownload={handleDownload}
+                onCreateRecipient={handleCreateRecipient}
               />
             ))
           )}
