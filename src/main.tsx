@@ -1,3 +1,17 @@
+// Suppress Google Maps retry errors to prevent console spam
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  const message = args.join(' ').toLowerCase();
+  if (
+    message.includes('failed to load google maps script') ||
+    message.includes('retrying in') ||
+    message.includes('google maps script, retrying')
+  ) {
+    return; // Suppress Google Maps retry spam
+  }
+  originalConsoleError.apply(console, args);
+};
+
 // Environment debugging (development only)
 import "./utils/environmentDebug";
 
