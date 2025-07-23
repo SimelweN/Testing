@@ -557,7 +557,7 @@ export function validateMockData(functionName: string, mockData: any): boolean {
     "commit-to-sale": ["order_id", "seller_id"],
     "decline-commit": ["order_id", "seller_id"],
     "mark-collected": ["order_id", "tracking_number"],
-    "pay-seller": ["order_id", "seller_id", "amount"],
+    // "pay-seller": removed - no automated seller payments
 
         // SUBACCOUNT MANAGEMENT
     "create-paystack-subaccount": ["business_name", "email", "bank_name", "bank_code", "account_number", "user_id"],
