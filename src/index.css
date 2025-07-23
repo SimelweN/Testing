@@ -1,6 +1,3 @@
-/* Email Change Mobile Styles - must come before @tailwind */
-@import "./styles/email-change-mobile.css";
-
 /* Mobile Improvements */
 @import "./styles/mobile-improvements.css";
 @import "./styles/campus-enhanced.css";
