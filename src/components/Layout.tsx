@@ -11,6 +11,11 @@ interface LayoutProps {
 }
 
 const Layout = ({ children }: LayoutProps) => {
+  const { user } = useAuth();
+
+  // Check if user is admin (you may need to adjust this based on your auth structure)
+  const isAdmin = user && (user.user_metadata?.role === 'admin' || user.email?.includes('admin'));
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 mobile-container">
       <Navbar />
@@ -19,6 +24,7 @@ const Layout = ({ children }: LayoutProps) => {
       </main>
       <Footer />
       <ConnectionStatus />
+      {isAdmin && <PayoutNotifications />}
       <Toaster
         position="top-center"
         toastOptions={{
