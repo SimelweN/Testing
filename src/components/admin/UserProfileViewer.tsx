@@ -256,7 +256,6 @@ const UserProfileViewer: React.FC<UserProfileViewerProps> = ({
                           <TableHead>Book Details</TableHead>
                           <TableHead>Author</TableHead>
                           <TableHead>Price</TableHead>
-                          <TableHead>Condition</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>Listed Date</TableHead>
                         </TableRow>
