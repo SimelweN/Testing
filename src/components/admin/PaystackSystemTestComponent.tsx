@@ -477,7 +477,7 @@ const PaystackSystemTestComponent: React.FC = () => {
                     <strong>What happens when you create a subaccount:</strong>
                     <ul className="mt-1 space-y-1">
                       <li>• Creates a Paystack subaccount for receiving split payments</li>
-                      <li>• Automatically creates a transfer recipient for sending payouts</li>
+                      <li>• Transfer recipients disabled - no automated payouts</li>
                       <li>• Links both to the seller's profile in the database</li>
                       <li>• Updates all seller's books with the subaccount code</li>
                     </ul>
