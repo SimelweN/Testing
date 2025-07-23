@@ -41,34 +41,117 @@ export interface PayoutDetails extends SellerPayout {
 
 class SellerPayoutService {
   async getPayoutStatistics(): Promise<PayoutStatistics> {
-    const { data, error } = await supabase.rpc('get_payout_statistics');
-    
-    if (error) {
-      console.error('Error fetching payout statistics:', error);
-      throw new Error('Failed to fetch payout statistics');
+    try {
+      const { data, error } = await supabase.rpc('get_payout_statistics');
+
+      if (error) {
+        console.error('Error fetching payout statistics:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        // Fallback to manual count if RPC doesn't exist
+        return await this.getStatisticsFallback();
+      }
+
+      return data[0] || {
+        pending_count: 0,
+        approved_count: 0,
+        denied_count: 0,
+        total_approved_amount: 0
+      };
+    } catch (error) {
+      console.error('Exception in getPayoutStatistics:', error);
+      return await this.getStatisticsFallback();
     }
-    
-    return data[0] || {
-      pending_count: 0,
-      approved_count: 0,
-      denied_count: 0,
-      total_approved_amount: 0
-    };
+  }
+
+  private async getStatisticsFallback(): Promise<PayoutStatistics> {
+    try {
+      // Manual statistics calculation as fallback
+      const { data: payouts, error } = await supabase
+        .from('seller_payouts')
+        .select('status, amount');
+
+      if (error) {
+        console.error('Fallback statistics error:', error);
+        return {
+          pending_count: 0,
+          approved_count: 0,
+          denied_count: 0,
+          total_approved_amount: 0
+        };
+      }
+
+      const stats = (payouts || []).reduce((acc, payout) => {
+        switch (payout.status) {
+          case 'pending':
+            acc.pending_count++;
+            break;
+          case 'approved':
+            acc.approved_count++;
+            acc.total_approved_amount += payout.amount || 0;
+            break;
+          case 'denied':
+            acc.denied_count++;
+            break;
+        }
+        return acc;
+      }, {
+        pending_count: 0,
+        approved_count: 0,
+        denied_count: 0,
+        total_approved_amount: 0
+      });
+
+      return stats;
+    } catch (error) {
+      console.error('Fallback statistics exception:', error);
+      return {
+        pending_count: 0,
+        approved_count: 0,
+        denied_count: 0,
+        total_approved_amount: 0
+      };
+    }
   }
 
   async getPayoutsByStatus(status: string): Promise<SellerPayout[]> {
-    const { data, error } = await supabase
-      .from('seller_payouts')
-      .select('*')
-      .eq('status', status)
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('seller_payouts')
+        .select('*')
+        .eq('status', status)
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching payouts:', error);
-      throw new Error('Failed to fetch payouts');
+      if (error) {
+        console.error('Error fetching payouts by status:', {
+          status,
+          error: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+
+        // Check if table doesn't exist
+        if (error.code === '42P01' || error.message?.includes('does not exist')) {
+          console.warn('seller_payouts table does not exist, returning empty array');
+          return [];
+        }
+
+        throw new Error(`Failed to fetch payouts: ${error.message}`);
+      }
+
+      console.log(`Fetched ${data?.length || 0} payouts with status: ${status}`);
+      return data || [];
+    } catch (error) {
+      console.error('Exception in getPayoutsByStatus:', error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Unexpected error fetching payouts');
     }
-
-    return data || [];
   }
 
   async getPayoutsWithSellerDetails(status: string): Promise<PayoutDetails[]> {
@@ -124,49 +207,123 @@ class SellerPayoutService {
   }
 
   async approvePayout(payoutId: string, notes?: string): Promise<boolean> {
-    const { data: user } = await supabase.auth.getUser();
-    
-    if (!user.user) {
-      throw new Error('User not authenticated');
-    }
+    try {
+      const { data: user } = await supabase.auth.getUser();
 
-    const { data, error } = await supabase.rpc('approve_seller_payout', {
-      p_payout_id: payoutId,
-      p_reviewer_id: user.user.id,
-      p_notes: notes || null
-    });
+      if (!user.user) {
+        throw new Error('User not authenticated');
+      }
+
+      const { data, error } = await supabase.rpc('approve_seller_payout', {
+        p_payout_id: payoutId,
+        p_reviewer_id: user.user.id,
+        p_notes: notes || null
+      });
+
+      if (error) {
+        console.error('Error approving payout:', {
+          payoutId,
+          error: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+
+        // Fallback to direct database update if RPC doesn't exist
+        if (error.message?.includes('function') && error.message?.includes('does not exist')) {
+          return await this.approvePayoutFallback(payoutId, user.user.id, notes);
+        }
+
+        throw new Error('Failed to approve payout: ' + error.message);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Exception in approvePayout:', error);
+      throw error;
+    }
+  }
+
+  private async approvePayoutFallback(payoutId: string, reviewerId: string, notes?: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('seller_payouts')
+      .update({
+        status: 'approved',
+        reviewed_by: reviewerId,
+        reviewed_at: new Date().toISOString(),
+        review_notes: notes || null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', payoutId);
 
     if (error) {
-      console.error('Error approving payout:', error);
+      console.error('Fallback approve error:', error);
       throw new Error('Failed to approve payout: ' + error.message);
     }
 
-    return data;
+    return true;
   }
 
   async denyPayout(payoutId: string, reason: string): Promise<boolean> {
-    const { data: user } = await supabase.auth.getUser();
-    
-    if (!user.user) {
-      throw new Error('User not authenticated');
-    }
+    try {
+      const { data: user } = await supabase.auth.getUser();
 
-    if (!reason || reason.trim() === '') {
-      throw new Error('Denial reason is required');
-    }
+      if (!user.user) {
+        throw new Error('User not authenticated');
+      }
 
-    const { data, error } = await supabase.rpc('deny_seller_payout', {
-      p_payout_id: payoutId,
-      p_reviewer_id: user.user.id,
-      p_reason: reason
-    });
+      if (!reason || reason.trim() === '') {
+        throw new Error('Denial reason is required');
+      }
+
+      const { data, error } = await supabase.rpc('deny_seller_payout', {
+        p_payout_id: payoutId,
+        p_reviewer_id: user.user.id,
+        p_reason: reason
+      });
+
+      if (error) {
+        console.error('Error denying payout:', {
+          payoutId,
+          error: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+
+        // Fallback to direct database update if RPC doesn't exist
+        if (error.message?.includes('function') && error.message?.includes('does not exist')) {
+          return await this.denyPayoutFallback(payoutId, user.user.id, reason);
+        }
+
+        throw new Error('Failed to deny payout: ' + error.message);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Exception in denyPayout:', error);
+      throw error;
+    }
+  }
+
+  private async denyPayoutFallback(payoutId: string, reviewerId: string, reason: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('seller_payouts')
+      .update({
+        status: 'denied',
+        reviewed_by: reviewerId,
+        reviewed_at: new Date().toISOString(),
+        review_notes: reason,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', payoutId);
 
     if (error) {
-      console.error('Error denying payout:', error);
+      console.error('Fallback deny error:', error);
       throw new Error('Failed to deny payout: ' + error.message);
     }
 
-    return data;
+    return true;
   }
 
   async createPayoutNotification(
