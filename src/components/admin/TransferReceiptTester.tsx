@@ -6,16 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Tabs,
@@ -24,436 +14,332 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import {
-  CreditCard,
-  Building2,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import {
   Receipt,
-  DollarSign,
-  User,
-  Calendar,
-  CheckCircle,
-  AlertCircle,
-  Download,
-  Send,
   UserPlus,
   Database,
   PlayCircle,
+  Download,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-interface BankDetails {
-  bankName: string;
-  accountNumber: string;
-  accountHolder: string;
-  branchCode: string;
-}
-
-interface TransferReceipt {
-  id: string;
-  recipientName: string;
-  recipientBank: BankDetails;
-  amount: number;
-  reference: string;
-  transferDate: string;
-  status: "pending" | "completed" | "failed";
-  description: string;
-  transferType: "seller_payout" | "refund" | "commission" | "test";
-}
-
-const SOUTH_AFRICAN_BANKS = [
-  { name: "Absa Bank", code: "632005" },
-  { name: "Capitec Bank", code: "470010" },
-  { name: "First National Bank (FNB)", code: "250655" },
-  { name: "Nedbank", code: "198765" },
-  { name: "Standard Bank", code: "051001" },
-  { name: "TymeBank", code: "678910" },
-  { name: "African Bank", code: "430000" },
-  { name: "Discovery Bank", code: "679000" },
-  { name: "Investec Bank", code: "580105" },
-];
-
 export const TransferReceiptTester: React.FC = () => {
-  const [receipts, setReceipts] = useState<TransferReceipt[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
+  // Seller payout testing state
+  const [testRecipientData, setTestRecipientData] = useState<any>(null);
+  const [isTestingRecipient, setIsTestingRecipient] = useState(false);
+  const [availableSellers, setAvailableSellers] = useState<any[]>([]);
+  const [selectedTestSeller, setSelectedTestSeller] = useState<string>('');
 
-  // Form state
-  const [formData, setFormData] = useState({
-    recipientName: "",
-    bankName: "",
-    accountNumber: "",
-    accountHolder: "",
-    amount: "",
-    reference: "",
-    description: "",
-    transferType: "test" as TransferReceipt["transferType"],
-  });
+  useEffect(() => {
+    loadAvailableSellers();
+  }, []);
 
-  const [errors, setErrors] = useState<Partial<typeof formData>>({});
+  const loadAvailableSellers = async () => {
+    try {
+      // Get users who have banking subaccounts (real sellers)
+      const { data: sellers, error } = await supabase
+        .from('banking_subaccounts')
+        .select(`
+          user_id,
+          business_name,
+          email,
+          bank_name,
+          account_number,
+          status,
+          profiles!user_id (
+            name,
+            email
+          )
+        `)
+        .eq('status', 'active')
+        .limit(10);
 
-  const validateForm = () => {
-    const newErrors: Partial<typeof formData> = {};
+      if (error) {
+        console.error('Error loading sellers:', error);
+        return;
+      }
 
-    if (!formData.recipientName.trim()) {
-      newErrors.recipientName = "Recipient name is required";
+      console.log('Available sellers for testing:', sellers);
+      setAvailableSellers(sellers || []);
+      
+      // Auto-select first seller
+      if (sellers && sellers.length > 0) {
+        setSelectedTestSeller(sellers[0].user_id);
+      }
+    } catch (error) {
+      console.error('Exception loading sellers:', error);
     }
-
-    if (!formData.bankName) {
-      newErrors.bankName = "Bank selection is required";
-    }
-
-    if (!formData.accountNumber.trim()) {
-      newErrors.accountNumber = "Account number is required";
-    } else if (!/^\d{8,12}$/.test(formData.accountNumber.replace(/\s/g, ""))) {
-      newErrors.accountNumber = "Account number must be 8-12 digits";
-    }
-
-    if (!formData.accountHolder.trim()) {
-      newErrors.accountHolder = "Account holder name is required";
-    }
-
-    if (!formData.amount || parseFloat(formData.amount) <= 0) {
-      newErrors.amount = "Amount must be greater than 0";
-    }
-
-    if (!formData.reference.trim()) {
-      newErrors.reference = "Reference is required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
-  const generateReceipt = async () => {
-    if (!validateForm()) {
-      toast.error("Please fix the form errors");
+  const testReceiptCreation = async () => {
+    if (!selectedTestSeller) {
+      toast.error('Please select a seller to test');
       return;
     }
 
-    setIsGenerating(true);
+    setIsTestingRecipient(true);
+    setTestRecipientData(null);
 
     try {
-      const selectedBank = SOUTH_AFRICAN_BANKS.find(bank => bank.name === formData.bankName);
-      
-      const receipt: TransferReceipt = {
-        id: `TR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        recipientName: formData.recipientName,
-        recipientBank: {
-          bankName: formData.bankName,
-          accountNumber: formData.accountNumber,
-          accountHolder: formData.accountHolder,
-          branchCode: selectedBank?.code || "000000",
-        },
-        amount: parseFloat(formData.amount),
-        reference: formData.reference,
-        transferDate: new Date().toISOString(),
-        status: "completed",
-        description: formData.description || "Test transfer receipt",
-        transferType: formData.transferType,
-      };
+      toast.info('Testing receipt creation with real seller data...');
 
-      // Simulate transfer processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      setReceipts(prev => [receipt, ...prev]);
-      
-      // Reset form
-      setFormData({
-        recipientName: "",
-        bankName: "",
-        accountNumber: "",
-        accountHolder: "",
-        amount: "",
-        reference: "",
-        description: "",
-        transferType: "test",
+      // Call the edge function directly
+      const { data, error } = await supabase.functions.invoke('create-paystack-subaccount', {
+        method: 'POST',
+        body: { sellerId: selectedTestSeller }
       });
 
-      toast.success("Transfer receipt generated successfully!");
+      if (error) {
+        throw new Error(`Function error: ${error.message}`);
+      }
+
+      setTestRecipientData(data);
+      toast.success('Receipt creation test completed successfully!');
+
     } catch (error) {
-      console.error("Error generating receipt:", error);
-      toast.error("Failed to generate transfer receipt");
+      console.error('Error testing receipt creation:', error);
+      toast.error(`Test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
-      setIsGenerating(false);
+      setIsTestingRecipient(false);
     }
   };
 
-  const downloadReceipt = (receipt: TransferReceipt) => {
-    const receiptText = `
-TRANSFER RECEIPT
-================
+  const downloadTestReceipt = () => {
+    if (!testRecipientData) return;
 
-Transfer ID: ${receipt.id}
-Date: ${new Date(receipt.transferDate).toLocaleString()}
-Status: ${receipt.status.toUpperCase()}
-
-RECIPIENT DETAILS
------------------
-Name: ${receipt.recipientName}
-Account Holder: ${receipt.recipientBank.accountHolder}
-Bank: ${receipt.recipientBank.bankName}
-Account Number: ${receipt.recipientBank.accountNumber}
-Branch Code: ${receipt.recipientBank.branchCode}
-
-TRANSFER DETAILS
-----------------
-Amount: R${receipt.amount.toFixed(2)}
-Reference: ${receipt.reference}
-Type: ${receipt.transferType}
-Description: ${receipt.description}
-
-Generated by ReBooked Solutions
-Transfer Receipt Tester
-    `.trim();
-
+    const receiptText = formatTestReceiptText(testRecipientData);
     const blob = new Blob([receiptText], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `transfer-receipt-${receipt.id}.txt`;
+    a.download = `test-receipt-${selectedTestSeller}-${Date.now()}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-
-    toast.success("Receipt downloaded!");
+    
+    toast.success('Test receipt downloaded!');
   };
 
-  const sendReceipt = (receipt: TransferReceipt) => {
-    // Simulate sending receipt via email
-    toast.success(`Receipt ${receipt.id} sent to recipient!`);
+  const formatTestReceiptText = (data: any): string => {
+    const date = new Date().toLocaleString();
+    const breakdown = data.payment_breakdown || {};
+    const sellerInfo = data.seller_info || {};
+
+    return `
+TEST RECEIPT CREATION - REBOOKED SOLUTIONS
+==========================================
+
+Test Date: ${date}
+Test Mode: ${data.development_mode ? 'Development' : 'Production'}
+Seller ID: ${selectedTestSeller}
+
+SELLER INFORMATION
+------------------
+Name: ${sellerInfo.name || 'Unknown'}
+Email: ${sellerInfo.email || 'Unknown'}
+Account: ${sellerInfo.account_number || 'N/A'}
+Bank: ${sellerInfo.bank_name || 'N/A'}
+
+PAYSTACK RECIPIENT
+------------------
+Recipient Code: ${data.recipient_code || 'N/A'}
+Status: ${data.success ? 'Created Successfully' : 'Failed'}
+Message: ${data.message || 'N/A'}
+Already Existed: ${data.already_existed ? 'Yes' : 'No'}
+
+PAYMENT BREAKDOWN (MOCK DATA)
+-----------------------------
+Total Orders: ${breakdown.total_orders || 0}
+Total Book Sales: R${(breakdown.total_book_sales || 0).toFixed(2)}
+Total Delivery Fees: R${(breakdown.total_delivery_fees || 0).toFixed(2)}
+
+Platform Commission (${breakdown.commission_structure?.book_commission_rate || '10%'}): R${(breakdown.platform_earnings?.book_commission || 0).toFixed(2)}
+Platform Delivery Fees: R${(breakdown.platform_earnings?.delivery_fees || 0).toFixed(2)}
+Total Platform Earnings: R${(breakdown.platform_earnings?.total || 0).toFixed(2)}
+
+SELLER PAYOUT AMOUNT: R${(breakdown.seller_amount || 0).toFixed(2)}
+
+ORDER DETAILS (MOCK DATA)
+--------------------------
+${formatTestOrderDetails(breakdown.order_details || [])}
+
+INSTRUCTIONS
+------------
+${data.instructions || 'Test completed successfully.'}
+
+This is a test receipt generated for development purposes.
+Function: create-paystack-subaccount
+Generated: ${date}
+    `.trim();
+  };
+
+  const formatTestOrderDetails = (orderDetails: any[]): string => {
+    if (!orderDetails || orderDetails.length === 0) {
+      return 'No mock orders in breakdown';
+    }
+
+    return orderDetails.map((order, index) => `
+${index + 1}. ${order.book?.title || 'Unknown Book'}
+   Price: R${(order.book?.price || 0).toFixed(2)}
+   Category: ${order.book?.category || 'N/A'}
+   Condition: ${order.book?.condition || 'N/A'}
+   Buyer: ${order.buyer?.name || 'Unknown'} (${order.buyer?.email || 'N/A'})
+   Delivered: ${order.timeline?.delivered || 'Recently'}
+   Seller Earnings: R${(order.amounts?.seller_earnings || 0).toFixed(2)}
+`).join('\n');
   };
 
   return (
     <div className="space-y-6">
-      <Card>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Receipt className="w-6 h-6 text-blue-600" />
+          <div>
+            <h3 className="text-xl font-semibold">Seller Payout Receipt Tester</h3>
+            <p className="text-gray-600">Test receipt creation function with real seller data</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Real Seller Payout Testing */}
+      <Card className="border-green-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Receipt className="w-5 h-5" />
-            Transfer Receipt Tester
+          <CardTitle className="text-green-800 flex items-center gap-2">
+            <Database className="w-5 h-5" />
+            Edge Function Testing: create-paystack-subaccount
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Form */}
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="recipientName">Recipient Name</Label>
-                <Input
-                  id="recipientName"
-                  value={formData.recipientName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, recipientName: e.target.value }))}
-                  placeholder="John Doe"
-                  className={errors.recipientName ? "border-red-500" : ""}
-                />
-                {errors.recipientName && (
-                  <p className="text-sm text-red-500 mt-1">{errors.recipientName}</p>
-                )}
-              </div>
+        <CardContent className="space-y-4">
+          <Alert className="border-blue-200 bg-blue-50">
+            <Database className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              This tests the <code>create-paystack-subaccount</code> edge function with real seller data and mock order information. 
+              It creates Paystack recipients and generates detailed payment breakdowns.
+            </AlertDescription>
+          </Alert>
 
-              <div>
-                <Label htmlFor="bankName">Bank</Label>
-                <Select 
-                  value={formData.bankName} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, bankName: value }))}
-                >
-                  <SelectTrigger className={errors.bankName ? "border-red-500" : ""}>
-                    <SelectValue placeholder="Select a bank" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SOUTH_AFRICAN_BANKS.map((bank) => (
-                      <SelectItem key={bank.name} value={bank.name}>
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-4 h-4" />
-                          {bank.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.bankName && (
-                  <p className="text-sm text-red-500 mt-1">{errors.bankName}</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="accountNumber">Account Number</Label>
-                <Input
-                  id="accountNumber"
-                  value={formData.accountNumber}
-                  onChange={(e) => setFormData(prev => ({ ...prev, accountNumber: e.target.value }))}
-                  placeholder="1234567890"
-                  className={errors.accountNumber ? "border-red-500" : ""}
-                />
-                {errors.accountNumber && (
-                  <p className="text-sm text-red-500 mt-1">{errors.accountNumber}</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="accountHolder">Account Holder Name</Label>
-                <Input
-                  id="accountHolder"
-                  value={formData.accountHolder}
-                  onChange={(e) => setFormData(prev => ({ ...prev, accountHolder: e.target.value }))}
-                  placeholder="John Doe"
-                  className={errors.accountHolder ? "border-red-500" : ""}
-                />
-                {errors.accountHolder && (
-                  <p className="text-sm text-red-500 mt-1">{errors.accountHolder}</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="amount">Amount (R)</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.amount}
-                  onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
-                  placeholder="100.00"
-                  className={errors.amount ? "border-red-500" : ""}
-                />
-                {errors.amount && (
-                  <p className="text-sm text-red-500 mt-1">{errors.amount}</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="reference">Reference</Label>
-                <Input
-                  id="reference"
-                  value={formData.reference}
-                  onChange={(e) => setFormData(prev => ({ ...prev, reference: e.target.value }))}
-                  placeholder="Book sale payout"
-                  className={errors.reference ? "border-red-500" : ""}
-                />
-                {errors.reference && (
-                  <p className="text-sm text-red-500 mt-1">{errors.reference}</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="transferType">Transfer Type</Label>
-                <Select 
-                  value={formData.transferType} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, transferType: value as TransferReceipt["transferType"] }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="seller_payout">Seller Payout</SelectItem>
-                    <SelectItem value="refund">Refund</SelectItem>
-                    <SelectItem value="commission">Commission</SelectItem>
-                    <SelectItem value="test">Test Transfer</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="description">Description (Optional)</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Additional transfer details..."
-                  rows={3}
-                />
-              </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Select Real Seller for Testing:</Label>
+              <Select value={selectedTestSeller} onValueChange={setSelectedTestSeller}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Choose a seller..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSellers.map((seller) => (
+                    <SelectItem key={seller.user_id} value={seller.user_id}>
+                      {seller.business_name || seller.profiles?.name || 'Unknown'} - {seller.bank_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                {availableSellers.length} real sellers with banking accounts found
+              </p>
+            </div>
+            
+            <div className="space-y-2">
               <Button 
-                onClick={generateReceipt} 
-                disabled={isGenerating}
-                className="w-full"
+                onClick={testReceiptCreation}
+                disabled={isTestingRecipient || !selectedTestSeller}
+                className="w-full bg-green-600 hover:bg-green-700"
               >
-                {isGenerating ? (
+                {isTestingRecipient ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Generating Receipt...
+                    Testing Edge Function...
                   </>
                 ) : (
                   <>
-                    <Receipt className="w-4 h-4 mr-2" />
-                    Generate Transfer Receipt
+                    <PlayCircle className="w-4 h-4 mr-2" />
+                    Test Receipt Creation
                   </>
                 )}
               </Button>
-            </div>
-
-            {/* Receipt Preview */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Recent Receipts</h3>
               
-              {receipts.length === 0 ? (
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    No receipts generated yet. Fill out the form and click "Generate Transfer Receipt" to create your first test receipt.
-                  </AlertDescription>
-                </Alert>
-              ) : (
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {receipts.map((receipt) => (
-                    <Card key={receipt.id} className="p-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle className="w-4 h-4 text-green-500" />
-                            <span className="font-medium text-sm">{receipt.id}</span>
-                          </div>
-                          <span className="text-xs text-gray-500">
-                            {new Date(receipt.transferDate).toLocaleString()}
-                          </span>
-                        </div>
-                        
-                        <div className="text-sm space-y-1">
-                          <div className="flex justify-between">
-                            <span>To:</span>
-                            <span className="font-medium">{receipt.recipientName}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Bank:</span>
-                            <span>{receipt.recipientBank.bankName}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Amount:</span>
-                            <span className="font-medium text-green-600">R{receipt.amount.toFixed(2)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Reference:</span>
-                            <span className="truncate max-w-32">{receipt.reference}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex gap-2 pt-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => downloadReceipt(receipt)}
-                            className="flex-1"
-                          >
-                            <Download className="w-3 h-3 mr-1" />
-                            Download
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => sendReceipt(receipt)}
-                            className="flex-1"
-                          >
-                            <Send className="w-3 h-3 mr-1" />
-                            Send
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
+              {testRecipientData && (
+                <Button 
+                  onClick={downloadTestReceipt}
+                  variant="outline"
+                  className="w-full border-green-300 text-green-600 hover:bg-green-50"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Test Receipt
+                </Button>
               )}
             </div>
           </div>
+
+          {testRecipientData && (
+            <div className="bg-gray-50 rounded-lg p-4 mt-4">
+              <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                {testRecipientData.success ? (
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 text-red-600" />
+                )}
+                Edge Function Test Results:
+              </h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <strong>Status:</strong> {testRecipientData.success ? '✅ Success' : '❌ Failed'}<br/>
+                  <strong>Message:</strong> {testRecipientData.message}<br/>
+                  <strong>Recipient Code:</strong> {testRecipientData.recipient_code || 'N/A'}<br/>
+                  <strong>Development Mode:</strong> {testRecipientData.development_mode ? 'Yes' : 'No'}
+                </div>
+                
+                {testRecipientData.seller_info && (
+                  <div>
+                    <strong>Seller:</strong> {testRecipientData.seller_info.name}<br/>
+                    <strong>Bank:</strong> {testRecipientData.seller_info.bank_name}<br/>
+                    <strong>Account:</strong> {testRecipientData.seller_info.account_number}
+                  </div>
+                )}
+              </div>
+
+              {testRecipientData.payment_breakdown && (
+                <div className="mt-4 p-3 bg-white rounded border">
+                  <h5 className="font-medium text-gray-800 mb-2">Payment Breakdown (Mock Data):</h5>
+                  <div className="text-sm space-y-1">
+                    <div><strong>Total Orders:</strong> {testRecipientData.payment_breakdown.total_orders}</div>
+                    <div><strong>Book Sales:</strong> R{(testRecipientData.payment_breakdown.total_book_sales || 0).toFixed(2)}</div>
+                    <div><strong>Delivery Fees:</strong> R{(testRecipientData.payment_breakdown.total_delivery_fees || 0).toFixed(2)}</div>
+                    <div><strong>Platform Earnings:</strong> R{(testRecipientData.payment_breakdown.platform_earnings?.total || 0).toFixed(2)}</div>
+                    <div className="font-semibold text-green-600">
+                      <strong>Seller Amount:</strong> R{(testRecipientData.payment_breakdown.seller_amount || 0).toFixed(2)}
+                    </div>
+                  </div>
+
+                  {testRecipientData.payment_breakdown.order_details && testRecipientData.payment_breakdown.order_details.length > 0 && (
+                    <div className="mt-3 pt-3 border-t">
+                      <h6 className="font-medium text-gray-700 mb-2">Mock Order Details:</h6>
+                      <div className="space-y-2">
+                        {testRecipientData.payment_breakdown.order_details.map((order: any, index: number) => (
+                          <div key={index} className="text-xs bg-gray-50 p-2 rounded">
+                            <strong>{order.book?.title}</strong> - R{(order.book?.price || 0).toFixed(2)}<br/>
+                            Buyer: {order.buyer?.name} ({order.buyer?.email})<br/>
+                            Seller Earnings: R{(order.amounts?.seller_earnings || 0).toFixed(2)}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
