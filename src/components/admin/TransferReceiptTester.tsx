@@ -65,19 +65,39 @@ export const TransferReceiptTester: React.FC = () => {
         .limit(10);
 
       if (error) {
-        console.error('Error loading sellers:', error);
+        console.error('Error loading sellers:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+
+        // Check if table doesn't exist
+        if (error.code === '42P01' || error.message?.includes('does not exist')) {
+          toast.error('Banking subaccounts table not found. Please set up the banking system first.');
+          return;
+        }
+
+        toast.error(`Failed to load sellers: ${error.message}`);
         return;
       }
 
       console.log('Available sellers for testing:', sellers);
       setAvailableSellers(sellers || []);
-      
+
       // Auto-select first seller
       if (sellers && sellers.length > 0) {
         setSelectedTestSeller(sellers[0].user_id);
+      } else {
+        toast.warning('No active sellers with banking accounts found');
       }
     } catch (error) {
-      console.error('Exception loading sellers:', error);
+      console.error('Exception loading sellers:', {
+        errorType: error?.constructor?.name,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        fullError: error
+      });
+      toast.error('Failed to load sellers. Check console for details.');
     }
   };
 
