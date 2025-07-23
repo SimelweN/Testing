@@ -91,6 +91,7 @@ const UserProfileViewer: React.FC<UserProfileViewerProps> = ({
           </div>
         ) : user ? (
           <Card className="border-0 shadow-none">
+            <DialogTitle className="sr-only">User Profile</DialogTitle>
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
