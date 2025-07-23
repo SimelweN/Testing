@@ -350,7 +350,7 @@ export class EdgeFunctionDebugger {
   async diagnoseAllFunctions(): Promise<EdgeFunctionDiagnostic[]> {
     const functions = [
       "paystack-split-management",
-      "paystack-transfer-management",
+      // "paystack-transfer-management", - removed - no automated transfers
       "manage-paystack-subaccount",
       "paystack-refund-management",
       "initialize-paystack-payment",
