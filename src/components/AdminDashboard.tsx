@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   getAdminStats,
@@ -32,7 +34,7 @@ import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
 import {
-  TrendingUp,
+  BarChart3,
   Users,
   BookOpen,
   MessageSquare,
@@ -41,6 +43,12 @@ import {
   Lightbulb,
   CreditCard,
   Terminal,
+  Activity,
+  TrendingUp,
+  DollarSign,
+  UserCheck,
+  Bell,
+  ChevronRight,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -68,6 +76,7 @@ const AdminDashboard = () => {
   const [error, setError] = useState<string | null>(null);
   const [broadcastMessage, setBroadcastMessage] = useState("");
   const [retryCount, setRetryCount] = useState(0);
+  const [activeTab, setActiveTab] = useState("overview");
 
   const loadDashboardData = useCallback(async () => {
     setIsLoading(true);
@@ -273,14 +282,61 @@ const AdminDashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[600px]">
         <LoadingSpinner size="lg" text="Loading admin dashboard..." />
       </div>
     );
   }
 
-  // Define tab configuration with icons - Business-focused only
+  // Quick stats for the header
+  const quickStats = [
+    {
+      label: "Total Users",
+      value: stats.totalUsers,
+      icon: Users,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      change: `+${stats.newUsersThisWeek}`,
+      changeLabel: "this week",
+    },
+    {
+      label: "Active Listings",
+      value: stats.activeListings,
+      icon: BookOpen,
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-50",
+      change: null,
+      changeLabel: "books available",
+    },
+    {
+      label: "Monthly Revenue",
+      value: `R${stats.monthlyCommission.toFixed(0)}`,
+      icon: DollarSign,
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      change: `+R${stats.weeklyCommission.toFixed(0)}`,
+      changeLabel: "this week",
+    },
+    {
+      label: "Pending Items",
+      value: stats.pendingReports + stats.unreadMessages,
+      icon: Bell,
+      color: stats.pendingReports + stats.unreadMessages > 0 ? "text-amber-600" : "text-gray-600",
+      bgColor: stats.pendingReports + stats.unreadMessages > 0 ? "bg-amber-50" : "bg-gray-50",
+      change: null,
+      changeLabel: "need attention",
+    },
+  ];
+
+  // Tab configuration with improved organization
   const tabConfig = [
+    {
+      value: "overview",
+      label: "Overview",
+      icon: BarChart3,
+      color: "text-blue-600",
+      description: "Dashboard overview and key metrics",
+    },
     {
       value: "earnings",
       label: "Earnings",
@@ -305,10 +361,17 @@ const AdminDashboard = () => {
       description: "Book listings and inventory",
     },
     {
+      value: "seller-payouts",
+      label: "Payouts",
+      icon: CreditCard,
+      color: "text-indigo-600",
+      description: "Seller payout management",
+    },
+    {
       value: "programs",
       label: "Programs",
       icon: GraduationCap,
-      color: "text-indigo-600",
+      color: "text-violet-600",
       description: "University program submissions",
     },
     {
@@ -333,251 +396,255 @@ const AdminDashboard = () => {
       color: "text-gray-600",
       description: "System configuration",
     },
-    {
-      value: "seller-payouts",
-      label: "Seller Payouts",
-      icon: CreditCard,
-      color: "text-blue-600",
-      description: "Manual seller payout approval system",
-    },
-
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Enhanced Stats Section */}
-      <div className="bg-gradient-to-r from-book-50 to-blue-50 rounded-lg p-4 md:p-6 border border-book-200">
-        <AdminStats stats={stats} />
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Modern Header */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg">
+                  <Activity className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">
+                    Admin Dashboard
+                  </h1>
+                  <p className="text-sm text-gray-500">
+                    Manage your platform
+                  </p>
+                </div>
+              </div>
+            </div>
 
-      {/* Developer Dashboard Link */}
-      <div className="bg-gradient-to-r from-slate-900 to-blue-900 rounded-lg p-4 text-white">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Terminal className="w-6 h-6" />
-            <div>
-              <h3 className="font-semibold">Developer Tools</h3>
-              <p className="text-sm opacity-90">Access development, testing, and debugging tools</p>
+            <div className="flex items-center space-x-4">
+              {/* Developer Dashboard Access */}
+              <Button
+                onClick={() => navigate("/developer")}
+                variant="outline"
+                size="sm"
+                className="hidden sm:flex items-center space-x-2 bg-slate-900 text-white border-slate-900 hover:bg-slate-800"
+              >
+                <Terminal className="h-4 w-4" />
+                <span>Developer Tools</span>
+              </Button>
+
+              {/* Notification Bell */}
+              {(stats.pendingReports > 0 || stats.unreadMessages > 0) && (
+                <div className="relative">
+                  <Bell className="h-5 w-5 text-gray-600" />
+                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center text-xs text-white">
+                    {stats.pendingReports + stats.unreadMessages}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
-          <Button
-            onClick={() => navigate("/developer")}
-            variant="secondary"
-            className="bg-white text-slate-900 hover:bg-gray-100"
-          >
-            <Terminal className="w-4 h-4 mr-2" />
-            Open Developer Dashboard
-          </Button>
         </div>
       </div>
 
-      {/* Modern Tabs Design */}
-      <Tabs defaultValue="earnings" className="w-full">
-        {isMobile ? (
-          // Mobile: Scrollable horizontal tabs with improved spacing
-          <div className="w-full overflow-x-auto scrollbar-hide">
-            <TabsList className="inline-flex w-max min-w-full h-auto p-1 bg-white border border-gray-200 rounded-lg shadow-sm">
-              {tabConfig.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <TabsTrigger
-                    key={tab.value}
-                    value={tab.value}
-                    className="flex flex-col items-center justify-center px-2.5 py-2.5 min-w-[75px] data-[state=active]:bg-book-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-md mx-0.5"
-                  >
-                    <div className="relative">
-                      <Icon className="h-3.5 w-3.5 mb-1" />
-                      {tab.badge && tab.badge > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1 min-w-[14px] h-3.5 flex items-center justify-center text-[10px]">
-                          {tab.badge > 99 ? "99+" : tab.badge}
+      {/* Quick Stats */}
+      <div className="px-4 sm:px-6 lg:px-8 py-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {quickStats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <Card key={index} className="relative overflow-hidden border-0 shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-600 mb-1">
+                        {stat.label}
+                      </p>
+                      <p className={`text-2xl font-bold ${stat.color} mb-1`}>
+                        {stat.value}
+                      </p>
+                      {stat.change && (
+                        <div className="flex items-center space-x-1">
+                          <span className="text-xs text-green-600 font-medium">
+                            {stat.change}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {stat.changeLabel}
+                          </span>
+                        </div>
+                      )}
+                      {!stat.change && (
+                        <span className="text-xs text-gray-500">
+                          {stat.changeLabel}
                         </span>
                       )}
                     </div>
-                    <span className="text-[10px] font-medium truncate max-w-[65px] leading-tight">
-                      {tab.label}
-                    </span>
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
-          </div>
-        ) : (
-          // Desktop: Better grid layout with larger, more readable tabs
-          <div className="space-y-4">
-            {/* Primary tabs - most used */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">
-                Main Dashboard
-              </h3>
-              <TabsList className="grid grid-cols-4 gap-3 p-2 bg-white border border-gray-200 rounded-lg shadow-sm h-auto">
-                {tabConfig.slice(0, 4).map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <TabsTrigger
-                      key={tab.value}
-                      value={tab.value}
-                      className="flex flex-col items-center justify-center p-4 h-auto data-[state=active]:bg-book-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg hover:bg-gray-50 data-[state=active]:hover:bg-book-700 group"
-                    >
-                      <div className="relative mb-2">
-                        <Icon
-                          className={`h-6 w-6 ${tab.color} group-data-[state=active]:text-white transition-colors`}
-                        />
-                        {tab.badge && tab.badge > 0 && (
-                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] h-4 flex items-center justify-center">
-                            {tab.badge > 99 ? "99+" : tab.badge}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-sm font-medium mb-1 text-center">
-                        {tab.label}
-                      </span>
-                      <span className="text-xs opacity-70 text-center leading-tight">
-                        {tab.description}
-                      </span>
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-            </div>
-
-            {/* Content Management */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">
-                Content & Communication
-              </h3>
-              <TabsList className="grid grid-cols-3 gap-3 p-2 bg-white border border-gray-200 rounded-lg shadow-sm h-auto">
-                {tabConfig.slice(4, 7).map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <TabsTrigger
-                      key={tab.value}
-                      value={tab.value}
-                      className="flex flex-col items-center justify-center p-4 h-auto data-[state=active]:bg-book-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg hover:bg-gray-50 data-[state=active]:hover:bg-book-700 group"
-                    >
-                      <div className="relative mb-2">
-                        <Icon
-                          className={`h-6 w-6 ${tab.color} group-data-[state=active]:text-white transition-colors`}
-                        />
-                        {tab.badge && tab.badge > 0 && (
-                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] h-4 flex items-center justify-center">
-                            {tab.badge > 99 ? "99+" : tab.badge}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-sm font-medium mb-1 text-center">
-                        {tab.label}
-                      </span>
-                      <span className="text-xs opacity-70 text-center leading-tight">
-                        {tab.description}
-                      </span>
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-            </div>
-
-            {/* Developer Tools */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">
-                Developer Tools & Maintenance
-              </h3>
-              <TabsList className="grid grid-cols-4 gap-3 p-2 bg-white border border-gray-200 rounded-lg shadow-sm h-auto">
-                {tabConfig.slice(7).map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <TabsTrigger
-                      key={tab.value}
-                      value={tab.value}
-                      className="flex flex-col items-center justify-center p-4 h-auto data-[state=active]:bg-book-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg hover:bg-gray-50 data-[state=active]:hover:bg-book-700 group"
-                    >
-                      <div className="relative mb-2">
-                        <Icon
-                          className={`h-6 w-6 ${tab.color} group-data-[state=active]:text-white transition-colors`}
-                        />
-                        {tab.badge && tab.badge > 0 && (
-                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] h-4 flex items-center justify-center">
-                            {tab.badge > 99 ? "99+" : tab.badge}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-sm font-medium mb-1 text-center">
-                        {tab.label}
-                      </span>
-                      <span className="text-xs opacity-70 text-center leading-tight">
-                        {tab.description}
-                      </span>
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-            </div>
-          </div>
-        )}
-
-        {/* Tab Content with improved styling */}
-        <div className="mt-6">
-          <TabsContent value="earnings" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-              <AdminEarningsTab stats={stats} />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="users" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-              <AdminUsersTab users={users} onUserAction={handleUserAction} />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="listings" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-              <AdminListingsTab
-                listings={listings}
-                onListingAction={handleListingAction}
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="programs" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-              <AdminProgramsTab />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="resources" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-              <AdminResourcesTab />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="contact" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-              <AdminContactTab />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="settings" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-              <AdminSettingsTab
-                broadcastMessage={broadcastMessage}
-                setBroadcastMessage={setBroadcastMessage}
-                onSendBroadcast={handleSendBroadcast}
-              />
-            </div>
-          </TabsContent>
-
-
-
-
-
-
-
-          <TabsContent value="seller-payouts" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-              <SellerPayoutManager />
-            </div>
-          </TabsContent>
+                    <div className={`p-3 rounded-lg ${stat.bgColor}`}>
+                      <Icon className={`h-6 w-6 ${stat.color}`} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
-      </Tabs>
+      </div>
+
+      {/* Main Content */}
+      <div className="px-4 sm:px-6 lg:px-8 pb-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          {/* Navigation Tabs */}
+          {isMobile ? (
+            // Mobile: Horizontal scrollable tabs
+            <div className="w-full overflow-x-auto scrollbar-hide">
+              <TabsList className="inline-flex w-max min-w-full h-auto p-1 bg-white rounded-lg shadow-sm border border-gray-200">
+                {tabConfig.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <TabsTrigger
+                      key={tab.value}
+                      value={tab.value}
+                      className="flex flex-col items-center justify-center px-3 py-3 min-w-[80px] data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 rounded-md mx-0.5"
+                    >
+                      <div className="relative mb-1">
+                        <Icon className="h-4 w-4" />
+                        {tab.badge && tab.badge > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1 min-w-[14px] h-3.5 flex items-center justify-center text-[10px]">
+                            {tab.badge > 99 ? "99+" : tab.badge}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[11px] font-medium truncate max-w-[70px] leading-tight">
+                        {tab.label}
+                      </span>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            </div>
+          ) : (
+            // Desktop: Grid layout with sections
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+              <div className="grid grid-cols-3 lg:grid-cols-5 gap-3">
+                {tabConfig.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.value;
+                  
+                  return (
+                    <TabsTrigger
+                      key={tab.value}
+                      value={tab.value}
+                      className={`flex flex-col items-center justify-center p-4 h-auto rounded-lg border transition-all duration-200 ${
+                        isActive
+                          ? "bg-blue-600 text-white shadow-lg border-blue-600"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                      }`}
+                    >
+                      <div className="relative mb-3">
+                        <Icon className={`h-6 w-6 ${isActive ? "text-white" : tab.color}`} />
+                        {tab.badge && tab.badge > 0 && (
+                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] h-4 flex items-center justify-center">
+                            {tab.badge > 99 ? "99+" : tab.badge}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-sm font-medium mb-1 text-center">
+                        {tab.label}
+                      </span>
+                      <span className={`text-xs text-center leading-tight ${
+                        isActive ? "text-blue-100" : "text-gray-500"
+                      }`}>
+                        {tab.description}
+                      </span>
+                    </TabsTrigger>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Tab Content */}
+          <div className="space-y-6">
+            <TabsContent value="overview" className="mt-0 space-y-6">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-6">
+                  <AdminStats stats={stats} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="earnings" className="mt-0 space-y-6">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-0">
+                  <AdminEarningsTab stats={stats} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="users" className="mt-0 space-y-6">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-0">
+                  <AdminUsersTab users={users} onUserAction={handleUserAction} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="listings" className="mt-0 space-y-6">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-0">
+                  <AdminListingsTab
+                    listings={listings}
+                    onListingAction={handleListingAction}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="seller-payouts" className="mt-0 space-y-6">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-6">
+                  <SellerPayoutManager />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="programs" className="mt-0 space-y-6">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-6">
+                  <AdminProgramsTab />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="resources" className="mt-0 space-y-6">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-6">
+                  <AdminResourcesTab />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="contact" className="mt-0 space-y-6">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-0">
+                  <AdminContactTab />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="settings" className="mt-0 space-y-6">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-0">
+                  <AdminSettingsTab
+                    broadcastMessage={broadcastMessage}
+                    setBroadcastMessage={setBroadcastMessage}
+                    onSendBroadcast={handleSendBroadcast}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </div>
+        </Tabs>
+      </div>
     </div>
   );
 };
