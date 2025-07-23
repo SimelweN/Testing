@@ -388,6 +388,63 @@ class SellerPayoutService {
       minimumFractionDigits: 2
     }).format(amount);
   }
+
+  async checkTableExists(): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('seller_payouts')
+        .select('id')
+        .limit(1);
+
+      if (error && (error.code === '42P01' || error.message?.includes('does not exist'))) {
+        console.warn('seller_payouts table does not exist');
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error checking table existence:', error);
+      return false;
+    }
+  }
+
+  async createTestPayouts(): Promise<void> {
+    try {
+      console.log('Creating test payout data...');
+
+      const testPayouts = [
+        {
+          id: '550e8400-e29b-41d4-a716-446655440001',
+          seller_id: '550e8400-e29b-41d4-a716-446655440000',
+          amount: 150.00,
+          status: 'pending',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: '550e8400-e29b-41d4-a716-446655440002',
+          seller_id: '550e8400-e29b-41d4-a716-446655440000',
+          amount: 200.50,
+          status: 'approved',
+          reviewed_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ];
+
+      const { error } = await supabase
+        .from('seller_payouts')
+        .insert(testPayouts);
+
+      if (error) {
+        console.error('Error creating test payouts:', error);
+      } else {
+        console.log('Test payouts created successfully');
+      }
+    } catch (error) {
+      console.error('Exception creating test payouts:', error);
+    }
+  }
 }
 
 export const sellerPayoutService = new SellerPayoutService();
