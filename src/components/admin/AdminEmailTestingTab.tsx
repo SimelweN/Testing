@@ -334,6 +334,7 @@ const AdminEmailTestingTab: React.FC = () => {
   };
 
   const generateSellerPaymentEmail = (params: Record<string, string>) => {
+    return "Seller payment emails are disabled - all payments are manual";
     return `
 <!DOCTYPE html>
 <html>
