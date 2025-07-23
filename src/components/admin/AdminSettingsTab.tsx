@@ -58,23 +58,7 @@ const AdminSettingsTab = ({
       return;
     }
 
-    setIsCleaningBanking(true);
-    try {
-      const result = await runBankingCleanup();
-
-      if (result.success) {
-        toast.success(
-          `Banking cleanup completed! Removed ${result.removedSubaccounts} mock subaccounts and ${result.removedBookSubaccounts} book subaccount codes.`,
-        );
-      } else {
-        toast.error(`Banking cleanup failed: ${result.errors.join(", ")}`);
-      }
-    } catch (error) {
-      console.error("Banking cleanup error:", error);
-      toast.error("Failed to run banking cleanup");
-    } finally {
-      setIsCleaningBanking(false);
-    }
+    toast.info("Banking cleanup functionality has been removed");
   };
 
   const handleCreateBroadcast = async () => {
