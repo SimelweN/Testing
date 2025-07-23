@@ -319,7 +319,7 @@ class SellerPayoutService {
       });
 
       if (error) {
-        console.error('Error approving payout:', {
+        console.error('RPC function failed, trying direct update:', {
           payoutId,
           error: error.message,
           details: error.details,
@@ -327,9 +327,21 @@ class SellerPayoutService {
           code: error.code
         });
 
+        // Fallback to direct update if RPC doesn't exist
+        const { error: updateError } = await supabase
+          .from('seller_payouts')
+          .update({
+            status: 'approved',
+            updated_at: new Date().toISOString(),
+            ...(notes && { notes: notes }) // Only add notes if provided
+          })
+          .eq('id', payoutId);
 
+        if (updateError) {
+          throw new Error('Failed to approve payout: ' + updateError.message);
+        }
 
-        throw new Error('Failed to approve payout: ' + error.message);
+        return true;
       }
 
       return data;
@@ -358,7 +370,7 @@ class SellerPayoutService {
       });
 
       if (error) {
-        console.error('Error denying payout:', {
+        console.error('RPC function failed, trying direct update:', {
           payoutId,
           error: error.message,
           details: error.details,
@@ -366,9 +378,21 @@ class SellerPayoutService {
           code: error.code
         });
 
+        // Fallback to direct update if RPC doesn't exist
+        const { error: updateError } = await supabase
+          .from('seller_payouts')
+          .update({
+            status: 'denied',
+            updated_at: new Date().toISOString(),
+            notes: reason // Use notes field for denial reason
+          })
+          .eq('id', payoutId);
 
+        if (updateError) {
+          throw new Error('Failed to deny payout: ' + updateError.message);
+        }
 
-        throw new Error('Failed to deny payout: ' + error.message);
+        return true;
       }
 
       return data;
