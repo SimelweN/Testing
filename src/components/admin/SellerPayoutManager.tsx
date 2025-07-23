@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { sellerPayoutService, type PayoutDetails } from "@/services/sellerPayoutService";
 
 interface TransferReceiptData {
   orderId: string;
@@ -76,41 +77,36 @@ export const SellerPayoutManager: React.FC = () => {
   const loadReceipts = async () => {
     setIsLoading(true);
     try {
-      // Fetch real seller payouts from database
-      const { data: payouts, error } = await supabase
-        .from('seller_payouts')
-        .select(`
-          id,
-          seller_id,
-          amount,
-          status,
-          created_at,
-          reviewed_at,
-          review_notes,
-          bank_name,
-          account_number,
-          profiles!seller_id (
-            name,
-            email
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching payouts:', error);
-        // Handle case where table doesn't exist yet
-        if (error.message?.includes('does not exist') || error.code === 'PGRST116') {
-          console.log('Seller payouts table not found - using empty data');
-          setReceipts([]);
-        } else {
-          toast.error('Failed to load payouts');
-          setReceipts([]);
-        }
+      // Check if table exists
+      const tableExists = await sellerPayoutService.checkTableExists();
+      if (!tableExists) {
+        console.log('Seller payouts table not found - using empty data');
+        setReceipts([]);
+        setStats({ pending: 0, approved: 0, denied: 0, totalEarnings: 0 });
+        toast.error('Seller payouts system not configured yet');
         return;
       }
 
-      // Transform database payouts to receipt format
-      const transformedReceipts: TransferReceiptData[] = (payouts || []).map(payout => ({
+      // Fetch statistics
+      const statistics = await sellerPayoutService.getPayoutStatistics();
+      setStats({
+        pending: statistics.pending_count,
+        approved: statistics.approved_count,
+        denied: statistics.denied_count,
+        totalEarnings: statistics.total_approved_amount
+      });
+
+      // Fetch all payouts with seller details
+      const [pendingPayouts, approvedPayouts, deniedPayouts] = await Promise.all([
+        sellerPayoutService.getPayoutsWithSellerDetails('pending'),
+        sellerPayoutService.getPayoutsWithSellerDetails('approved'),
+        sellerPayoutService.getPayoutsWithSellerDetails('denied')
+      ]);
+
+      const allPayouts = [...pendingPayouts, ...approvedPayouts, ...deniedPayouts];
+
+      // Transform payouts to receipt format
+      const transformedReceipts: TransferReceiptData[] = allPayouts.map(payout => ({
         orderId: payout.id,
         bookTitle: `Payout Request ${payout.id.slice(-8)}`,
         bookPrice: payout.amount,
@@ -124,8 +120,8 @@ export const SellerPayoutManager: React.FC = () => {
         },
         seller: {
           id: payout.seller_id,
-          name: payout.profiles?.name || 'Unknown',
-          email: payout.profiles?.email || 'unknown@email.com'
+          name: payout.seller_name || 'Unknown',
+          email: payout.seller_email || 'unknown@email.com'
         },
         timestamps: {
           orderPlaced: payout.created_at,
@@ -139,18 +135,26 @@ export const SellerPayoutManager: React.FC = () => {
 
       setReceipts(transformedReceipts);
 
-      // Calculate stats from real data
-      const pending = transformedReceipts.filter(r => r.transferStatus === "pending").length;
-      const approved = transformedReceipts.filter(r => r.transferStatus === "approved").length;
-      const denied = transformedReceipts.filter(r => r.transferStatus === "denied").length;
-      const totalEarnings = transformedReceipts
-        .filter(r => r.transferStatus === "approved")
-        .reduce((sum, r) => sum + r.sellerEarnings, 0);
-
-      setStats({ pending, approved, denied, totalEarnings });
     } catch (error) {
       console.error("Error loading receipts:", error);
-      toast.error("Failed to load transfer receipts");
+
+      // Better error message handling
+      let errorMessage = "Failed to load transfer receipts";
+      if (error instanceof Error) {
+        errorMessage = `Failed to load payouts: ${error.message}`;
+        console.error("Detailed error:", {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        });
+      } else {
+        console.error("Non-Error object thrown:", error);
+        errorMessage = "Unexpected error loading payouts";
+      }
+
+      toast.error(errorMessage);
+      setReceipts([]);
+      setStats({ pending: 0, approved: 0, denied: 0, totalEarnings: 0 });
     } finally {
       setIsLoading(false);
     }
@@ -158,20 +162,19 @@ export const SellerPayoutManager: React.FC = () => {
 
   const handleApprove = async (orderId: string, sellerId: string) => {
     try {
-      // 1. Create Paystack Recipient if not exists
-      console.log(`Creating Paystack recipient for seller ${sellerId}`);
-      
-      // 2. Update transfer status
-      setReceipts(prev => prev.map(receipt => 
-        receipt.orderId === orderId 
+      console.log(`Approving payout ${orderId} for seller ${sellerId}`);
+
+      // Use the service to approve the payout
+      await sellerPayoutService.approvePayout(orderId, 'Approved by admin');
+
+      // Update local state
+      setReceipts(prev => prev.map(receipt =>
+        receipt.orderId === orderId
           ? { ...receipt, transferStatus: "approved" as const, transferDate: new Date().toISOString() }
           : receipt
       ));
 
-      // 3. Send approval email to seller
-      console.log(`Sending approval email for order ${orderId}`);
-      
-      // 4. Update stats
+      // Update stats
       setStats(prev => ({
         ...prev,
         pending: prev.pending - 1,
@@ -179,45 +182,58 @@ export const SellerPayoutManager: React.FC = () => {
         totalEarnings: prev.totalEarnings + (receipts.find(r => r.orderId === orderId)?.sellerEarnings || 0),
       }));
 
-      // TODO: Implement actual Paystack integration and email sending
-      // await paystackService.createRecipient(seller);
-      // await emailService.sendApprovalEmail(seller, orderDetails);
-      
+      toast.success('Payout approved successfully!');
+
     } catch (error) {
       console.error("Error approving payout:", error);
+      let errorMessage = "Failed to approve payout";
+      if (error instanceof Error) {
+        errorMessage = `Failed to approve payout: ${error.message}`;
+      }
+      toast.error(errorMessage);
       throw error;
     }
   };
 
   const handleDeny = async (orderId: string, reason: string) => {
     try {
-      // 1. Update transfer status with denial reason
-      setReceipts(prev => prev.map(receipt => 
-        receipt.orderId === orderId 
-          ? { 
-              ...receipt, 
-              transferStatus: "denied" as const, 
+      if (!reason || reason.trim() === '') {
+        throw new Error('Denial reason is required');
+      }
+
+      console.log(`Denying payout ${orderId} with reason: ${reason}`);
+
+      // Use the service to deny the payout
+      await sellerPayoutService.denyPayout(orderId, reason);
+
+      // Update local state
+      setReceipts(prev => prev.map(receipt =>
+        receipt.orderId === orderId
+          ? {
+              ...receipt,
+              transferStatus: "denied" as const,
               transferDate: new Date().toISOString(),
               denialReason: reason
             }
           : receipt
       ));
 
-      // 2. Send denial email to seller
-      console.log(`Sending denial email for order ${orderId} with reason: ${reason}`);
-
-      // 3. Update stats
+      // Update stats
       setStats(prev => ({
         ...prev,
         pending: prev.pending - 1,
         denied: prev.denied + 1,
       }));
 
-      // TODO: Implement actual email sending
-      // await emailService.sendDenialEmail(seller, orderDetails, reason);
-      
+      toast.success('Payout denied and seller notified');
+
     } catch (error) {
       console.error("Error denying payout:", error);
+      let errorMessage = "Failed to deny payout";
+      if (error instanceof Error) {
+        errorMessage = `Failed to deny payout: ${error.message}`;
+      }
+      toast.error(errorMessage);
       throw error;
     }
   };
