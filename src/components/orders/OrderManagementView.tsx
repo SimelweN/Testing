@@ -21,8 +21,7 @@ import { toast } from "sonner";
 import OrderActionsPanel from "./OrderActionsPanel";
 import { Order } from "@/services/orderCancellationService";
 import { logError, getUserFriendlyErrorMessage } from "@/utils/errorLogging";
-import { runOrdersTableDiagnostics } from "@/utils/testOrdersTable";
-import { debugOrdersError, runComprehensiveDiagnostics } from "@/utils/databaseDiagnostics";
+
 
 interface OrderManagementViewProps {}
 
