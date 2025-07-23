@@ -44,6 +44,7 @@ import APIFunctionTester from "@/components/admin/APIFunctionTester";
 import NetworkConnectivityDebug from "@/components/admin/NetworkConnectivityDebug";
 import EnvironmentDebug from "@/components/admin/EnvironmentDebug";
 import { TransferReceiptTester } from "@/components/admin/TransferReceiptTester";
+import { SellerPayoutManager } from "@/components/admin/SellerPayoutManager";
 
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
