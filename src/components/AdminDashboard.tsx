@@ -567,38 +567,7 @@ const AdminDashboard = () => {
 
 
 
-          <TabsContent value="paystack-verification" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-              <PaystackSystemTestComponent />
-            </div>
-          </TabsContent>
 
-          <TabsContent
-            value="paystack-edge-diagnostic"
-            className="space-y-4 mt-0"
-          >
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-              <PaystackEdgeFunctionDiagnostic />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="demo-data" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-              <DemoDataGenerator />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="database-testing" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-              <DatabaseTableTester />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="paystack-database-setup" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-              <PaystackDatabaseSetupChecker />
-            </div>
-          </TabsContent>
 
           <TabsContent value="database-schema" className="space-y-4 mt-0">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
