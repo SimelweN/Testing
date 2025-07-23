@@ -67,83 +67,7 @@ export const SellerPayoutManager: React.FC = () => {
     totalEarnings: 0,
   });
 
-  // Mock data for testing - replace with actual data fetching
-  const mockReceipts: TransferReceiptData[] = [
-    {
-      orderId: "ORD-2024-001",
-      bookTitle: "Introduction to Computer Science",
-      bookPrice: 450,
-      deliveryFee: 50,
-      totalPaid: 500,
-      platformFee: 95, // 10% of 450 (45) + 50 delivery = 95
-      sellerEarnings: 405, // 90% of 450 = 405
-      buyer: {
-        name: "John Smith",
-        email: "john.smith@example.com",
-      },
-      seller: {
-        id: "seller-123",
-        name: "Sarah Johnson",
-        email: "sarah.j@example.com",
-        paystackRecipientCode: "RCP_abc123",
-      },
-      timestamps: {
-        orderPlaced: "2024-01-15T10:00:00Z",
-        bookCollected: "2024-01-16T14:30:00Z",
-        bookDelivered: "2024-01-18T16:45:00Z",
-      },
-      transferStatus: "pending",
-    },
-    {
-      orderId: "ORD-2024-002",
-      bookTitle: "Advanced Mathematics",
-      bookPrice: 380,
-      deliveryFee: 50,
-      totalPaid: 430,
-      platformFee: 88, // 10% of 380 (38) + 50 delivery = 88
-      sellerEarnings: 342, // 90% of 380 = 342
-      buyer: {
-        name: "Emma Wilson",
-        email: "emma.w@example.com",
-      },
-      seller: {
-        id: "seller-456",
-        name: "Mike Chen",
-        email: "mike.chen@example.com",
-      },
-      timestamps: {
-        orderPlaced: "2024-01-14T09:15:00Z",
-        bookDelivered: "2024-01-17T11:20:00Z",
-      },
-      transferStatus: "approved",
-      transferDate: "2024-01-17T15:00:00Z",
-    },
-    {
-      orderId: "ORD-2024-003",
-      bookTitle: "Business Management Fundamentals",
-      bookPrice: 320,
-      deliveryFee: 50,
-      totalPaid: 370,
-      platformFee: 82, // 10% of 320 (32) + 50 delivery = 82
-      sellerEarnings: 288, // 90% of 320 = 288
-      buyer: {
-        name: "David Lee",
-        email: "david.lee@example.com",
-      },
-      seller: {
-        id: "seller-789",
-        name: "Lisa Brown",
-        email: "lisa.brown@example.com",
-      },
-      timestamps: {
-        orderPlaced: "2024-01-13T16:30:00Z",
-        bookDelivered: "2024-01-16T10:15:00Z",
-      },
-      transferStatus: "denied",
-      transferDate: "2024-01-16T17:00:00Z",
-      denialReason: "Buyer reported book condition was not as described. Investigating the matter.",
-    },
-  ];
+  // Real data fetching from database
 
   useEffect(() => {
     loadReceipts();
@@ -152,15 +76,68 @@ export const SellerPayoutManager: React.FC = () => {
   const loadReceipts = async () => {
     setIsLoading(true);
     try {
-      // For now, use mock data
-      // In production, this would fetch from your database
-      setReceipts(mockReceipts);
-      
-      // Calculate stats
-      const pending = mockReceipts.filter(r => r.transferStatus === "pending").length;
-      const approved = mockReceipts.filter(r => r.transferStatus === "approved").length;
-      const denied = mockReceipts.filter(r => r.transferStatus === "denied").length;
-      const totalEarnings = mockReceipts
+      // Fetch real seller payouts from database
+      const { data: payouts, error } = await supabase
+        .from('seller_payouts')
+        .select(`
+          id,
+          seller_id,
+          amount,
+          status,
+          request_date,
+          reviewed_at,
+          review_notes,
+          bank_name,
+          account_number,
+          profiles!seller_id (
+            name,
+            email
+          )
+        `)
+        .order('request_date', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching payouts:', error);
+        toast.error('Failed to load payouts');
+        setReceipts([]);
+        return;
+      }
+
+      // Transform database payouts to receipt format
+      const transformedReceipts: TransferReceiptData[] = (payouts || []).map(payout => ({
+        orderId: payout.id,
+        bookTitle: `Payout Request ${payout.id.slice(-8)}`,
+        bookPrice: payout.amount,
+        deliveryFee: 0,
+        totalPaid: payout.amount,
+        platformFee: 0,
+        sellerEarnings: payout.amount,
+        buyer: {
+          name: 'Multiple Buyers',
+          email: 'system@rebooked.co.za'
+        },
+        seller: {
+          id: payout.seller_id,
+          name: payout.profiles?.name || 'Unknown',
+          email: payout.profiles?.email || 'unknown@email.com'
+        },
+        timestamps: {
+          orderPlaced: payout.request_date,
+          bookDelivered: payout.reviewed_at || payout.request_date
+        },
+        transferStatus: payout.status === 'pending' ? 'pending' :
+                       payout.status === 'approved' ? 'approved' : 'denied',
+        transferDate: payout.reviewed_at,
+        denialReason: payout.review_notes
+      }));
+
+      setReceipts(transformedReceipts);
+
+      // Calculate stats from real data
+      const pending = transformedReceipts.filter(r => r.transferStatus === "pending").length;
+      const approved = transformedReceipts.filter(r => r.transferStatus === "approved").length;
+      const denied = transformedReceipts.filter(r => r.transferStatus === "denied").length;
+      const totalEarnings = transformedReceipts
         .filter(r => r.transferStatus === "approved")
         .reduce((sum, r) => sum + r.sellerEarnings, 0);
 
