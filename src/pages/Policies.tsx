@@ -231,7 +231,7 @@ const Policies = () => {
                           tracking data, and delivery preferences.
                         </li>
                         <li>
-                          Payment-related information: payout details or payment
+                          Payment-related information: banking details and payment
                           references, collected and processed securely through
                           trusted third-party providers like Paystack.
                         </li>
