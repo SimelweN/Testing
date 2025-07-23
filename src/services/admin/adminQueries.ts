@@ -341,3 +341,46 @@ const getAllListingsFallback = async (): Promise<AdminListing[]> => {
     );
   }
 };
+
+export const getUserBookListings = async (userId: string): Promise<AdminListing[]> => {
+  try {
+    const { data: books, error: booksError } = await supabase
+      .from("books")
+      .select("id, title, author, price, sold, seller_id, created_at, description, condition, isbn")
+      .eq("seller_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (booksError) {
+      logError("Error fetching user book listings", booksError);
+      throw booksError;
+    }
+
+    if (!books) return [];
+
+    // Get seller profile for the user name
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("name")
+      .eq("id", userId)
+      .single();
+
+    const userName = profile?.name || "Anonymous";
+
+    return books.map((book) => ({
+      id: book.id,
+      title: book.title,
+      author: book.author,
+      price: book.price,
+      status: book.sold ? "sold" : "active",
+      user: userName,
+      sellerId: book.seller_id,
+      description: book.description,
+      condition: book.condition,
+      isbn: book.isbn,
+      created_at: book.created_at,
+    }));
+  } catch (error) {
+    console.error("Error in getUserBookListings:", error);
+    throw new Error("Failed to fetch user book listings");
+  }
+};
