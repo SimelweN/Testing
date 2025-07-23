@@ -632,6 +632,14 @@ const AdminDashboard = () => {
               </Card>
             </TabsContent>
 
+            <TabsContent value="payout" className="mt-0 space-y-6">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-0">
+                  <AdminPayoutTab />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="settings" className="mt-0 space-y-6">
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-0">
