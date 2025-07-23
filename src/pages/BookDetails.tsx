@@ -14,7 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, AlertTriangle, BookOpen } from "lucide-react";
 import { useBookDetails } from "@/hooks/useBookDetails";
-import { debugBookId, extractBookId } from "@/utils/bookUtils";
+import { extractBookId } from "@/utils/bookUtils";
 import { toast } from "sonner";
 
 const BookDetails = () => {
