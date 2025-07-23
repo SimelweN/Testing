@@ -13,7 +13,7 @@ import {
   Activity,
 } from "lucide-react";
 import { AdminStats as AdminStatsType } from "@/services/admin/adminQueries";
-import PaystackHealthSummary from "./PaystackHealthSummary";
+
 
 interface AdminStatsProps {
   stats: AdminStatsType;
