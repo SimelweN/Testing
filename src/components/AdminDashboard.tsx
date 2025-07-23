@@ -524,18 +524,18 @@ const AdminDashboard = () => {
           ) : (
             // Desktop: Grid layout with sections
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-              <div className="grid grid-cols-3 lg:grid-cols-5 gap-3">
+              <TabsList className="grid grid-cols-3 lg:grid-cols-5 gap-3 h-auto p-0 bg-transparent">
                 {tabConfig.map((tab) => {
                   const Icon = tab.icon;
                   const isActive = activeTab === tab.value;
-                  
+
                   return (
                     <TabsTrigger
                       key={tab.value}
                       value={tab.value}
                       className={`flex flex-col items-center justify-center p-4 h-auto rounded-lg border transition-all duration-200 ${
                         isActive
-                          ? "bg-blue-600 text-white shadow-lg border-blue-600"
+                          ? "bg-blue-600 text-white shadow-lg border-blue-600 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
                           : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                       }`}
                     >
@@ -558,7 +558,7 @@ const AdminDashboard = () => {
                     </TabsTrigger>
                   );
                 })}
-              </div>
+              </TabsList>
             </div>
           )}
 
