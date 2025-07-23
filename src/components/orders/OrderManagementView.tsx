@@ -70,13 +70,8 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
 
                 logError("Error fetching orders (Supabase query)", error);
 
-                // Run comprehensive diagnostics for any orders error
-        console.log("🔍 Running comprehensive orders diagnostics...");
-        debugOrdersError(error).then(diagnosticResult => {
-          console.log("🔍 Complete diagnostic result:", diagnosticResult);
-        }).catch(diagError => {
-          console.error("Failed to run comprehensive diagnostics:", diagError);
-        });
+                // Log the error for debugging
+        console.log("🔍 Error loading orders:", error);
 
         // Simple error message extraction
         let errorMsg = 'Failed to load orders';
