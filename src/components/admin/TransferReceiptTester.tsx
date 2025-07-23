@@ -195,21 +195,21 @@ export const TransferReceiptTester: React.FC = () => {
     }
   };
 
-  const downloadTestReceipt = () => {
-    if (!testRecipientData) return;
+  const downloadRecipientDetails = () => {
+    if (!payoutRecipientData) return;
 
-    const receiptText = formatTestReceiptText(testRecipientData);
-    const blob = new Blob([receiptText], { type: "text/plain" });
+    const recipientText = formatRecipientDetailsText(payoutRecipientData);
+    const blob = new Blob([recipientText], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `test-receipt-${selectedTestSeller}-${Date.now()}.txt`;
+    a.download = `paystack-recipient-${selectedTestSeller}-${Date.now()}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
-    toast.success('Test receipt downloaded!');
+
+    toast.success('Recipient details downloaded!');
   };
 
   const formatTestReceiptText = (data: any): string => {
