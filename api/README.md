@@ -94,7 +94,7 @@ All functions return JSON in this format:
 - `POST /api/initialize-paystack-payment` - Initialize payment
 - `POST /api/verify-paystack-payment` - Verify payment status
 - `POST /api/paystack-webhook` - Handle payment webhooks
-- `POST /api/pay-seller` - Process seller payments
+# - `POST /api/pay-seller` - REMOVED - no automated seller payments
 
 ### Utilities
 - `GET/POST /api/health` - Health check
