@@ -349,6 +349,27 @@ const AdminDashboard = () => {
         <AdminStats stats={stats} />
       </div>
 
+      {/* Developer Dashboard Link */}
+      <div className="bg-gradient-to-r from-slate-900 to-blue-900 rounded-lg p-4 text-white">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Terminal className="w-6 h-6" />
+            <div>
+              <h3 className="font-semibold">Developer Tools</h3>
+              <p className="text-sm opacity-90">Access development, testing, and debugging tools</p>
+            </div>
+          </div>
+          <Button
+            onClick={() => navigate("/developer")}
+            variant="secondary"
+            className="bg-white text-slate-900 hover:bg-gray-100"
+          >
+            <Terminal className="w-4 h-4 mr-2" />
+            Open Developer Dashboard
+          </Button>
+        </div>
+      </div>
+
       {/* Modern Tabs Design */}
       <Tabs defaultValue="earnings" className="w-full">
         {isMobile ? (
