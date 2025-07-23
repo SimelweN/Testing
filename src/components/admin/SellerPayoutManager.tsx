@@ -649,6 +649,114 @@ ${index + 1}. ${order.book?.title || 'Unknown Book'}
         </Alert>
       )}
 
+      {/* Development Testing Section */}
+      <Alert className="border-green-200 bg-green-50">
+        <AlertCircle className="h-4 w-4 text-green-600" />
+        <AlertDescription className="text-green-800">
+          <strong>Development Testing:</strong> Test the receipt creation function with real seller data below.
+        </AlertDescription>
+      </Alert>
+
+      <Card className="border-green-200">
+        <CardHeader>
+          <CardTitle className="text-green-800 flex items-center gap-2">
+            <Receipt className="w-5 h-5" />
+            Test Receipt Creation Function
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700">Select Real Seller for Testing:</label>
+              <select
+                value={selectedTestSeller}
+                onChange={(e) => setSelectedTestSeller(e.target.value)}
+                className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="">Choose a seller...</option>
+                {availableSellers.map((seller) => (
+                  <option key={seller.user_id} value={seller.user_id}>
+                    {seller.business_name || seller.profiles?.name || 'Unknown'} - {seller.bank_name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                {availableSellers.length} real sellers with banking accounts found
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Button
+                onClick={testReceiptCreation}
+                disabled={isTestingRecipient || !selectedTestSeller}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                {isTestingRecipient ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Testing...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Test Receipt Creation
+                  </>
+                )}
+              </Button>
+
+              {testRecipientData && (
+                <Button
+                  onClick={downloadTestReceipt}
+                  variant="outline"
+                  className="w-full border-green-300 text-green-600 hover:bg-green-50"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Test Receipt
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {testRecipientData && (
+            <div className="bg-gray-50 rounded-lg p-4 mt-4">
+              <h4 className="font-semibold text-gray-800 mb-3">Test Results:</h4>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <strong>Status:</strong> {testRecipientData.success ? '✅ Success' : '❌ Failed'}<br/>
+                  <strong>Message:</strong> {testRecipientData.message}<br/>
+                  <strong>Recipient Code:</strong> {testRecipientData.recipient_code || 'N/A'}<br/>
+                  <strong>Development Mode:</strong> {testRecipientData.development_mode ? 'Yes' : 'No'}
+                </div>
+
+                {testRecipientData.seller_info && (
+                  <div>
+                    <strong>Seller:</strong> {testRecipientData.seller_info.name}<br/>
+                    <strong>Bank:</strong> {testRecipientData.seller_info.bank_name}<br/>
+                    <strong>Account:</strong> {testRecipientData.seller_info.account_number}
+                  </div>
+                )}
+              </div>
+
+              {testRecipientData.payment_breakdown && (
+                <div className="mt-4 p-3 bg-white rounded border">
+                  <h5 className="font-medium text-gray-800 mb-2">Payment Breakdown (Mock Data):</h5>
+                  <div className="text-sm space-y-1">
+                    <div><strong>Total Orders:</strong> {testRecipientData.payment_breakdown.total_orders}</div>
+                    <div><strong>Book Sales:</strong> R{(testRecipientData.payment_breakdown.total_book_sales || 0).toFixed(2)}</div>
+                    <div><strong>Delivery Fees:</strong> R{(testRecipientData.payment_breakdown.total_delivery_fees || 0).toFixed(2)}</div>
+                    <div><strong>Platform Earnings:</strong> R{(testRecipientData.payment_breakdown.platform_earnings?.total || 0).toFixed(2)}</div>
+                    <div className="font-semibold text-green-600">
+                      <strong>Seller Amount:</strong> R{(testRecipientData.payment_breakdown.seller_amount || 0).toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Info Alert */}
       <Alert className="border-blue-200 bg-blue-50">
         <AlertCircle className="h-4 w-4 text-blue-600" />
