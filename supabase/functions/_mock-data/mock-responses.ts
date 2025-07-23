@@ -173,17 +173,7 @@ export const MockResponses = {
     processed_at: new Date().toISOString()
   },
 
-  "paystack-transfer-management": {
-    success: true,
-    message: "Transfer processed successfully",
-    transfer_code: "TRF_test_" + Date.now(),
-    amount: 50000,
-    currency: "ZAR",
-    status: "success",
-    recipient_code: "RCP_test_123",
-    reference: "transfer_test_" + Date.now(),
-    processed_at: new Date().toISOString()
-  },
+  // "paystack-transfer-management": removed - no automated transfers
 
   "manage-paystack-subaccount": {
     success: true,
