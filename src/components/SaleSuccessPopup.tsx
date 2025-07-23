@@ -120,10 +120,7 @@ const SaleSuccessPopup = ({
     }
   };
 
-  const calculatePayoutInfo = () => {
-    const payout = SellerPayoutService.calculatePayout(bookPrice);
-    setPayoutInfo(payout);
-  };
+
 
   const handleNext = () => {
     if (step < steps.length - 1) {
