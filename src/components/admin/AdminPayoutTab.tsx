@@ -67,8 +67,8 @@ const AdminPayoutTab = () => {
 
   useEffect(() => {
     loadPayoutData();
-    // Auto-detect new payouts on component mount
-    autoDetectPayouts();
+    // Auto-detect disabled for now - will enable when database is ready
+    // autoDetectPayouts();
   }, []);
 
   const autoDetectPayouts = async () => {
