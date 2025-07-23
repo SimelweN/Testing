@@ -36,7 +36,7 @@ export interface Order {
   seller_id: string;
   amount: number; // in cents (ZAR)
   paystack_ref: string;
-  status: "pending" | "paid" | "collected" | "payout_completed" | "cancelled";
+  status: "pending" | "paid" | "collected" | "cancelled";
   payment_held: boolean; // escrow system
   collection_deadline?: string;
   shipping_address?: ShippingAddress;
@@ -68,19 +68,7 @@ export interface OrderMetadata {
   special_instructions?: string;
 }
 
-export interface PayoutTransaction {
-  id: string;
-  order_id: string;
-  seller_id: string;
-  amount: number; // net amount to seller
-  gross_amount: number; // original amount
-  platform_fee: number; // commission taken
-  reference: string;
-  status: "pending" | "completed" | "failed";
-  paystack_response?: any;
-  processed_at?: string;
-  created_at: string;
-}
+
 
 export interface PaymentInitialization {
   email: string;
@@ -217,15 +205,10 @@ export enum OrderStatus {
   PENDING = "pending",
   PAID = "paid",
   COLLECTED = "collected",
-  PAYOUT_COMPLETED = "payout_completed",
   CANCELLED = "cancelled",
 }
 
-export enum PayoutStatus {
-  PENDING = "pending",
-  COMPLETED = "completed",
-  FAILED = "failed",
-}
+
 
 export enum BankingStatusEnum {
   PENDING = "pending",

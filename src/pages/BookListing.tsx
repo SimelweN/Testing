@@ -11,7 +11,7 @@ import { useCommit } from "@/hooks/useCommit";
 import { useAuth } from "@/contexts/AuthContext";
 import { clearAllBrowseBooks } from "@/utils/clearBrowseBooks";
 import { Button } from "@/components/ui/button";
-import { DatabaseDebugger } from "@/components/debug/DatabaseDebugger";
+
 
 const BookListing = () => {
   const [searchParams, setSearchParams] = useSearchParams();

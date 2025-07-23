@@ -300,7 +300,7 @@ export class PaystackSystemTester {
   private async testEdgeFunctionHealth() {
     const functions = [
       "paystack-split-management",
-      "paystack-transfer-management",
+      // "paystack-transfer-management", - removed - no automated transfers
       "manage-paystack-subaccount",
       "paystack-refund-management",
       "initialize-paystack-payment",
@@ -363,62 +363,16 @@ export class PaystackSystemTester {
     }
   }
 
-  // Test 5: Paystack API Connectivity
+  // Test 5: Paystack API Connectivity - DISABLED
   private async testPaystackApiConnectivity() {
-    try {
-      const { result, timing } = await this.measureTime(async () => {
-        const { data, error } = await supabase.functions.invoke(
-          "paystack-transfer-management",
-          {
-            body: { health: true },
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-        );
-        if (error) throw error;
-        return data;
-      });
-
-      if (result?.success) {
-        this.addResult(
-          "Paystack API",
-          "success",
-          "Paystack API connectivity verified",
-          result,
-          timing,
-        );
-      } else {
-        this.addResult(
-          "Paystack API",
-          "error",
-          `Paystack API test failed - Response: ${JSON.stringify(result)} | Keys: ${result ? Object.keys(result).join(", ") : "none"} | Error: ${result?.error || result?.message || "No error provided"}`,
-          {
-            actual_response: result,
-            expected_fields: ["success", "service"],
-            response_keys: result ? Object.keys(result) : [],
-            error_details:
-              result?.error || result?.message || "No error message provided",
-          },
-          timing,
-        );
-      }
-    } catch (error) {
-      const errorDetails = {
-        message: error.message,
-        status: error.status || error.statusCode || "unknown",
-        statusText: error.statusText || "unknown",
-        name: error.name || "unknown",
-        stack: error.stack ? error.stack.split("\n")[0] : "no stack",
-      };
-
-      this.addResult(
-        "Paystack API",
-        "error",
-        `Paystack API connectivity failed: ${error.message} | Status: ${errorDetails.status} | Name: ${errorDetails.name} | Details: ${JSON.stringify(errorDetails)}`,
-        errorDetails,
-      );
-    }
+    // Transfer management disabled - no automated money transfers
+    this.addResult(
+      "Paystack API",
+      "warning",
+      "Paystack transfer API disabled - no automated money transfers allowed",
+      { disabled: true, reason: "Transfer management permanently disabled for security" },
+      0,
+    );
   }
 
   // Test 6: Subaccount Management
@@ -628,154 +582,38 @@ export class PaystackSystemTester {
     }
   }
 
-  // Test 8: Transfer Management
+  // Test 8: Transfer Management - DISABLED
   private async testTransferManagement() {
-    try {
-      // Test bank list functionality
-      const { result, timing } = await this.measureTime(async () => {
-        const { data, error } = await supabase.functions.invoke(
-          "paystack-transfer-management",
-          {
-            method: "GET",
-            body: { action: "banks" },
-          },
-        );
-        if (error) throw error;
-        return data;
-      });
-
-      if (result?.success || result?.data) {
-        this.addResult(
-          "Transfer Management",
-          "success",
-          "Transfer management function operational",
-          {
-            success: result.success,
-            banks_available: Array.isArray(result.data)
-              ? result.data.length
-              : "unknown",
-          },
-          timing,
-        );
-
-        // Test account verification with mock data
-        await this.testAccountVerificationWithMockData();
-
-        // Test recipient creation with mock data
-        await this.testRecipientCreationWithMockData();
-      } else {
-        this.addResult(
-          "Transfer Management",
-          "error",
-          `Transfer management failed - Exact response: ${JSON.stringify(result)}`,
-          {
-            actual_response: result,
-            expected_fields: ["success", "data"],
-            response_keys: result ? Object.keys(result) : [],
-            error_details:
-              result?.error || result?.message || "No error message provided",
-            method_used: "GET",
-          },
-          timing,
-        );
-      }
-    } catch (error) {
-      this.addResult(
-        "Transfer Management",
-        "error",
-        `Transfer management test failed: ${error.message}`,
-      );
-    }
+    // Transfer management disabled - no automated money transfers
+    this.addResult(
+      "Transfer Management",
+      "warning",
+      "Transfer management disabled - no automated money transfers allowed",
+      { disabled: true, reason: "Transfer management permanently disabled for security" },
+      0,
+    );
   }
 
   private async testAccountVerificationWithMockData() {
-    try {
-      const mockAccountData = {
-        action: "verify-account",
-        account_number: "0123456789",
-        bank_code: "058", // Standard Bank
-        test_mode: true,
-      };
-
-      const { result, timing } = await this.measureTime(async () => {
-        const { data, error } = await supabase.functions.invoke(
-          "paystack-transfer-management",
-          {
-            method: "POST",
-            body: mockAccountData,
-          },
-        );
-        if (error) throw error;
-        return data;
-      });
-
-      this.addResult(
-        "Account Verification",
-        result?.success ? "success" : "info",
-        result?.success
-          ? "Account verification working"
-          : "Account verification test completed",
-        {
-          account_number: mockAccountData.account_number,
-          bank_code: mockAccountData.bank_code,
-          result: result?.success || result?.error,
-        },
-        timing,
-      );
-    } catch (error) {
-      this.addResult(
-        "Account Verification",
-        "info",
-        `Account verification test completed: ${error.message}`,
-      );
-    }
+    // Account verification disabled - no automated money transfers
+    this.addResult(
+      "Account Verification",
+      "warning",
+      "Account verification disabled - no automated money transfers allowed",
+      { disabled: true, reason: "Transfer management permanently disabled for security" },
+      0,
+    );
   }
 
   private async testRecipientCreationWithMockData() {
-    try {
-      const mockRecipientData = {
-        action: "create-recipient",
-        type: "nuban",
-        name: "Mock Test Recipient",
-        account_number: "0123456789",
-        bank_code: "058",
-        currency: "ZAR",
-        email: "recipient@mocktest.co.za",
-        test_mode: true,
-      };
-
-      const { result, timing } = await this.measureTime(async () => {
-        const { data, error } = await supabase.functions.invoke(
-          "paystack-transfer-management",
-          {
-            method: "POST",
-            body: mockRecipientData,
-          },
-        );
-        if (error) throw error;
-        return data;
-      });
-
-      this.addResult(
-        "Recipient Creation",
-        result?.success ? "success" : "info",
-        result?.success
-          ? "Recipient creation working"
-          : "Recipient creation test completed",
-        {
-          name: mockRecipientData.name,
-          bank_code: mockRecipientData.bank_code,
-          result: result?.success || result?.error,
-        },
-        timing,
-      );
-    } catch (error) {
-      this.addResult(
-        "Recipient Creation",
-        "info",
-        `Recipient creation test completed: ${error.message}`,
-      );
-    }
+    // Recipient creation disabled - no automated money transfers
+    this.addResult(
+      "Recipient Creation",
+      "warning",
+      "Recipient creation disabled - no automated money transfers allowed",
+      { disabled: true, reason: "Transfer management permanently disabled for security" },
+      0,
+    );
   }
 
   // Test 9: Payment Flow

@@ -84,7 +84,7 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
       onClose();
 
       // Page reload disabled to prevent blanking issues
-      // TODO: Consider implementing proper state management instead of page reload
+
       // setTimeout(() => {
       //   window.location.reload();
       // }, 100);

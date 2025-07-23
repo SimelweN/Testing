@@ -2,7 +2,7 @@
 
 This document outlines the comprehensive banking and payment system implemented for the ReBooked platform, providing secure split payments, escrow functionality, and automated seller payouts.
 
-## 🏗️ Architecture Overview
+## 🏗�� Architecture Overview
 
 The banking system consists of several interconnected components:
 
@@ -49,7 +49,7 @@ Three main tables with Row Level Security:
 - Initialize split payments (90% seller, 10% platform)
 - Verify payments with Paystack
 - Manage escrow (hold payments until collection)
-- Trigger automatic seller payouts
+# - Trigger automatic seller payouts - REMOVED - all payments manual
 
 ### 4. React Components
 
@@ -208,7 +208,7 @@ Deploy the required Edge Functions to Supabase:
 - `create-paystack-subaccount` - Creates seller banking accounts
 - `initialize-paystack-payment` - Handles payment initialization
 - `verify-paystack-payment` - Verifies completed payments
-- `initiate-seller-payout` - Triggers seller payments
+# - `initiate-seller-payout` - REMOVED - all payments manual
 
 ### 4. Component Usage
 

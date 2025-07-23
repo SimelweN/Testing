@@ -142,13 +142,7 @@ export const getNotifications = async (
         errorMessage.includes("fetch") ||
         errorMessage.includes("aborted")
       ) {
-        import("../utils/connectionHealthCheck")
-          .then(({ logConnectionHealth }) => {
-            logConnectionHealth();
-          })
-          .catch(() => {
-            // Silently handle connection check errors
-          });
+        console.warn("Network-related error in notifications:", errorMessage);
       }
     }
 

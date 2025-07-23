@@ -129,7 +129,7 @@ Use the Edge Function Tester at `/edge-function-test` to test all functions indi
 
 ### 4. mark-collected
 
-**Purpose:** Marks order as delivered and triggers seller payment
+**Purpose:** Marks order as delivered - payment handled manually
 
 **File:** `supabase/functions/mark-collected/index.ts`
 

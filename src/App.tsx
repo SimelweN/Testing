@@ -44,7 +44,7 @@ import AuthCallback from "./pages/AuthCallback";
 // Admin Pages
 import Admin from "./pages/Admin";
 import AdminReports from "./pages/AdminReports";
-import Developer from "./pages/Developer";
+
 
 // Support Pages
 import ContactUs from "./pages/ContactUs";
@@ -61,7 +61,7 @@ import NotificationsNew from "./pages/NotificationsNew";
 import ActivityLog from "./pages/ActivityLog";
 import BankingSetup from "./pages/BankingSetup";
 import UserProfile from "./pages/UserProfile";
-import PaystackDemo from "./pages/PaystackDemo";
+
 
 import "./App.css";
 
@@ -237,14 +237,7 @@ function App() {
                           </AdminProtectedRoute>
                         }
                       />
-                      <Route
-                        path="/developer"
-                        element={
-                          <AdminProtectedRoute>
-                            <Developer />
-                          </AdminProtectedRoute>
-                        }
-                      />
+
 
                       {/* Support Routes */}
                       <Route path="/contact" element={<ContactUs />} />
@@ -254,7 +247,7 @@ function App() {
                       <Route path="/policies" element={<Policies />} />
                       <Route path="/shipping" element={<Shipping />} />
                                             <Route path="/report" element={<Report />} />
-                      <Route path="/paystack-demo" element={<PaystackDemo />} />
+
 
                       {/* 404 Catch All */}
                       <Route path="*" element={<Index />} />

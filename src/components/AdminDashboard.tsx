@@ -28,8 +28,8 @@ import AdminSettingsTab from "@/components/admin/AdminSettingsTab";
 import AdminContactTab from "@/components/admin/AdminContactTab";
 import AdminResourcesTab from "@/components/admin/AdminResourcesTab";
 import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
-import { SellerPayoutManager } from "@/components/admin/SellerPayoutManager";
-import { DevelopmentDashboard } from "@/components/admin/DevelopmentDashboard";
+
+
 
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -362,13 +362,7 @@ const AdminDashboard = () => {
       badge: listings.length,
       description: "Book listings and inventory",
     },
-    {
-      value: "seller-payouts",
-      label: "Payouts",
-      icon: CreditCard,
-      color: "text-indigo-600",
-      description: "Seller payout management",
-    },
+
     {
       value: "programs",
       label: "Programs",
@@ -391,13 +385,7 @@ const AdminDashboard = () => {
       badge: stats.unreadMessages,
       description: "Contact form messages",
     },
-    {
-      value: "development",
-      label: "Development",
-      icon: Code,
-      color: "text-purple-600",
-      description: "Development tools and testing",
-    },
+
     {
       value: "settings",
       label: "Settings",
@@ -608,21 +596,9 @@ const AdminDashboard = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="seller-payouts" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
-                  <SellerPayoutManager />
-                </CardContent>
-              </Card>
-            </TabsContent>
 
-            <TabsContent value="development" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
-                  <DevelopmentDashboard />
-                </CardContent>
-              </Card>
-            </TabsContent>
+
+
 
             <TabsContent value="programs" className="mt-0 space-y-6">
               <Card className="border-0 shadow-sm">

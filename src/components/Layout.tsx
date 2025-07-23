@@ -3,7 +3,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { Toaster } from "@/components/ui/sonner";
 import ConnectionStatus from "./ConnectionStatus";
-import PayoutNotifications from "./admin/PayoutNotifications";
+
 import { useAuth } from "@/contexts/AuthContext";
 
 interface LayoutProps {
@@ -29,7 +29,7 @@ const Layout = ({ children }: LayoutProps) => {
       </main>
       <Footer />
       <ConnectionStatus />
-      {isAdmin && <PayoutNotifications />}
+
       <Toaster
         position="top-center"
         toastOptions={{

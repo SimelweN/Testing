@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import Layout from "@/components/Layout";
 import BankingDetailsForm from "@/components/banking/BankingDetailsForm";
-import BankingSetupDebug from "@/components/banking/BankingSetupDebug";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { PaystackSubaccountService } from "@/services/paystackSubaccountService";
 import { toast } from "sonner";
@@ -166,11 +166,7 @@ const BankingSetup: React.FC = () => {
           </div>
 
           {/* Debug Tools */}
-          {showDebug && (
-            <div className="mb-8">
-              <BankingSetupDebug />
-            </div>
-          )}
+
 
           {/* Existing Banking Details */}
           {existingBanking && !showForm && (
@@ -313,9 +309,9 @@ const BankingSetup: React.FC = () => {
                     <Card className="text-center">
                       <CardContent className="pt-6">
                         <Clock className="h-8 w-8 text-green-600 mx-auto mb-3" />
-                        <h3 className="font-semibold mb-2">Fast Payouts</h3>
+                        <h3 className="font-semibold mb-2">Manual Processing</h3>
                         <p className="text-sm text-gray-600">
-                          Get paid within 1-2 business days after collection.
+                          Payments are processed manually by administration.
                         </p>
                       </CardContent>
                     </Card>

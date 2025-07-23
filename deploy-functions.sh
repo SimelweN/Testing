@@ -50,10 +50,10 @@ FUNCTIONS=(
     "initialize-paystack-payment"
     "manage-paystack-subaccount"
     "mark-collected"
-    "pay-seller"
+    # "pay-seller" - removed - no automated seller payments
     "paystack-refund-management"
     "paystack-split-management"
-    "paystack-transfer-management"
+    # "paystack-transfer-management" - removed - no automated transfers
     "paystack-webhook"
     "process-book-purchase"
     "process-multi-seller-purchase"

@@ -12,7 +12,27 @@ import {
   logDatabaseError,
 } from "@/utils/errorUtils";
 import { safeLogError } from "@/utils/errorHandling";
-import { retryWithConnection } from "@/utils/connectionHealthCheck";
+// Simple retry function to replace the missing connectionHealthCheck
+const retryWithConnection = async <T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 2,
+  delay: number = 1000
+): Promise<T> => {
+  let lastError: Error;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error as Error;
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  throw lastError!;
+};
 import { getFallbackBooks } from "@/utils/fallbackBooksData";
 
 // Circuit breaker to prevent error spam

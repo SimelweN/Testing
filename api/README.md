@@ -16,7 +16,7 @@ api/
 ├── paystack-webhook.ts   # Handle Paystack webhooks
 ├── auto-expire-commits.js # Auto-expire old orders
 ├── mark-collected.js     # Mark orders as collected
-├── pay-seller.js         # Process seller payments
+# ├── pay-seller.js         # REMOVED - no automated seller payments
 └── ...                   # Other API functions
 ```
 
@@ -94,7 +94,7 @@ All functions return JSON in this format:
 - `POST /api/initialize-paystack-payment` - Initialize payment
 - `POST /api/verify-paystack-payment` - Verify payment status
 - `POST /api/paystack-webhook` - Handle payment webhooks
-- `POST /api/pay-seller` - Process seller payments
+# - `POST /api/pay-seller` - REMOVED - no automated seller payments
 
 ### Utilities
 - `GET/POST /api/health` - Health check
@@ -148,7 +148,7 @@ These functions power the ReBooked Solutions book marketplace, handling:
 - Book order processing
 - Payment management with Paystack
 - Email notifications
-- Seller payouts
+# - Seller payouts - REMOVED - all payments manual
 - Order lifecycle management
 
 **"Pre-Loved Pages, New Adventures"** 📚

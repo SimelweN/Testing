@@ -16,7 +16,6 @@ import {
   DollarSign,
 } from "lucide-react";
 import { addNotification } from "@/services/notificationService";
-import SellerPayoutService from "@/services/sellerPayoutService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -44,7 +43,7 @@ const SaleSuccessPopup = ({
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [isAddingNotification, setIsAddingNotification] = useState(false);
-  const [payoutInfo, setPayoutInfo] = useState<any>(null);
+
 
   const steps = [
     {
@@ -59,8 +58,8 @@ const SaleSuccessPopup = ({
     },
     {
       icon: <DollarSign className="h-12 w-12 text-green-500" />,
-      title: "💰 Your Payout Information",
-      description: "You'll receive 90% after delivery confirmation",
+      title: "💰 Payment Processing",
+      description: "Payment will be processed manually by administration",
     },
   ];
 
@@ -97,7 +96,6 @@ const SaleSuccessPopup = ({
     if (isOpen && user) {
       // Add immediate notification and initiate buyer contact
       saveNotificationToHistory();
-      calculatePayoutInfo();
     }
   }, [isOpen, user]);
 
@@ -122,10 +120,7 @@ const SaleSuccessPopup = ({
     }
   };
 
-  const calculatePayoutInfo = () => {
-    const payout = SellerPayoutService.calculatePayout(bookPrice);
-    setPayoutInfo(payout);
-  };
+
 
   const handleNext = () => {
     if (step < steps.length - 1) {
@@ -231,45 +226,37 @@ const SaleSuccessPopup = ({
                   {steps[step].description}
                 </p>
 
-                {payoutInfo && (
-                  <div className="space-y-3">
-                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                      <h4 className="font-semibold text-green-900 mb-2 flex items-center gap-2">
-                        <DollarSign className="h-4 w-4" />
-                        Payout Breakdown
-                      </h4>
-                      <div className="space-y-1 text-sm text-green-800">
-                        <p>
-                          <strong>Book Price:</strong> R
-                          {payoutInfo.originalPrice}
-                        </p>
-                        <p>
-                          <strong>Your Share (90%):</strong> R
-                          {payoutInfo.sellerPayout}
-                        </p>
-                        <p>
-                          <strong>Platform Fee (10%):</strong> R
-                          {payoutInfo.platformFee}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <h4 className="font-semibold text-blue-900 mb-2">
-                        Payment Timeline
-                      </h4>
-                      <div className="space-y-1 text-xs text-blue-800">
-                        <p>✅ 1. Book sold and buyer contacted</p>
-                        <p>🚚 2. Arrange delivery with buyer</p>
-                        <p>📦 3. Confirm delivery completion</p>
-                        <p>
-                          💰 4. Receive R{payoutInfo.sellerPayout} (2-3 business
-                          days)
-                        </p>
-                      </div>
+                <div className="space-y-3">
+                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                    <h4 className="font-semibold text-green-900 mb-2 flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Manual Payment Process
+                    </h4>
+                    <div className="space-y-1 text-sm text-green-800">
+                      <p>
+                        <strong>Book Price:</strong> R{bookPrice.toFixed(2)}
+                      </p>
+                      <p>
+                        <strong>Payment:</strong> Processed manually by admin
+                      </p>
+                      <p>
+                        <strong>Note:</strong> You'll be contacted for payment details
+                      </p>
                     </div>
                   </div>
-                )}
+
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h4 className="font-semibold text-blue-900 mb-2">
+                      Payment Timeline
+                    </h4>
+                    <div className="space-y-1 text-xs text-blue-800">
+                      <p>✅ 1. Book sold and buyer contacted</p>
+                      <p>🚚 2. Arrange delivery with buyer</p>
+                      <p>📦 3. Confirm delivery completion</p>
+                      <p>💰 4. Manual payment by admin (contact for details)</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 

@@ -97,13 +97,7 @@ export const FunctionMockData = {
     user_id: "550e8400-e29b-41d4-a716-446655440000"
   },
 
-  "paystack-transfer-management": {
-    action: "initiate",
-    recipient_code: "RCP_123456789",
-    amount: 19999,
-    reason: "Seller payout for book sale",
-    reference: "PAYOUT_" + Date.now()
-  },
+  // "paystack-transfer-management": removed - no automated transfers
 
   "paystack-split-management": {
     action: "create",
@@ -124,14 +118,7 @@ export const FunctionMockData = {
     bearer_subaccount: "ACCT_123456789"
   },
 
-  "paystack-transfer-management": {
-    action: "initiate",
-    amount: 50000,
-    currency: "ZAR",
-    recipient_code: "RCP_test_123",
-    reason: "Book sale payout",
-    reference: "transfer_test_" + Date.now()
-  },
+  // "paystack-transfer-management": removed - no automated transfers
 
   "manage-paystack-subaccount": {
     action: "update",
@@ -285,12 +272,7 @@ export const FunctionMockData = {
 
   "process-order-reminders": {}, // No input required
 
-  "pay-seller": {
-    order_id: "ORD_payment_test",
-    seller_id: "USR_test_seller_789",
-    amount: 19999, // in kobo
-    trigger: "auto_payout"
-  },
+  // "pay-seller": removed - no automated seller payments
 
   // SUBACCOUNT MANAGEMENT FUNCTIONS
     "create-paystack-subaccount": {
@@ -503,7 +485,7 @@ export const TestScenarios = {
     step3_processBookPurchase: FunctionMockData["process-book-purchase"],
     step4_commitToSale: FunctionMockData["commit-to-sale"],
     step5_markCollected: FunctionMockData["mark-collected"],
-    step6_paySeller: FunctionMockData["pay-seller"],
+    // step6_paySeller: removed - no automated seller payments
   },
 
   // Multi-seller order flow
@@ -547,7 +529,7 @@ export function validateMockData(functionName: string, mockData: any): boolean {
     "paystack-webhook": ["event", "data"],
     "verify-paystack-payment": ["reference"],
     "paystack-refund-management": ["action", "transaction_reference"],
-    "paystack-transfer-management": ["action", "amount", "recipient_code"],
+    // "paystack-transfer-management": removed - no automated transfers
     "paystack-split-management": ["action", "name", "type"],
     "manage-paystack-subaccount": ["action", "subaccount_code"],
 
@@ -562,7 +544,7 @@ export function validateMockData(functionName: string, mockData: any): boolean {
     "commit-to-sale": ["order_id", "seller_id"],
     "decline-commit": ["order_id", "seller_id"],
     "mark-collected": ["order_id", "tracking_number"],
-    "pay-seller": ["order_id", "seller_id", "amount"],
+    // "pay-seller": removed - no automated seller payments
 
         // SUBACCOUNT MANAGEMENT
     "create-paystack-subaccount": ["business_name", "email", "bank_name", "bank_code", "account_number", "user_id"],

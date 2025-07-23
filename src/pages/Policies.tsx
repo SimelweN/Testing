@@ -231,7 +231,7 @@ const Policies = () => {
                           tracking data, and delivery preferences.
                         </li>
                         <li>
-                          Payment-related information: payout details or payment
+                          Payment-related information: banking details and payment
                           references, collected and processed securely through
                           trusted third-party providers like Paystack.
                         </li>
@@ -761,8 +761,8 @@ const Policies = () => {
                       </p>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
                         6.2 ReBooked charges a 10% service fee per successful
-                        transaction. This fee is automatically deducted before
-                        payouts are made to sellers.
+                        transaction. This fee is calculated and deducted when
+                        processing payments to sellers.
                       </p>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
                         6.3 We are not liable for:

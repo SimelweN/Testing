@@ -106,15 +106,7 @@ const FUNCTION_REQUIREMENTS = {
     validation: null
   },
 
-  "pay-seller": {
-    required: ["order_id", "seller_id", "amount"],
-    validation: (data: any) => {
-      if (typeof data.amount !== "number" || data.amount <= 0) {
-        return "amount must be a positive number";
-      }
-      return null;
-    }
-  },
+  // "pay-seller": removed - no automated seller payments
 
   "create-paystack-subaccount": {
     required: ["business_name", "email", "bank_name", "bank_code", "account_number"],
@@ -210,7 +202,7 @@ const FUNCTION_REQUIREMENTS = {
   "courier-guy-track": { required: ["tracking_number"], validation: null },
   "fastway-track": { required: ["consignment_number"], validation: null },
   "paystack-refund-management": { required: ["action", "transaction_reference"], validation: null },
-  "paystack-transfer-management": { required: ["action"], validation: null },
+  // "paystack-transfer-management": removed - no automated transfers
   "paystack-split-management": { required: ["action"], validation: null },
 };
 
