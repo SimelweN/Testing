@@ -96,7 +96,6 @@ const SaleSuccessPopup = ({
     if (isOpen && user) {
       // Add immediate notification and initiate buyer contact
       saveNotificationToHistory();
-      calculatePayoutInfo();
     }
   }, [isOpen, user]);
 
