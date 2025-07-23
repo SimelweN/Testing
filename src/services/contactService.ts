@@ -48,8 +48,19 @@ export const getAllContactMessages = async (): Promise<ContactMessage[]> => {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Error fetching contact messages:", error);
-      throw error;
+      // Handle specific database errors gracefully
+      if (error.code === '42P01') {
+        // Table doesn't exist - return empty array
+        console.log("Contact messages table not found - returning empty array");
+        return [];
+      } else if (error.code === '42501') {
+        // Permission denied - return empty array for non-admin users
+        console.log("No permission to access contact messages - returning empty array");
+        return [];
+      } else {
+        console.error("Error fetching contact messages:", error.message);
+        return []; // Return empty array instead of throwing
+      }
     }
 
     // Type assertion to ensure status is properly typed
@@ -59,7 +70,8 @@ export const getAllContactMessages = async (): Promise<ContactMessage[]> => {
     }));
   } catch (error) {
     console.error("Error in getAllContactMessages:", error);
-    throw new Error("Failed to fetch contact messages");
+    // Return empty array instead of throwing to prevent UI breaks
+    return [];
   }
 };
 
