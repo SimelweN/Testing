@@ -97,13 +97,7 @@ export const FunctionMockData = {
     user_id: "550e8400-e29b-41d4-a716-446655440000"
   },
 
-  "paystack-transfer-management": {
-    action: "initiate",
-    recipient_code: "RCP_123456789",
-    amount: 19999,
-    reason: "Seller payout for book sale",
-    reference: "PAYOUT_" + Date.now()
-  },
+  // "paystack-transfer-management": removed - no automated transfers
 
   "paystack-split-management": {
     action: "create",
