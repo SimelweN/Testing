@@ -88,14 +88,14 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
   }, []);
 
   // Load Google Maps if we have a valid API key
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: shouldLoadMaps ? apiKey! : "",
-    libraries,
-    preventGoogleFontsLoading: true,
-    // Disable loading entirely if no valid API key
-    ...(shouldLoadMaps ? {} : { googleMapsApiKey: undefined }),
-  });
+  const { isLoaded, loadError } = shouldLoadMaps
+    ? useJsApiLoader({
+        id: "google-map-script",
+        googleMapsApiKey: apiKey!,
+        libraries,
+        preventGoogleFontsLoading: true,
+      })
+    : { isLoaded: false, loadError: undefined };
 
   const value: GoogleMapsContextType = {
     isLoaded: shouldLoadMaps && isLoaded,
