@@ -57,14 +57,12 @@ console.log("-----------------------------");
 
 const edgeFunctions = [
   "paystack-split-management",
-  "paystack-transfer-management",
   "manage-paystack-subaccount",
   "paystack-refund-management",
   "initialize-paystack-payment",
   "verify-paystack-payment",
   "paystack-webhook",
   "create-paystack-subaccount",
-  "pay-seller",
   "process-book-purchase",
 ];
 
