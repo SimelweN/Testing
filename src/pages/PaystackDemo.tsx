@@ -806,30 +806,17 @@ const PaystackDemo = () => {
     }
   };
 
-  // 7. Transfer Management Function
+  // 7. Transfer Management Function - DISABLED
   const testTransferManagement = async () => {
     setTestLoading("transfer-mgmt", true);
     try {
-      const response = await supabase.functions.invoke("paystack-transfer-management", {
-        body: {
-          action: "initiate",
-          recipient_code: "RCP_demo123456789",
-          amount: parseFloat(transferForm.amount) * 100,
-          reason: "Seller payout for order " + transferForm.orderId
-        }
-      });
-
+      // Transfer management is disabled - no automated money transfers
       setTestResult("transfer-mgmt", {
-        success: !response.error,
-        data: response.data,
-        error: response.error
+        success: false,
+        data: null,
+        error: { message: "Transfer management is disabled - all payments are manual" }
       });
-
-      if (response.data) {
-        toast.success("✅ Transfer management successful!");
-      } else {
-        toast.error("❌ Transfer management failed");
-      }
+      toast.error("❌ Transfer management is disabled - no automated payments");
     } catch (error) {
       setTestResult("transfer-mgmt", {
         success: false,
