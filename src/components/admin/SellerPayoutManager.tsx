@@ -80,11 +80,9 @@ export const SellerPayoutManager: React.FC = () => {
       // Check if table exists
       const tableExists = await sellerPayoutService.checkTableExists();
       if (!tableExists) {
-        console.log('Seller payouts table not found - using empty data');
-        setReceipts([]);
-        setStats({ pending: 0, approved: 0, denied: 0, totalEarnings: 0 });
-        toast.error('Seller payouts system not configured yet');
-        return;
+        console.log('Seller payouts table not found - using mock data for demo');
+        toast.error('Seller payouts system not configured yet - showing demo data');
+        // Continue with demo data instead of returning early
       }
 
       // Fetch statistics
@@ -145,10 +143,15 @@ export const SellerPayoutManager: React.FC = () => {
         console.error("Detailed error:", {
           message: error.message,
           stack: error.stack,
-          name: error.name
+          name: error.name,
+          cause: error.cause
         });
       } else {
-        console.error("Non-Error object thrown:", error);
+        console.error("Non-Error object thrown:", {
+          error,
+          errorType: typeof error,
+          errorString: String(error)
+        });
         errorMessage = "Unexpected error loading payouts";
       }
 
