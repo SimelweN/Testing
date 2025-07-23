@@ -84,7 +84,7 @@ export const SellerPayoutManager: React.FC = () => {
           seller_id,
           amount,
           status,
-          request_date,
+          created_at,
           reviewed_at,
           review_notes,
           bank_name,
