@@ -212,17 +212,17 @@ export const TransferReceiptTester: React.FC = () => {
     toast.success('Recipient details downloaded!');
   };
 
-  const formatTestReceiptText = (data: any): string => {
+  const formatRecipientDetailsText = (data: any): string => {
     const date = new Date().toLocaleString();
     const breakdown = data.payment_breakdown || {};
     const sellerInfo = data.seller_info || {};
 
     return `
-TEST RECEIPT CREATION - REBOOKED SOLUTIONS
-==========================================
+PAYSTACK RECIPIENT CREATED - REBOOKED SOLUTIONS
+===============================================
 
-Test Date: ${date}
-Test Mode: ${data.development_mode ? 'Development' : 'Production'}
+Created Date: ${date}
+Mode: ${data.development_mode ? 'Development' : 'Production'}
 Seller ID: ${selectedTestSeller}
 
 SELLER INFORMATION
@@ -232,15 +232,15 @@ Email: ${sellerInfo.email || 'Unknown'}
 Account: ${sellerInfo.account_number || 'N/A'}
 Bank: ${sellerInfo.bank_name || 'N/A'}
 
-PAYSTACK RECIPIENT
-------------------
+PAYSTACK RECIPIENT DETAILS
+--------------------------
 Recipient Code: ${data.recipient_code || 'N/A'}
 Status: ${data.success ? 'Created Successfully' : 'Failed'}
 Message: ${data.message || 'N/A'}
 Already Existed: ${data.already_existed ? 'Yes' : 'No'}
 
-PAYMENT BREAKDOWN (MOCK DATA)
------------------------------
+PAYMENT BREAKDOWN (MOCK DATA FOR REFERENCE)
+-------------------------------------------
 Total Orders: ${breakdown.total_orders || 0}
 Total Book Sales: R${(breakdown.total_book_sales || 0).toFixed(2)}
 Total Delivery Fees: R${(breakdown.total_delivery_fees || 0).toFixed(2)}
@@ -249,17 +249,19 @@ Platform Commission (${breakdown.commission_structure?.book_commission_rate || '
 Platform Delivery Fees: R${(breakdown.platform_earnings?.delivery_fees || 0).toFixed(2)}
 Total Platform Earnings: R${(breakdown.platform_earnings?.total || 0).toFixed(2)}
 
-SELLER PAYOUT AMOUNT: R${(breakdown.seller_amount || 0).toFixed(2)}
+AMOUNT READY FOR PAYOUT: R${(breakdown.seller_amount || 0).toFixed(2)}
 
-ORDER DETAILS (MOCK DATA)
---------------------------
+ORDER DETAILS (MOCK DATA FOR REFERENCE)
+---------------------------------------
 ${formatTestOrderDetails(breakdown.order_details || [])}
 
-INSTRUCTIONS
-------------
-${data.instructions || 'Test completed successfully.'}
+NEXT STEPS
+----------
+${data.instructions || 'Recipient created successfully. You can now manually process payment using this recipient code.'}
 
-This is a test receipt generated for development purposes.
+IMPORTANT: This function creates the Paystack recipient only - NO TRANSFER IS INITIATED.
+You must manually process the payment using the recipient code above.
+
 Function: create-paystack-subaccount
 Generated: ${date}
     `.trim();
