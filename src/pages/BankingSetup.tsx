@@ -166,11 +166,7 @@ const BankingSetup: React.FC = () => {
           </div>
 
           {/* Debug Tools */}
-          {showDebug && (
-            <div className="mb-8">
-              <BankingSetupDebug />
-            </div>
-          )}
+
 
           {/* Existing Banking Details */}
           {existingBanking && !showForm && (
