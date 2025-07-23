@@ -39,17 +39,7 @@ export const MockResponses = {
     courier_service: "courier_guy"
   },
 
-  "pay-seller": {
-    success: true,
-    message: "Seller payment processed successfully",
-    order_id: "ORD_payment_test",
-    seller_id: "USR_test_seller_789",
-    amount: 19999,
-    transfer_reference: "PAYOUT_test_" + Date.now(),
-    paystack_transfer_code: "TRF_test_" + Date.now(),
-    status: "success",
-    processed_at: new Date().toISOString()
-  },
+  // "pay-seller": removed - no automated seller payments
 
   "process-book-purchase": {
     success: true,
