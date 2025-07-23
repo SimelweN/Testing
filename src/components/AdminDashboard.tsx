@@ -42,7 +42,7 @@ import PaystackTransferManagement from "@/components/admin/PaystackTransferManag
 import PaystackSystemTestComponent from "@/components/admin/PaystackSystemTestComponent";
 import APIFunctionTester from "@/components/admin/APIFunctionTester";
 import NetworkConnectivityDebug from "@/components/admin/NetworkConnectivityDebug";
-import EnvironmentDebug from "@/components/admin/EnvironmentDebug";
+import SafeEnvironmentDebug from "@/components/admin/SafeEnvironmentDebug";
 import { TransferReceiptTester } from "@/components/admin/TransferReceiptTester";
 import { SellerPayoutManager } from "@/components/admin/SellerPayoutManager";
 
