@@ -148,7 +148,7 @@ These functions power the ReBooked Solutions book marketplace, handling:
 - Book order processing
 - Payment management with Paystack
 - Email notifications
-- Seller payouts
+# - Seller payouts - REMOVED - all payments manual
 - Order lifecycle management
 
 **"Pre-Loved Pages, New Adventures"** 📚
