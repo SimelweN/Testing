@@ -22,7 +22,7 @@ import { createBroadcast } from "@/services/broadcastService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Settings, MessageSquare, Megaphone, Trash2 } from "lucide-react";
-import EdgeFunctionTestButton from "@/components/EdgeFunctionTestButton";
+
 
 
 interface AdminSettingsTabProps {
