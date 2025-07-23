@@ -54,47 +54,138 @@ interface PayoutStats {
 }
 
 const AdminPayoutTab = () => {
-  const [sellerId, setSellerId] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [payoutResult, setPayoutResult] = useState<PayoutResult | null>(null);
+  const [payoutStats, setPayoutStats] = useState<PayoutStats>({
+    pending: 0,
+    approved: 0,
+    denied: 0,
+    total_approved_amount: 0,
+  });
+  const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>([]);
+  const [activeTab, setActiveTab] = useState<PayoutStatus>('pending');
+  const [isLoading, setIsLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const handleCreateRecipient = async () => {
-    if (!sellerId.trim()) {
-      toast.error("Please enter a seller ID");
-      return;
-    }
+  // Mock data for demonstration - replace with actual API calls
+  useEffect(() => {
+    loadPayoutData();
+  }, []);
 
+  const loadPayoutData = async () => {
     setIsLoading(true);
-    setPayoutResult(null);
-
     try {
-      const response = await fetch('/api/pay-seller', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ sellerId: sellerId.trim() }),
-      });
+      // Mock data - replace with actual API call
+      const mockPayouts: PayoutRequest[] = [
+        {
+          id: 'payout_001',
+          seller_id: 'seller_123',
+          seller_name: 'John Doe',
+          seller_email: 'john.doe@email.com',
+          total_amount: 450.00,
+          order_count: 3,
+          created_at: new Date().toISOString(),
+          status: 'pending',
+          recipient_code: 'RCP_1234567890',
+          orders: [
+            {
+              id: 'order_001',
+              book_title: 'Physics Textbook',
+              amount: 200.00,
+              delivered_at: new Date().toISOString(),
+              buyer_email: 'buyer1@email.com'
+            },
+            {
+              id: 'order_002',
+              book_title: 'Mathematics Guide',
+              amount: 150.00,
+              delivered_at: new Date().toISOString(),
+              buyer_email: 'buyer2@email.com'
+            },
+            {
+              id: 'order_003',
+              book_title: 'Chemistry Notes',
+              amount: 100.00,
+              delivered_at: new Date().toISOString(),
+              buyer_email: 'buyer3@email.com'
+            }
+          ]
+        }
+      ];
 
-      const result: PayoutResult = await response.json();
+      setPayoutRequests(mockPayouts);
 
-      if (result.success) {
-        toast.success(result.message);
-        setPayoutResult(result);
-      } else {
-        toast.error(result.error || "Failed to create recipient");
-        setPayoutResult(result);
-      }
+      const stats = {
+        pending: mockPayouts.filter(p => p.status === 'pending').length,
+        approved: mockPayouts.filter(p => p.status === 'approved').length,
+        denied: mockPayouts.filter(p => p.status === 'denied').length,
+        total_approved_amount: mockPayouts
+          .filter(p => p.status === 'approved')
+          .reduce((sum, p) => sum + p.total_amount, 0),
+      };
+
+      setPayoutStats(stats);
     } catch (error) {
-      console.error("Error creating recipient:", error);
-      toast.error("Failed to process payout request");
-      setPayoutResult({
-        success: false,
-        message: "Failed to process request",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
+      console.error('Error loading payout data:', error);
+      toast.error('Failed to load payout data');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleApprove = async (payoutId: string) => {
+    setActionLoading(payoutId);
+    try {
+      // Send approval email
+      await fetch('/api/send-payout-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          payoutId,
+          action: 'approve',
+          message: 'Your payment is on the way!'
+        }),
+      });
+
+      // Update local state
+      setPayoutRequests(prev =>
+        prev.map(p => p.id === payoutId ? { ...p, status: 'approved' as PayoutStatus } : p)
+      );
+
+      toast.success('Payout approved and notification sent');
+      loadPayoutData(); // Reload to update stats
+    } catch (error) {
+      console.error('Error approving payout:', error);
+      toast.error('Failed to approve payout');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDeny = async (payoutId: string) => {
+    setActionLoading(payoutId);
+    try {
+      // Send denial email
+      await fetch('/api/send-payout-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          payoutId,
+          action: 'deny',
+          message: 'Something went wrong and we\'ll be in touch shortly'
+        }),
+      });
+
+      // Update local state
+      setPayoutRequests(prev =>
+        prev.map(p => p.id === payoutId ? { ...p, status: 'denied' as PayoutStatus } : p)
+      );
+
+      toast.success('Payout denied and notification sent');
+      loadPayoutData(); // Reload to update stats
+    } catch (error) {
+      console.error('Error denying payout:', error);
+      toast.error('Failed to deny payout');
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -106,306 +197,207 @@ const AdminPayoutTab = () => {
   };
 
   const formatDate = (dateString: string) => {
-    if (!dateString || dateString === 'Recently delivered') return dateString;
     return new Date(dateString).toLocaleDateString('en-ZA', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
     });
   };
 
+  const filteredPayouts = payoutRequests.filter(p => p.status === activeTab);
+
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center space-x-3">
-        <div className="p-2 bg-green-100 rounded-lg">
-          <DollarSign className="h-6 w-6 text-green-600" />
-        </div>
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Seller Payouts</h2>
-          <p className="text-gray-600">Create recipients and manage seller payments</p>
-        </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="relative">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">Pending Payouts</p>
+                <p className="text-3xl font-bold text-gray-900">{payoutStats.pending}</p>
+              </div>
+              <div className="p-3 bg-orange-100 rounded-full">
+                <Clock className="h-6 w-6 text-orange-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="relative">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">Approved Payouts</p>
+                <p className="text-3xl font-bold text-gray-900">{payoutStats.approved}</p>
+              </div>
+              <div className="p-3 bg-green-100 rounded-full">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="relative">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">Denied Payouts</p>
+                <p className="text-3xl font-bold text-gray-900">{payoutStats.denied}</p>
+              </div>
+              <div className="p-3 bg-red-100 rounded-full">
+                <X className="h-6 w-6 text-red-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="relative">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">Total Approved</p>
+                <p className="text-3xl font-bold text-gray-900">{formatCurrency(payoutStats.total_approved_amount)}</p>
+              </div>
+              <div className="p-3 bg-blue-100 rounded-full">
+                <DollarSign className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Payout Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Search className="h-5 w-5" />
-            <span>Create Payout Recipient</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="sellerId">Seller ID</Label>
-            <Input
-              id="sellerId"
-              placeholder="Enter seller ID"
-              value={sellerId}
-              onChange={(e) => setSellerId(e.target.value)}
-              disabled={isLoading}
-            />
-          </div>
-          <Button
-            onClick={handleCreateRecipient}
-            disabled={isLoading || !sellerId.trim()}
-            className="w-full"
-          >
-            {isLoading ? "Processing..." : "Create Recipient & Show Payout Details"}
-          </Button>
-        </CardContent>
-      </Card>
+      {/* Tabs Navigation */}
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as PayoutStatus)}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="pending" className="flex items-center space-x-2">
+            <Clock className="h-4 w-4" />
+            <span>Pending ({payoutStats.pending})</span>
+          </TabsTrigger>
+          <TabsTrigger value="approved" className="flex items-center space-x-2">
+            <CheckCircle className="h-4 w-4" />
+            <span>Approved ({payoutStats.approved})</span>
+          </TabsTrigger>
+          <TabsTrigger value="denied" className="flex items-center space-x-2">
+            <X className="h-4 w-4" />
+            <span>Denied ({payoutStats.denied})</span>
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Payout Results */}
-      {payoutResult && (
-        <div className="space-y-6">
-          {/* Status Alert */}
-          <Alert className={payoutResult.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
-            <div className="flex items-center space-x-2">
-              {payoutResult.success ? (
-                <CheckCircle className="h-4 w-4 text-green-600" />
+        {/* Tab Content */}
+        <TabsContent value={activeTab} className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Info className="h-5 w-5" />
+                <span>
+                  {activeTab === 'pending' ? 'Pending Payouts Requiring Review' :
+                   activeTab === 'approved' ? 'Approved Payouts' : 'Denied Payouts'}
+                </span>
+              </CardTitle>
+              <p className="text-sm text-gray-600">
+                {activeTab === 'pending'
+                  ? 'These payouts need manual approval before processing'
+                  : `View all ${activeTab} payout requests`
+                }
+              </p>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                </div>
+              ) : filteredPayouts.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-12 h-12 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <Package className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500">
+                    {activeTab === 'pending' ? 'No pending payouts to review' :
+                     `No ${activeTab} payouts found`}
+                  </p>
+                </div>
               ) : (
-                <AlertCircle className="h-4 w-4 text-red-600" />
-              )}
-              <AlertDescription className={payoutResult.success ? "text-green-800" : "text-red-800"}>
-                {payoutResult.message}
-                {payoutResult.development_mode && " (Development Mode)"}
-              </AlertDescription>
-            </div>
-          </Alert>
-
-          {payoutResult.success && payoutResult.payment_breakdown && (
-            <>
-              {/* Seller Information */}
-              {payoutResult.seller_info && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <User className="h-5 w-5" />
-                      <span>Seller Information</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-center space-x-2">
-                        <Building className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">Name:</span>
-                        <span className="font-medium">{payoutResult.seller_info.name}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Mail className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">Email:</span>
-                        <span className="font-medium">{payoutResult.seller_info.email}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <CreditCard className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">Account:</span>
-                        <span className="font-medium">{payoutResult.seller_info.account_number}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Building className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">Bank:</span>
-                        <span className="font-medium">{payoutResult.seller_info.bank_name}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Payment Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <Package className="h-6 w-6 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Total Orders</p>
-                        <p className="text-2xl font-bold text-blue-600">
-                          {payoutResult.payment_breakdown.total_orders}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-green-100 rounded-lg">
-                        <Banknote className="h-6 w-6 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Seller Amount</p>
-                        <p className="text-2xl font-bold text-green-600">
-                          {formatCurrency(payoutResult.payment_breakdown.seller_amount)}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-purple-100 rounded-lg">
-                        <TrendingUp className="h-6 w-6 text-purple-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Platform Earnings</p>
-                        <p className="text-2xl font-bold text-purple-600">
-                          {formatCurrency(payoutResult.payment_breakdown.platform_earnings.total)}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Detailed Breakdown */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <DollarSign className="h-5 w-5" />
-                    <span>Payment Breakdown</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-gray-900">Revenue Details</h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Total Book Sales:</span>
-                          <span className="font-medium">{formatCurrency(payoutResult.payment_breakdown.total_book_sales)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Total Delivery Fees:</span>
-                          <span className="font-medium">{formatCurrency(payoutResult.payment_breakdown.total_delivery_fees)}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-gray-900">Commission Structure</h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Book Commission Rate:</span>
-                          <Badge variant="secondary">{payoutResult.payment_breakdown.commission_structure.book_commission_rate}</Badge>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Delivery Fee Share:</span>
-                          <Badge variant="secondary">{payoutResult.payment_breakdown.commission_structure.delivery_fee_share}</Badge>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-gray-900">Platform Earnings</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Book Commission:</span>
-                        <span className="font-medium">{formatCurrency(payoutResult.payment_breakdown.platform_earnings.book_commission)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Delivery Fees:</span>
-                        <span className="font-medium">{formatCurrency(payoutResult.payment_breakdown.platform_earnings.delivery_fees)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 font-semibold">Total Platform:</span>
-                        <span className="font-bold text-purple-600">{formatCurrency(payoutResult.payment_breakdown.platform_earnings.total)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Order Timeline */}
-              {payoutResult.payment_breakdown.order_details.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <Clock className="h-5 w-5" />
-                      <span>Order Timeline & Details</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {payoutResult.payment_breakdown.order_details.map((order, index) => (
-                        <div key={order.order_id} className="border rounded-lg p-4 space-y-3">
-                          <div className="flex items-center justify-between">
-                            <h5 className="font-semibold text-gray-900">Order #{order.order_id}</h5>
-                            <Badge variant="outline">{formatCurrency(order.amounts.book_price)}</Badge>
+                <div className="space-y-4">
+                  {filteredPayouts.map((payout) => (
+                    <div key={payout.id} className="border rounded-lg p-6 space-y-4">
+                      {/* Payout Header */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className="p-2 bg-blue-100 rounded-lg">
+                            <User className="h-6 w-6 text-blue-600" />
                           </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div className="space-y-2">
-                              <p><span className="text-gray-600">Buyer:</span> {order.buyer.email}</p>
-                              <p><span className="text-gray-600">Seller Earnings:</span> <span className="font-medium text-green-600">{formatCurrency(order.amounts.seller_earnings)}</span></p>
-                              <p><span className="text-gray-600">Platform Commission:</span> <span className="font-medium text-purple-600">{formatCurrency(order.amounts.platform_commission)}</span></p>
-                            </div>
-
-                            <div className="space-y-2">
-                              <div className="flex items-center space-x-2">
-                                <Calendar className="h-4 w-4 text-gray-400" />
-                                <span className="text-gray-600">Created:</span>
-                                <span>{formatDate(order.timeline.order_created)}</span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Clock className="h-4 w-4 text-gray-400" />
-                                <span className="text-gray-600">Delivered:</span>
-                                <span>{formatDate(order.timeline.delivered)}</span>
-                              </div>
-                            </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{payout.seller_name}</h3>
+                            <p className="text-sm text-gray-600">{payout.seller_email}</p>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                        <div className="text-right">
+                          <p className="text-2xl font-bold text-green-600">{formatCurrency(payout.total_amount)}</p>
+                          <p className="text-sm text-gray-600">{payout.order_count} orders</p>
+                        </div>
+                      </div>
 
-              {/* Recipient Code */}
-              {payoutResult.recipient_code && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <CreditCard className="h-5 w-5" />
-                      <span>Recipient Code</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <p className="text-sm text-gray-600 mb-2">Use this recipient code for manual payment processing:</p>
-                      <p className="font-mono text-lg font-bold text-gray-900">{payoutResult.recipient_code}</p>
-                      {payoutResult.instructions && (
-                        <p className="text-sm text-gray-600 mt-2">{payoutResult.instructions}</p>
+                      {/* Order Details */}
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h4 className="font-medium text-gray-900 mb-3">Order Details</h4>
+                        <div className="space-y-2">
+                          {payout.orders.map((order) => (
+                            <div key={order.id} className="flex items-center justify-between text-sm">
+                              <span className="text-gray-600">
+                                {order.book_title} - {order.buyer_email}
+                              </span>
+                              <span className="font-medium">{formatCurrency(order.amount)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      {activeTab === 'pending' && (
+                        <div className="flex items-center justify-end space-x-3 pt-4 border-t">
+                          <Button
+                            variant="outline"
+                            onClick={() => handleDeny(payout.id)}
+                            disabled={actionLoading === payout.id}
+                            className="flex items-center space-x-2"
+                          >
+                            <X className="h-4 w-4" />
+                            <span>{actionLoading === payout.id ? 'Processing...' : 'Deny'}</span>
+                          </Button>
+                          <Button
+                            onClick={() => handleApprove(payout.id)}
+                            disabled={actionLoading === payout.id}
+                            className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+                          >
+                            <Check className="h-4 w-4" />
+                            <span>{actionLoading === payout.id ? 'Processing...' : 'Approve'}</span>
+                          </Button>
+                        </div>
+                      )}
+
+                      {/* Status Badge for non-pending */}
+                      {activeTab !== 'pending' && (
+                        <div className="flex items-center justify-between pt-4 border-t">
+                          <Badge
+                            variant={activeTab === 'approved' ? 'default' : 'destructive'}
+                            className={activeTab === 'approved' ? 'bg-green-100 text-green-800' : ''}
+                          >
+                            {activeTab === 'approved' ? 'Approved' : 'Denied'}
+                          </Badge>
+                          <p className="text-sm text-gray-500">
+                            Processed on {formatDate(payout.created_at)}
+                          </p>
+                        </div>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
+                  ))}
+                </div>
               )}
-            </>
-          )}
-
-          {!payoutResult.success && payoutResult.error && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-red-600">Error Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-red-700">{payoutResult.error}</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
