@@ -13,7 +13,7 @@ console.error = (...args) => {
 };
 
 // Environment debugging (development only)
-import "./utils/environmentDebug";
+
 
 // Proper network error handling (not suppression)
 import "./utils/networkErrorHandler";
