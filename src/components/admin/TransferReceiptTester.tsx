@@ -314,7 +314,7 @@ ${index + 1}. ${order.book?.title || 'Unknown Book'}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label className="text-sm font-medium text-gray-700">Select Real Seller for Testing:</Label>
+              <Label className="text-sm font-medium text-gray-700">Select Seller for Recipient Creation:</Label>
               <Select value={selectedTestSeller} onValueChange={setSelectedTestSeller}>
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Choose a seller..." />
@@ -331,34 +331,34 @@ ${index + 1}. ${order.book?.title || 'Unknown Book'}
                 {availableSellers.length} real sellers with banking accounts found
               </p>
             </div>
-            
+
             <div className="space-y-2">
-              <Button 
-                onClick={testReceiptCreation}
-                disabled={isTestingRecipient || !selectedTestSeller}
+              <Button
+                onClick={createPaystackRecipient}
+                disabled={isCreatingRecipient || !selectedTestSeller}
                 className="w-full bg-green-600 hover:bg-green-700"
               >
-                {isTestingRecipient ? (
+                {isCreatingRecipient ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Testing Edge Function...
+                    Creating Recipient...
                   </>
                 ) : (
                   <>
-                    <PlayCircle className="w-4 h-4 mr-2" />
-                    Test Receipt Creation
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Create Paystack Recipient
                   </>
                 )}
               </Button>
-              
-              {testRecipientData && (
-                <Button 
-                  onClick={downloadTestReceipt}
+
+              {payoutRecipientData && (
+                <Button
+                  onClick={downloadRecipientDetails}
                   variant="outline"
                   className="w-full border-green-300 text-green-600 hover:bg-green-50"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Download Test Receipt
+                  Download Recipient Details
                 </Button>
               )}
             </div>
