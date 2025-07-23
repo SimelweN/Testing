@@ -143,5 +143,3 @@ const AdminEarningsTab = ({ stats }: AdminEarningsTabProps) => {
 };
 
 export default AdminEarningsTab;
-
-export default AdminEarningsTab;
