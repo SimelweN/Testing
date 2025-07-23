@@ -1,7 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+import { handleCORS, createSupabaseClient, logEvent } from './_lib/utils.js';
 
 export default async function handler(req, res) {
   // Add CORS headers
