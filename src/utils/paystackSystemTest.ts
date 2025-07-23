@@ -606,50 +606,14 @@ export class PaystackSystemTester {
   }
 
   private async testRecipientCreationWithMockData() {
-    try {
-      const mockRecipientData = {
-        action: "create-recipient",
-        type: "nuban",
-        name: "Mock Test Recipient",
-        account_number: "0123456789",
-        bank_code: "058",
-        currency: "ZAR",
-        email: "recipient@mocktest.co.za",
-        test_mode: true,
-      };
-
-      const { result, timing } = await this.measureTime(async () => {
-        const { data, error } = await supabase.functions.invoke(
-          "paystack-transfer-management",
-          {
-            method: "POST",
-            body: mockRecipientData,
-          },
-        );
-        if (error) throw error;
-        return data;
-      });
-
-      this.addResult(
-        "Recipient Creation",
-        result?.success ? "success" : "info",
-        result?.success
-          ? "Recipient creation working"
-          : "Recipient creation test completed",
-        {
-          name: mockRecipientData.name,
-          bank_code: mockRecipientData.bank_code,
-          result: result?.success || result?.error,
-        },
-        timing,
-      );
-    } catch (error) {
-      this.addResult(
-        "Recipient Creation",
-        "info",
-        `Recipient creation test completed: ${error.message}`,
-      );
-    }
+    // Recipient creation disabled - no automated money transfers
+    this.addResult(
+      "Recipient Creation",
+      "warning",
+      "Recipient creation disabled - no automated money transfers allowed",
+      { disabled: true, reason: "Transfer management permanently disabled for security" },
+      0,
+    );
   }
 
   // Test 9: Payment Flow
