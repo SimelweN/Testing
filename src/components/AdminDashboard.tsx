@@ -52,6 +52,7 @@ import {
   Bell,
   ChevronRight,
   Code,
+  Banknote,
 } from "lucide-react";
 
 const AdminDashboard = () => {
