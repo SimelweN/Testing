@@ -274,11 +274,6 @@ const UserProfileViewer: React.FC<UserProfileViewerProps> = ({
                               R{book.price.toFixed(2)}
                             </TableCell>
                             <TableCell>
-                              <span className="capitalize text-gray-700">
-                                {book.condition || 'Not specified'}
-                              </span>
-                            </TableCell>
-                            <TableCell>
                               <Badge className={getBookStatusColor(book.status)}>
                                 {book.status}
                               </Badge>
