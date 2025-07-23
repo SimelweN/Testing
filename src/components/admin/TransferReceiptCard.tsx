@@ -23,6 +23,7 @@ import {
   CreditCard,
   AlertTriangle,
   Download,
+  UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -63,6 +64,7 @@ interface TransferReceiptCardProps {
   onApprove: (orderId: string, sellerId: string) => Promise<void>;
   onDeny: (orderId: string, reason: string) => Promise<void>;
   onDownload: (receipt: TransferReceiptData) => void;
+  onCreateRecipient?: (receipt: TransferReceiptData) => Promise<void>;
 }
 
 export const TransferReceiptCard: React.FC<TransferReceiptCardProps> = ({
@@ -70,6 +72,7 @@ export const TransferReceiptCard: React.FC<TransferReceiptCardProps> = ({
   onApprove,
   onDeny,
   onDownload,
+  onCreateRecipient,
 }) => {
   const [isApproving, setIsApproving] = useState(false);
   const [isDenying, setIsDenying] = useState(false);
@@ -303,6 +306,18 @@ export const TransferReceiptCard: React.FC<TransferReceiptCardProps> = ({
             <Download className="w-4 h-4 mr-2" />
             Download Receipt
           </Button>
+
+          {receipt.transferStatus === "pending" && onCreateRecipient && !receipt.seller.paystackRecipientCode && (
+            <Button
+              onClick={() => onCreateRecipient(receipt)}
+              variant="outline"
+              size="sm"
+              className="flex-1 sm:flex-none border-blue-300 text-blue-600 hover:bg-blue-50"
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              Create Paystack Recipient
+            </Button>
+          )}
 
           {receipt.transferStatus === "pending" && (
             <>
