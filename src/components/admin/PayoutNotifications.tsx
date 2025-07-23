@@ -59,7 +59,7 @@ export const PayoutNotifications: React.FC<PayoutNotificationsProps> = ({ classN
 
       if (payouts && payouts.length > 0) {
         const totalAmount = payouts.reduce((sum, payout) => sum + payout.amount, 0);
-        const lastUpdated = payouts[0].request_date;
+        const lastUpdated = payouts[0].created_at;
         
         setNotification({
           id: `pending-payouts-${payouts.length}`,
