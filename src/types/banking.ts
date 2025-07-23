@@ -68,19 +68,7 @@ export interface OrderMetadata {
   special_instructions?: string;
 }
 
-export interface PayoutTransaction {
-  id: string;
-  order_id: string;
-  seller_id: string;
-  amount: number; // net amount to seller
-  gross_amount: number; // original amount
-  platform_fee: number; // commission taken
-  reference: string;
-  status: "pending" | "completed" | "failed";
-  paystack_response?: any;
-  processed_at?: string;
-  created_at: string;
-}
+
 
 export interface PaymentInitialization {
   email: string;
