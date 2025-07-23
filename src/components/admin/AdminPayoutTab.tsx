@@ -186,27 +186,17 @@ const AdminPayoutTab = () => {
   const handleApprove = async (payoutId: string) => {
     setActionLoading(payoutId);
     try {
-      // Send approval email (using mock endpoint for now)
-      const response = await fetch('/api/mock-send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          payoutId,
-          action: 'approve',
-          message: 'Your payment is on the way!'
-        }),
-      });
+      // Simulate email sending delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      if (!response.ok) {
-        throw new Error('Failed to send notification');
-      }
+      console.log(`Mock: Approval email sent for payout ${payoutId}: Your payment is on the way!`);
 
       // Update local state
       setPayoutRequests(prev =>
         prev.map(p => p.id === payoutId ? { ...p, status: 'approved' as PayoutStatus } : p)
       );
 
-      toast.success('Payout approved and notification sent');
+      toast.success('Payout approved and notification sent (Demo)');
       loadPayoutData(); // Reload to update stats
     } catch (error) {
       console.error('Error approving payout:', error);
@@ -219,27 +209,17 @@ const AdminPayoutTab = () => {
   const handleDeny = async (payoutId: string) => {
     setActionLoading(payoutId);
     try {
-      // Send denial email (using mock endpoint for now)
-      const response = await fetch('/api/mock-send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          payoutId,
-          action: 'deny',
-          message: 'Something went wrong and we\'ll be in touch shortly'
-        }),
-      });
+      // Simulate email sending delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      if (!response.ok) {
-        throw new Error('Failed to send notification');
-      }
+      console.log(`Mock: Denial email sent for payout ${payoutId}: Something went wrong and we'll be in touch shortly`);
 
       // Update local state
       setPayoutRequests(prev =>
         prev.map(p => p.id === payoutId ? { ...p, status: 'denied' as PayoutStatus } : p)
       );
 
-      toast.success('Payout denied and notification sent');
+      toast.success('Payout denied and notification sent (Demo)');
       loadPayoutData(); // Reload to update stats
     } catch (error) {
       console.error('Error denying payout:', error);
