@@ -28,7 +28,7 @@ import AdminSettingsTab from "@/components/admin/AdminSettingsTab";
 import AdminContactTab from "@/components/admin/AdminContactTab";
 import AdminResourcesTab from "@/components/admin/AdminResourcesTab";
 import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
-import { SellerPayoutManager } from "@/components/admin/SellerPayoutManager";
+
 
 
 import ErrorFallback from "@/components/ErrorFallback";
@@ -362,13 +362,7 @@ const AdminDashboard = () => {
       badge: listings.length,
       description: "Book listings and inventory",
     },
-    {
-      value: "seller-payouts",
-      label: "Payouts",
-      icon: CreditCard,
-      color: "text-indigo-600",
-      description: "Seller payout management",
-    },
+
     {
       value: "programs",
       label: "Programs",
@@ -602,13 +596,7 @@ const AdminDashboard = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="seller-payouts" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
-                  <SellerPayoutManager />
-                </CardContent>
-              </Card>
-            </TabsContent>
+
 
 
 
