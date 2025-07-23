@@ -2,21 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, Mail, Phone, MapPin, Calendar, Shield } from "lucide-react";
+import { User, Mail, Phone, MapPin, Calendar, Shield, BookOpen, DollarSign } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import LoadingSpinner from "@/components/LoadingSpinner";
-
-interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  address?: string;
-  created_at: string;
-  status: string;
-  role?: string;
-  last_login?: string;
-}
+import { getUserProfile, getUserBookListings, AdminUser, AdminListing } from "@/services/admin/adminQueries";
 
 interface UserProfileViewerProps {
   userId: string | null;
@@ -31,33 +21,42 @@ const UserProfileViewer: React.FC<UserProfileViewerProps> = ({
   onClose,
   onUpdateStatus,
 }) => {
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<AdminUser | null>(null);
+  const [bookListings, setBookListings] = useState<AdminListing[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && userId) {
-      setLoading(true);
-      // For now, create a mock user profile based on the userId
-      // In a real implementation, you would fetch the user data from an API
-      setTimeout(() => {
-        setUser({
-          id: userId,
-          name: `User ${userId.slice(-4)}`,
-          email: `user${userId.slice(-4)}@example.com`,
-          phone: "+27 123 456 7890",
-          address: "123 Example Street, Cape Town, South Africa",
-          created_at: new Date().toISOString(),
-          status: "active",
-          role: "user",
-          last_login: new Date().toISOString(),
-        });
-        setLoading(false);
-      }, 500);
+      fetchUserData(userId);
     } else if (!isOpen) {
       setUser(null);
+      setBookListings([]);
       setLoading(false);
+      setError(null);
     }
   }, [userId, isOpen]);
+
+  const fetchUserData = async (userId: string) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Fetch user profile and book listings in parallel
+      const [userProfile, userBooks] = await Promise.all([
+        getUserProfile(userId),
+        getUserBookListings(userId)
+      ]);
+      
+      setUser(userProfile);
+      setBookListings(userBooks);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      setError(error instanceof Error ? error.message : "Failed to load user data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -80,156 +79,225 @@ const UserProfileViewer: React.FC<UserProfileViewerProps> = ({
     }
   };
 
+  const getBookStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "active":
+        return "bg-green-100 text-green-800";
+      case "sold":
+        return "bg-blue-100 text-blue-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center p-8">
             <LoadingSpinner size="lg" text="Loading user profile..." />
           </div>
+        ) : error ? (
+          <div className="flex items-center justify-center p-8">
+            <DialogTitle className="sr-only">User Profile - Error</DialogTitle>
+            <div className="text-center">
+              <User className="h-12 w-12 text-red-300 mx-auto mb-4" />
+              <p className="text-red-500 mb-2">Error loading user profile</p>
+              <p className="text-gray-500 text-sm mb-4">{error}</p>
+              <Button onClick={onClose} className="mt-4">
+                Close
+              </Button>
+            </div>
+          </div>
         ) : user ? (
-          <Card className="border-0 shadow-none">
-            <DialogTitle className="sr-only">User Profile</DialogTitle>
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
+          <div className="space-y-6">
+            <DialogTitle className="sr-only">User Profile for {user.name}</DialogTitle>
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b pb-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">
+                    {user.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{user.name}</h2>
+                  <p className="text-gray-600">{user.email}</p>
+                </div>
+              </div>
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                ✕
+              </Button>
+            </div>
+
+            {/* User Information */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  User Profile
+                  User Information
                 </CardTitle>
-                <Button variant="ghost" size="sm" onClick={onClose}>
-                  ✕
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Basic Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Name</label>
-                    <p className="text-lg font-semibold">{user.name}</p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-gray-500" />
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-600">
-                        Email
-                      </label>
-                      <p className="text-sm">{user.email}</p>
+                      <label className="text-sm font-medium text-gray-600">Full Name</label>
+                      <p className="text-base font-semibold text-gray-900">{user.name}</p>
                     </div>
-                  </div>
 
-                  {user.phone && (
                     <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-gray-500" />
+                      <Mail className="h-4 w-4 text-gray-500" />
                       <div>
-                        <label className="text-sm font-medium text-gray-600">
-                          Phone
-                        </label>
-                        <p className="text-sm">{user.phone}</p>
+                        <label className="text-sm font-medium text-gray-600">Email Address</label>
+                        <p className="text-sm text-gray-900">{user.email}</p>
                       </div>
                     </div>
-                  )}
-                </div>
 
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">
-                      Status
-                    </label>
-                    <div className="mt-1">
-                      <Badge className={getStatusColor(user.status)}>
-                        {user.status}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  {user.role && (
                     <div className="flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-gray-500" />
+                      <BookOpen className="h-4 w-4 text-gray-500" />
                       <div>
-                        <label className="text-sm font-medium text-gray-600">
-                          Role
-                        </label>
-                        <p className="text-sm capitalize">{user.role}</p>
+                        <label className="text-sm font-medium text-gray-600">Total Listings</label>
+                        <p className="text-sm text-gray-900">{user.listingsCount} books</p>
                       </div>
                     </div>
-                  )}
+                  </div>
 
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-gray-500" />
+                  <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-600">
-                        Member Since
-                      </label>
-                      <p className="text-sm">{formatDate(user.created_at)}</p>
+                      <label className="text-sm font-medium text-gray-600">Account Status</label>
+                      <div className="mt-1">
+                        <Badge className={getStatusColor(user.status)}>
+                          {user.status}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <label className="text-sm font-medium text-gray-600">Member Since</label>
+                        <p className="text-sm text-gray-900">{formatDate(user.createdAt)}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <label className="text-sm font-medium text-gray-600">Active Listings</label>
+                        <p className="text-sm text-gray-900">
+                          {bookListings.filter(book => book.status === 'active').length} books
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Address */}
-              {user.address && (
-                <div className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 text-gray-500 mt-0.5" />
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">
-                      Address
+                {/* Actions */}
+                {onUpdateStatus && (
+                  <div className="border-t pt-4">
+                    <label className="text-sm font-medium text-gray-600 mb-3 block">
+                      Account Actions
                     </label>
-                    <p className="text-sm">{user.address}</p>
+                    <div className="flex gap-2 flex-wrap">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onUpdateStatus(user.id, "active")}
+                        disabled={user.status === "active"}
+                      >
+                        Activate Account
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onUpdateStatus(user.id, "inactive")}
+                        disabled={user.status === "inactive"}
+                      >
+                        Deactivate Account
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => onUpdateStatus(user.id, "suspended")}
+                        disabled={user.status === "suspended"}
+                      >
+                        Suspend Account
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </CardContent>
+            </Card>
 
-              {/* Last Login */}
-              {user.last_login && (
-                <div>
-                  <label className="text-sm font-medium text-gray-600">
-                    Last Login
-                  </label>
-                  <p className="text-sm">{formatDate(user.last_login)}</p>
-                </div>
-              )}
-
-              {/* Actions */}
-              {onUpdateStatus && (
-                <div className="border-t pt-4">
-                  <label className="text-sm font-medium text-gray-600 mb-3 block">
-                    Actions
-                  </label>
-                  <div className="flex gap-2 flex-wrap">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => onUpdateStatus(user.id, "active")}
-                      disabled={user.status === "active"}
-                    >
-                      Activate
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => onUpdateStatus(user.id, "inactive")}
-                      disabled={user.status === "inactive"}
-                    >
-                      Deactivate
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => onUpdateStatus(user.id, "suspended")}
-                      disabled={user.status === "suspended"}
-                    >
-                      Suspend
-                    </Button>
+            {/* Book Listings */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5" />
+                  Book Listings ({bookListings.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {bookListings.length === 0 ? (
+                  <div className="text-center py-8">
+                    <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">No book listings found</p>
+                    <p className="text-gray-400 text-sm">This user hasn't listed any books yet</p>
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Book Details</TableHead>
+                          <TableHead>Author</TableHead>
+                          <TableHead>Price</TableHead>
+                          <TableHead>Condition</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Listed Date</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {bookListings.map((book) => (
+                          <TableRow key={book.id}>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium text-gray-900">{book.title}</p>
+                                {book.isbn && (
+                                  <p className="text-xs text-gray-500">ISBN: {book.isbn}</p>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-gray-700">{book.author}</TableCell>
+                            <TableCell className="font-medium text-green-600">
+                              R{book.price.toFixed(2)}
+                            </TableCell>
+                            <TableCell>
+                              <span className="capitalize text-gray-700">
+                                {book.condition || 'Not specified'}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={getBookStatusColor(book.status)}>
+                                {book.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-gray-600">
+                              {book.created_at ? formatDate(book.created_at) : 'Unknown'}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         ) : (
           <div className="flex items-center justify-center p-8">
             <DialogTitle className="sr-only">User Profile - User Not Found</DialogTitle>
