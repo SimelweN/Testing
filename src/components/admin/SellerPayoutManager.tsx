@@ -122,8 +122,8 @@ export const SellerPayoutManager: React.FC = () => {
           email: payout.profiles?.email || 'unknown@email.com'
         },
         timestamps: {
-          orderPlaced: payout.request_date,
-          bookDelivered: payout.reviewed_at || payout.request_date
+          orderPlaced: payout.created_at,
+          bookDelivered: payout.reviewed_at || payout.created_at
         },
         transferStatus: payout.status === 'pending' ? 'pending' :
                        payout.status === 'approved' ? 'approved' : 'denied',
