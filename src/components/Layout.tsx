@@ -13,8 +13,13 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const { user } = useAuth();
 
-  // Check if user is admin (you may need to adjust this based on your auth structure)
-  const isAdmin = user && (user.user_metadata?.role === 'admin' || user.email?.includes('admin'));
+  // Check if user is admin - multiple ways to detect admin status
+  const isAdmin = user && (
+    user.user_metadata?.role === 'admin' ||
+    user.user_metadata?.is_admin === true ||
+    user.email?.includes('admin') ||
+    user.app_metadata?.role === 'admin'
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 mobile-container">
