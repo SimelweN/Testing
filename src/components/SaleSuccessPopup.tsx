@@ -58,8 +58,8 @@ const SaleSuccessPopup = ({
     },
     {
       icon: <DollarSign className="h-12 w-12 text-green-500" />,
-      title: "💰 Your Payout Information",
-      description: "You'll receive 90% after delivery confirmation",
+      title: "💰 Payment Processing",
+      description: "Payment will be processed manually by administration",
     },
   ];
 
