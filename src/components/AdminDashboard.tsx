@@ -25,32 +25,11 @@ import AdminSettingsTab from "@/components/admin/AdminSettingsTab";
 import AdminContactTab from "@/components/admin/AdminContactTab";
 import AdminResourcesTab from "@/components/admin/AdminResourcesTab";
 import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
-import AdminUsageExamples from "@/components/admin/AdminUsageExamples";
-import CleanEmailTester from "@/components/admin/CleanEmailTester";
-import AdminEmailTestingTab from "@/components/admin/AdminEmailTestingTab";
-import AdminPaystackTestingTab from "@/components/admin/AdminPaystackTestingTab";
-import SignupEmailTest from "@/components/admin/SignupEmailTest";
-import EmailVerificationDiagnostic from "@/components/admin/EmailVerificationDiagnostic";
-import PaystackEdgeFunctionDiagnostic from "@/components/admin/PaystackEdgeFunctionDiagnostic";
-import DatabaseTableTester from "@/components/admin/DatabaseTableTester";
-import DemoDataGenerator from "@/components/admin/DemoDataGenerator";
-import EdgeFunctionTester from "@/components/admin/EdgeFunctionTester";
-import EdgeFunctionDebugPanel from "@/components/admin/EdgeFunctionDebugPanel";
-import DatabaseSchemaDiagnostic from "@/components/admin/DatabaseSchemaDiagnostic";
-import PaystackSplitManagement from "@/components/admin/PaystackSplitManagement";
-import PaystackTransferManagement from "@/components/admin/PaystackTransferManagement";
-import PaystackSystemTestComponent from "@/components/admin/PaystackSystemTestComponent";
-import APIFunctionTester from "@/components/admin/APIFunctionTester";
-import NetworkConnectivityDebug from "@/components/admin/NetworkConnectivityDebug";
-import SafeEnvironmentDebug from "@/components/admin/SafeEnvironmentDebug";
-import { TransferReceiptTester } from "@/components/admin/TransferReceiptTester";
 import { SellerPayoutManager } from "@/components/admin/SellerPayoutManager";
 
 import ErrorFallback from "@/components/ErrorFallback";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
-import DatabaseCleanup from "@/components/admin/DatabaseCleanup";
-import PaystackDatabaseSetupChecker from "@/components/admin/PaystackDatabaseSetupChecker";
 import {
   TrendingUp,
   Users,
