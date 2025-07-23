@@ -71,6 +71,29 @@ class SellerPayoutService {
     return data || [];
   }
 
+  async getPayoutsWithSellerDetails(status: string): Promise<PayoutDetails[]> {
+    const payouts = await this.getPayoutsByStatus(status);
+
+    // Get seller details for each payout
+    const payoutsWithDetails = await Promise.all(
+      payouts.map(async (payout) => {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name, email')
+          .eq('id', payout.seller_id)
+          .single();
+
+        return {
+          ...payout,
+          seller_name: profile?.name || 'Unknown',
+          seller_email: profile?.email || 'unknown@email.com'
+        } as PayoutDetails;
+      })
+    );
+
+    return payoutsWithDetails;
+  }
+
   async getPayoutDetails(payoutId: string): Promise<PayoutDetails | null> {
     const { data, error } = await supabase
       .from('seller_payouts')
