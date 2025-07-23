@@ -51,7 +51,7 @@ const requiredFieldsMap = {
   'fastway-track': ['consignment_number'],
   'debug-email-template': ['templateName', 'template'],
   'paystack-refund-management': ['action', 'transaction_reference'],
-  'paystack-transfer-management': ['action'],
+  // 'paystack-transfer-management': removed - no automated transfers
   'paystack-split-management': ['action']
 };
 
