@@ -41,7 +41,19 @@ export const PayoutNotifications: React.FC<PayoutNotificationsProps> = ({ classN
         .order('request_date', { ascending: false });
 
       if (error) {
-        console.error('Error fetching pending payouts:', error);
+        // Handle specific errors without spamming console
+        if (error.code === '42P01') {
+          // Table doesn't exist - silently ignore
+          console.log('Seller payouts table not found - skipping notifications');
+        } else if (error.code === '42501') {
+          // Permission denied - silently ignore for non-admin users
+          console.log('No permission to access seller payouts - skipping notifications');
+        } else {
+          // Only log unexpected errors
+          console.error('Error fetching pending payouts:', error.message);
+        }
+        setNotification(null);
+        setIsVisible(false);
         return;
       }
 
