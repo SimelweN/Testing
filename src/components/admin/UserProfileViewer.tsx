@@ -232,6 +232,7 @@ const UserProfileViewer: React.FC<UserProfileViewerProps> = ({
           </Card>
         ) : (
           <div className="flex items-center justify-center p-8">
+            <DialogTitle className="sr-only">User Profile - User Not Found</DialogTitle>
             <div className="text-center">
               <User className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">User not found</p>
