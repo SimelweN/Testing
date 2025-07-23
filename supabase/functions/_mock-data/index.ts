@@ -118,14 +118,7 @@ export const FunctionMockData = {
     bearer_subaccount: "ACCT_123456789"
   },
 
-  "paystack-transfer-management": {
-    action: "initiate",
-    amount: 50000,
-    currency: "ZAR",
-    recipient_code: "RCP_test_123",
-    reason: "Book sale payout",
-    reference: "transfer_test_" + Date.now()
-  },
+  // "paystack-transfer-management": removed - no automated transfers
 
   "manage-paystack-subaccount": {
     action: "update",
