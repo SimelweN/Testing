@@ -172,17 +172,52 @@ export const SellerPayoutManager: React.FC = () => {
     try {
       console.log(`Approving payout ${orderId} for seller ${sellerId}`);
 
-      // Use the service to approve the payout
-      await sellerPayoutService.approvePayout(orderId, 'Approved by admin');
+      // 1. Create Paystack recipient first
+      toast.info('Creating Paystack recipient...');
+      const recipientResult = await sellerPayoutService.createPaystackRecipient(sellerId);
 
-      // Update local state
+      if (!recipientResult.success) {
+        throw new Error(recipientResult.error || 'Failed to create Paystack recipient');
+      }
+
+      toast.success(`Paystack recipient created: ${recipientResult.recipient_code}`);
+
+      // 2. Approve the payout
+      await sellerPayoutService.approvePayout(orderId, 'Approved by admin - Paystack recipient created');
+
+      // 3. Generate and download receipt
+      toast.info('Generating payout receipt...');
+      const receiptResult = await sellerPayoutService.generatePayoutReceipt(orderId);
+
+      if (receiptResult.success && receiptResult.receipt) {
+        // Auto-download the receipt
+        const blob = new Blob([receiptResult.receipt], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `payout-receipt-${orderId}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      // 4. Update local state
       setReceipts(prev => prev.map(receipt =>
         receipt.orderId === orderId
-          ? { ...receipt, transferStatus: "approved" as const, transferDate: new Date().toISOString() }
+          ? {
+              ...receipt,
+              transferStatus: "approved" as const,
+              transferDate: new Date().toISOString(),
+              seller: {
+                ...receipt.seller,
+                paystackRecipientCode: recipientResult.recipient_code
+              }
+            }
           : receipt
       ));
 
-      // Update stats
+      // 5. Update stats
       setStats(prev => ({
         ...prev,
         pending: prev.pending - 1,
@@ -190,7 +225,7 @@ export const SellerPayoutManager: React.FC = () => {
         totalEarnings: prev.totalEarnings + (receipts.find(r => r.orderId === orderId)?.sellerEarnings || 0),
       }));
 
-      toast.success('Payout approved successfully!');
+      toast.success('Payout approved! Paystack recipient created and receipt downloaded.');
 
     } catch (error) {
       console.error("Error approving payout:", error);
@@ -246,10 +281,38 @@ export const SellerPayoutManager: React.FC = () => {
     }
   };
 
-  const handleDownload = (receipt: TransferReceiptData) => {
-    const receiptText = `
-TRANSFER RECEIPT - REBOOKED SOLUTIONS
-====================================
+  const handleDownload = async (receipt: TransferReceiptData) => {
+    try {
+      toast.info('Generating detailed receipt...');
+
+      // Use the new receipt generation service
+      const receiptResult = await sellerPayoutService.generatePayoutReceipt(receipt.orderId);
+
+      if (receiptResult.success && receiptResult.receipt) {
+        // Download the detailed receipt
+        const blob = new Blob([receiptResult.receipt], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `detailed-payout-receipt-${receipt.orderId}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        toast.success('Detailed receipt downloaded successfully!');
+      } else {
+        throw new Error(receiptResult.error || 'Failed to generate receipt');
+      }
+    } catch (error) {
+      console.error('Error generating receipt:', error);
+
+      // Fallback to basic receipt
+      toast.warning('Using basic receipt format...');
+
+      const basicReceiptText = `
+BASIC TRANSFER RECEIPT - REBOOKED SOLUTIONS
+==========================================
 
 Order ID: ${receipt.orderId}
 Date Generated: ${new Date().toLocaleString()}
@@ -266,23 +329,11 @@ PAYMENT BREAKDOWN
 Platform Fee (10% book + delivery): R${receipt.platformFee.toFixed(2)}
 Seller Earnings (90% book price): R${receipt.sellerEarnings.toFixed(2)}
 
-BUYER INFORMATION
------------------
-Name: ${receipt.buyer.name}
-Email: ${receipt.buyer.email}
-
 SELLER INFORMATION
 ------------------
 Name: ${receipt.seller.name}
 Email: ${receipt.seller.email}
 ${receipt.seller.paystackRecipientCode ? `Paystack Recipient: ${receipt.seller.paystackRecipientCode}` : ''}
-
-ORDER TIMELINE
---------------
-Order Placed: ${new Date(receipt.timestamps.orderPlaced).toLocaleString()}
-${receipt.timestamps.bookCollected ? `Book Collected: ${new Date(receipt.timestamps.bookCollected).toLocaleString()}` : ''}
-Book Delivered: ${new Date(receipt.timestamps.bookDelivered).toLocaleString()}
-${receipt.transferDate ? `Transfer ${receipt.transferStatus}: ${new Date(receipt.transferDate).toLocaleString()}` : ''}
 
 TRANSFER STATUS
 ---------------
@@ -290,17 +341,18 @@ Status: ${receipt.transferStatus.toUpperCase()}
 ${receipt.denialReason ? `Reason: ${receipt.denialReason}` : ''}
 
 Generated by ReBooked Solutions Admin Dashboard
-    `.trim();
+      `.trim();
 
-    const blob = new Blob([receiptText], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `transfer-receipt-${receipt.orderId}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      const blob = new Blob([basicReceiptText], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `basic-receipt-${receipt.orderId}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   };
 
   const pendingReceipts = receipts.filter(r => r.transferStatus === "pending");
