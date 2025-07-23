@@ -616,6 +616,14 @@ const AdminDashboard = () => {
               </Card>
             </TabsContent>
 
+            <TabsContent value="development" className="mt-0 space-y-6">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-6">
+                  <DevelopmentDashboard />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="programs" className="mt-0 space-y-6">
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-6">
