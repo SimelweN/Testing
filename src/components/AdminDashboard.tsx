@@ -387,7 +387,13 @@ const AdminDashboard = () => {
       badge: stats.unreadMessages,
       description: "Contact form messages",
     },
-
+    {
+      value: "payout",
+      label: "Payout",
+      icon: Banknote,
+      color: "text-green-600",
+      description: "Seller payouts and recipients",
+    },
     {
       value: "settings",
       label: "Settings",
