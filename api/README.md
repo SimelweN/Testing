@@ -16,7 +16,7 @@ api/
 ├── paystack-webhook.ts   # Handle Paystack webhooks
 ├── auto-expire-commits.js # Auto-expire old orders
 ├── mark-collected.js     # Mark orders as collected
-├── pay-seller.js         # Process seller payments
+# ├── pay-seller.js         # REMOVED - no automated seller payments
 └── ...                   # Other API functions
 ```
 
