@@ -267,9 +267,7 @@ const UserProfileViewer: React.FC<UserProfileViewerProps> = ({
                             <TableCell>
                               <div>
                                 <p className="font-medium text-gray-900">{book.title}</p>
-                                {book.isbn && (
-                                  <p className="text-xs text-gray-500">ISBN: {book.isbn}</p>
-                                )}
+                                <p className="text-xs text-gray-500">ID: {book.id.slice(-8)}</p>
                               </div>
                             </TableCell>
                             <TableCell className="text-gray-700">{book.author}</TableCell>
