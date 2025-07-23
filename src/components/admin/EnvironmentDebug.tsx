@@ -23,7 +23,9 @@ export default function EnvironmentDebug() {
       "VITE_PAYSTACK_PUBLIC_KEY",
       "VITE_APP_URL",
       "VITE_COURIER_GUY_API_KEY",
-      "VITE_FASTWAY_API_KEY"
+      "VITE_FASTWAY_API_KEY",
+      "VITE_GOOGLE_MAPS_API_KEY",
+      "VITE_DISABLE_GOOGLE_MAPS"
     ],
     "Server-side API Functions": [
       "SUPABASE_URL",
