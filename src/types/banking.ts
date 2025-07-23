@@ -36,7 +36,7 @@ export interface Order {
   seller_id: string;
   amount: number; // in cents (ZAR)
   paystack_ref: string;
-  status: "pending" | "paid" | "collected" | "payout_completed" | "cancelled";
+  status: "pending" | "paid" | "collected" | "cancelled";
   payment_held: boolean; // escrow system
   collection_deadline?: string;
   shipping_address?: ShippingAddress;
