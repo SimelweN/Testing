@@ -51,8 +51,7 @@ class SellerPayoutService {
           hint: error.hint,
           code: error.code
         });
-        // Fallback to manual count if RPC doesn't exist
-        return await this.getStatisticsFallback();
+        throw new Error(`Failed to fetch payout statistics: ${error.message}`);
       }
 
       return data[0] || {
@@ -63,7 +62,7 @@ class SellerPayoutService {
       };
     } catch (error) {
       console.error('Exception in getPayoutStatistics:', error);
-      return await this.getStatisticsFallback();
+      throw error;
     }
   }
 
@@ -120,7 +119,21 @@ class SellerPayoutService {
     try {
       const { data, error } = await supabase
         .from('seller_payouts')
-        .select('*')
+        .select(`
+          id,
+          seller_id,
+          amount,
+          status,
+          reviewed_by,
+          reviewed_at,
+          review_notes,
+          bank_details_snapshot,
+          paystack_transfer_code,
+          paystack_recipient_code,
+          created_at,
+          updated_at,
+          metadata
+        `)
         .eq('status', status)
         .order('created_at', { ascending: false });
 
@@ -133,15 +146,6 @@ class SellerPayoutService {
           errorCode: error.code
         });
 
-        // Check if table doesn't exist or network error
-        if (error.code === '42P01' ||
-            error.message?.includes('does not exist') ||
-            error.message?.includes('Failed to fetch') ||
-            error.message?.includes('network')) {
-          console.warn('seller_payouts table does not exist or network error, using mock data');
-          return this.getMockPayoutsByStatus(status);
-        }
-
         throw new Error(`Failed to fetch payouts: ${error.message}`);
       }
 
@@ -153,12 +157,6 @@ class SellerPayoutService {
         errorType: error?.constructor?.name,
         errorMessage: error instanceof Error ? error.message : String(error)
       });
-
-      // Handle network errors and missing tables with mock data
-      if (error instanceof TypeError && error.message?.includes('Failed to fetch')) {
-        console.warn('Network error detected, using mock data');
-        return this.getMockPayoutsByStatus(status);
-      }
 
       if (error instanceof Error) {
         throw error;
@@ -209,24 +207,27 @@ class SellerPayoutService {
     const payoutsWithDetails = await Promise.all(
       payouts.map(async (payout) => {
         try {
-          const { data: profile } = await supabase
+          const { data: profile, error } = await supabase
             .from('profiles')
             .select('name, email')
             .eq('id', payout.seller_id)
             .single();
 
+          if (error) {
+            console.error('Error fetching seller profile:', error);
+          }
+
           return {
             ...payout,
-            seller_name: profile?.name || this.getMockSellerName(payout.seller_id),
-            seller_email: profile?.email || this.getMockSellerEmail(payout.seller_id)
+            seller_name: profile?.name || 'Unknown Seller',
+            seller_email: profile?.email || 'unknown@email.com'
           } as PayoutDetails;
         } catch (error) {
-          // If profiles table doesn't exist or network error, use mock data
-          console.warn('Error fetching seller profile, using mock data:', error);
+          console.error('Exception fetching seller profile:', error);
           return {
             ...payout,
-            seller_name: this.getMockSellerName(payout.seller_id),
-            seller_email: this.getMockSellerEmail(payout.seller_id)
+            seller_name: 'Unknown Seller',
+            seller_email: 'unknown@email.com'
           } as PayoutDetails;
         }
       })
@@ -258,21 +259,48 @@ class SellerPayoutService {
       throw new Error('Failed to fetch payout details');
     }
 
-    // Get seller details separately from profiles table
-    if (data) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('name, email')
-        .eq('id', data.seller_id)
-        .single();
-
-      if (profile) {
-        data.seller_name = profile.name;
-        data.seller_email = profile.email;
-      }
+    if (!data) {
+      return null;
     }
 
-    return data || null;
+    // Get seller details separately from profiles table
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('name, email')
+      .eq('id', data.seller_id)
+      .single();
+
+    // Get payout items
+    const { data: payoutItems } = await supabase
+      .from('payout_items')
+      .select(`
+        id,
+        book_title,
+        sale_amount,
+        commission_amount,
+        seller_amount,
+        sale_date
+      `)
+      .eq('payout_id', payoutId);
+
+    // Get reviewer details if available
+    let reviewerName = null;
+    if (data.reviewed_by) {
+      const { data: reviewer } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', data.reviewed_by)
+        .single();
+      reviewerName = reviewer?.name;
+    }
+
+    return {
+      ...data,
+      seller_name: profile?.name || 'Unknown Seller',
+      seller_email: profile?.email || 'unknown@email.com',
+      reviewer_name: reviewerName,
+      payout_items: payoutItems || []
+    } as PayoutDetails;
   }
 
   async approvePayout(payoutId: string, notes?: string): Promise<boolean> {
@@ -298,10 +326,7 @@ class SellerPayoutService {
           code: error.code
         });
 
-        // Fallback to direct database update if RPC doesn't exist
-        if (error.message?.includes('function') && error.message?.includes('does not exist')) {
-          return await this.approvePayoutFallback(payoutId, user.user.id, notes);
-        }
+
 
         throw new Error('Failed to approve payout: ' + error.message);
       }
@@ -360,10 +385,7 @@ class SellerPayoutService {
           code: error.code
         });
 
-        // Fallback to direct database update if RPC doesn't exist
-        if (error.message?.includes('function') && error.message?.includes('does not exist')) {
-          return await this.denyPayoutFallback(payoutId, user.user.id, reason);
-        }
+
 
         throw new Error('Failed to deny payout: ' + error.message);
       }
@@ -465,12 +487,12 @@ class SellerPayoutService {
         .select('id')
         .limit(1);
 
-      if (error && (
-        error.code === '42P01' ||
-        error.message?.includes('does not exist') ||
-        error.message?.includes('Failed to fetch')
-      )) {
-        console.warn('seller_payouts table does not exist or network error');
+      if (error) {
+        console.error('seller_payouts table check failed:', {
+          code: error.code,
+          message: error.message,
+          details: error.details
+        });
         return false;
       }
 
@@ -484,43 +506,7 @@ class SellerPayoutService {
     }
   }
 
-  async createTestPayouts(): Promise<void> {
-    try {
-      console.log('Creating test payout data...');
 
-      const testPayouts = [
-        {
-          id: '550e8400-e29b-41d4-a716-446655440001',
-          seller_id: '550e8400-e29b-41d4-a716-446655440000',
-          amount: 150.00,
-          status: 'pending',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: '550e8400-e29b-41d4-a716-446655440002',
-          seller_id: '550e8400-e29b-41d4-a716-446655440000',
-          amount: 200.50,
-          status: 'approved',
-          reviewed_at: new Date().toISOString(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
-
-      const { error } = await supabase
-        .from('seller_payouts')
-        .insert(testPayouts);
-
-      if (error) {
-        console.error('Error creating test payouts:', error);
-      } else {
-        console.log('Test payouts created successfully');
-      }
-    } catch (error) {
-      console.error('Exception creating test payouts:', error);
-    }
-  }
 }
 
 export const sellerPayoutService = new SellerPayoutService();
