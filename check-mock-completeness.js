@@ -38,7 +38,7 @@ const requiredFieldsMap = {
   'commit-to-sale': ['order_id', 'seller_id'],
   'decline-commit': ['order_id', 'seller_id'],
   'mark-collected': ['order_id', 'seller_id'],
-  'pay-seller': ['order_id', 'seller_id', 'amount'],
+  // 'pay-seller': removed - no automated seller payments
   'create-paystack-subaccount': ['business_name', 'email', 'bank_name', 'bank_code', 'account_number'],
   'manage-paystack-subaccount': ['action', 'subaccount_code', 'business_name', 'settlement_bank', 'account_number'],
   'courier-guy-quote': ['fromAddress', 'toAddress', 'weight'],
