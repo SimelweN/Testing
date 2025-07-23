@@ -47,14 +47,16 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
       return (
         msg.includes("failed to load google maps script") ||
         msg.includes("google maps script, retrying") ||
-        msg.includes("retrying in")
+        msg.includes("retrying in") ||
+        msg.includes("google maps") ||
+        msg.includes("gmaps")
       );
     };
 
     console.error = function (...args) {
       const message = args.join(" ");
       if (isGoogleMapsError(message)) {
-        // Only suppress retry messages when Google Maps is disabled
+        // Suppress Google Maps retry errors to prevent spam
         return;
       }
       originalConsoleError.apply(this, args);
@@ -63,7 +65,7 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
     console.warn = function (...args) {
       const message = args.join(" ");
       if (isGoogleMapsError(message)) {
-        // Only suppress retry messages when Google Maps is disabled
+        // Suppress Google Maps retry warnings to prevent spam
         return;
       }
       originalConsoleWarn.apply(this, args);
