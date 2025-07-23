@@ -249,42 +249,84 @@ const UserProfileViewer: React.FC<UserProfileViewerProps> = ({
                     <p className="text-gray-400 text-sm">This user hasn't listed any books yet</p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Book Details</TableHead>
-                          <TableHead>Author</TableHead>
-                          <TableHead>Price</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Listed Date</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {bookListings.map((book) => (
-                          <TableRow key={book.id}>
-                            <TableCell>
+                  <div className="grid gap-4">
+                    {bookListings.map((book) => (
+                      <Card key={book.id} className="p-4 border border-gray-200 hover:shadow-md transition-shadow">
+                        <div className="flex gap-4">
+                          {/* Book Image */}
+                          <div className="flex-shrink-0">
+                            {book.image_url ? (
+                              <img
+                                src={book.image_url}
+                                alt={book.title}
+                                className="w-20 h-28 object-cover rounded-lg border"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  e.currentTarget.nextElementSibling.style.display = 'flex';
+                                }}
+                              />
+                            ) : null}
+                            <div className={`w-20 h-28 bg-gray-100 rounded-lg border flex items-center justify-center ${book.image_url ? 'hidden' : 'flex'}`}>
+                              <BookOpen className="h-8 w-8 text-gray-400" />
+                            </div>
+                          </div>
+
+                          {/* Book Details */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between mb-2">
                               <div>
-                                <p className="font-medium text-gray-900">{book.title}</p>
-                                <p className="text-xs text-gray-500">ID: {book.id.slice(-8)}</p>
+                                <h4 className="font-semibold text-gray-900 truncate">{book.title}</h4>
+                                <p className="text-sm text-gray-600">by {book.author}</p>
                               </div>
-                            </TableCell>
-                            <TableCell className="text-gray-700">{book.author}</TableCell>
-                            <TableCell className="font-medium text-green-600">
-                              R{book.price.toFixed(2)}
-                            </TableCell>
-                            <TableCell>
                               <Badge className={getBookStatusColor(book.status)}>
                                 {book.status}
                               </Badge>
-                            </TableCell>
-                            <TableCell className="text-gray-600">
-                              {book.created_at ? formatDate(book.created_at) : 'Unknown'}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
+                              <div>
+                                <span className="font-medium">Price:</span>
+                                <span className="text-green-600 font-semibold ml-1">R{book.price.toFixed(2)}</span>
+                              </div>
+                              <div>
+                                <span className="font-medium">Listed:</span>
+                                <span className="ml-1">{book.created_at ? formatDate(book.created_at) : 'Unknown'}</span>
+                              </div>
+                              {book.category && (
+                                <div>
+                                  <span className="font-medium">Category:</span>
+                                  <span className="ml-1 capitalize">{book.category}</span>
+                                </div>
+                              )}
+                              {book.grade && (
+                                <div>
+                                  <span className="font-medium">Grade:</span>
+                                  <span className="ml-1">{book.grade}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {book.university && (
+                              <div className="text-sm text-gray-600 mb-2">
+                                <span className="font-medium">University:</span>
+                                <span className="ml-1">{book.university}</span>
+                              </div>
+                            )}
+
+                            {book.description && (
+                              <div className="text-sm text-gray-600">
+                                <span className="font-medium">Description:</span>
+                                <p className="mt-1 text-xs line-clamp-2">{book.description}</p>
+                              </div>
+                            )}
+
+                            <div className="mt-2 text-xs text-gray-500">
+                              Book ID: {book.id.slice(-8)}
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
                   </div>
                 )}
               </CardContent>
