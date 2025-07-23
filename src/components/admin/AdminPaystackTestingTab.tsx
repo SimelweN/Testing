@@ -120,6 +120,15 @@ const AdminPaystackTestingTab: React.FC = () => {
     setPaymentTesting(true);
     setPaymentResult(null);
 
+    // Seller payments are disabled
+    setPaymentResult({
+      success: false,
+      error: "Seller payments are disabled - all payments are manual"
+    });
+    toast.error("Seller payments are disabled");
+    setPaymentTesting(false);
+    return;
+
     try {
       // Get order details first
       const { data: order, error: orderError } = await supabase
