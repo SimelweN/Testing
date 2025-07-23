@@ -12,7 +12,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { payoutId, action, message } = req.body;
+    const body = await parseRequestBody(req);
+    const { payoutId, action, message } = body;
 
     if (!payoutId || !action || !message) {
       return res.status(400).json({ 
