@@ -94,7 +94,7 @@ export const SellerPayoutManager: React.FC = () => {
             email
           )
         `)
-        .order('request_date', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching payouts:', error);
