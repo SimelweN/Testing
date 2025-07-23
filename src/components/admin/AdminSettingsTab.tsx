@@ -316,7 +316,7 @@ const AdminSettingsTab = ({
         </CardContent>
       </Card>
 
-      <EdgeFunctionTestButton />
+
 
 
 
