@@ -29,7 +29,7 @@ const Layout = ({ children }: LayoutProps) => {
       </main>
       <Footer />
       <ConnectionStatus />
-      {isAdmin && <PayoutNotifications />}
+
       <Toaster
         position="top-center"
         toastOptions={{
