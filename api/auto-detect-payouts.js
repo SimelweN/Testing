@@ -92,11 +92,11 @@ export default async function handler(req, res) {
         const sellerAmount = totalBookSales * 0.9; // 90% to seller, 10% platform commission
 
         // Create recipient on Paystack first
-        const recipientResponse = await fetch(`${supabaseUrl}/functions/v1/pay-seller`, {
+        const recipientResponse = await fetch(`${process.env.SUPABASE_URL}/functions/v1/pay-seller`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabaseServiceKey}`,
+            'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
           },
           body: JSON.stringify({ sellerId }),
         });
