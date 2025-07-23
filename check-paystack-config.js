@@ -136,9 +136,7 @@ console.log("--------------------------");
 console.log(
   "Split Management: /functions/v1/paystack-split-management?health=true",
 );
-console.log(
-  "Transfer Management: /functions/v1/paystack-transfer-management?action=banks",
-);
+// Transfer management removed - no automated money transfers
 console.log("Subaccount Management: /functions/v1/manage-paystack-subaccount");
 
 // 8. Summary
