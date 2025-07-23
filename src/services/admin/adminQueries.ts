@@ -378,9 +378,6 @@ export const getUserBookListings = async (userId: string): Promise<AdminListing[
       status: book.sold ? "sold" : "active",
       user: userName,
       sellerId: book.seller_id,
-      description: book.description,
-      condition: book.condition,
-      isbn: book.isbn,
       created_at: book.created_at,
     }));
   } catch (error) {
