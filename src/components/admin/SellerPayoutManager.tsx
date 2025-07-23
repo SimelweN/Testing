@@ -129,12 +129,12 @@ export const SellerPayoutManager: React.FC = () => {
         },
         timestamps: {
           orderPlaced: payout.created_at,
-          bookDelivered: payout.reviewed_at || payout.created_at
+          bookDelivered: payout.reviewed_at || payout.updated_at || payout.created_at
         },
         transferStatus: payout.status === 'pending' ? 'pending' :
                        payout.status === 'approved' ? 'approved' : 'denied',
-        transferDate: payout.reviewed_at,
-        denialReason: payout.review_notes
+        transferDate: payout.reviewed_at || payout.updated_at,
+        denialReason: payout.review_notes || payout.notes
       }));
 
       setReceipts(transformedReceipts);

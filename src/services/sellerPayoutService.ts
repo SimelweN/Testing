@@ -12,8 +12,10 @@ export interface SellerPayout {
   paystack_transfer_code?: string;
   paystack_recipient_code?: string;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
   metadata?: any;
+  // Handle any additional fields that might exist
+  [key: string]: any;
 }
 
 export interface PayoutStatistics {
@@ -117,23 +119,10 @@ class SellerPayoutService {
 
   async getPayoutsByStatus(status: string): Promise<SellerPayout[]> {
     try {
+      // First, try to get just basic columns to see what exists
       const { data, error } = await supabase
         .from('seller_payouts')
-        .select(`
-          id,
-          seller_id,
-          amount,
-          status,
-          reviewed_by,
-          reviewed_at,
-          review_notes,
-          bank_details_snapshot,
-          paystack_transfer_code,
-          paystack_recipient_code,
-          created_at,
-          updated_at,
-          metadata
-        `)
+        .select('*')
         .eq('status', status)
         .order('created_at', { ascending: false });
 
@@ -150,6 +139,8 @@ class SellerPayoutService {
       }
 
       console.log(`Fetched ${data?.length || 0} payouts with status: ${status}`);
+      console.log('Sample payout structure:', data?.[0] ? Object.keys(data[0]) : 'No data');
+
       return data || [];
     } catch (error) {
       console.error('Exception in getPayoutsByStatus:', {
@@ -270,28 +261,38 @@ class SellerPayoutService {
       .eq('id', data.seller_id)
       .single();
 
-    // Get payout items
-    const { data: payoutItems } = await supabase
-      .from('payout_items')
-      .select(`
-        id,
-        book_title,
-        sale_amount,
-        commission_amount,
-        seller_amount,
-        sale_date
-      `)
-      .eq('payout_id', payoutId);
+    // Get payout items (handle case where table might not exist)
+    let payoutItems = [];
+    try {
+      const { data: items } = await supabase
+        .from('payout_items')
+        .select(`
+          id,
+          book_title,
+          sale_amount,
+          commission_amount,
+          seller_amount,
+          sale_date
+        `)
+        .eq('payout_id', payoutId);
+      payoutItems = items || [];
+    } catch (itemsError) {
+      console.warn('Could not fetch payout items:', itemsError);
+    }
 
-    // Get reviewer details if available
+    // Get reviewer details if available and reviewed_by field exists
     let reviewerName = null;
     if (data.reviewed_by) {
-      const { data: reviewer } = await supabase
-        .from('profiles')
-        .select('name')
-        .eq('id', data.reviewed_by)
-        .single();
-      reviewerName = reviewer?.name;
+      try {
+        const { data: reviewer } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', data.reviewed_by)
+          .single();
+        reviewerName = reviewer?.name;
+      } catch (reviewerError) {
+        console.warn('Could not fetch reviewer details:', reviewerError);
+      }
     }
 
     return {
@@ -299,7 +300,7 @@ class SellerPayoutService {
       seller_name: profile?.name || 'Unknown Seller',
       seller_email: profile?.email || 'unknown@email.com',
       reviewer_name: reviewerName,
-      payout_items: payoutItems || []
+      payout_items: payoutItems
     } as PayoutDetails;
   }
 
@@ -621,6 +622,27 @@ ${index + 1}. ${item.book_title}
         errorMessage: error instanceof Error ? error.message : String(error)
       });
       return false;
+    }
+  }
+
+  async getTableStructure(): Promise<string[]> {
+    try {
+      const { data, error } = await supabase
+        .from('seller_payouts')
+        .select('*')
+        .limit(1);
+
+      if (error || !data || data.length === 0) {
+        console.warn('Could not determine table structure');
+        return [];
+      }
+
+      const columns = Object.keys(data[0]);
+      console.log('seller_payouts table columns:', columns);
+      return columns;
+    } catch (error) {
+      console.error('Error getting table structure:', error);
+      return [];
     }
   }
 
