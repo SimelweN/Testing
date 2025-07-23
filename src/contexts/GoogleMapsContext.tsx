@@ -36,8 +36,15 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   const disableMaps = import.meta.env.VITE_DISABLE_GOOGLE_MAPS !== "false";
 
-  // If no API key, disable maps entirely to prevent errors
-  const shouldLoadMaps = apiKey && !disableMaps;
+  // Check if API key is valid (not empty, undefined, or placeholder)
+  const isValidApiKey =
+    apiKey &&
+    apiKey.trim() !== "" &&
+    apiKey !== "your_google_maps_api_key" &&
+    apiKey.startsWith("AIza");
+
+  // Only attempt to load Google Maps if we have a valid API key and it's not disabled
+  const shouldLoadMaps = isValidApiKey && !disableMaps;
 
   // Always suppress Google Maps retry errors to prevent console spam
   useEffect(() => {
