@@ -595,46 +595,14 @@ export class PaystackSystemTester {
   }
 
   private async testAccountVerificationWithMockData() {
-    try {
-      const mockAccountData = {
-        action: "verify-account",
-        account_number: "0123456789",
-        bank_code: "058", // Standard Bank
-        test_mode: true,
-      };
-
-      const { result, timing } = await this.measureTime(async () => {
-        const { data, error } = await supabase.functions.invoke(
-          "paystack-transfer-management",
-          {
-            method: "POST",
-            body: mockAccountData,
-          },
-        );
-        if (error) throw error;
-        return data;
-      });
-
-      this.addResult(
-        "Account Verification",
-        result?.success ? "success" : "info",
-        result?.success
-          ? "Account verification working"
-          : "Account verification test completed",
-        {
-          account_number: mockAccountData.account_number,
-          bank_code: mockAccountData.bank_code,
-          result: result?.success || result?.error,
-        },
-        timing,
-      );
-    } catch (error) {
-      this.addResult(
-        "Account Verification",
-        "info",
-        `Account verification test completed: ${error.message}`,
-      );
-    }
+    // Account verification disabled - no automated money transfers
+    this.addResult(
+      "Account Verification",
+      "warning",
+      "Account verification disabled - no automated money transfers allowed",
+      { disabled: true, reason: "Transfer management permanently disabled for security" },
+      0,
+    );
   }
 
   private async testRecipientCreationWithMockData() {
