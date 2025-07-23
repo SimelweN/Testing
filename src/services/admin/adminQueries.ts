@@ -350,7 +350,7 @@ export const getUserBookListings = async (userId: string): Promise<AdminListing[
   try {
     const { data: books, error: booksError } = await supabase
       .from("books")
-      .select("id, title, author, price, sold, seller_id, created_at, description, condition, isbn")
+      .select("id, title, author, price, sold, seller_id, created_at")
       .eq("seller_id", userId)
       .order("created_at", { ascending: false });
 
