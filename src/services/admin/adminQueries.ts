@@ -31,6 +31,14 @@ export interface AdminListing {
   status: string;
   user: string;
   sellerId: string;
+  description?: string;
+  condition?: string;
+  isbn?: string;
+  created_at?: string;
+  category?: string;
+  grade?: string;
+  university?: string;
+  image_url?: string;
 }
 
 export const getUserProfile = async (userId: string): Promise<AdminUser> => {
@@ -339,5 +347,50 @@ const getAllListingsFallback = async (): Promise<AdminListing[]> => {
     throw new Error(
       `Failed to fetch listings: ${error instanceof Error ? error.message : String(error)}`,
     );
+  }
+};
+
+export const getUserBookListings = async (userId: string): Promise<AdminListing[]> => {
+  try {
+    const { data: books, error: booksError } = await supabase
+      .from("books")
+      .select("id, title, author, price, sold, seller_id, created_at, description, category, grade, university, image_url")
+      .eq("seller_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (booksError) {
+      logError("Error fetching user book listings", booksError);
+      throw booksError;
+    }
+
+    if (!books) return [];
+
+    // Get seller profile for the user name
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("name")
+      .eq("id", userId)
+      .single();
+
+    const userName = profile?.name || "Anonymous";
+
+    return books.map((book) => ({
+      id: book.id,
+      title: book.title,
+      author: book.author,
+      price: book.price,
+      status: book.sold ? "sold" : "active",
+      user: userName,
+      sellerId: book.seller_id,
+      created_at: book.created_at,
+      description: book.description,
+      category: book.category,
+      grade: book.grade,
+      university: book.university,
+      image_url: book.image_url,
+    }));
+  } catch (error) {
+    console.error("Error in getUserBookListings:", error);
+    throw new Error("Failed to fetch user book listings");
   }
 };

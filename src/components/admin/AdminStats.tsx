@@ -113,49 +113,49 @@ const AdminStats = ({ stats }: AdminStatsProps) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-book-600 rounded-lg">
-          <Activity className="h-6 w-6 text-white" />
+      <div className="flex items-center gap-4">
+        <div className="p-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-sm">
+          <Activity className="h-7 w-7 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            Dashboard Overview
+          <h2 className="text-3xl font-bold text-gray-900">
+            Platform Analytics
           </h2>
-          <p className="text-gray-600">
-            Real-time platform statistics and metrics
+          <p className="text-gray-600 text-lg">
+            Real-time insights and performance metrics
           </p>
         </div>
       </div>
 
       {/* Primary Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {primaryStats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Card
               key={index}
-              className={`relative overflow-hidden border-l-4 ${stat.borderColor} hover:shadow-lg transition-all duration-300 ${stat.bgColor}`}
+              className={`relative overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 bg-white`}
             >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-700">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <CardTitle className="text-sm font-semibold text-gray-700">
                   {stat.title}
                 </CardTitle>
                 <div
-                  className={`p-2 rounded-lg ${stat.bgColor} border ${stat.borderColor}`}
+                  className={`p-2.5 rounded-xl ${stat.bgColor} border-0`}
                 >
-                  <Icon className={`h-4 w-4 ${stat.color}`} />
+                  <Icon className={`h-5 w-5 ${stat.color}`} />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className={`text-2xl font-bold ${stat.color} mb-1`}>
+                <div className={`text-3xl font-bold ${stat.color} mb-2`}>
                   {stat.value}
                 </div>
-                <p className="text-xs text-gray-600 mb-2">{stat.description}</p>
-                <div className="flex items-center gap-1">
-                  <TrendingUp className="h-3 w-3 text-green-500" />
-                  <span className="text-xs text-green-600 font-medium">
+                <p className="text-sm text-gray-600 mb-3">{stat.description}</p>
+                <div className="flex items-center gap-1.5">
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                  <span className="text-sm text-green-600 font-medium">
                     {stat.trend}
                   </span>
                 </div>
@@ -166,13 +166,13 @@ const AdminStats = ({ stats }: AdminStatsProps) => {
       </div>
 
       {/* Alert & Action Items */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-amber-600" />
+      <div className="space-y-6">
+        <h3 className="text-xl font-bold text-gray-900 flex items-center gap-3">
+          <AlertTriangle className="h-6 w-6 text-amber-600" />
           Attention Required
         </h3>
 
-        <div className="grid gap-4 lg:grid-cols-4">
+        <div className="grid gap-6 lg:grid-cols-4">
           {/* Alert Stats */}
           {alertStats.map((stat, index) => {
             const Icon = stat.icon;
@@ -181,14 +181,16 @@ const AdminStats = ({ stats }: AdminStatsProps) => {
             return (
               <Card
                 key={index}
-                className={`border-l-4 ${stat.borderColor} ${hasItems ? stat.bgColor : "bg-gray-50"} hover:shadow-md transition-all duration-200`}
+                className={`border-0 ${hasItems ? "bg-white shadow-sm" : "bg-gray-50"} hover:shadow-md transition-all duration-200`}
               >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <div className="flex items-center gap-2">
-                    <Icon
-                      className={`h-5 w-5 ${hasItems ? stat.color : "text-gray-400"}`}
-                    />
-                    <CardTitle className="text-sm font-medium">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${hasItems ? stat.bgColor : "bg-gray-100"}`}>
+                      <Icon
+                        className={`h-5 w-5 ${hasItems ? stat.color : "text-gray-400"}`}
+                      />
+                    </div>
+                    <CardTitle className="text-sm font-semibold">
                       {stat.title}
                     </CardTitle>
                   </div>
@@ -202,17 +204,17 @@ const AdminStats = ({ stats }: AdminStatsProps) => {
                   <div className="flex items-end justify-between">
                     <div>
                       <div
-                        className={`text-3xl font-bold ${hasItems ? stat.color : "text-gray-400"} mb-1`}
+                        className={`text-3xl font-bold ${hasItems ? stat.color : "text-gray-400"} mb-2`}
                       >
                         {stat.value}
                       </div>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-sm text-gray-600">
                         {stat.description}
                       </p>
                     </div>
                     {hasItems && (
                       <button
-                        className={`text-xs ${stat.color} hover:underline font-medium`}
+                        className={`text-sm ${stat.color} hover:underline font-medium`}
                       >
                         {stat.actionText}
                       </button>
@@ -220,9 +222,9 @@ const AdminStats = ({ stats }: AdminStatsProps) => {
                   </div>
 
                   {!hasItems && (
-                    <div className="mt-2 flex items-center gap-1">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-xs text-green-600 font-medium">
+                    <div className="mt-3 flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
+                      <span className="text-sm text-green-600 font-medium">
                         All clear
                       </span>
                     </div>
@@ -238,20 +240,20 @@ const AdminStats = ({ stats }: AdminStatsProps) => {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-gradient-to-r from-book-600 to-book-700 rounded-lg p-6 text-white">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-8 text-white shadow-lg">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
-            <h3 className="text-lg font-semibold mb-1">Quick Actions</h3>
-            <p className="text-book-100 text-sm">Common administrative tasks</p>
+            <h3 className="text-xl font-bold mb-2">Quick Actions</h3>
+            <p className="text-blue-100 text-base">Common administrative tasks and tools</p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <button className="px-4 py-2 bg-white text-book-600 rounded-lg text-sm font-medium hover:bg-book-50 transition-colors">
+          <div className="flex flex-wrap gap-3">
+            <button className="px-6 py-3 bg-white text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-colors shadow-sm">
               Send Broadcast
             </button>
-            <button className="px-4 py-2 bg-book-500 text-white rounded-lg text-sm font-medium hover:bg-book-400 transition-colors">
+            <button className="px-6 py-3 bg-blue-500 text-white rounded-lg text-sm font-semibold hover:bg-blue-400 transition-colors">
               Generate Report
             </button>
-            <button className="px-4 py-2 bg-book-500 text-white rounded-lg text-sm font-medium hover:bg-book-400 transition-colors">
+            <button className="px-6 py-3 bg-blue-500 text-white rounded-lg text-sm font-semibold hover:bg-blue-400 transition-colors">
               System Health
             </button>
           </div>

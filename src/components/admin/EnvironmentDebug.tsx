@@ -23,7 +23,9 @@ export default function EnvironmentDebug() {
       "VITE_PAYSTACK_PUBLIC_KEY",
       "VITE_APP_URL",
       "VITE_COURIER_GUY_API_KEY",
-VITE_FASTWAY_API_KEY
+      "VITE_FASTWAY_API_KEY",
+      "VITE_GOOGLE_MAPS_API_KEY",
+      "VITE_DISABLE_GOOGLE_MAPS"
     ],
     "Server-side API Functions": [
       "SUPABASE_URL",
@@ -36,10 +38,15 @@ VITE_FASTWAY_API_KEY
   };
 
   const getEnvValue = (key: string) => {
-    // Check both import.meta.env and our ENV object
-    const viteValue = import.meta.env[key];
-    const envValue = ENV[key as keyof typeof ENV];
-    return viteValue || envValue || undefined;
+    try {
+      // Check both import.meta.env and our ENV object
+      const viteValue = import.meta.env[key];
+      const envValue = ENV[key as keyof typeof ENV];
+      return viteValue || envValue || undefined;
+    } catch (error) {
+      console.warn(`Error accessing environment variable ${key}:`, error);
+      return undefined;
+    }
   };
 
   const getEnvStatus = (key: string) => {

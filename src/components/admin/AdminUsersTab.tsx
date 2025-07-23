@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { UserX, CheckCircle, Eye } from "lucide-react";
+import { UserX, CheckCircle, Eye, Users, UserPlus, Activity } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -43,11 +43,21 @@ const AdminUsersTab = ({ users, onUserAction }: AdminUsersTabProps) => {
 
   // Mobile Card Component for Users
   const MobileUserCard = ({ user }: { user: AdminUser }) => (
-    <Card className="mb-4">
-      <CardContent className="p-4">
-        <div className="space-y-3">
+    <Card className="mb-4 border-0 shadow-sm">
+      <CardContent className="p-5">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="font-medium text-gray-900">{user.name}</div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-semibold text-sm">
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div>
+                <div className="font-semibold text-gray-900">{user.name}</div>
+                <div className="text-sm text-gray-500 truncate">{user.email}</div>
+              </div>
+            </div>
             <Badge
               variant={user.status === "active" ? "default" : "destructive"}
               className="text-xs"
@@ -56,21 +66,19 @@ const AdminUsersTab = ({ users, onUserAction }: AdminUsersTabProps) => {
             </Badge>
           </div>
 
-          <div className="text-sm text-gray-600 truncate">{user.email}</div>
-
-          <div className="flex items-center justify-between text-sm text-gray-500">
+          <div className="flex items-center justify-between text-sm text-gray-500 py-2 border-t border-gray-100">
             <span>{user.listingsCount} listings</span>
             <span>Joined: {new Date(user.createdAt).toLocaleDateString()}</span>
           </div>
 
-          <div className="flex gap-2 pt-2 border-t">
+          <div className="flex gap-2">
             <Button
               size="sm"
               variant="outline"
               onClick={() => handleViewProfile(user.id)}
               className="flex-1"
             >
-              <Eye className="h-3 w-3 mr-1" />
+              <Eye className="h-3 w-3 mr-2" />
               View Profile
             </Button>
 
@@ -81,7 +89,7 @@ const AdminUsersTab = ({ users, onUserAction }: AdminUsersTabProps) => {
                 onClick={() => onUserAction(user.id, "suspend")}
                 className="flex-1"
               >
-                <UserX className="h-3 w-3 mr-1" />
+                <UserX className="h-3 w-3 mr-2" />
                 Suspend
               </Button>
             ) : (
@@ -91,7 +99,7 @@ const AdminUsersTab = ({ users, onUserAction }: AdminUsersTabProps) => {
                 onClick={() => onUserAction(user.id, "activate")}
                 className="flex-1"
               >
-                <CheckCircle className="h-3 w-3 mr-1" />
+                <CheckCircle className="h-3 w-3 mr-2" />
                 Activate
               </Button>
             )}
@@ -102,19 +110,55 @@ const AdminUsersTab = ({ users, onUserAction }: AdminUsersTabProps) => {
   );
 
   return (
-    <>
-      <Card>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="p-6 border-b border-gray-100">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl">
+              <Users className="h-7 w-7 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                User Management
+              </h2>
+              <p className="text-gray-600 text-base">
+                Manage registered users and their accounts
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <div className="text-2xl font-bold text-blue-600">{users.length}</div>
+              <div className="text-sm text-gray-600">Total Users</div>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-green-600">
+                {users.filter(u => u.status === 'active').length}
+              </div>
+              <div className="text-sm text-gray-600">Active Users</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Card className="border-0 shadow-sm">
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg md:text-xl">User Management</CardTitle>
-          <CardDescription className="text-sm">
-            Manage registered users and their accounts ({users.length} total
-            users)
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg font-semibold">User Directory</CardTitle>
+              <CardDescription className="text-base">
+                View and manage user accounts ({users.length} total users)
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className={isMobile ? "p-4" : "p-0 md:p-6"}>
+        <CardContent className={isMobile ? "p-4" : "p-6"}>
           {users.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-500">No users found</p>
+            <div className="text-center py-12">
+              <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">No users found</p>
+              <p className="text-gray-400 text-sm">Users will appear here once they register</p>
             </div>
           ) : isMobile ? (
             <div className="space-y-4">
@@ -126,35 +170,44 @@ const AdminUsersTab = ({ users, onUserAction }: AdminUsersTabProps) => {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs md:text-sm min-w-[100px]">
-                      Name
+                  <TableRow className="border-gray-100">
+                    <TableHead className="text-sm font-semibold text-gray-700 min-w-[140px]">
+                      User
                     </TableHead>
-                    <TableHead className="text-xs md:text-sm min-w-[150px]">
+                    <TableHead className="text-sm font-semibold text-gray-700 min-w-[200px]">
                       Email
                     </TableHead>
-                    <TableHead className="text-xs md:text-sm min-w-[80px]">
+                    <TableHead className="text-sm font-semibold text-gray-700 min-w-[90px]">
                       Status
                     </TableHead>
-                    <TableHead className="text-xs md:text-sm min-w-[80px]">
+                    <TableHead className="text-sm font-semibold text-gray-700 min-w-[90px]">
                       Listings
                     </TableHead>
-                    <TableHead className="text-xs md:text-sm min-w-[80px]">
-                      Joined
+                    <TableHead className="text-sm font-semibold text-gray-700 min-w-[100px]">
+                      Join Date
                     </TableHead>
-                    <TableHead className="text-xs md:text-sm min-w-[150px] text-right">
+                    <TableHead className="text-sm font-semibold text-gray-700 min-w-[160px] text-right">
                       Actions
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {users.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="text-xs md:text-sm font-medium">
-                        {user.name}
+                    <TableRow key={user.id} className="border-gray-100 hover:bg-gray-50">
+                      <TableCell className="py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-semibold text-xs">
+                              {user.name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <span className="text-sm font-medium text-gray-900">
+                            {user.name}
+                          </span>
+                        </div>
                       </TableCell>
-                      <TableCell className="text-xs md:text-sm">
-                        <div className="max-w-[150px] truncate">
+                      <TableCell className="text-sm text-gray-600">
+                        <div className="max-w-[180px] truncate">
                           {user.email}
                         </div>
                       </TableCell>
@@ -163,15 +216,18 @@ const AdminUsersTab = ({ users, onUserAction }: AdminUsersTabProps) => {
                           variant={
                             user.status === "active" ? "default" : "destructive"
                           }
-                          className="text-xs"
+                          className="text-xs font-medium"
                         >
                           {user.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-xs md:text-sm">
-                        {user.listingsCount}
+                      <TableCell className="text-sm text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <Activity className="h-3 w-3 text-gray-400" />
+                          {user.listingsCount}
+                        </div>
                       </TableCell>
-                      <TableCell className="text-xs md:text-sm">
+                      <TableCell className="text-sm text-gray-600">
                         {new Date(user.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right">
@@ -180,10 +236,10 @@ const AdminUsersTab = ({ users, onUserAction }: AdminUsersTabProps) => {
                             size="sm"
                             variant="outline"
                             onClick={() => handleViewProfile(user.id)}
-                            className="h-7 w-7 p-0 md:h-8 md:w-auto md:px-2"
+                            className="h-8 px-3 text-xs"
                           >
-                            <Eye className="h-3 w-3 md:h-4 md:w-4" />
-                            <span className="ml-1 hidden md:inline">View</span>
+                            <Eye className="h-3 w-3 mr-1" />
+                            View
                           </Button>
 
                           {user.status === "active" ? (
@@ -191,24 +247,20 @@ const AdminUsersTab = ({ users, onUserAction }: AdminUsersTabProps) => {
                               size="sm"
                               variant="destructive"
                               onClick={() => onUserAction(user.id, "suspend")}
-                              className="h-7 w-7 p-0 md:h-8 md:w-auto md:px-2"
+                              className="h-8 px-3 text-xs"
                             >
-                              <UserX className="h-3 w-3 md:h-4 md:w-4" />
-                              <span className="ml-1 hidden md:inline">
-                                Suspend
-                              </span>
+                              <UserX className="h-3 w-3 mr-1" />
+                              Suspend
                             </Button>
                           ) : (
                             <Button
                               size="sm"
                               variant="default"
                               onClick={() => onUserAction(user.id, "activate")}
-                              className="h-7 w-7 p-0 md:h-8 md:w-auto md:px-2"
+                              className="h-8 px-3 text-xs"
                             >
-                              <CheckCircle className="h-3 w-3 md:h-4 md:w-4" />
-                              <span className="ml-1 hidden md:inline">
-                                Activate
-                              </span>
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Activate
                             </Button>
                           )}
                         </div>
@@ -227,7 +279,7 @@ const AdminUsersTab = ({ users, onUserAction }: AdminUsersTabProps) => {
         isOpen={isProfileViewerOpen}
         onClose={closeProfileViewer}
       />
-    </>
+    </div>
   );
 };
 

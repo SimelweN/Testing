@@ -34,12 +34,20 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
   children,
 }) => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const disableMaps = import.meta.env.VITE_DISABLE_GOOGLE_MAPS !== "false";
 
-    // Only suppress Google Maps errors when explicitly disabled
+  // Check if API key is valid (not empty, undefined, or placeholder)
+  const isValidApiKey =
+    apiKey &&
+    apiKey.trim() !== "" &&
+    apiKey !== "your_google_maps_api_key" &&
+    apiKey.startsWith("AIza");
+
+  // Only attempt to load Google Maps if we have a valid API key and it's not disabled
+  const shouldLoadMaps = isValidApiKey && !disableMaps;
+
+  // Always suppress Google Maps retry errors to prevent console spam
   useEffect(() => {
-    if (!import.meta.env.VITE_DISABLE_GOOGLE_MAPS) {
-      return; // Don't suppress errors if we're trying to use Google Maps
-    }
 
     const originalConsoleError = console.error;
     const originalConsoleWarn = console.warn;
@@ -49,14 +57,16 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
       return (
         msg.includes("failed to load google maps script") ||
         msg.includes("google maps script, retrying") ||
-        msg.includes("retrying in")
+        msg.includes("retrying in") ||
+        msg.includes("google maps") ||
+        msg.includes("gmaps")
       );
     };
 
     console.error = function (...args) {
       const message = args.join(" ");
       if (isGoogleMapsError(message)) {
-        // Only suppress retry messages when Google Maps is disabled
+        // Suppress Google Maps retry errors to prevent spam
         return;
       }
       originalConsoleError.apply(this, args);
@@ -65,7 +75,7 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
     console.warn = function (...args) {
       const message = args.join(" ");
       if (isGoogleMapsError(message)) {
-        // Only suppress retry messages when Google Maps is disabled
+        // Suppress Google Maps retry warnings to prevent spam
         return;
       }
       originalConsoleWarn.apply(this, args);
@@ -77,24 +87,15 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
     };
   }, []);
 
-  // Check if API key is valid (not empty, undefined, or placeholder)
-  const isValidApiKey =
-    apiKey &&
-    apiKey.trim() !== "" &&
-    apiKey !== "your_google_maps_api_key" &&
-    apiKey.startsWith("AIza");
-
-  // Only attempt to load Google Maps if we have a valid API key and it's not disabled
-  const shouldLoadMaps =
-    isValidApiKey && !import.meta.env.VITE_DISABLE_GOOGLE_MAPS;
-
   // Load Google Maps if we have a valid API key
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: shouldLoadMaps ? apiKey : "",
-    libraries,
-    preventGoogleFontsLoading: true,
-  });
+  const { isLoaded, loadError } = shouldLoadMaps
+    ? useJsApiLoader({
+        id: "google-map-script",
+        googleMapsApiKey: apiKey!,
+        libraries,
+        preventGoogleFontsLoading: true,
+      })
+    : { isLoaded: false, loadError: undefined };
 
   const value: GoogleMapsContextType = {
     isLoaded: shouldLoadMaps && isLoaded,

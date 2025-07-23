@@ -69,11 +69,11 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
 
         const fetchBooksOperation = async (retryCount = 0): Promise<any[]> => {
       try {
-        // First get books
+        // First get books - temporarily remove sold filter to see ALL books
         let query = supabase
           .from("books")
           .select("*")
-          .eq("sold", false)
+          // .eq("sold", false)  // Temporarily commented out to see all books
           .order("created_at", { ascending: false });
 
         // Apply filters if provided

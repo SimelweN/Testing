@@ -72,7 +72,19 @@ const OrderDeclineButton: React.FC<OrderDeclineButtonProps> = ({
 
       if (error) {
         console.error("Supabase function error:", error);
-        throw new Error(error.message || "Failed to call decline function");
+        console.error("Error details:", { error, data });
+
+        // More specific error handling for edge functions
+        let errorMessage = "Failed to call decline function";
+        if (error.message?.includes('FunctionsHttpError')) {
+          errorMessage = "Edge Function service is unavailable. This feature requires proper Supabase setup.";
+        } else if (error.message?.includes('CORS')) {
+          errorMessage = "CORS error - Edge Function configuration issue";
+        } else {
+          errorMessage = error.message || errorMessage;
+        }
+
+        throw new Error(errorMessage);
       }
 
       if (!data?.success) {

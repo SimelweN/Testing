@@ -390,7 +390,7 @@ const DatabaseTableTester: React.FC = () => {
                     const results = [];
 
                     for (const table of paystackTables) {
-                      const result = await testTable(table);
+                      const result = await testTableAccess(table.name);
                       results.push(result);
                     }
 

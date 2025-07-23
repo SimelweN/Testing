@@ -140,20 +140,59 @@ const ReportActions = ({
                 Review the report and take appropriate action
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <strong>Reported:</strong>{" "}
-                {report.book_id ? report.book_title : report.seller_name}
-              </div>
-              <div>
-                <strong>Reason:</strong>
-                <div className="mt-1 text-sm bg-gray-50 p-2 rounded">
-                  {report.reason}
+            <div className="space-y-6">
+              <div className="grid gap-4">
+                <div>
+                  <label className="text-sm font-semibold text-gray-700">Reported Item:</label>
+                  <div className="mt-1 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    {report.book_id ? (
+                      <div>
+                        <div className="font-medium text-blue-900">{report.book_title}</div>
+                        <div className="text-sm text-blue-700">Book ID: {report.book_id}</div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="font-medium text-blue-900">{report.seller_name}</div>
+                        <div className="text-sm text-blue-700">User Report</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <strong>Date:</strong>{" "}
-                {new Date(report.created_at).toLocaleString()}
+
+                <div>
+                  <label className="text-sm font-semibold text-gray-700">Report Reason:</label>
+                  <div className="mt-1 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="text-sm text-red-900 whitespace-pre-wrap leading-relaxed">
+                      {report.reason || 'No reason provided'}
+                    </div>
+                  </div>
+                </div>
+
+                {report.description && (
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700">Additional Details:</label>
+                    <div className="mt-1 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                      <div className="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">
+                        {report.description}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between text-sm text-gray-600 pt-2 border-t">
+                  <div>
+                    <strong>Reported on:</strong> {new Date(report.created_at).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
+                  <div>
+                    <strong>Status:</strong> <span className="capitalize">{report.status}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </DialogContent>
