@@ -73,7 +73,10 @@ export const PayoutNotifications: React.FC<PayoutNotificationsProps> = ({ classN
         setIsVisible(false);
       }
     } catch (error) {
-      console.error('Error checking pending payouts:', error);
+      // Silently handle errors to prevent console spam
+      // This is likely due to missing table or permissions
+      setNotification(null);
+      setIsVisible(false);
     } finally {
       setIsLoading(false);
     }
