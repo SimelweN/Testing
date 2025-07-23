@@ -744,23 +744,15 @@ const PaystackDemo = () => {
     }
   };
 
-  // 5. Pay Seller Function
+  // 5. Pay Seller Function - DISABLED
   const testPaySeller = async () => {
     setTestLoading("pay-seller", true);
     try {
-      const response = await supabase.functions.invoke("pay-seller", {
-        body: {
-          seller_id: transferForm.sellerId,
-          amount: parseFloat(transferForm.amount) * 100, // Convert to cents
-          reference: "demo_transfer_" + Date.now(),
-          order_id: transferForm.orderId
-        }
-      });
-
+      // Seller payments are now manual only
       setTestResult("pay-seller", {
-        success: !response.error,
-        data: response.data,
-        error: response.error
+        success: false,
+        data: null,
+        error: { message: "Seller payments are disabled - all payments are manual" }
       });
 
       if (response.data) {
