@@ -364,52 +364,64 @@ ${index + 1}. ${order.book?.title || 'Unknown Book'}
             </div>
           </div>
 
-          {testRecipientData && (
+          {payoutRecipientData && (
             <div className="bg-gray-50 rounded-lg p-4 mt-4">
               <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                {testRecipientData.success ? (
+                {payoutRecipientData.success ? (
                   <CheckCircle className="w-5 h-5 text-green-600" />
                 ) : (
                   <AlertCircle className="w-5 h-5 text-red-600" />
                 )}
-                Edge Function Test Results:
+                Paystack Recipient Creation Results:
               </h4>
-              
+
+              <div className="bg-orange-50 border border-orange-200 rounded p-3 mb-4">
+                <div className="flex items-center gap-2 text-orange-800 font-medium mb-2">
+                  <AlertCircle className="w-4 h-4" />
+                  Important: No Transfer Initiated
+                </div>
+                <p className="text-orange-700 text-sm">
+                  This function only creates the Paystack recipient. No money transfer has been initiated.
+                  You must manually process the payment using the recipient code provided.
+                </p>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <strong>Status:</strong> {testRecipientData.success ? '✅ Success' : '❌ Failed'}<br/>
-                  <strong>Message:</strong> {testRecipientData.message}<br/>
-                  <strong>Recipient Code:</strong> {testRecipientData.recipient_code || 'N/A'}<br/>
-                  <strong>Development Mode:</strong> {testRecipientData.development_mode ? 'Yes' : 'No'}
+                  <strong>Status:</strong> {payoutRecipientData.success ? '✅ Recipient Created' : '❌ Creation Failed'}<br/>
+                  <strong>Message:</strong> {payoutRecipientData.message}<br/>
+                  <strong>Recipient Code:</strong> {payoutRecipientData.recipient_code || 'N/A'}<br/>
+                  <strong>Development Mode:</strong> {payoutRecipientData.development_mode ? 'Yes' : 'No'}<br/>
+                  <strong>Already Existed:</strong> {payoutRecipientData.already_existed ? 'Yes' : 'No'}
                 </div>
-                
-                {testRecipientData.seller_info && (
+
+                {payoutRecipientData.seller_info && (
                   <div>
-                    <strong>Seller:</strong> {testRecipientData.seller_info.name}<br/>
-                    <strong>Bank:</strong> {testRecipientData.seller_info.bank_name}<br/>
-                    <strong>Account:</strong> {testRecipientData.seller_info.account_number}
+                    <strong>Seller:</strong> {payoutRecipientData.seller_info.name}<br/>
+                    <strong>Bank:</strong> {payoutRecipientData.seller_info.bank_name}<br/>
+                    <strong>Account:</strong> {payoutRecipientData.seller_info.account_number}
                   </div>
                 )}
               </div>
 
-              {testRecipientData.payment_breakdown && (
+              {payoutRecipientData.payment_breakdown && (
                 <div className="mt-4 p-3 bg-white rounded border">
-                  <h5 className="font-medium text-gray-800 mb-2">Payment Breakdown (Mock Data):</h5>
+                  <h5 className="font-medium text-gray-800 mb-2">Payment Breakdown (Mock Data for Reference):</h5>
                   <div className="text-sm space-y-1">
-                    <div><strong>Total Orders:</strong> {testRecipientData.payment_breakdown.total_orders}</div>
-                    <div><strong>Book Sales:</strong> R{(testRecipientData.payment_breakdown.total_book_sales || 0).toFixed(2)}</div>
-                    <div><strong>Delivery Fees:</strong> R{(testRecipientData.payment_breakdown.total_delivery_fees || 0).toFixed(2)}</div>
-                    <div><strong>Platform Earnings:</strong> R{(testRecipientData.payment_breakdown.platform_earnings?.total || 0).toFixed(2)}</div>
+                    <div><strong>Total Orders:</strong> {payoutRecipientData.payment_breakdown.total_orders}</div>
+                    <div><strong>Book Sales:</strong> R{(payoutRecipientData.payment_breakdown.total_book_sales || 0).toFixed(2)}</div>
+                    <div><strong>Delivery Fees:</strong> R{(payoutRecipientData.payment_breakdown.total_delivery_fees || 0).toFixed(2)}</div>
+                    <div><strong>Platform Earnings:</strong> R{(payoutRecipientData.payment_breakdown.platform_earnings?.total || 0).toFixed(2)}</div>
                     <div className="font-semibold text-green-600">
-                      <strong>Seller Amount:</strong> R{(testRecipientData.payment_breakdown.seller_amount || 0).toFixed(2)}
+                      <strong>Amount Ready for Payout:</strong> R{(payoutRecipientData.payment_breakdown.seller_amount || 0).toFixed(2)}
                     </div>
                   </div>
 
-                  {testRecipientData.payment_breakdown.order_details && testRecipientData.payment_breakdown.order_details.length > 0 && (
+                  {payoutRecipientData.payment_breakdown.order_details && payoutRecipientData.payment_breakdown.order_details.length > 0 && (
                     <div className="mt-3 pt-3 border-t">
                       <h6 className="font-medium text-gray-700 mb-2">Mock Order Details:</h6>
                       <div className="space-y-2">
-                        {testRecipientData.payment_breakdown.order_details.map((order: any, index: number) => (
+                        {payoutRecipientData.payment_breakdown.order_details.map((order: any, index: number) => (
                           <div key={index} className="text-xs bg-gray-50 p-2 rounded">
                             <strong>{order.book?.title}</strong> - R{(order.book?.price || 0).toFixed(2)}<br/>
                             Buyer: {order.buyer?.name} ({order.buyer?.email})<br/>
@@ -419,6 +431,13 @@ ${index + 1}. ${order.book?.title || 'Unknown Book'}
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+
+              {payoutRecipientData.instructions && (
+                <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
+                  <h6 className="font-medium text-blue-800 mb-2">Next Steps:</h6>
+                  <p className="text-blue-700 text-sm">{payoutRecipientData.instructions}</p>
                 </div>
               )}
             </div>
