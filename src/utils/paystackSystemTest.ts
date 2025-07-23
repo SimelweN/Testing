@@ -582,64 +582,16 @@ export class PaystackSystemTester {
     }
   }
 
-  // Test 8: Transfer Management
+  // Test 8: Transfer Management - DISABLED
   private async testTransferManagement() {
-    try {
-      // Test bank list functionality
-      const { result, timing } = await this.measureTime(async () => {
-        const { data, error } = await supabase.functions.invoke(
-          "paystack-transfer-management",
-          {
-            method: "GET",
-            body: { action: "banks" },
-          },
-        );
-        if (error) throw error;
-        return data;
-      });
-
-      if (result?.success || result?.data) {
-        this.addResult(
-          "Transfer Management",
-          "success",
-          "Transfer management function operational",
-          {
-            success: result.success,
-            banks_available: Array.isArray(result.data)
-              ? result.data.length
-              : "unknown",
-          },
-          timing,
-        );
-
-        // Test account verification with mock data
-        await this.testAccountVerificationWithMockData();
-
-        // Test recipient creation with mock data
-        await this.testRecipientCreationWithMockData();
-      } else {
-        this.addResult(
-          "Transfer Management",
-          "error",
-          `Transfer management failed - Exact response: ${JSON.stringify(result)}`,
-          {
-            actual_response: result,
-            expected_fields: ["success", "data"],
-            response_keys: result ? Object.keys(result) : [],
-            error_details:
-              result?.error || result?.message || "No error message provided",
-            method_used: "GET",
-          },
-          timing,
-        );
-      }
-    } catch (error) {
-      this.addResult(
-        "Transfer Management",
-        "error",
-        `Transfer management test failed: ${error.message}`,
-      );
-    }
+    // Transfer management disabled - no automated money transfers
+    this.addResult(
+      "Transfer Management",
+      "warning",
+      "Transfer management disabled - no automated money transfers allowed",
+      { disabled: true, reason: "Transfer management permanently disabled for security" },
+      0,
+    );
   }
 
   private async testAccountVerificationWithMockData() {
