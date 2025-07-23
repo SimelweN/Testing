@@ -44,7 +44,7 @@ import {
   TestTube,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import SplitPaymentTester from "./SplitPaymentTester";
+
 
 interface PaystackSubaccount {
   subaccount: string;
