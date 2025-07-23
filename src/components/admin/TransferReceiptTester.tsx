@@ -136,6 +136,7 @@ export const TransferReceiptTester: React.FC = () => {
 
     try {
       toast.info('Testing receipt creation with real seller data...');
+      console.log('Testing edge function with seller ID:', selectedTestSeller);
 
       // Call the edge function directly
       const { data, error } = await supabase.functions.invoke('create-paystack-subaccount', {
@@ -143,16 +144,36 @@ export const TransferReceiptTester: React.FC = () => {
         body: { sellerId: selectedTestSeller }
       });
 
+      console.log('Edge function response:', { data, error });
+
       if (error) {
-        throw new Error(`Function error: ${error.message}`);
+        console.error('Edge function error details:', {
+          message: error.message,
+          context: error.context,
+          details: error.details
+        });
+        throw new Error(`Function error: ${error.message || 'Unknown edge function error'}`);
       }
 
       setTestRecipientData(data);
       toast.success('Receipt creation test completed successfully!');
+      console.log('Test completed with data:', data);
 
     } catch (error) {
-      console.error('Error testing receipt creation:', error);
-      toast.error(`Test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Error testing receipt creation:', {
+        errorType: error?.constructor?.name,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        fullError: error
+      });
+
+      let errorMessage = 'Unknown error';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+
+      toast.error(`Test failed: ${errorMessage}`);
     } finally {
       setIsTestingRecipient(false);
     }
