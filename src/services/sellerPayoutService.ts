@@ -83,6 +83,20 @@ class SellerPayoutService {
       throw new Error('Failed to fetch payout details');
     }
 
+    // Get seller details separately from profiles table
+    if (data) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name, email')
+        .eq('id', data.seller_id)
+        .single();
+
+      if (profile) {
+        data.seller_name = profile.name;
+        data.seller_email = profile.email;
+      }
+    }
+
     return data || null;
   }
 
@@ -157,10 +171,7 @@ class SellerPayoutService {
   async getAuditLog(payoutId: string) {
     const { data, error } = await supabase
       .from('payout_audit_log')
-      .select(`
-        *,
-        profiles!performed_by(full_name)
-      `)
+      .select('*')
       .eq('payout_id', payoutId)
       .order('created_at', { ascending: false });
 
