@@ -36,9 +36,9 @@ export const PayoutNotifications: React.FC<PayoutNotificationsProps> = ({ classN
     try {
       const { data: payouts, error } = await supabase
         .from('seller_payouts')
-        .select('id, amount, request_date')
+        .select('id, amount, created_at')
         .eq('status', 'pending')
-        .order('request_date', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) {
         // Handle specific errors without spamming console
