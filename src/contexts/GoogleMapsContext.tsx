@@ -34,12 +34,10 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
   children,
 }) => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const disableMaps = import.meta.env.VITE_DISABLE_GOOGLE_MAPS !== "false";
 
-    // Only suppress Google Maps errors when explicitly disabled
+  // Always suppress Google Maps retry errors to prevent console spam
   useEffect(() => {
-    if (!import.meta.env.VITE_DISABLE_GOOGLE_MAPS) {
-      return; // Don't suppress errors if we're trying to use Google Maps
-    }
 
     const originalConsoleError = console.error;
     const originalConsoleWarn = console.warn;
