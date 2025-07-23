@@ -26,7 +26,7 @@ const BookDetails = () => {
 
   // Validate and debug book ID
   useEffect(() => {
-    debugBookId(id);
+
     const validId = extractBookId(id);
 
     if (!validId) {
