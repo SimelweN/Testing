@@ -529,7 +529,7 @@ export function validateMockData(functionName: string, mockData: any): boolean {
     "paystack-webhook": ["event", "data"],
     "verify-paystack-payment": ["reference"],
     "paystack-refund-management": ["action", "transaction_reference"],
-    "paystack-transfer-management": ["action", "amount", "recipient_code"],
+    // "paystack-transfer-management": removed - no automated transfers
     "paystack-split-management": ["action", "name", "type"],
     "manage-paystack-subaccount": ["action", "subaccount_code"],
 
