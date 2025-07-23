@@ -43,7 +43,7 @@ const SaleSuccessPopup = ({
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [isAddingNotification, setIsAddingNotification] = useState(false);
-  const [payoutInfo, setPayoutInfo] = useState<any>(null);
+
 
   const steps = [
     {
