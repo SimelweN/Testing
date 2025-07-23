@@ -363,62 +363,16 @@ export class PaystackSystemTester {
     }
   }
 
-  // Test 5: Paystack API Connectivity
+  // Test 5: Paystack API Connectivity - DISABLED
   private async testPaystackApiConnectivity() {
-    try {
-      const { result, timing } = await this.measureTime(async () => {
-        const { data, error } = await supabase.functions.invoke(
-          "paystack-transfer-management",
-          {
-            body: { health: true },
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-        );
-        if (error) throw error;
-        return data;
-      });
-
-      if (result?.success) {
-        this.addResult(
-          "Paystack API",
-          "success",
-          "Paystack API connectivity verified",
-          result,
-          timing,
-        );
-      } else {
-        this.addResult(
-          "Paystack API",
-          "error",
-          `Paystack API test failed - Response: ${JSON.stringify(result)} | Keys: ${result ? Object.keys(result).join(", ") : "none"} | Error: ${result?.error || result?.message || "No error provided"}`,
-          {
-            actual_response: result,
-            expected_fields: ["success", "service"],
-            response_keys: result ? Object.keys(result) : [],
-            error_details:
-              result?.error || result?.message || "No error message provided",
-          },
-          timing,
-        );
-      }
-    } catch (error) {
-      const errorDetails = {
-        message: error.message,
-        status: error.status || error.statusCode || "unknown",
-        statusText: error.statusText || "unknown",
-        name: error.name || "unknown",
-        stack: error.stack ? error.stack.split("\n")[0] : "no stack",
-      };
-
-      this.addResult(
-        "Paystack API",
-        "error",
-        `Paystack API connectivity failed: ${error.message} | Status: ${errorDetails.status} | Name: ${errorDetails.name} | Details: ${JSON.stringify(errorDetails)}`,
-        errorDetails,
-      );
-    }
+    // Transfer management disabled - no automated money transfers
+    this.addResult(
+      "Paystack API",
+      "warning",
+      "Paystack transfer API disabled - no automated money transfers allowed",
+      { disabled: true, reason: "Transfer management permanently disabled for security" },
+      0,
+    );
   }
 
   // Test 6: Subaccount Management
