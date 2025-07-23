@@ -98,8 +98,14 @@ export const SellerPayoutManager: React.FC = () => {
 
       if (error) {
         console.error('Error fetching payouts:', error);
-        toast.error('Failed to load payouts');
-        setReceipts([]);
+        // Handle case where table doesn't exist yet
+        if (error.message?.includes('does not exist') || error.code === 'PGRST116') {
+          console.log('Seller payouts table not found - using empty data');
+          setReceipts([]);
+        } else {
+          toast.error('Failed to load payouts');
+          setReceipts([]);
+        }
         return;
       }
 
