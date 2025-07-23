@@ -762,7 +762,9 @@ const PaystackSplitManagement = () => {
         </TabsContent>
 
         <TabsContent value="test" className="space-y-4">
-          <SplitPaymentTester />
+          <div className="text-center py-8 text-gray-500">
+            Payment testing functionality has been removed
+          </div>
         </TabsContent>
       </Tabs>
     </div>
