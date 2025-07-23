@@ -65,59 +65,49 @@ const AdminPayoutTab = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  // Mock data for demonstration - replace with actual API calls
   useEffect(() => {
     loadPayoutData();
+    // Auto-detect new payouts on component mount
+    autoDetectPayouts();
   }, []);
+
+  const autoDetectPayouts = async () => {
+    try {
+      const response = await fetch('/api/auto-detect-payouts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.payouts_created > 0) {
+          toast.success(`${result.payouts_created} new payout requests created from delivered orders`);
+          // Reload data to show new payouts
+          loadPayoutData();
+        }
+      }
+    } catch (error) {
+      console.error('Error auto-detecting payouts:', error);
+    }
+  };
 
   const loadPayoutData = async () => {
     setIsLoading(true);
     try {
-      // Mock data - replace with actual API call
-      const mockPayouts: PayoutRequest[] = [
-        {
-          id: 'payout_001',
-          seller_id: 'seller_123',
-          seller_name: 'John Doe',
-          seller_email: 'john.doe@email.com',
-          total_amount: 450.00,
-          order_count: 3,
-          created_at: new Date().toISOString(),
-          status: 'pending',
-          recipient_code: 'RCP_1234567890',
-          orders: [
-            {
-              id: 'order_001',
-              book_title: 'Physics Textbook',
-              amount: 200.00,
-              delivered_at: new Date().toISOString(),
-              buyer_email: 'buyer1@email.com'
-            },
-            {
-              id: 'order_002',
-              book_title: 'Mathematics Guide',
-              amount: 150.00,
-              delivered_at: new Date().toISOString(),
-              buyer_email: 'buyer2@email.com'
-            },
-            {
-              id: 'order_003',
-              book_title: 'Chemistry Notes',
-              amount: 100.00,
-              delivered_at: new Date().toISOString(),
-              buyer_email: 'buyer3@email.com'
-            }
-          ]
-        }
-      ];
+      // Fetch payout requests from API
+      const response = await fetch('/api/get-payout-requests');
+      if (!response.ok) {
+        throw new Error('Failed to fetch payout requests');
+      }
 
-      setPayoutRequests(mockPayouts);
+      const data = await response.json();
+      setPayoutRequests(data.payouts || []);
 
       const stats = {
-        pending: mockPayouts.filter(p => p.status === 'pending').length,
-        approved: mockPayouts.filter(p => p.status === 'approved').length,
-        denied: mockPayouts.filter(p => p.status === 'denied').length,
-        total_approved_amount: mockPayouts
+        pending: data.payouts.filter(p => p.status === 'pending').length,
+        approved: data.payouts.filter(p => p.status === 'approved').length,
+        denied: data.payouts.filter(p => p.status === 'denied').length,
+        total_approved_amount: data.payouts
           .filter(p => p.status === 'approved')
           .reduce((sum, p) => sum + p.total_amount, 0),
       };
@@ -126,6 +116,10 @@ const AdminPayoutTab = () => {
     } catch (error) {
       console.error('Error loading payout data:', error);
       toast.error('Failed to load payout data');
+
+      // Fallback to empty state
+      setPayoutRequests([]);
+      setPayoutStats({ pending: 0, approved: 0, denied: 0, total_approved_amount: 0 });
     } finally {
       setIsLoading(false);
     }
