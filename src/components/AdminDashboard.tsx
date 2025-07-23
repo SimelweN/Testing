@@ -406,6 +406,13 @@ const AdminDashboard = () => {
       description: "Test transfer receipt generation",
     },
     {
+      value: "seller-payouts",
+      label: "Seller Payouts",
+      icon: CreditCard,
+      color: "text-blue-600",
+      description: "Manual seller payout approval system",
+    },
+    {
       value: "emails",
       label: "Emails",
       icon: Mail,
