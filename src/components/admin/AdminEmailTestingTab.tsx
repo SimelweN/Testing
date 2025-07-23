@@ -46,8 +46,8 @@ const AdminEmailTestingTab: React.FC = () => {
           emailBody = generateRefundEmail(testData);
           break;
         case "seller_payment":
-          subject = "💰 Your payment is on the way!";
-          emailBody = generateSellerPaymentEmail(testData);
+          subject = "💰 Payment Information";
+          emailBody = "Seller payment emails are disabled - all payments are manual";
           break;
         case "refund_processed":
           subject = "💰 Refund Processed - ReBooked Solutions";
