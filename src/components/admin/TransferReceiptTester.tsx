@@ -141,20 +141,20 @@ export const TransferReceiptTester: React.FC = () => {
     }
   };
 
-  const testReceiptCreation = async () => {
+  const createPaystackRecipient = async () => {
     if (!selectedTestSeller) {
       toast.error('Please select a seller to test');
       return;
     }
 
-    setIsTestingRecipient(true);
-    setTestRecipientData(null);
+    setIsCreatingRecipient(true);
+    setPayoutRecipientData(null);
 
     try {
-      toast.info('Testing receipt creation with real seller data...');
-      console.log('Testing edge function with seller ID:', selectedTestSeller);
+      toast.info('Creating Paystack recipient for seller payout...');
+      console.log('Creating recipient for seller ID:', selectedTestSeller);
 
-      // Call the edge function directly
+      // Call the edge function directly - this creates a recipient, NOT a transfer
       const { data, error } = await supabase.functions.invoke('create-paystack-subaccount', {
         method: 'POST',
         body: { sellerId: selectedTestSeller }
@@ -171,12 +171,12 @@ export const TransferReceiptTester: React.FC = () => {
         throw new Error(`Function error: ${error.message || 'Unknown edge function error'}`);
       }
 
-      setTestRecipientData(data);
-      toast.success('Receipt creation test completed successfully!');
-      console.log('Test completed with data:', data);
+      setPayoutRecipientData(data);
+      toast.success('Paystack recipient created successfully! Ready for manual payment.');
+      console.log('Recipient created with data:', data);
 
     } catch (error) {
-      console.error('Error testing receipt creation:', {
+      console.error('Error creating Paystack recipient:', {
         errorType: error?.constructor?.name,
         errorMessage: error instanceof Error ? error.message : String(error),
         fullError: error
@@ -189,9 +189,9 @@ export const TransferReceiptTester: React.FC = () => {
         errorMessage = error;
       }
 
-      toast.error(`Test failed: ${errorMessage}`);
+      toast.error(`Recipient creation failed: ${errorMessage}`);
     } finally {
-      setIsTestingRecipient(false);
+      setIsCreatingRecipient(false);
     }
   };
 
