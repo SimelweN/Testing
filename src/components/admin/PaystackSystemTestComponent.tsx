@@ -51,8 +51,8 @@ const PaystackSystemTestComponent: React.FC = () => {
   useEffect(() => {
     const fetchBanks = async () => {
       try {
-        const banksData = await paystackTransferService.getBanks();
-        setBanks(banksData);
+        // Transfer service disabled - no bank loading
+        setBanks([]);
       } catch (error) {
         console.error('Failed to fetch banks:', error);
       }
