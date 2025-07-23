@@ -34,7 +34,10 @@ const AdminContactTab = () => {
       setMessages(data);
     } catch (error) {
       console.error("Error loading messages:", error);
-      toast.error("Failed to load contact messages");
+      // Only show error toast if it's not a missing table issue
+      if (error instanceof Error && !error.message.includes("table not found")) {
+        toast.error("Failed to load contact messages");
+      }
     } finally {
       setIsLoading(false);
     }
