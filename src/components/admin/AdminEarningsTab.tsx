@@ -131,7 +131,7 @@ const AdminEarningsTab = ({ stats }: AdminEarningsTabProps) => {
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                 <p className="text-sm text-blue-800">
                   <strong>Note:</strong> Commission rates are automatically calculated on each sale.
-                  Earnings are processed and available for payout through the seller payout system.
+                  Earnings are tracked and recorded for administrative purposes.
                 </p>
               </div>
             </div>
