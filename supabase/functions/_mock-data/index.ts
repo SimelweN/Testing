@@ -498,7 +498,7 @@ export const TestScenarios = {
     step3_processBookPurchase: FunctionMockData["process-book-purchase"],
     step4_commitToSale: FunctionMockData["commit-to-sale"],
     step5_markCollected: FunctionMockData["mark-collected"],
-    step6_paySeller: FunctionMockData["pay-seller"],
+    // step6_paySeller: removed - no automated seller payments
   },
 
   // Multi-seller order flow
