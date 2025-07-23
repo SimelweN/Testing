@@ -35,6 +35,10 @@ export interface AdminListing {
   condition?: string;
   isbn?: string;
   created_at?: string;
+  category?: string;
+  grade?: string;
+  university?: string;
+  image_url?: string;
 }
 
 export const getUserProfile = async (userId: string): Promise<AdminUser> => {
