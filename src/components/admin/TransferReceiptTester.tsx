@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
-  Receipt,
   UserPlus,
   Database,
   PlayCircle,
@@ -35,8 +34,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const TransferReceiptTester: React.FC = () => {
   // Seller payout testing state
-  const [testRecipientData, setTestRecipientData] = useState<any>(null);
-  const [isTestingRecipient, setIsTestingRecipient] = useState(false);
+  const [payoutRecipientData, setPayoutRecipientData] = useState<any>(null);
+  const [isCreatingRecipient, setIsCreatingRecipient] = useState(false);
   const [availableSellers, setAvailableSellers] = useState<any[]>([]);
   const [selectedTestSeller, setSelectedTestSeller] = useState<string>('');
 
