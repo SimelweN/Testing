@@ -247,7 +247,7 @@ function App() {
                       <Route path="/policies" element={<Policies />} />
                       <Route path="/shipping" element={<Shipping />} />
                                             <Route path="/report" element={<Report />} />
-                      <Route path="/paystack-demo" element={<PaystackDemo />} />
+
 
                       {/* 404 Catch All */}
                       <Route path="*" element={<Index />} />
