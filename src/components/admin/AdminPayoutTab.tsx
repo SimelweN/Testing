@@ -25,64 +25,32 @@ import {
   Info,
 } from "lucide-react";
 
-interface PaymentBreakdown {
-  total_orders: number;
-  total_book_sales: number;
-  total_delivery_fees: number;
-  platform_earnings: {
-    book_commission: number;
-    delivery_fees: number;
-    total: number;
-  };
-  seller_amount: number;
-  commission_structure: {
-    book_commission_rate: string;
-    delivery_fee_share: string;
-  };
-  order_details: Array<{
-    order_id: string;
-    book: {
-      title: string;
-      price: number;
-      category: string;
-      condition: string;
-    };
-    buyer: {
-      name: string;
-      email: string;
-    };
-    timeline: {
-      order_created: string;
-      payment_received: string;
-      seller_committed: string;
-      delivered: string;
-    };
-    amounts: {
-      book_price: number;
-      delivery_fee: number;
-      platform_commission: number;
-      seller_earnings: number;
-    };
+type PayoutStatus = 'pending' | 'approved' | 'denied';
+
+interface PayoutRequest {
+  id: string;
+  seller_id: string;
+  seller_name: string;
+  seller_email: string;
+  total_amount: number;
+  order_count: number;
+  created_at: string;
+  status: PayoutStatus;
+  recipient_code?: string;
+  orders: Array<{
+    id: string;
+    book_title: string;
+    amount: number;
+    delivered_at: string;
+    buyer_email: string;
   }>;
 }
 
-interface SellerInfo {
-  name: string;
-  email: string;
-  account_number: string;
-  bank_name: string;
-}
-
-interface PayoutResult {
-  success: boolean;
-  recipient_code?: string;
-  message: string;
-  already_existed?: boolean;
-  development_mode?: boolean;
-  payment_breakdown?: PaymentBreakdown;
-  seller_info?: SellerInfo;
-  instructions?: string;
-  error?: string;
+interface PayoutStats {
+  pending: number;
+  approved: number;
+  denied: number;
+  total_approved_amount: number;
 }
 
 const AdminPayoutTab = () => {
