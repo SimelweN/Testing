@@ -285,12 +285,7 @@ export const FunctionMockData = {
 
   "process-order-reminders": {}, // No input required
 
-  "pay-seller": {
-    order_id: "ORD_payment_test",
-    seller_id: "USR_test_seller_789",
-    amount: 19999, // in kobo
-    trigger: "auto_payout"
-  },
+  // "pay-seller": removed - no automated seller payments
 
   // SUBACCOUNT MANAGEMENT FUNCTIONS
     "create-paystack-subaccount": {
