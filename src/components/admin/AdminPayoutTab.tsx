@@ -129,8 +129,8 @@ const AdminPayoutTab = () => {
   const handleApprove = async (payoutId: string) => {
     setActionLoading(payoutId);
     try {
-      // Send approval email
-      await fetch('/api/send-payout-email', {
+      // Send approval email (using mock endpoint for now)
+      const response = await fetch('/api/mock-send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -139,6 +139,10 @@ const AdminPayoutTab = () => {
           message: 'Your payment is on the way!'
         }),
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to send notification');
+      }
 
       // Update local state
       setPayoutRequests(prev =>
@@ -158,8 +162,8 @@ const AdminPayoutTab = () => {
   const handleDeny = async (payoutId: string) => {
     setActionLoading(payoutId);
     try {
-      // Send denial email
-      await fetch('/api/send-payout-email', {
+      // Send denial email (using mock endpoint for now)
+      const response = await fetch('/api/mock-send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -168,6 +172,10 @@ const AdminPayoutTab = () => {
           message: 'Something went wrong and we\'ll be in touch shortly'
         }),
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to send notification');
+      }
 
       // Update local state
       setPayoutRequests(prev =>
