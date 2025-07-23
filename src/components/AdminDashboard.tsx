@@ -569,18 +569,6 @@ const AdminDashboard = () => {
 
 
 
-          <TabsContent value="database-schema" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 md:p-6">
-              <DatabaseSchemaDiagnostic />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="cleanup" className="space-y-4 mt-0">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-              <DatabaseCleanup />
-            </div>
-          </TabsContent>
-
 
 
           <TabsContent value="seller-payouts" className="space-y-4 mt-0">
