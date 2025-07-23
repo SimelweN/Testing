@@ -42,7 +42,24 @@ export const TransferReceiptTester: React.FC = () => {
 
   useEffect(() => {
     loadAvailableSellers();
+    checkEdgeFunctionAvailability();
   }, []);
+
+  const checkEdgeFunctionAvailability = async () => {
+    try {
+      // Try a simple test call to see if edge functions are working
+      const { error } = await supabase.functions.invoke('create-paystack-subaccount', {
+        method: 'POST',
+        body: { sellerId: 'test' }
+      });
+
+      if (error && error.message?.includes('not found')) {
+        toast.warning('Edge function create-paystack-subaccount not found or not deployed');
+      }
+    } catch (error) {
+      console.log('Edge function check:', error);
+    }
+  };
 
   const loadAvailableSellers = async () => {
     try {
