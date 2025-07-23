@@ -356,7 +356,7 @@ const edgeFunctions: EdgeFunction[] = [
   },
   {
     name: "mark-collected",
-    description: "Marks order as collected and triggers seller payment",
+    description: "Marks order as collected - payment handled manually",
     category: "orders",
     method: "POST",
     testPayload: {
