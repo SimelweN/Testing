@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { User, Mail, Phone, MapPin, Calendar, Shield } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface UserProfile {
   id: string;
@@ -17,16 +19,46 @@ interface UserProfile {
 }
 
 interface UserProfileViewerProps {
-  user: UserProfile;
+  userId: string | null;
+  isOpen: boolean;
   onClose: () => void;
   onUpdateStatus?: (userId: string, status: string) => void;
 }
 
 const UserProfileViewer: React.FC<UserProfileViewerProps> = ({
-  user,
+  userId,
+  isOpen,
   onClose,
   onUpdateStatus,
 }) => {
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && userId) {
+      setLoading(true);
+      // For now, create a mock user profile based on the userId
+      // In a real implementation, you would fetch the user data from an API
+      setTimeout(() => {
+        setUser({
+          id: userId,
+          name: `User ${userId.slice(-4)}`,
+          email: `user${userId.slice(-4)}@example.com`,
+          phone: "+27 123 456 7890",
+          address: "123 Example Street, Cape Town, South Africa",
+          created_at: new Date().toISOString(),
+          status: "active",
+          role: "user",
+          last_login: new Date().toISOString(),
+        });
+        setLoading(false);
+      }, 500);
+    } else {
+      setUser(null);
+    }
+  }, [userId, isOpen]);
+
+  if (!isOpen) return null;
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
