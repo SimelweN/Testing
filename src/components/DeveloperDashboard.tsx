@@ -10,6 +10,7 @@ import SignupEmailTest from "@/components/admin/SignupEmailTest";
 import EmailVerificationDiagnostic from "@/components/admin/EmailVerificationDiagnostic";
 import PaystackEdgeFunctionDiagnostic from "@/components/admin/PaystackEdgeFunctionDiagnostic";
 import DatabaseTableTester from "@/components/admin/DatabaseTableTester";
+import DatabaseTestingSuite from "@/components/debug/DatabaseTestingSuite";
 import DemoDataGenerator from "@/components/admin/DemoDataGenerator";
 import EdgeFunctionTester from "@/components/admin/EdgeFunctionTester";
 import EdgeFunctionDebugPanel from "@/components/admin/EdgeFunctionDebugPanel";
