@@ -172,12 +172,12 @@ const OrderCommitButton: React.FC<OrderCommitButtonProps> = ({
             <AlertCircle className="w-5 h-5 text-amber-500" />
             Confirm Sale Commitment
           </AlertDialogTitle>
-          <AlertDialogDescription className="space-y-3">
-            <p>
-              You are about to commit to selling <strong>"{bookTitle}"</strong>{" "}
-              to {buyerName}.
-            </p>
+          <AlertDialogDescription>
+            You are about to commit to selling <strong>"{bookTitle}"</strong>{" "}
+            to {buyerName}.
+          </AlertDialogDescription>
 
+          <div className="space-y-3 mt-4">
             <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
               <h4 className="font-semibold text-blue-800 mb-2">
                 What happens next:
@@ -201,7 +201,7 @@ const OrderCommitButton: React.FC<OrderCommitButtonProps> = ({
                 result in penalties.
               </p>
             </div>
-          </AlertDialogDescription>
+          </div>
         </AlertDialogHeader>
 
         <AlertDialogFooter>
