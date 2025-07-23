@@ -202,7 +202,7 @@ const FUNCTION_REQUIREMENTS = {
   "courier-guy-track": { required: ["tracking_number"], validation: null },
   "fastway-track": { required: ["consignment_number"], validation: null },
   "paystack-refund-management": { required: ["action", "transaction_reference"], validation: null },
-  "paystack-transfer-management": { required: ["action"], validation: null },
+  // "paystack-transfer-management": removed - no automated transfers
   "paystack-split-management": { required: ["action"], validation: null },
 };
 
