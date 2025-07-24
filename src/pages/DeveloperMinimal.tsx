@@ -41,6 +41,7 @@ const Developer = () => {
   const [loadingSellers, setLoadingSellers] = useState(false);
   const [payoutResponse, setPayoutResponse] = useState<PayoutResponse | null>(null);
   const [payoutLoading, setPayoutLoading] = useState(false);
+  const [componentError, setComponentError] = useState<string | null>(null);
 
   const loadSellers = async () => {
     setLoadingSellers(true);
