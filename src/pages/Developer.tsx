@@ -255,14 +255,23 @@ const Developer = () => {
       return;
     }
 
+    if (!import.meta.env.VITE_SUPABASE_URL) {
+      toast.error("Supabase URL not configured");
+      return;
+    }
+
     setIsLoading(true);
     setPayoutResponse(null);
 
     try {
       console.log(`Calling pay-seller edge function for seller: ${selectedSeller}`);
+      console.log('Selected seller data:', selectedSellerData);
 
       // Call the Supabase edge function directly
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pay-seller`, {
+      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pay-seller`;
+      console.log('Function URL:', functionUrl);
+
+      const response = await fetch(functionUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -273,19 +282,39 @@ const Developer = () => {
         }),
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Supabase function error:', errorText);
-        throw new Error(`HTTP ${response.status}: ${response.statusText}\n${errorText}`);
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
+      let result;
+      let errorText = '';
+
+      try {
+        // Try to parse as JSON first
+        const responseText = await response.text();
+        console.log('Response text:', responseText);
+
+        if (responseText) {
+          result = JSON.parse(responseText);
+        } else {
+          throw new Error('Empty response from server');
+        }
+      } catch (parseError) {
+        console.error('Error parsing response:', parseError);
+        errorText = `Failed to parse response: ${parseError.message}`;
+        throw new Error(errorText);
       }
 
-      const result = await response.json();
+      if (!response.ok) {
+        const errorMessage = result?.error || result?.message || `HTTP ${response.status}: ${response.statusText}`;
+        throw new Error(errorMessage);
+      }
 
       if (result.success) {
         setPayoutResponse(result);
         toast.success("Real pay-seller function executed successfully - Recipient created!");
+        console.log('Function result:', result);
       } else {
-        throw new Error(result.error || "Pay-seller function returned unsuccessful result");
+        throw new Error(result.error || result.message || "Pay-seller function returned unsuccessful result");
       }
     } catch (error) {
       console.error("Error calling pay-seller function:", error);
