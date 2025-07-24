@@ -143,7 +143,7 @@ const handler = async (req: Request): Promise<Response> => {
     const subaccountCode = profileData?.subaccount_code;
 
     if (!subaccountCode) {
-      console.log('��� No subaccount code found in profile');
+      console.log('❌ No subaccount code found in profile');
       return new Response(JSON.stringify({
         error: 'Seller banking subaccount not found',
         message: 'No subaccount code found in seller profile. Seller needs to complete banking setup first.'
@@ -179,25 +179,24 @@ const handler = async (req: Request): Promise<Response> => {
     if (!bankingDetails) {
       console.log('❌ No banking details found for subaccount code');
 
-      // Fallback - use preferences data if available
+      // Fallback - use preferences data if available and continue with recipient creation
       const preferences = profileData?.preferences || {};
-      const fallbackBankingDetails = {
+      bankingDetails = {
         subaccount_code: subaccountCode,
         business_name: preferences.business_name || `Seller ${sellerId}`,
         bank_name: preferences.bank_details?.bank_name || 'Banking details incomplete',
         account_number: preferences.bank_details?.account_number || 'Not available',
         bank_code: preferences.bank_details?.bank_code || 'N/A',
-        email: profileData?.email || 'Please update'
+        email: profileData?.email || 'Please update',
+        status: 'incomplete',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        recipient_code: null,
+        user_id: sellerId,
+        fallback_source: 'preferences' // Flag to indicate this is fallback data
       };
 
-      return new Response(JSON.stringify({
-        error: 'Incomplete banking setup',
-        message: 'Banking details found in profile preferences but not in banking_subaccounts table. Please complete banking setup.',
-        fallback_data: fallbackBankingDetails
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      });
+      console.log('⚠️ Using fallback banking details from preferences');
     }
 
     console.log('✅ Banking subaccount data retrieved successfully:', {
