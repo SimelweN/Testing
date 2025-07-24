@@ -66,22 +66,36 @@ export const clearAllTestData = async (): Promise<boolean> => {
     }
 
     // Clear any notifications related to test data
-    const { error: notifError, count: notifCount } = await supabase
-      .from("notifications")
-      .delete({ count: "exact" })
-      .or(
-        "title.ilike.%unknown book%," +
-        "message.ilike.%undefined%," +
-        "title.ilike.%system announcement%"
-      );
+    let notifCount = 0;
+    try {
+      const { error: notifError, count: notifDeleteCount } = await supabase
+        .from("notifications")
+        .delete({ count: "exact" })
+        .or(
+          "title.ilike.%unknown book%," +
+          "message.ilike.%undefined%," +
+          "title.ilike.%system announcement%"
+        );
 
-    if (notifError) {
-      console.error("Error deleting test notifications:", notifError);
-    } else {
-      console.log(`🗑️ Deleted ${notifCount} test notifications`);
+      if (notifError) {
+        console.error("Error deleting test notifications:", {
+          message: notifError.message,
+          details: notifError.details,
+          hint: notifError.hint,
+          code: notifError.code
+        });
+        // Don't fail the whole operation for notification errors
+      } else {
+        notifCount = notifDeleteCount || 0;
+        if (notifCount > 0) {
+          console.log(`🗑️ Deleted ${notifCount} test notifications`);
+        }
+      }
+    } catch (err) {
+      console.error("Exception deleting notifications:", err);
     }
 
-    const totalDeleted = (count || 0) + (patternCount || 0);
+    const totalDeleted = (count || 0) + totalPatternCount;
     
     if (totalDeleted > 0) {
       toast.success(`Successfully cleared ${totalDeleted} test orders and ${notifCount || 0} test notifications`);
