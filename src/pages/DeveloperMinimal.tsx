@@ -30,6 +30,8 @@ const DeveloperMinimal = () => {
   const [isRunningTests, setIsRunningTests] = useState(false);
   const [componentStatus, setComponentStatus] = useState<'loading' | 'ready' | 'error'>('ready');
   const [sellerIdInput, setSellerIdInput] = useState('00000000-0000-4000-8000-000000000000');
+  const [sellers, setSellers] = useState<Seller[]>([]);
+  const [loadingSellers, setLoadingSellers] = useState(false);
 
   // Safe environment check - no async calls
   const checkEnvironment = (): TestResult[] => {
