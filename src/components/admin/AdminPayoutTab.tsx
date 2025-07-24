@@ -95,85 +95,15 @@ const AdminPayoutTab = () => {
   const loadPayoutData = async () => {
     setIsLoading(true);
     try {
-      // Mock data directly in component (API routes not working in dev)
-      const mockPayouts: PayoutRequest[] = [
-        {
-          id: 'payout_001',
-          seller_id: 'seller_123',
-          seller_name: 'John Doe',
-          seller_email: 'john.doe@email.com',
-          total_amount: 450.00,
-          order_count: 3,
-          created_at: new Date().toISOString(),
-          status: 'pending',
-          recipient_code: 'RCP_1234567890',
-          orders: [
-            {
-              id: 'order_001',
-              book_title: 'Advanced Physics Textbook (3rd Edition)',
-              amount: 200.00,
-              delivered_at: new Date().toISOString(),
-              buyer_email: 'sarah.johnson@uct.ac.za',
-              buyer_name: 'Sarah Johnson'
-            },
-            {
-              id: 'order_002',
-              book_title: 'Mathematics for Engineering Students',
-              amount: 150.00,
-              delivered_at: new Date().toISOString(),
-              buyer_email: 'mike.chen@wits.ac.za',
-              buyer_name: 'Mike Chen'
-            },
-            {
-              id: 'order_003',
-              book_title: 'Organic Chemistry Lab Manual',
-              amount: 100.00,
-              delivered_at: new Date().toISOString(),
-              buyer_email: 'emma.davis@stellenbosch.ac.za',
-              buyer_name: 'Emma Davis'
-            }
-          ]
-        },
-        {
-          id: 'payout_002',
-          seller_id: 'seller_456',
-          seller_name: 'Jane Smith',
-          seller_email: 'jane.smith@email.com',
-          total_amount: 270.00,
-          order_count: 2,
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-          status: 'approved',
-          recipient_code: 'RCP_0987654321',
-          orders: [
-            {
-              id: 'order_004',
-              book_title: 'Human Biology: Comprehensive Handbook',
-              amount: 180.00,
-              delivered_at: new Date(Date.now() - 86400000).toISOString(),
-              buyer_email: 'james.williams@up.ac.za',
-              buyer_name: 'James Williams'
-            },
-            {
-              id: 'order_005',
-              book_title: 'English Literature: Contemporary Works',
-              amount: 90.00,
-              delivered_at: new Date(Date.now() - 86400000).toISOString(),
-              buyer_email: 'lisa.thompson@uj.ac.za',
-              buyer_name: 'Lisa Thompson'
-            }
-          ]
-        }
-      ];
-
-      setPayoutRequests(mockPayouts);
+      // No demo data - empty state for production use
+      const payouts: PayoutRequest[] = [];
+      setPayoutRequests(payouts);
 
       const stats = {
-        pending: mockPayouts.filter(p => p.status === 'pending').length,
-        approved: mockPayouts.filter(p => p.status === 'approved').length,
-        denied: mockPayouts.filter(p => p.status === 'denied').length,
-        total_approved_amount: mockPayouts
-          .filter(p => p.status === 'approved')
-          .reduce((sum, p) => sum + p.total_amount, 0),
+        pending: 0,
+        approved: 0,
+        denied: 0,
+        total_approved_amount: 0,
       };
 
       setPayoutStats(stats);
