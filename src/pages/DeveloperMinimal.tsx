@@ -124,7 +124,7 @@ const DeveloperMinimal = () => {
     const startTime = Date.now();
     
     try {
-      toast.info('Testing edge function connectivity...');
+      toast.info('Testing create-recipient function connectivity...');
       
       // Very basic connectivity test with timeout
       const timeoutPromise = new Promise((_, reject) => 
