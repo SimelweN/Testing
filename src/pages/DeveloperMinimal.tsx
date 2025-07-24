@@ -141,11 +141,11 @@ const DeveloperMinimal = () => {
       const duration = Date.now() - startTime;
       
       const testResult: TestResult = {
-        test: 'Pay-Seller Function',
+        test: 'Create-Recipient Function',
         status: response.status === 404 ? 'error' : 'success',
         message: response.status === 404
-          ? 'Pay-seller function not found (404)'
-          : `Pay-seller function reachable (${response.status})`,
+          ? 'Create-recipient function not found (404)'
+          : `Create-recipient function reachable (${response.status})`,
         details: `Response time: ${duration}ms, Status: ${response.status}`
       };
       
