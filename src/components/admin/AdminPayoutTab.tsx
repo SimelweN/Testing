@@ -283,8 +283,8 @@ const AdminPayoutTab = () => {
 
       console.log(`Creating recipient for seller: ${payout.seller_id}`);
 
-      // Call the pay-seller edge function to create recipient
-      const response = await fetch('/functions/v1/pay-seller', {
+      // Call the create-recipient edge function to create recipient
+      const response = await fetch('/functions/v1/create-recipient', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
