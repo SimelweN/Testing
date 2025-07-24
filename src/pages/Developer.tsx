@@ -126,17 +126,28 @@ const Developer = () => {
 
   // Fetch real sellers with banking details and delivered orders
   useEffect(() => {
-    // Check environment variables first
-    checkEnvironmentVariables();
+    const initializeComponent = async () => {
+      try {
+        // Check environment variables first (safer approach)
+        await checkEnvironmentVariables().catch(err => {
+          console.warn('Environment check failed:', err);
+        });
 
-    // Add delay and error handling to prevent immediate crashes
-    const timer = setTimeout(() => {
-      loadRealSellers().catch((error) => {
-        console.error('Failed to load sellers on mount:', error);
+        // Load sellers with proper error handling
+        await loadRealSellers().catch((error) => {
+          console.error('Failed to load sellers on mount:', error);
+          setComponentError(`Failed to load sellers: ${error.message}`);
+          setLoadingSellers(false);
+        });
+      } catch (error) {
+        console.error('Component initialization error:', error);
+        setComponentError(`Component initialization failed: ${error.message}`);
         setLoadingSellers(false);
-      });
-    }, 100);
+      }
+    };
 
+    // Use a small delay to prevent immediate crashes
+    const timer = setTimeout(initializeComponent, 200);
     return () => clearTimeout(timer);
   }, []);
 
