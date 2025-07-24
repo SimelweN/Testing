@@ -164,43 +164,7 @@ serve(async (req) => {
       });
     }
 
-    // Get Fastway quote
-    try {
-      const fastwayResponse = await getFastwayQuote(
-        fromAddress,
-        toAddress,
-        weight,
-      );
-      if (fastwayResponse) {
-        quotes.push({
-          service: "Fastway Standard",
-          price: fastwayResponse.price,
-          currency: "ZAR",
-          estimated_days: fastwayResponse.estimatedDays,
-          service_code: "FW_STANDARD",
-          provider: "fastway",
-        });
-      }
-    } catch (error) {
-            console.error("Fastway API error:", error?.message || error);
-            providerErrors.push({
-        provider: "fastway",
-        error: error instanceof Error ? error.message :
-               typeof error === "string" ? error :
-               "Fastway API error",
-        fallback_used: true,
-      });
-      // Add fallback quote
-      quotes.push({
-        service: "Fastway Standard (Estimated)",
-        price: 85,
-        currency: "ZAR",
-        estimated_days: 3,
-        service_code: "FW_STANDARD",
-        provider: "fastway",
-        fallback: true,
-      });
-    }
+
 
     return new Response(
       JSON.stringify({
