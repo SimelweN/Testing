@@ -152,9 +152,9 @@ const DeveloperMinimal = () => {
       setTestResults(prev => [...prev, testResult]);
       
       if (response.status === 404) {
-        toast.warning('Pay-seller function not deployed or not accessible');
+        toast.warning('Create-recipient function not deployed or not accessible');
       } else {
-        toast.success('Pay-seller function is reachable');
+        toast.success('Create-recipient function is reachable');
       }
       
     } catch (error) {
