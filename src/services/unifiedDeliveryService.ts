@@ -5,13 +5,7 @@ import {
   trackCourierGuyShipment,
   CourierGuyShipmentData,
 } from "./courierGuyService";
-import {
-  getFastwayQuote,
-  createFastwayShipment,
-  trackFastwayShipment,
-  FastwayShipmentRequest,
-  formatAddressForFastway,
-} from "./fastwayService";
+
 
 // Unified delivery types
 export interface UnifiedAddress {
@@ -50,7 +44,7 @@ export interface UnifiedShipmentRequest {
   require_signature?: boolean;
   insurance?: boolean;
   reference?: string;
-  preferred_provider?: "courier-guy" | "fastway";
+  preferred_provider?: "courier-guy";
 }
 
 export interface UnifiedQuoteRequest {
@@ -64,7 +58,7 @@ export interface UnifiedQuoteRequest {
 }
 
 export interface UnifiedQuote {
-  provider: "courier-guy" | "fastway";
+  provider: "courier-guy";
   provider_name: string;
   service_code: string;
   service_name: string;
@@ -83,7 +77,7 @@ export interface UnifiedQuote {
 }
 
 export interface UnifiedShipment {
-  provider: "courier-guy" | "fastway";
+  provider: "courier-guy";
   shipment_id: string;
   tracking_number: string;
   barcode?: string;
@@ -105,7 +99,7 @@ export interface UnifiedTrackingEvent {
 }
 
 export interface UnifiedTrackingResponse {
-  provider: "courier-guy" | "fastway";
+  provider: "courier-guy";
   tracking_number: string;
   status:
     | "pending"
@@ -142,10 +136,7 @@ export const getAllDeliveryQuotes = async (
         errors.push(`Courier Guy: ${err.message}`);
         return [];
       }),
-      getFastwayQuotes(request).catch((err) => {
-        errors.push(`Fastway: ${err.message}`);
-        return [];
-      }),
+
     ];
 
     const results = await Promise.allSettled(quotePromises);
@@ -208,8 +199,7 @@ export const createUnifiedShipment = async (
     switch (provider) {
       case "courier-guy":
         return await createCourierGuyShipmentUnified(request);
-      case "fastway":
-        return await createFastwayShipmentUnified(request);
+
       default:
         throw new Error(`Unknown provider: ${provider}`);
     }
@@ -224,7 +214,7 @@ export const createUnifiedShipment = async (
  */
 export const trackUnifiedShipment = async (
   trackingNumber: string,
-  provider?: "courier-guy" | "fastway",
+  provider?: "courier-guy",
 ): Promise<UnifiedTrackingResponse> => {
   try {
     console.log("Tracking shipment:", { trackingNumber, provider });
@@ -237,8 +227,7 @@ export const trackUnifiedShipment = async (
     switch (provider) {
       case "courier-guy":
         return await trackCourierGuyShipmentUnified(trackingNumber);
-      case "fastway":
-        return await trackFastwayShipmentUnified(trackingNumber);
+
       default:
         throw new Error(`Unknown provider: ${provider}`);
     }
