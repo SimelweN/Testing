@@ -241,10 +241,36 @@ const Developer = () => {
     } catch (error) {
       console.error('Error loading real sellers:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      toast.error(`Failed to load sellers: ${errorMessage}`);
 
-      // Empty state on error
-      setRealSellers([]);
+      // Check if it's a table access issue
+      if (errorMessage.includes('permission') || errorMessage.includes('does not exist') || errorMessage.includes('relation')) {
+        toast.error('Database access issue: Orders table may not exist or permissions not set');
+        console.log('Falling back to demo mode due to database access issues');
+
+        // Provide demo sellers for testing when database isn't accessible
+        setRealSellers([
+          {
+            id: "demo_seller_001",
+            name: "Demo Seller 1 (No DB Access)",
+            email: "demo1@example.com",
+            orders: 2,
+            has_banking: true,
+            banking_status: 'demo'
+          },
+          {
+            id: "demo_seller_002",
+            name: "Demo Seller 2 (No DB Access)",
+            email: "demo2@example.com",
+            orders: 1,
+            has_banking: false,
+            banking_status: 'demo'
+          }
+        ]);
+        toast.info('Using demo sellers for testing (database not accessible)');
+      } else {
+        toast.error(`Failed to load sellers: ${errorMessage}`);
+        setRealSellers([]);
+      }
     } finally {
       setLoadingSellers(false);
     }
