@@ -263,41 +263,7 @@ async function getCourierGuyQuotes(
   ];
 }
 
-async function getFastwayQuotes(
-  request: UnifiedQuoteRequest,
-): Promise<UnifiedQuote[]> {
-  const quotes = await getFastwayQuote(
-    request.from.postalCode,
-    request.to.postalCode,
-    request.weight,
-    request.length && request.width && request.height
-      ? {
-          length: request.length,
-          width: request.width,
-          height: request.height,
-        }
-      : undefined,
-  );
 
-  return quotes.map((q) => ({
-    provider: "fastway" as const,
-    provider_name: "Fastway Couriers",
-    service_code: q.service_code,
-    service_name: q.service_name,
-    cost: q.cost,
-    cost_breakdown: {
-      base_cost: q.cost_ex_gst,
-      gst: q.gst,
-    },
-    transit_days: q.transit_days,
-    collection_cutoff: q.collection_cutoff,
-    estimated_delivery: new Date(
-      Date.now() + q.transit_days * 24 * 60 * 60 * 1000,
-    ).toISOString(),
-    features: ["Express delivery", "Parcel tracking", "Delivery confirmation"],
-    terms: q.delivery_guarantee,
-  }));
-}
 
 // Provider-specific shipment creation functions
 async function createCourierGuyShipmentUnified(
@@ -338,50 +304,7 @@ async function createCourierGuyShipmentUnified(
   };
 }
 
-async function createFastwayShipmentUnified(
-  request: UnifiedShipmentRequest,
-): Promise<UnifiedShipment> {
-  const shipmentData: FastwayShipmentRequest = {
-    collection: formatAddressForFastway(request.collection),
-    delivery: formatAddressForFastway(request.delivery),
-    parcels: request.parcels.map((p) => ({
-      reference: p.reference,
-      weight: p.weight,
-      length: p.length,
-      width: p.width,
-      height: p.height,
-      description: p.description,
-      value: p.value,
-    })),
-    service_type:
-      request.service_type === "standard"
-        ? "Standard"
-        : request.service_type === "express"
-          ? "Express"
-          : "Overnight",
-    collection_date: request.collection_date,
-    special_instructions: request.special_instructions,
-    require_signature: request.require_signature,
-    insurance: request.insurance,
-    reference: request.reference,
-  };
 
-  const shipment = await createFastwayShipment(shipmentData);
-
-  return {
-    provider: "fastway",
-    shipment_id: shipment.consignment_id,
-    tracking_number: shipment.tracking_number,
-    barcode: shipment.barcode,
-    labels: shipment.labels,
-    cost: shipment.cost,
-    service_code: shipment.service_code,
-    collection_date: shipment.collection_date,
-    estimated_delivery_date: shipment.estimated_delivery_date,
-    reference: shipment.reference,
-    tracking_url: `https://www.fastway.org/track/${shipment.tracking_number}`,
-  };
-}
 
 // Provider-specific tracking functions
 async function trackCourierGuyShipmentUnified(
@@ -410,37 +333,14 @@ async function trackCourierGuyShipmentUnified(
   };
 }
 
-async function trackFastwayShipmentUnified(
-  trackingNumber: string,
-): Promise<UnifiedTrackingResponse> {
-  const tracking = await trackFastwayShipment(trackingNumber);
 
-  return {
-    provider: "fastway",
-    tracking_number: trackingNumber,
-    status: tracking.status,
-    current_location: tracking.current_location,
-    estimated_delivery: tracking.estimated_delivery,
-    actual_delivery: tracking.actual_delivery,
-    events: tracking.events,
-    recipient_signature: tracking.recipient_signature,
-    proof_of_delivery: tracking.proof_of_delivery,
-    tracking_url: `https://www.fastway.org/track/${trackingNumber}`,
-  };
-}
 
 // Helper functions
 function detectProviderFromTrackingNumber(
   trackingNumber: string,
-): "courier-guy" | "fastway" {
-  // Basic heuristics to detect provider from tracking number format
-  if (trackingNumber.startsWith("CG") || trackingNumber.length === 10) {
-    return "courier-guy";
-  } else if (trackingNumber.startsWith("FW") || trackingNumber.length === 12) {
-    return "fastway";
-  }
-
-  return "courier-guy"; // Default fallback
+): "courier-guy" {
+  // Only using Courier Guy now
+  return "courier-guy";
 }
 
 function mapCourierGuyStatus(
@@ -484,18 +384,7 @@ function generateFallbackQuotes(request: UnifiedQuoteRequest): UnifiedQuote[] {
       ).toISOString(),
       features: ["Reliable delivery", "Local courier", "Tracking included"],
     },
-    {
-      provider: "fastway",
-      provider_name: "Fastway Couriers",
-      service_code: "EXPRESS",
-      service_name: "Express Delivery",
-      cost: Math.round(basePrice * 1.3),
-      transit_days: 1,
-      estimated_delivery: new Date(
-        Date.now() + 1 * 24 * 60 * 60 * 1000,
-      ).toISOString(),
-      features: ["Next day delivery", "Priority handling", "Enhanced tracking"],
-    },
+
   ];
 }
 
