@@ -315,29 +315,15 @@ const handler = async (req: Request): Promise<Response> => {
     if (bankingDetails.recipient_code) {
       console.log('✅ Recipient already exists:', bankingDetails.recipient_code);
 
+      const { seller_info, subaccount_details } = generateSellerInfo(bankingDetails);
+
       return new Response(JSON.stringify({
         success: true,
         recipient_code: bankingDetails.recipient_code,
         message: 'Recipient already exists - Ready for manual payment',
         already_existed: true,
         payment_breakdown: paymentBreakdown,
-        seller_info: {
-          name: bankingDetails.business_name,
-          email: bankingDetails.email,
-          account_number: bankingDetails.account_number?.slice(-4).padStart(bankingDetails.account_number?.length || 0, '*'),
-          bank_name: bankingDetails.bank_name
-        },
-        subaccount_details: {
-          subaccount_code: bankingDetails.subaccount_code,
-          business_name: bankingDetails.business_name,
-          bank_name: bankingDetails.bank_name,
-          account_number: bankingDetails.account_number,
-          bank_code: bankingDetails.bank_code,
-          email: bankingDetails.email,
-          status: bankingDetails.status,
-          created_at: bankingDetails.created_at,
-          updated_at: bankingDetails.updated_at
-        },
+        ...{ seller_info, subaccount_details },
         payout_timeline: {
           orders_delivered: completedOrders.length,
           total_amount_due: sellerAmount,
@@ -370,30 +356,18 @@ const handler = async (req: Request): Promise<Response> => {
         })
         .eq('user_id', sellerId);
 
+      // Update banking details with new recipient code
+      bankingDetails.recipient_code = recipientCode;
+
+      const { seller_info, subaccount_details } = generateSellerInfo(bankingDetails);
+
       return new Response(JSON.stringify({
         success: true,
         recipient_code: recipientCode,
         message: 'Mock recipient created - Ready for manual payment (Development Mode)',
         development_mode: true,
         payment_breakdown: paymentBreakdown,
-        seller_info: {
-          name: bankingDetails.business_name,
-          email: bankingDetails.email,
-          account_number: bankingDetails.account_number?.slice(-4).padStart(bankingDetails.account_number?.length || 0, '*'),
-          bank_name: bankingDetails.bank_name
-        },
-        subaccount_details: {
-          subaccount_code: bankingDetails.subaccount_code,
-          business_name: bankingDetails.business_name,
-          bank_name: bankingDetails.bank_name,
-          account_number: bankingDetails.account_number,
-          bank_code: bankingDetails.bank_code,
-          email: bankingDetails.email,
-          status: bankingDetails.status,
-          created_at: bankingDetails.created_at,
-          updated_at: bankingDetails.updated_at,
-          recipient_code: recipientCode
-        },
+        ...{ seller_info, subaccount_details },
         payout_timeline: {
           orders_delivered: completedOrders.length,
           total_amount_due: sellerAmount,
@@ -461,29 +435,17 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Recipient created successfully:', recipientResult.data);
 
+    // Update banking details with new recipient code
+    bankingDetails.recipient_code = recipientCode;
+
+    const { seller_info, subaccount_details } = generateSellerInfo(bankingDetails);
+
     return new Response(JSON.stringify({
       success: true,
       recipient_code: recipientCode,
       message: 'PayStack recipient created - Ready for manual payment',
       payment_breakdown: paymentBreakdown,
-      seller_info: {
-        name: bankingDetails.business_name,
-        email: bankingDetails.email,
-        account_number: bankingDetails.account_number?.slice(-4).padStart(bankingDetails.account_number?.length || 0, '*'),
-        bank_name: bankingDetails.bank_name
-      },
-      subaccount_details: {
-        subaccount_code: bankingDetails.subaccount_code,
-        business_name: bankingDetails.business_name,
-        bank_name: bankingDetails.bank_name,
-        account_number: bankingDetails.account_number,
-        bank_code: bankingDetails.bank_code,
-        email: bankingDetails.email,
-        status: bankingDetails.status,
-        created_at: bankingDetails.created_at,
-        updated_at: bankingDetails.updated_at,
-        recipient_code: recipientCode
-      },
+      ...{ seller_info, subaccount_details },
       payout_timeline: {
         orders_delivered: completedOrders.length,
         total_amount_due: sellerAmount,
