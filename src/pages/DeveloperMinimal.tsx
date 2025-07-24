@@ -150,14 +150,30 @@ const DeveloperMinimal = () => {
 
       const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
       const duration = Date.now() - startTime;
-      
+
+      // Try to parse response body for error details
+      let responseBody = '';
+      let errorMessage = '';
+      try {
+        const responseText = await response.text();
+        responseBody = responseText;
+        if (responseText) {
+          const parsed = JSON.parse(responseText);
+          errorMessage = parsed.error || parsed.message || '';
+        }
+      } catch (e) {
+        // Response might not be JSON
+      }
+
       const testResult: TestResult = {
         test: 'Create-Recipient Function',
-        status: response.status === 404 ? 'error' : 'success',
+        status: response.status === 404 ? 'error' : (response.status === 200 ? 'success' : 'error'),
         message: response.status === 404
           ? 'Create-recipient function not found (404)'
-          : `Create-recipient function reachable (${response.status})`,
-        details: `Response time: ${duration}ms, Status: ${response.status}`
+          : response.status === 200
+          ? 'Create-recipient function working correctly'
+          : `Function error (${response.status}): ${errorMessage || 'Unknown error'}`,
+        details: `Response time: ${duration}ms, Status: ${response.status}${responseBody ? `, Response: ${responseBody.substring(0, 200)}...` : ''}`
       };
       
       setTestResults(prev => [...prev, testResult]);
