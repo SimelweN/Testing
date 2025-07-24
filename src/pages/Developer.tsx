@@ -100,6 +100,33 @@ const Developer = () => {
     paystack_configured: boolean;
   }>({ supabase_url: false, supabase_key: false, paystack_configured: false });
 
+  // Check environment variables status
+  const checkEnvironmentVariables = async () => {
+    const status = {
+      supabase_url: !!import.meta.env.VITE_SUPABASE_URL,
+      supabase_key: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
+      paystack_configured: false
+    };
+
+    // Check if Paystack is configured in the edge function
+    try {
+      const response = await fetch('/functions/v1/pay-seller', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sellerId: 'test' }) // Test call to check env
+      });
+
+      const result = await response.json();
+      // If it's a config error, Paystack is not configured
+      status.paystack_configured = !result.error?.includes('PAYSTACK_SECRET_KEY not configured');
+    } catch (error) {
+      console.log('Could not check Paystack config:', error);
+    }
+
+    setEnvStatus(status);
+    return status;
+  };
+
   // Fetch real sellers with banking details and delivered orders
   useEffect(() => {
     // Add delay and error handling to prevent immediate crashes
