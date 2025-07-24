@@ -33,7 +33,7 @@ const DeveloperMinimal = () => {
         test: 'Environment Variables',
         status: hasSupabaseUrl && hasSupabaseKey ? 'success' : 'error',
         message: hasSupabaseUrl && hasSupabaseKey ? 'All required environment variables present' : 'Missing Supabase configuration',
-        details: `Supabase URL: ${hasSupabaseUrl ? '✅' : '��'}, Supabase Key: ${hasSupabaseKey ? '✅' : '❌'}`
+        details: `Supabase URL: ${hasSupabaseUrl ? '✅' : '❌'}, Supabase Key: ${hasSupabaseKey ? '✅' : '❌'}`
       });
 
       // Check React basics
@@ -141,11 +141,11 @@ const DeveloperMinimal = () => {
       const duration = Date.now() - startTime;
       
       const testResult: TestResult = {
-        test: 'Create-Recipient Function',
+        test: 'Pay-Seller Function',
         status: response.status === 404 ? 'error' : 'success',
         message: response.status === 404
-          ? 'Create-recipient function not found (404)'
-          : `Create-recipient function reachable (${response.status})`,
+          ? 'Pay-seller function not found (404)'
+          : `Pay-seller function reachable (${response.status})`,
         details: `Response time: ${duration}ms, Status: ${response.status}`
       };
       
