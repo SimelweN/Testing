@@ -135,94 +135,53 @@ const Developer = () => {
       return;
     }
 
+    const selectedSellerData = realSellers.find(s => s.id === selectedSeller);
+    if (!selectedSellerData?.has_banking) {
+      toast.error("Selected seller does not have banking details configured");
+      return;
+    }
+
     setIsLoading(true);
     setPayoutResponse(null);
 
     try {
-      // Simulate API call to pay-seller function
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate network delay
+      console.log(`Calling pay-seller function for seller: ${selectedSeller}`);
 
-      // Mock response similar to actual pay-seller function
-      const mockResponse: PayoutResponse = {
-        success: true,
-        recipient_code: `RCP_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        message: "Mock recipient created - Ready for manual payment (Development Mode)",
-        payment_breakdown: {
-          total_orders: mockSellers.find(s => s.id === selectedSeller)?.orders || 1,
-          total_book_sales: 500.00,
-          total_delivery_fees: 50.00,
-          platform_earnings: {
-            book_commission: 50.00,
-            delivery_fees: 50.00,
-            total: 100.00
-          },
-          seller_amount: 450.00,
-          commission_structure: {
-            book_commission_rate: "10%",
-            delivery_fee_share: "100% to platform"
-          },
-          order_details: [
-            {
-              order_id: "ORD_001",
-              book: {
-                title: "Advanced Physics Textbook",
-                price: 300.00
-              },
-              buyer: {
-                name: "Sarah Johnson",
-                email: "sarah.johnson@uct.ac.za"
-              },
-              timeline: {
-                order_created: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-                payment_received: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-                seller_committed: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-                delivered: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-              },
-              amounts: {
-                book_price: 300.00,
-                delivery_fee: 30.00,
-                platform_commission: 30.00,
-                seller_earnings: 270.00
-              }
-            },
-            {
-              order_id: "ORD_002",
-              book: {
-                title: "Mathematics Guide",
-                price: 200.00
-              },
-              buyer: {
-                name: "Mike Chen",
-                email: "mike.chen@wits.ac.za"
-              },
-              timeline: {
-                order_created: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-                payment_received: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
-                seller_committed: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-                delivered: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-              },
-              amounts: {
-                book_price: 200.00,
-                delivery_fee: 20.00,
-                platform_commission: 20.00,
-                seller_earnings: 180.00
-              }
-            }
-          ]
+      // Call the actual pay-seller function
+      const response = await fetch('/api/pay-seller', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        seller_info: {
-          name: mockSellers.find(s => s.id === selectedSeller)?.name || "Unknown Seller",
-          email: mockSellers.find(s => s.id === selectedSeller)?.email || "unknown@email.com",
-          account_number: "****1234",
-          bank_name: "First National Bank"
-        }
-      };
+        body: JSON.stringify({
+          sellerId: selectedSeller
+        }),
+      });
 
-      setPayoutResponse(mockResponse);
-      toast.success("Payout function executed successfully");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        setPayoutResponse(result);
+        toast.success("Payout function executed successfully - Real recipient created!");
+      } else {
+        throw new Error(result.error || "Payout function returned unsuccessful result");
+      }
     } catch (error) {
-      console.error("Error testing payout function:", error);
-      toast.error("Failed to test payout function");
+      console.error("Error calling pay-seller function:", error);
+
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      toast.error(`Failed to execute payout function: ${errorMessage}`);
+
+      // Set error response for display
+      setPayoutResponse({
+        success: false,
+        message: `Error: ${errorMessage}`,
+      });
     } finally {
       setIsLoading(false);
     }
