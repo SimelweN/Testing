@@ -44,6 +44,7 @@ import AuthCallback from "./pages/AuthCallback";
 // Admin Pages
 import Admin from "./pages/Admin";
 import AdminReports from "./pages/AdminReports";
+import Developer from "./pages/DeveloperMinimal";
 
 
 // Support Pages
@@ -234,6 +235,14 @@ function App() {
                         element={
                           <AdminProtectedRoute>
                             <AdminReports />
+                          </AdminProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/developer"
+                        element={
+                          <AdminProtectedRoute>
+                            <Developer />
                           </AdminProtectedRoute>
                         }
                       />

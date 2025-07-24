@@ -74,6 +74,20 @@ const logDetailedError = (context: string, error: unknown) => {
     return;
   }
 
+  // Format the error properly to prevent [object Object]
+  if (error && typeof error === 'object') {
+    const errorObj = error as any;
+    console.error(`[BookQueries - ${context}]`, {
+      message: errorObj.message || 'Unknown error',
+      code: errorObj.code || 'NO_CODE',
+      details: errorObj.details || 'No details',
+      hint: errorObj.hint || 'No hint',
+      timestamp: new Date().toISOString()
+    });
+  } else {
+    console.error(`[BookQueries - ${context}]`, error);
+  }
+
   // Use safe error logging to prevent [object Object] issues
   safeLogError(`BookQueries - ${context}`, error);
 
@@ -129,6 +143,17 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
         const { data: booksData, error: booksError } = await query;
 
         if (booksError) {
+          // Log error with proper formatting to prevent [object Object]
+          console.error('Books query failed:', {
+            message: booksError.message || 'Unknown error',
+            code: booksError.code || 'NO_CODE',
+            details: booksError.details || 'No details',
+            hint: booksError.hint || 'No hint',
+            retryCount,
+            filters,
+            timestamp: new Date().toISOString()
+          });
+
           logDetailedError("Books query failed", {
             error: booksError,
             retryCount,
@@ -459,6 +484,15 @@ const getUserBooksWithFallback = async (userId: string): Promise<Book[]> => {
       .order("created_at", { ascending: false });
 
     if (booksError) {
+      // Log error with proper formatting
+      console.error('getUserBooksWithFallback - books query failed:', {
+        message: booksError.message || 'Unknown error',
+        code: booksError.code || 'NO_CODE',
+        details: booksError.details || 'No details',
+        hint: booksError.hint || 'No hint',
+        userId
+      });
+
       logDetailedError(
         "getUserBooksWithFallback - books query failed",
         booksError,

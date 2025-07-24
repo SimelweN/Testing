@@ -28,6 +28,7 @@ import AdminSettingsTab from "@/components/admin/AdminSettingsTab";
 import AdminContactTab from "@/components/admin/AdminContactTab";
 import AdminResourcesTab from "@/components/admin/AdminResourcesTab";
 import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
+import AdminPayoutTab from "@/components/admin/AdminPayoutTab";
 
 
 
@@ -51,6 +52,7 @@ import {
   Bell,
   ChevronRight,
   Code,
+  Banknote,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -385,7 +387,13 @@ const AdminDashboard = () => {
       badge: stats.unreadMessages,
       description: "Contact form messages",
     },
-
+    {
+      value: "payout",
+      label: "Payout",
+      icon: Banknote,
+      color: "text-green-600",
+      description: "Seller payouts and recipients",
+    },
     {
       value: "settings",
       label: "Settings",
@@ -620,6 +628,14 @@ const AdminDashboard = () => {
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-0">
                   <AdminContactTab />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="payout" className="mt-0 space-y-6">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-0">
+                  <AdminPayoutTab />
                 </CardContent>
               </Card>
             </TabsContent>
