@@ -288,7 +288,7 @@ const DeveloperMinimal = () => {
                   variant="outline"
                 >
                   <Code className="h-4 w-4 mr-2" />
-                  Test Pay-Seller Function
+                  Test Create-Recipient
                 </Button>
                 
                 <Button
