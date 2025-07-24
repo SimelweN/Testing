@@ -261,21 +261,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Order Statistics</h2>
-          {orders.length > 0 && (
-            <Button
-              onClick={clearAllOrders}
-              variant="outline"
-              size="sm"
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              Clear All Data
-            </Button>
-          )}
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
             <Package className="h-6 w-6 mx-auto mb-2 text-gray-600" />
@@ -311,10 +297,9 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
             <p className="text-sm text-gray-600">Cancelled</p>
           </CardContent>
         </Card>
-        </div>
       </div>
 
-            {/* Orders List */}
+      {/* Orders List */}
       <div className="mt-6">
         {orders.length === 0 ? (
           <Card>
