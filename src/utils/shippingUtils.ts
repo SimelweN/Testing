@@ -2,7 +2,7 @@ import { getCourierGuyQuote } from "@/services/courierGuyService";
 import { getShipLogicQuickQuote } from "@/services/shipLogicService";
 
 export interface ShippingProvider {
-  id: "courierGuy" | "shipLogic" | "fastway" | "unified";
+  id: "courierGuy" | "shipLogic" | "unified";
   name: string;
   description: string;
   logo: string;
@@ -26,7 +26,7 @@ export interface QuickQuoteRequest {
 }
 
 export interface QuickQuoteResponse {
-  provider: "courierGuy" | "shipLogic" | "fastway" | "unified";
+  provider: "courierGuy" | "shipLogic" | "unified";
   price: number;
   estimatedDays: number;
   serviceName: string;

@@ -215,19 +215,7 @@ class FallbackService {
     });
   }
 
-  async getFastwayQuote(data: any): Promise<ServiceResponse> {
-    return this.callWithFallback("fastway-quote", data);
-  }
 
-  async createFastwayShipment(data: any): Promise<ServiceResponse> {
-    return this.callWithFallback("fastway-shipment", data);
-  }
-
-  async trackFastway(trackingNumber: string): Promise<ServiceResponse> {
-    return this.callWithFallback("fastway-track", {
-      tracking_number: trackingNumber,
-    });
-  }
 
   // Health check methods
   async healthCheck(): Promise<{ supabase: boolean; vercel: boolean }> {

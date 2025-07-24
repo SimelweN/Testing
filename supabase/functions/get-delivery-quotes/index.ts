@@ -164,49 +164,13 @@ serve(async (req) => {
       });
     }
 
-    // Get Fastway quote
-    try {
-      const fastwayResponse = await getFastwayQuote(
-        fromAddress,
-        toAddress,
-        weight,
-      );
-      if (fastwayResponse) {
-        quotes.push({
-          service: "Fastway Standard",
-          price: fastwayResponse.price,
-          currency: "ZAR",
-          estimated_days: fastwayResponse.estimatedDays,
-          service_code: "FW_STANDARD",
-          provider: "fastway",
-        });
-      }
-    } catch (error) {
-            console.error("Fastway API error:", error?.message || error);
-            providerErrors.push({
-        provider: "fastway",
-        error: error instanceof Error ? error.message :
-               typeof error === "string" ? error :
-               "Fastway API error",
-        fallback_used: true,
-      });
-      // Add fallback quote
-      quotes.push({
-        service: "Fastway Standard (Estimated)",
-        price: 85,
-        currency: "ZAR",
-        estimated_days: 3,
-        service_code: "FW_STANDARD",
-        provider: "fastway",
-        fallback: true,
-      });
-    }
+
 
     return new Response(
       JSON.stringify({
         success: true,
         quotes,
-        providers: ["self", "courier-guy", "fastway"],
+        providers: ["self", "courier-guy"],
         total_quotes: quotes.length,
         provider_errors: providerErrors.length > 0 ? providerErrors : undefined,
         request_details: {
@@ -334,53 +298,5 @@ async function getCourierGuyQuote(
     };
   } catch (fetchError) {
     throw new Error(`Courier Guy API connection failed: ${fetchError.message}`);
-  }
-}
-
-async function getFastwayQuote(
-  fromAddress: DeliveryAddress,
-  toAddress: DeliveryAddress,
-  weight: number,
-) {
-  const apiKey = Deno.env.get("FASTWAY_API_KEY");
-  if (!apiKey) {
-    throw new Error("Fastway API key not configured - contact administrator");
-  }
-
-  console.log("Calling Fastway API...");
-
-  try {
-    const response = await fetch("https://api.fastway.org/v2/quotes", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        from_postcode: fromAddress.postalCode,
-        to_postcode: toAddress.postalCode,
-        weight: weight,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Fastway API HTTP ${response.status}: ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log("Fastway response:", data);
-
-    if (!data.quotes || data.quotes.length === 0) {
-      throw new Error("No quotes returned from Fastway API");
-    }
-
-    const quote = data.quotes[0];
-    return {
-      price: parseFloat(quote.price) || 85,
-      estimatedDays: parseInt(quote.estimated_days) || 3,
-    };
-  } catch (fetchError) {
-    throw new Error(`Fastway API connection failed: ${fetchError.message}`);
   }
 }

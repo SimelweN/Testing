@@ -50,41 +50,73 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Simplified order fetching for testing (skip complex queries for now)
-    console.log('Simplified recipient creation for seller:', sellerId);
+    // Fetch completed orders for seller
+    console.log('Fetching completed orders for seller:', sellerId);
+    
+    const { data: ordersData, error: ordersError } = await supabase
+      .from('orders')
+      .select(`
+        id,
+        seller_id,
+        buyer_id,
+        buyer_email,
+        created_at,
+        paid_at,
+        committed_at,
+        delivery_status,
+        delivery_data,
+        amount,
+        status,
+        payment_status
+      `)
+      .eq('seller_id', sellerId)
+      .eq('delivery_status', 'delivered')
+      .eq('status', 'delivered')
+      .order('created_at', { ascending: false });
 
-    let completedOrders: any[] = [];
-
-    try {
-      // Quick check if seller exists in orders table (simplified query)
-      const { data: ordersData, error: ordersError } = await supabase
-        .from('orders')
-        .select('id, seller_id, amount')
-        .eq('seller_id', sellerId)
-        .limit(5);
-
-      if (ordersError) {
-        console.log('Orders query failed, continuing without orders:', ordersError.message);
-      } else {
-        completedOrders = ordersData || [];
-      }
-    } catch (error) {
-      console.log('Exception fetching orders, continuing with mock data:', error);
+    if (ordersError) {
+      console.error('Error fetching orders:', ordersError);
+      return new Response(JSON.stringify({ 
+        error: 'Failed to fetch order data',
+        details: ordersError.message 
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
     }
+
+    const completedOrders = ordersData || [];
     console.log('Found completed orders:', completedOrders.length);
 
-    // Temporarily removed completed orders requirement for testing
-    const isTestCall = sellerId === '00000000-0000-4000-8000-000000000000';
-
-    console.log(`Found ${completedOrders.length} completed orders for seller ${sellerId}`);
-
-    // Continue without requiring completed orders for now
+    // Only create recipient if there are completed orders
     if (completedOrders.length === 0) {
-      console.log('No completed orders found, but continuing with mock data for testing');
+      return new Response(JSON.stringify({
+        error: 'No completed orders found',
+        message: 'Recipient can only be created when seller has delivered orders',
+        orders_found: 0
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
     }
 
-    // Skip buyer info fetching for now to prevent timeouts
-    const buyersInfo = {};
+    // Fetch buyer information for completed orders
+    const buyerIds = [...new Set(completedOrders.map(order => order.buyer_id).filter(Boolean))];
+    let buyersInfo = {};
+    
+    if (buyerIds.length > 0) {
+      const { data: buyersData } = await supabase
+        .from('profiles')
+        .select('id, full_name, first_name, last_name, email')
+        .in('id', buyerIds);
+      
+      if (buyersData) {
+        buyersInfo = buyersData.reduce((acc, buyer) => {
+          acc[buyer.id] = buyer;
+          return acc;
+        }, {});
+      }
+    }
 
     // Get seller banking details from banking_subaccounts table
     console.log('Fetching banking subaccount for seller:', sellerId);
@@ -119,31 +151,31 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Calculate payment breakdown from completed orders (or use test values)
-    const totalBookAmount = isTestCall && completedOrders.length === 0 ? 100 :
-      completedOrders.reduce((sum, order) => sum + Number(order.amount), 0);
-    const totalDeliveryFees = isTestCall && completedOrders.length === 0 ? 20 :
-      completedOrders.reduce((sum, order) => {
-        const deliveryData = order.delivery_data || {};
-        return sum + Number(deliveryData.delivery_fee || 0);
-      }, 0);
-
+    // Calculate payment breakdown from completed orders
+    const totalBookAmount = completedOrders.reduce((sum, order) => sum + Number(order.amount), 0);
+    const totalDeliveryFees = completedOrders.reduce((sum, order) => {
+      const deliveryData = order.delivery_data || {};
+      return sum + Number(deliveryData.delivery_fee || 0);
+    }, 0);
+    
     const platformBookCommission = totalBookAmount * 0.10; // 10% of book price
     const platformDeliveryFees = totalDeliveryFees; // 100% of delivery fees
     const totalPlatformEarnings = platformBookCommission + platformDeliveryFees;
     const sellerAmount = totalBookAmount - platformBookCommission; // Seller gets 90% of book price
     
     // Completed order details with buyer info and comprehensive timeline
-    const orderDetails = completedOrders.length > 0 ? completedOrders.map(order => {
+    const orderDetails = completedOrders.map(order => {
       const buyer = buyersInfo[order.buyer_id];
-      const buyerName = buyer?.full_name ||
+      const buyerName = buyer?.full_name || 
                        (buyer?.first_name && buyer?.last_name ? `${buyer.first_name} ${buyer.last_name}` : null) ||
                        'Anonymous Buyer';
-
+      
       const deliveryData = order.delivery_data || {};
-
+      const paymentData = order.payment_data || {};
+      
       return {
         order_id: order.id,
+        paystack_transaction_id: order.paystack_reference || order.payment_reference || paymentData.transaction_id || 'N/A',
         book: {
           title: 'Book Title',
           price: order.amount,
@@ -171,7 +203,8 @@ const handler = async (req: Request): Promise<Response> => {
           tracking_number: deliveryData.tracking_number || 'N/A',
           delivery_address: deliveryData.delivery_address || 'N/A',
           delivery_instructions: deliveryData.delivery_instructions || 'N/A',
-          delivery_status: order.delivery_status
+          delivery_status: order.delivery_status,
+          delivery_fee: deliveryData.delivery_fee || 0
         },
         amounts: {
           book_price: order.amount,
@@ -180,47 +213,10 @@ const handler = async (req: Request): Promise<Response> => {
           seller_earnings: Number(order.amount) * 0.90
         }
       };
-    }) : [{
-      order_id: 'test-order-123',
-      book: {
-        title: 'Test Book',
-        price: 100,
-        category: 'Test Category',
-        condition: 'Good'
-      },
-      buyer: {
-        name: 'Test Buyer',
-        email: 'test@example.com',
-        buyer_id: 'test-buyer-id'
-      },
-      timeline: {
-        order_created: new Date().toISOString(),
-        payment_received: new Date().toISOString(),
-        seller_committed: new Date().toISOString(),
-        book_collected: new Date().toISOString(),
-        book_picked_up: new Date().toISOString(),
-        in_transit: new Date().toISOString(),
-        out_for_delivery: new Date().toISOString(),
-        delivered: new Date().toISOString(),
-        delivery_confirmed: new Date().toISOString()
-      },
-      delivery_details: {
-        courier_service: 'Test Courier',
-        tracking_number: 'TEST123',
-        delivery_address: 'Test Address',
-        delivery_instructions: 'Test instructions',
-        delivery_status: 'delivered'
-      },
-      amounts: {
-        book_price: 100,
-        delivery_fee: 20,
-        platform_commission: 10,
-        seller_earnings: 90
-      }
-    }];
+    });
     
     const paymentBreakdown = {
-      total_orders: isTestCall && completedOrders.length === 0 ? 1 : completedOrders.length,
+      total_orders: completedOrders.length,
       total_book_sales: totalBookAmount,
       total_delivery_fees: totalDeliveryFees,
       platform_earnings: {
@@ -367,7 +363,7 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
   } catch (error: any) {
-    console.error('Error in create-recipient function:', error);
+    console.error('Error in pay-seller function:', error);
     return new Response(JSON.stringify({
       error: 'Internal server error',
       details: error.message

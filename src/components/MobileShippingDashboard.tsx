@@ -20,17 +20,17 @@ import {
   ChevronRight,
 } from "lucide-react";
 import CourierGuyTracker from "@/components/courier-guy/CourierGuyTracker";
-import FastwayTrackingOnly from "@/components/fastway/FastwayTrackingOnly";
+
 
 interface MobileShippingDashboardProps {
-  defaultProvider?: "courierGuy" | "fastway";
+  defaultProvider?: "courierGuy";
 }
 
 const MobileShippingDashboard = ({
   defaultProvider = "courierGuy",
 }: MobileShippingDashboardProps) => {
   const [selectedProvider, setSelectedProvider] = useState<
-    "courierGuy" | "fastway"
+    "courierGuy"
   >(defaultProvider);
   const [activeTab, setActiveTab] = useState<"track" | "quote">("track");
 
@@ -43,13 +43,7 @@ const MobileShippingDashboard = ({
       date: "2024-01-15",
       provider: "courierGuy",
     },
-    {
-      id: "FW987654321",
-      status: "in_transit",
-      recipient: "Jane Smith",
-      date: "2024-01-14",
-      provider: "fastway",
-    },
+
   ];
 
   const providers = [
@@ -58,14 +52,7 @@ const MobileShippingDashboard = ({
       name: "Courier Guy",
       logo: "🚚",
       rating: 4.5,
-      features: ["Same day delivery", "Tracking", "Insurance"],
-    },
-    {
-      id: "fastway",
-      name: "Fastway",
-      logo: "📦",
-      rating: 4.2,
-      features: ["Express delivery", "Parcel tracking", "Nationwide"],
+      features: ["Same day delivery", "Tracking", "Insurance", "Reliable service", "Nationwide coverage"],
     },
   ];
 
@@ -107,30 +94,18 @@ const MobileShippingDashboard = ({
         <p className="text-sm text-gray-600">Track packages and get quotes</p>
       </div>
 
-      {/* Provider Selection */}
+      {/* Provider Info */}
       <div className="px-4 py-3 bg-white border-b">
-        <div className="grid grid-cols-2 gap-3">
-          {providers.map((provider) => (
-            <Button
-              key={provider.id}
-              variant={
-                selectedProvider === provider.id ? "default" : "outline"
-              }
-              className="h-auto p-3 flex flex-col items-center space-y-1"
-              onClick={() =>
-                setSelectedProvider(
-                  provider.id as "courierGuy" | "fastway",
-                )
-              }
-            >
-              <span className="text-2xl">{provider.logo}</span>
-              <span className="text-xs font-medium">{provider.name}</span>
-              <div className="flex items-center space-x-1">
-                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                <span className="text-xs text-gray-600">{provider.rating}</span>
-              </div>
-            </Button>
-          ))}
+        <div className="flex items-center justify-center space-x-3 p-3">
+          <span className="text-3xl">🚚</span>
+          <div className="text-center">
+            <h2 className="font-semibold text-gray-900">Courier Guy</h2>
+            <div className="flex items-center justify-center space-x-1 mt-1">
+              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+              <span className="text-xs text-gray-600">4.5</span>
+              <span className="text-xs text-gray-500">• Trusted Delivery Partner</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -196,17 +171,10 @@ const MobileShippingDashboard = ({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {selectedProvider === "courierGuy" ? (
-                  <CourierGuyTracker
-                    placeholder="Enter Courier Guy tracking number"
-                    showBranding={false}
-                  />
-                ) : (
-                  <FastwayTrackingOnly
-                    placeholder="Enter Fastway tracking number"
-                    showBranding={false}
-                  />
-                )}
+                <CourierGuyTracker
+                  placeholder="Enter Courier Guy tracking number"
+                  showBranding={false}
+                />
               </CardContent>
             </Card>
           </TabsContent>

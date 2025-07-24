@@ -37,6 +37,7 @@ interface PayoutRequest {
   created_at: string;
   status: PayoutStatus;
   recipient_code?: string;
+  payment_breakdown?: any; // Store the detailed payment breakdown from edge function
   orders: Array<{
     id: string;
     book_title: string;
@@ -44,6 +45,7 @@ interface PayoutRequest {
     delivered_at: string;
     buyer_email: string;
     buyer_name?: string;
+    paystack_transaction_id?: string; // Add transaction ID field
   }>;
 }
 
@@ -391,16 +393,136 @@ const AdminPayoutTab = () => {
       if (result.success) {
         console.log('✅ Recipient created successfully:', result.recipient_code);
 
-        // Update local state
+        // Send approval email to seller
+        try {
+          const emailResponse = await fetch('/functions/v1/send-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              to: payout.seller_email,
+              subject: '🎉 Your Payout Has Been Approved - ReBooked Solutions',
+              html: `
+                <style>
+                  body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f3fef7;
+                    padding: 20px;
+                    color: #1f4e3d;
+                  }
+                  .container {
+                    max-width: 500px;
+                    margin: auto;
+                    background-color: #ffffff;
+                    padding: 30px;
+                    border-radius: 10px;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                  }
+                  .btn {
+                    display: inline-block;
+                    padding: 12px 20px;
+                    background-color: #3ab26f;
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    margin-top: 20px;
+                    font-weight: bold;
+                  }
+                  .link {
+                    color: #3ab26f;
+                  }
+                  .amount {
+                    font-size: 28px;
+                    font-weight: bold;
+                    color: #3ab26f;
+                    margin: 20px 0;
+                  }
+                  .detail-box {
+                    background-color: #f8f9fa;
+                    border-left: 4px solid #3ab26f;
+                    padding: 15px;
+                    margin: 15px 0;
+                    border-radius: 5px;
+                  }
+                </style>
+                <div class="container">
+                  <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #3ab26f; margin: 0;">🎉 Payout Approved!</h1>
+                  </div>
+
+                  <p>Dear ${payout.seller_name},</p>
+
+                  <p>Great news! Your payout request has been <strong>approved</strong> and is now being processed.</p>
+
+                  <div class="amount" style="text-align: center;">
+                    ${formatCurrency(payout.total_amount)}
+                  </div>
+
+                  <div class="detail-box">
+                    <h3 style="margin-top: 0; color: #1f4e3d;">📋 Payout Details</h3>
+                    <p><strong>Order Count:</strong> ${payout.order_count} completed orders</p>
+                    <p><strong>Payment Method:</strong> Bank Transfer</p>
+                    <p><strong>Processing Time:</strong> 1-3 business days</p>
+                    <p><strong>Recipient Code:</strong> ${result.recipient_code}</p>
+                  </div>
+
+                  <div class="detail-box">
+                    <h3 style="margin-top: 0; color: #1f4e3d;">🏦 What Happens Next?</h3>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                      <li>Your payment is being processed through our secure payment system</li>
+                      <li>Funds will be transferred to your registered bank account</li>
+                      <li>You'll receive an SMS notification when funds are available</li>
+                      <li>Payment should arrive within 1-3 business days</li>
+                    </ul>
+                  </div>
+
+                  <p>If you have any questions about your payout, please don't hesitate to contact our support team.</p>
+
+                  <div style="text-align: center; margin-top: 30px;">
+                    <a href="https://rebooked.co.za/profile" class="btn">View Your Account</a>
+                  </div>
+
+                  <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; text-align: center; color: #6c757d; font-size: 14px;">
+                    <p>Thank you for being part of ReBooked Solutions!</p>
+                    <p>
+                      <a href="https://rebooked.co.za" class="link">ReBooked Solutions</a> |
+                      <a href="mailto:support@rebooked.co.za" class="link">support@rebooked.co.za</a>
+                    </p>
+                  </div>
+                </div>
+              `
+            })
+          });
+
+          if (emailResponse.ok) {
+            console.log('✅ Approval email sent to seller:', payout.seller_email);
+          } else {
+            console.warn('⚠️ Email sending failed, but recipient created successfully');
+          }
+        } catch (emailError) {
+          console.error('Email sending error:', emailError);
+          // Don't fail the whole process if email fails
+        }
+
+        // Update local state with payment breakdown data
         setPayoutRequests(prev =>
           prev.map(p => p.id === payoutId ? {
             ...p,
             status: 'approved' as PayoutStatus,
-            recipient_code: result.recipient_code
+            recipient_code: result.recipient_code,
+            payment_breakdown: result.payment_breakdown,
+            // Update orders with transaction IDs if available
+            orders: result.payment_breakdown?.order_details ?
+              result.payment_breakdown.order_details.map((orderDetail: any, index: number) => ({
+                ...p.orders[index],
+                paystack_transaction_id: orderDetail.paystack_transaction_id,
+                id: orderDetail.order_id || p.orders[index]?.id
+              })) : p.orders
           } : p)
         );
 
-        toast.success('✅ Payout approved! Recipient created successfully.');
+        toast.success('✅ Payout approved! Recipient created and seller notified.');
         console.log('📊 Payment breakdown:', result.payment_breakdown);
         console.log('🏦 Seller info:', result.seller_info);
         console.log('📦 Subaccount details:', result.subaccount_details);
@@ -431,18 +553,135 @@ const AdminPayoutTab = () => {
 
       console.log(`Denying payout for seller: ${payout.seller_id}`);
 
-      // TODO: Implement actual denial logic with email notification
-      // For now, simulate the process
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Send denial email to seller
+      try {
+        const emailResponse = await fetch('/functions/v1/send-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            to: payout.seller_email,
+            subject: '📋 Payout Request Under Review - ReBooked Solutions',
+            html: `
+              <style>
+                body {
+                  font-family: Arial, sans-serif;
+                  background-color: #f3fef7;
+                  padding: 20px;
+                  color: #1f4e3d;
+                }
+                .container {
+                  max-width: 500px;
+                  margin: auto;
+                  background-color: #ffffff;
+                  padding: 30px;
+                  border-radius: 10px;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                }
+                .btn {
+                  display: inline-block;
+                  padding: 12px 20px;
+                  background-color: #3ab26f;
+                  color: white;
+                  text-decoration: none;
+                  border-radius: 5px;
+                  margin-top: 20px;
+                  font-weight: bold;
+                }
+                .link {
+                  color: #3ab26f;
+                }
+                .amount {
+                  font-size: 24px;
+                  font-weight: bold;
+                  color: #1f4e3d;
+                  margin: 20px 0;
+                }
+                .detail-box {
+                  background-color: #fff3cd;
+                  border-left: 4px solid #ffc107;
+                  padding: 15px;
+                  margin: 15px 0;
+                  border-radius: 5px;
+                }
+                .info-box {
+                  background-color: #f8f9fa;
+                  border-left: 4px solid #3ab26f;
+                  padding: 15px;
+                  margin: 15px 0;
+                  border-radius: 5px;
+                }
+              </style>
+              <div class="container">
+                <div style="text-align: center; margin-bottom: 30px;">
+                  <h1 style="color: #1f4e3d; margin: 0;">📋 Payout Under Review</h1>
+                </div>
 
-      console.log(`✉️ Denial email sent to ${payout.seller_email}: Payout requires additional review`);
+                <p>Dear ${payout.seller_name},</p>
+
+                <p>Thank you for your payout request. We have received your request for the following amount:</p>
+
+                <div class="amount" style="text-align: center;">
+                  ${formatCurrency(payout.total_amount)}
+                </div>
+
+                <div class="detail-box">
+                  <h3 style="margin-top: 0; color: #856404;">⏳ Current Status: Under Review</h3>
+                  <p>Your payout request is currently being reviewed by our team to ensure all requirements are met and all documentation is in order.</p>
+                </div>
+
+                <div class="info-box">
+                  <h3 style="margin-top: 0; color: #1f4e3d;">📞 What Happens Next?</h3>
+                  <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li><strong>We will be in touch within 2-3 business days</strong> with an update</li>
+                    <li>Our team may contact you to verify additional details if needed</li>
+                    <li>Once approved, your payment will be processed immediately</li>
+                    <li>You'll receive full notification of any status changes</li>
+                  </ul>
+                </div>
+
+                <div class="info-box">
+                  <h3 style="margin-top: 0; color: #1f4e3d;">📋 Payout Details Being Reviewed</h3>
+                  <p><strong>Order Count:</strong> ${payout.order_count} completed orders</p>
+                  <p><strong>Account:</strong> ${payout.seller_email}</p>
+                  <p><strong>Review ID:</strong> ${payoutId}</p>
+                </div>
+
+                <p>If you have any questions or need to provide additional information, please don't hesitate to contact our support team.</p>
+
+                <div style="text-align: center; margin-top: 30px;">
+                  <a href="https://rebooked.co.za/profile" class="btn">View Your Account</a>
+                </div>
+
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; text-align: center; color: #6c757d; font-size: 14px;">
+                  <p>We appreciate your patience as we ensure all payouts are processed securely.</p>
+                  <p>
+                    <a href="https://rebooked.co.za" class="link">ReBooked Solutions</a> |
+                    <a href="mailto:support@rebooked.co.za" class="link">support@rebooked.co.za</a>
+                  </p>
+                </div>
+              </div>
+            `
+          })
+        });
+
+        if (emailResponse.ok) {
+          console.log('✅ Denial email sent to seller:', payout.seller_email);
+        } else {
+          console.warn('⚠️ Email sending failed, but payout denied successfully');
+        }
+      } catch (emailError) {
+        console.error('Email sending error:', emailError);
+        // Don't fail the whole process if email fails
+      }
 
       // Update local state
       setPayoutRequests(prev =>
         prev.map(p => p.id === payoutId ? { ...p, status: 'denied' as PayoutStatus } : p)
       );
 
-      toast.success('❌ Payout denied and notification sent');
+      toast.success('❌ Payout denied and seller notified - We will be in touch');
       loadPayoutData(); // Reload to update stats
     } catch (error) {
       console.error('Error denying payout:', error);
@@ -668,7 +907,19 @@ const AdminPayoutTab = () => {
                                 <span className="font-bold text-green-600">{formatCurrency(order.amount)}</span>
                               </div>
 
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                                {/* Order & Payment IDs */}
+                                <div className="space-y-2">
+                                  <h5 className="font-medium text-gray-800 flex items-center">
+                                    <CreditCard className="h-3 w-3 mr-1" />
+                                    Order & Payment IDs
+                                  </h5>
+                                  <div className="pl-4 space-y-1">
+                                    <div><span className="text-gray-600">Order ID:</span> <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">{order.id}</span></div>
+                                    <div><span className="text-gray-600">Transaction ID:</span> <span className="font-mono text-xs bg-blue-100 px-2 py-1 rounded">{(order as any).paystack_transaction_id || 'N/A'}</span></div>
+                                  </div>
+                                </div>
+
                                 {/* Buyer Information */}
                                 <div className="space-y-2">
                                   <h5 className="font-medium text-gray-800 flex items-center">
@@ -779,17 +1030,77 @@ const AdminPayoutTab = () => {
                           </div>
                         </div>
 
+                        {/* Payment Breakdown for Approved Payouts */}
+                        {payout.payment_breakdown && activeTab === 'approved' && (
+                          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                            <h4 className="font-medium text-green-900 mb-3 flex items-center">
+                              <DollarSign className="h-4 w-4 mr-2" />
+                              Payment Breakdown (Approved)
+                            </h4>
+                            <div className="space-y-3 text-sm">
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <span className="text-green-800">Total Orders:</span>
+                                  <div className="font-medium">{payout.payment_breakdown.total_orders}</div>
+                                </div>
+                                <div>
+                                  <span className="text-green-800">Platform Commission:</span>
+                                  <div className="font-medium">{formatCurrency(payout.payment_breakdown.platform_earnings?.book_commission || 0)}</div>
+                                </div>
+                              </div>
+
+                              {/* Transaction Details */}
+                              {payout.payment_breakdown.order_details && (
+                                <div className="mt-4">
+                                  <h5 className="font-medium text-green-800 mb-2">Transaction Details:</h5>
+                                  <div className="space-y-2">
+                                    {payout.payment_breakdown.order_details.map((orderDetail: any, index: number) => (
+                                      <div key={index} className="bg-white rounded border p-3">
+                                        <div className="grid grid-cols-2 gap-2 text-xs">
+                                          <div>
+                                            <span className="text-gray-600">Order ID:</span>
+                                            <div className="font-mono bg-gray-100 px-2 py-1 rounded">{orderDetail.order_id}</div>
+                                          </div>
+                                          <div>
+                                            <span className="text-gray-600">Transaction ID:</span>
+                                            <div className="font-mono bg-blue-100 px-2 py-1 rounded">{orderDetail.paystack_transaction_id}</div>
+                                          </div>
+                                        </div>
+                                        <div className="mt-2 text-xs">
+                                          <span className="text-gray-600">Amount:</span> <span className="font-medium">{formatCurrency(orderDetail.amounts?.book_price || 0)}</span>
+                                          <span className="ml-4 text-gray-600">Seller Gets:</span> <span className="font-medium text-green-600">{formatCurrency(orderDetail.amounts?.seller_earnings || 0)}</span>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
                         {/* Next Steps Information */}
                         <div className="bg-gray-100 rounded-lg p-4">
                           <h4 className="font-medium text-gray-900 mb-2 flex items-center">
                             <Info className="h-4 w-4 mr-2" />
-                            What happens after approval?
+                            {activeTab === 'approved' ? 'Payment Processing Status' : 'What happens after approval?'}
                           </h4>
                           <div className="space-y-1 text-sm text-gray-700">
-                            <div>• Seller receives email confirmation that payment is being processed</div>
-                            <div>• Payment is transferred to seller's bank account (1-3 business days)</div>
-                            <div>• Seller receives SMS notification when funds are available</div>
-                            <div>• Transaction is marked as completed in the system</div>
+                            {activeTab === 'approved' ? (
+                              <>
+                                <div>• ✅ Seller has been notified via email</div>
+                                <div>• ✅ Payment recipient created successfully</div>
+                                <div>• 🔄 Funds transfer in progress (1-3 business days)</div>
+                                <div>• 📱 Seller will receive SMS when funds are available</div>
+                              </>
+                            ) : (
+                              <>
+                                <div>• Seller receives email confirmation that payment is being processed</div>
+                                <div>• Payment is transferred to seller's bank account (1-3 business days)</div>
+                                <div>• Seller receives SMS notification when funds are available</div>
+                                <div>• Transaction is marked as completed in the system</div>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
