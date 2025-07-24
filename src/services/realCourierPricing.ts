@@ -27,7 +27,7 @@ interface CourierQuote {
   price: number;
   estimated_days: string;
   description: string;
-  provider: "courier-guy" | "fastway";
+  provider: "courier-guy";
 }
 
 export class RealCourierPricing {
@@ -78,52 +78,7 @@ export class RealCourierPricing {
     }
   }
 
-  static async getFastwayQuotes(
-    request: QuoteRequest,
-  ): Promise<CourierQuote[]> {
-    try {
-      // In a real implementation, this would call the Fastway API
-      // For now, return zone-based pricing
-      const zone = this.calculateZone(request.from, request.to);
 
-      const quotes: CourierQuote[] = [];
-
-      switch (zone) {
-        case "local":
-          quotes.push({
-            service_name: "Fastway - Local Express",
-            price: 95,
-            estimated_days: "1-2",
-            description: "Same city express delivery",
-            provider: "fastway",
-          });
-          break;
-        case "provincial":
-          quotes.push({
-            service_name: "Fastway - Provincial Express",
-            price: 135,
-            estimated_days: "2-3",
-            description: "Provincial express delivery",
-            provider: "fastway",
-          });
-          break;
-        case "national":
-          quotes.push({
-            service_name: "Fastway - National Express",
-            price: 200,
-            estimated_days: "3-4",
-            description: "National express delivery",
-            provider: "fastway",
-          });
-          break;
-      }
-
-      return quotes;
-    } catch (error) {
-      console.error("Error getting Fastway quotes:", error);
-      return [];
-    }
-  }
 
   private static calculateZone(
     from: Address,
