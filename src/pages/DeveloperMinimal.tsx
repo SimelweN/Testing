@@ -152,9 +152,9 @@ const DeveloperMinimal = () => {
       setTestResults(prev => [...prev, testResult]);
       
       if (response.status === 404) {
-        toast.warning('Edge function not deployed or not accessible');
+        toast.warning('Create-recipient function not deployed or not accessible');
       } else {
-        toast.success('Edge function is reachable');
+        toast.success('Create-recipient function is reachable');
       }
       
     } catch (error) {
