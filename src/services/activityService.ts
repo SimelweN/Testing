@@ -235,8 +235,8 @@ export class ActivityService {
             "⚠️ Non-critical error fetching notifications, falling back to sample data:",
             notifError.message || notifError,
           );
-          // Return sample activities as fallback
-          return this.createSampleActivities(userId);
+          // Return empty array as fallback
+          return [];
         }
 
         console.log(
@@ -271,7 +271,7 @@ export class ActivityService {
           "Exception during notifications fallback",
           fallbackError,
         );
-        return this.createSampleActivities(userId);
+        return [];
       }
     } catch (error) {
       this.logDetailedError("Error fetching user activities", error);
