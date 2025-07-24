@@ -217,6 +217,37 @@ const DeveloperMinimal = () => {
     toast.info('Test results cleared');
   };
 
+  // Fetch sellers from database
+  const fetchSellers = async () => {
+    setLoadingSellers(true);
+    try {
+      const { data: sellersData, error } = await supabase
+        .from('profiles')
+        .select('id, name, email')
+        .not('name', 'is', null)
+        .order('name', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching sellers:', error);
+        toast.error('Failed to load sellers');
+        return;
+      }
+
+      setSellers(sellersData || []);
+      toast.success(`Loaded ${sellersData?.length || 0} sellers`);
+    } catch (error) {
+      console.error('Exception fetching sellers:', error);
+      toast.error('Failed to load sellers');
+    } finally {
+      setLoadingSellers(false);
+    }
+  };
+
+  // Load sellers on component mount
+  useEffect(() => {
+    fetchSellers();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header */}
