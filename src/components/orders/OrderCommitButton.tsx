@@ -64,8 +64,16 @@ const OrderCommitButton: React.FC<OrderCommitButtonProps> = ({
       );
 
       if (error) {
-        console.error("Supabase function error:", error);
-        console.error("Error details:", { error, data });
+        console.error("Supabase function error:", {
+          message: error?.message || 'Unknown error',
+          code: error?.code || 'NO_CODE',
+          details: error?.details || 'No details'
+        });
+        console.error("Error details:", {
+          errorType: typeof error,
+          dataReceived: data,
+          timestamp: new Date().toISOString()
+        });
 
         // More specific error handling for edge functions
         let errorMessage = "Failed to call commit function";

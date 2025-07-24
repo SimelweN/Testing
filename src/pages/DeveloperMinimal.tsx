@@ -2,9 +2,13 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Code, Play, CheckCircle, AlertCircle, RefreshCw, Terminal, Zap } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Code, Play, CheckCircle, AlertCircle, RefreshCw, Terminal, Zap, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 // Simple, safe interfaces
 interface TestResult {
@@ -14,11 +18,20 @@ interface TestResult {
   details?: string;
 }
 
+interface Seller {
+  id: string;
+  name: string;
+  email: string;
+}
+
 const DeveloperMinimal = () => {
   const navigate = useNavigate();
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [isRunningTests, setIsRunningTests] = useState(false);
   const [componentStatus, setComponentStatus] = useState<'loading' | 'ready' | 'error'>('ready');
+  const [sellerIdInput, setSellerIdInput] = useState('00000000-0000-4000-8000-000000000000');
+  const [sellers, setSellers] = useState<Seller[]>([]);
+  const [loadingSellers, setLoadingSellers] = useState(false);
 
   // Safe environment check - no async calls
   const checkEnvironment = (): TestResult[] => {
@@ -122,37 +135,65 @@ const DeveloperMinimal = () => {
   // Test edge function availability (safe, no crashing)
   const testEdgeFunction = async () => {
     const startTime = Date.now();
-    
+
     try {
       toast.info('Testing create-recipient function connectivity...');
-      
+
+      // Get Supabase URL from environment
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) {
+        throw new Error('VITE_SUPABASE_URL not configured');
+      }
+
       // Very basic connectivity test with timeout
-      const timeoutPromise = new Promise((_, reject) => 
+      const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Request timeout (5s)')), 5000)
       );
-      
-      const fetchPromise = fetch('/functions/v1/create-recipient', {
+
+      // Use correct Supabase functions endpoint
+      const functionsUrl = `${supabaseUrl}/functions/v1/create-recipient`;
+      const fetchPromise = fetch(functionsUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sellerId: 'connectivity-test' })
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({ sellerId: sellerIdInput.trim() })
       });
-      
+
       const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
       const duration = Date.now() - startTime;
-      
+
+      // Try to parse response body for error details
+      let responseBody = '';
+      let errorMessage = '';
+      let parsedResponse: any = null;
+
+      try {
+        responseBody = await response.text();
+        if (responseBody) {
+          parsedResponse = JSON.parse(responseBody);
+          errorMessage = parsedResponse.error || parsedResponse.message || 'Unknown error';
+        }
+      } catch (e) {
+        errorMessage = `Parse error: ${responseBody.substring(0, 100)}`;
+      }
+
       const testResult: TestResult = {
         test: 'Create-Recipient Function',
-        status: response.status === 404 ? 'error' : 'success',
+        status: response.status === 404 ? 'error' : (response.status === 200 ? 'success' : 'error'),
         message: response.status === 404
           ? 'Create-recipient function not found (404)'
-          : `Create-recipient function reachable (${response.status})`,
-        details: `Response time: ${duration}ms, Status: ${response.status}`
+          : response.status === 200
+          ? 'Create-recipient function working correctly'
+          : `Function error (${response.status}): ${errorMessage || 'Unknown error'}`,
+        details: `Response time: ${duration}ms, Status: ${response.status}${responseBody ? `, Response: ${responseBody.substring(0, 200)}...` : ''}`
       };
       
       setTestResults(prev => [...prev, testResult]);
       
       if (response.status === 404) {
-        toast.warning('Create-recipient function not deployed or not accessible');
+        toast.warning('Create-recipient function not deployed - needs deployment');
       } else {
         toast.success('Create-recipient function is reachable');
       }
@@ -175,6 +216,37 @@ const DeveloperMinimal = () => {
     setTestResults([]);
     toast.info('Test results cleared');
   };
+
+  // Fetch sellers from database
+  const fetchSellers = async () => {
+    setLoadingSellers(true);
+    try {
+      const { data: sellersData, error } = await supabase
+        .from('profiles')
+        .select('id, name, email')
+        .not('name', 'is', null)
+        .order('name', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching sellers:', error);
+        toast.error('Failed to load sellers');
+        return;
+      }
+
+      setSellers(sellersData || []);
+      toast.success(`Loaded ${sellersData?.length || 0} sellers`);
+    } catch (error) {
+      console.error('Exception fetching sellers:', error);
+      toast.error('Failed to load sellers');
+    } finally {
+      setLoadingSellers(false);
+    }
+  };
+
+  // Load sellers on component mount
+  useEffect(() => {
+    fetchSellers();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -263,6 +335,48 @@ const DeveloperMinimal = () => {
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div>
+                  <label htmlFor="sellerId" className="block text-sm font-medium text-gray-700 mb-1">
+                    <Users className="h-4 w-4 inline mr-1" />
+                    Select Seller for Create-Recipient Test
+                  </label>
+                  <Select
+                    value={sellerIdInput}
+                    onValueChange={setSellerIdInput}
+                    disabled={loadingSellers}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={loadingSellers ? "Loading sellers..." : "Choose a seller"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="00000000-0000-4000-8000-000000000000">
+                        🧪 Test Seller (Mock Data)
+                      </SelectItem>
+                      {sellers.map((seller) => (
+                        <SelectItem key={seller.id} value={seller.id}>
+                          {seller.name || 'Unnamed'} ({seller.email || 'No email'})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-500">
+                      {loadingSellers ? 'Loading...' : `${sellers.length} sellers available`}
+                    </p>
+                    <Button
+                      onClick={fetchSellers}
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-6"
+                      disabled={loadingSellers}
+                    >
+                      <RefreshCw className={`h-3 w-3 mr-1 ${loadingSellers ? 'animate-spin' : ''}`} />
+                      Refresh
+                    </Button>
+                  </div>
+                </div>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <Button
                   onClick={runBasicTests}
@@ -370,6 +484,35 @@ const DeveloperMinimal = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Deployment Guidance */}
+          <Card className="border-2 border-orange-200 bg-orange-50">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <AlertCircle className="h-5 w-5 text-orange-600" />
+                <span>Edge Function Deployment Status</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <p className="text-sm text-orange-800">
+                  The create-recipient function returned a 404 error, indicating it's not deployed to Supabase.
+                </p>
+                <div className="bg-white p-3 rounded border border-orange-200">
+                  <h4 className="font-medium text-gray-900 mb-2">To fix this issue:</h4>
+                  <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside">
+                    <li>The function has been added to the deployment script</li>
+                    <li>Run: <code className="bg-gray-100 px-1 rounded">./deploy-functions.sh</code></li>
+                    <li>Or manually deploy: <code className="bg-gray-100 px-1 rounded">supabase functions deploy create-recipient</code></li>
+                    <li>Verify deployment in Supabase Dashboard</li>
+                  </ol>
+                </div>
+                <p className="text-xs text-orange-700">
+                  Note: You need Supabase CLI installed and authenticated for deployment.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* System Status */}
           <Card>
