@@ -1030,17 +1030,77 @@ const AdminPayoutTab = () => {
                           </div>
                         </div>
 
+                        {/* Payment Breakdown for Approved Payouts */}
+                        {payout.payment_breakdown && activeTab === 'approved' && (
+                          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                            <h4 className="font-medium text-green-900 mb-3 flex items-center">
+                              <DollarSign className="h-4 w-4 mr-2" />
+                              Payment Breakdown (Approved)
+                            </h4>
+                            <div className="space-y-3 text-sm">
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <span className="text-green-800">Total Orders:</span>
+                                  <div className="font-medium">{payout.payment_breakdown.total_orders}</div>
+                                </div>
+                                <div>
+                                  <span className="text-green-800">Platform Commission:</span>
+                                  <div className="font-medium">{formatCurrency(payout.payment_breakdown.platform_earnings?.book_commission || 0)}</div>
+                                </div>
+                              </div>
+
+                              {/* Transaction Details */}
+                              {payout.payment_breakdown.order_details && (
+                                <div className="mt-4">
+                                  <h5 className="font-medium text-green-800 mb-2">Transaction Details:</h5>
+                                  <div className="space-y-2">
+                                    {payout.payment_breakdown.order_details.map((orderDetail: any, index: number) => (
+                                      <div key={index} className="bg-white rounded border p-3">
+                                        <div className="grid grid-cols-2 gap-2 text-xs">
+                                          <div>
+                                            <span className="text-gray-600">Order ID:</span>
+                                            <div className="font-mono bg-gray-100 px-2 py-1 rounded">{orderDetail.order_id}</div>
+                                          </div>
+                                          <div>
+                                            <span className="text-gray-600">Transaction ID:</span>
+                                            <div className="font-mono bg-blue-100 px-2 py-1 rounded">{orderDetail.paystack_transaction_id}</div>
+                                          </div>
+                                        </div>
+                                        <div className="mt-2 text-xs">
+                                          <span className="text-gray-600">Amount:</span> <span className="font-medium">{formatCurrency(orderDetail.amounts?.book_price || 0)}</span>
+                                          <span className="ml-4 text-gray-600">Seller Gets:</span> <span className="font-medium text-green-600">{formatCurrency(orderDetail.amounts?.seller_earnings || 0)}</span>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
                         {/* Next Steps Information */}
                         <div className="bg-gray-100 rounded-lg p-4">
                           <h4 className="font-medium text-gray-900 mb-2 flex items-center">
                             <Info className="h-4 w-4 mr-2" />
-                            What happens after approval?
+                            {activeTab === 'approved' ? 'Payment Processing Status' : 'What happens after approval?'}
                           </h4>
                           <div className="space-y-1 text-sm text-gray-700">
-                            <div>• Seller receives email confirmation that payment is being processed</div>
-                            <div>• Payment is transferred to seller's bank account (1-3 business days)</div>
-                            <div>• Seller receives SMS notification when funds are available</div>
-                            <div>�� Transaction is marked as completed in the system</div>
+                            {activeTab === 'approved' ? (
+                              <>
+                                <div>• ✅ Seller has been notified via email</div>
+                                <div>• ✅ Payment recipient created successfully</div>
+                                <div>• 🔄 Funds transfer in progress (1-3 business days)</div>
+                                <div>• 📱 Seller will receive SMS when funds are available</div>
+                              </>
+                            ) : (
+                              <>
+                                <div>• Seller receives email confirmation that payment is being processed</div>
+                                <div>• Payment is transferred to seller's bank account (1-3 business days)</div>
+                                <div>• Seller receives SMS notification when funds are available</div>
+                                <div>• Transaction is marked as completed in the system</div>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
