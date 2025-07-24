@@ -139,9 +139,89 @@ const AdminPayoutTab = () => {
       }
 
       if (!bankingAccounts || bankingAccounts.length === 0) {
-        toast.info("No sellers with banking details found");
-        setPayoutRequests([]);
-        setPayoutStats({ pending: 0, approved: 0, denied: 0, total_approved_amount: 0 });
+        console.log("No banking accounts found, using demo data");
+        toast.info("No sellers with banking details found - Using demo data");
+
+        // Use demo data instead of returning early
+        const demoPayouts: PayoutRequest[] = [
+          {
+            id: 'demo_payout_1',
+            seller_id: 'demo_seller_1',
+            seller_name: 'Demo Academic Seller',
+            seller_email: 'demo.seller@university.com',
+            total_amount: 1800, // R2000 * 0.9
+            order_count: 2,
+            created_at: new Date().toISOString(),
+            status: 'pending',
+            orders: [
+              {
+                id: 'demo_order_1',
+                book_title: 'Engineering Mathematics 3rd Edition',
+                amount: 1200,
+                delivered_at: new Date(Date.now() - 86400000).toISOString(),
+                buyer_email: 'student1@university.com',
+                buyer_name: 'Student A'
+              },
+              {
+                id: 'demo_order_2',
+                book_title: 'Computer Science Fundamentals',
+                amount: 800,
+                delivered_at: new Date(Date.now() - 172800000).toISOString(),
+                buyer_email: 'student2@university.com',
+                buyer_name: 'Student B'
+              }
+            ]
+          },
+          {
+            id: 'demo_payout_2',
+            seller_id: 'demo_seller_2',
+            seller_name: 'Demo Science Seller',
+            seller_email: 'science.seller@university.com',
+            total_amount: 900,
+            order_count: 1,
+            created_at: new Date(Date.now() - 86400000).toISOString(),
+            status: 'approved',
+            recipient_code: 'RCP_DEMO_123',
+            orders: [
+              {
+                id: 'demo_order_3',
+                book_title: 'Physics for Engineers',
+                amount: 1000,
+                delivered_at: new Date(Date.now() - 172800000).toISOString(),
+                buyer_email: 'student3@university.com',
+                buyer_name: 'Student C'
+              }
+            ]
+          },
+          {
+            id: 'demo_payout_3',
+            seller_id: 'demo_seller_3',
+            seller_name: 'Demo Law Seller',
+            seller_email: 'law.seller@university.com',
+            total_amount: 450,
+            order_count: 1,
+            created_at: new Date(Date.now() - 172800000).toISOString(),
+            status: 'denied',
+            orders: [
+              {
+                id: 'demo_order_4',
+                book_title: 'Constitutional Law Handbook',
+                amount: 500,
+                delivered_at: new Date(Date.now() - 259200000).toISOString(),
+                buyer_email: 'student4@university.com',
+                buyer_name: 'Student D'
+              }
+            ]
+          }
+        ];
+
+        setPayoutRequests(demoPayouts);
+        setPayoutStats({
+          pending: 1,
+          approved: 1,
+          denied: 1,
+          total_approved_amount: 900
+        });
         return;
       }
 
