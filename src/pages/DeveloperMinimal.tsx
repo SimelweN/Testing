@@ -33,7 +33,7 @@ const DeveloperMinimal = () => {
         test: 'Environment Variables',
         status: hasSupabaseUrl && hasSupabaseKey ? 'success' : 'error',
         message: hasSupabaseUrl && hasSupabaseKey ? 'All required environment variables present' : 'Missing Supabase configuration',
-        details: `Supabase URL: ${hasSupabaseUrl ? '✅' : '❌'}, Supabase Key: ${hasSupabaseKey ? '✅' : '❌'}`
+        details: `Supabase URL: ${hasSupabaseUrl ? '✅' : '��'}, Supabase Key: ${hasSupabaseKey ? '✅' : '❌'}`
       });
 
       // Check React basics
@@ -131,7 +131,7 @@ const DeveloperMinimal = () => {
         setTimeout(() => reject(new Error('Request timeout (5s)')), 5000)
       );
       
-      const fetchPromise = fetch('/functions/v1/create-recipient', {
+      const fetchPromise = fetch('/functions/v1/pay-seller', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sellerId: 'connectivity-test' })
