@@ -129,6 +129,9 @@ const Developer = () => {
 
   // Fetch real sellers with banking details and delivered orders
   useEffect(() => {
+    // Check environment variables first
+    checkEnvironmentVariables();
+
     // Add delay and error handling to prevent immediate crashes
     const timer = setTimeout(() => {
       loadRealSellers().catch((error) => {
