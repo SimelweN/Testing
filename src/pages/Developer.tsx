@@ -288,22 +288,84 @@ const Developer = () => {
       return;
     }
 
-    if (!import.meta.env.VITE_SUPABASE_URL) {
-      toast.error("Supabase URL not configured");
-      return;
-    }
-
     setIsLoading(true);
     setPayoutResponse(null);
 
     try {
-      console.log(`Calling pay-seller edge function for seller: ${selectedSeller}`);
+      console.log(`Testing with seller: ${selectedSeller}`);
       console.log('Selected seller data:', selectedSellerData);
 
-      // Call the Supabase edge function directly
-      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pay-seller`;
-      console.log('Function URL:', functionUrl);
+      // Check if this is a demo seller (when database isn't accessible)
+      if (selectedSeller.startsWith('demo_seller_')) {
+        console.log('Demo mode - simulating pay-seller function');
 
+        // Simulate the pay-seller function response for demo
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        const demoResponse = {
+          success: true,
+          recipient_code: `DEMO_RCP_${Date.now()}`,
+          message: "Demo recipient created - This is a simulation (Database not accessible)",
+          development_mode: true,
+          payment_breakdown: {
+            total_orders: selectedSellerData.orders,
+            total_book_sales: selectedSellerData.orders * 200.00,
+            total_delivery_fees: selectedSellerData.orders * 25.00,
+            platform_earnings: {
+              book_commission: selectedSellerData.orders * 20.00,
+              delivery_fees: selectedSellerData.orders * 25.00,
+              total: selectedSellerData.orders * 45.00
+            },
+            seller_amount: selectedSellerData.orders * 180.00,
+            commission_structure: {
+              book_commission_rate: "10%",
+              delivery_fee_share: "100% to platform"
+            },
+            order_details: Array.from({length: selectedSellerData.orders}, (_, i) => ({
+              order_id: `DEMO_ORD_${i + 1}`,
+              book: {
+                title: `Demo Book ${i + 1}`,
+                price: 200.00
+              },
+              buyer: {
+                name: `Demo Buyer ${i + 1}`,
+                email: `buyer${i + 1}@demo.com`
+              },
+              timeline: {
+                order_created: new Date(Date.now() - (7 - i) * 24 * 60 * 60 * 1000).toISOString(),
+                payment_received: new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000).toISOString(),
+                seller_committed: new Date(Date.now() - (5 - i) * 24 * 60 * 60 * 1000).toISOString(),
+                delivered: new Date(Date.now() - (1 + i) * 24 * 60 * 60 * 1000).toISOString()
+              },
+              amounts: {
+                book_price: 200.00,
+                delivery_fee: 25.00,
+                platform_commission: 20.00,
+                seller_earnings: 180.00
+              }
+            }))
+          },
+          seller_info: {
+            name: selectedSellerData.name,
+            email: selectedSellerData.email,
+            account_number: "****DEMO",
+            bank_name: "Demo Bank"
+          }
+        };
+
+        setPayoutResponse(demoResponse);
+        toast.success("Demo pay-seller function executed - This is a simulation!");
+        return;
+      }
+
+      // Real function call for actual sellers
+      if (!import.meta.env.VITE_SUPABASE_URL) {
+        throw new Error("Supabase URL not configured");
+      }
+
+      console.log('Calling real pay-seller edge function...');
+
+      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pay-seller`;
       const response = await fetch(functionUrl, {
         method: 'POST',
         headers: {
@@ -315,26 +377,14 @@ const Developer = () => {
         }),
       });
 
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
+      const responseText = await response.text();
+      console.log('Function response:', responseText);
 
       let result;
-      let errorText = '';
-
       try {
-        // Try to parse as JSON first
-        const responseText = await response.text();
-        console.log('Response text:', responseText);
-
-        if (responseText) {
-          result = JSON.parse(responseText);
-        } else {
-          throw new Error('Empty response from server');
-        }
+        result = responseText ? JSON.parse(responseText) : {};
       } catch (parseError) {
-        console.error('Error parsing response:', parseError);
-        errorText = `Failed to parse response: ${parseError.message}`;
-        throw new Error(errorText);
+        throw new Error(`Failed to parse function response: ${parseError.message}`);
       }
 
       if (!response.ok) {
@@ -345,7 +395,6 @@ const Developer = () => {
       if (result.success) {
         setPayoutResponse(result);
         toast.success("Real pay-seller function executed successfully - Recipient created!");
-        console.log('Function result:', result);
       } else {
         throw new Error(result.error || result.message || "Pay-seller function returned unsuccessful result");
       }
@@ -355,7 +404,6 @@ const Developer = () => {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       toast.error(`Failed to execute pay-seller function: ${errorMessage}`);
 
-      // Set error response for display
       setPayoutResponse({
         success: false,
         message: `Error: ${errorMessage}`,
