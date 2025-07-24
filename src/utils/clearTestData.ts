@@ -13,16 +13,59 @@ export const clearAllTestData = async (): Promise<boolean> => {
     console.log("🗑️ Starting to clear test data...");
 
     // Delete orders where book title is null/empty or buyer/seller names are null
-    const { error: ordersError, count } = await supabase
+    // Split into multiple queries to avoid complex OR syntax issues
+    let totalOrdersDeleted = 0;
+
+    // Delete orders with null book_id
+    const { error: bookIdError, count: bookIdCount } = await supabase
       .from("orders")
       .delete({ count: "exact" })
-      .or(
-        "book_id.is.null," +
-        "buyer_id.is.null," +
-        "seller_id.is.null," +
-        "total_amount.is.null," +
-        "total_amount.eq.0"
-      );
+      .is("book_id", null);
+
+    if (bookIdError) {
+      console.error("Error deleting orders with null book_id:", bookIdError);
+    } else {
+      totalOrdersDeleted += bookIdCount || 0;
+    }
+
+    // Delete orders with null buyer_id
+    const { error: buyerIdError, count: buyerIdCount } = await supabase
+      .from("orders")
+      .delete({ count: "exact" })
+      .is("buyer_id", null);
+
+    if (buyerIdError) {
+      console.error("Error deleting orders with null buyer_id:", buyerIdError);
+    } else {
+      totalOrdersDeleted += buyerIdCount || 0;
+    }
+
+    // Delete orders with null seller_id
+    const { error: sellerIdError, count: sellerIdCount } = await supabase
+      .from("orders")
+      .delete({ count: "exact" })
+      .is("seller_id", null);
+
+    if (sellerIdError) {
+      console.error("Error deleting orders with null seller_id:", sellerIdError);
+    } else {
+      totalOrdersDeleted += sellerIdCount || 0;
+    }
+
+    // Delete orders with zero amount
+    const { error: amountError, count: amountCount } = await supabase
+      .from("orders")
+      .delete({ count: "exact" })
+      .eq("total_amount", 0);
+
+    if (amountError) {
+      console.error("Error deleting orders with zero amount:", amountError);
+    } else {
+      totalOrdersDeleted += amountCount || 0;
+    }
+
+    const count = totalOrdersDeleted;
+    const ordersError = null; // No single error since we're doing multiple queries
 
     if (ordersError) {
       console.error("Error deleting test orders:", {
