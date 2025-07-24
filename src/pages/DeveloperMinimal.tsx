@@ -146,7 +146,7 @@ const DeveloperMinimal = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
         },
-        body: JSON.stringify({ sellerId: '00000000-0000-4000-8000-000000000000' })
+        body: JSON.stringify({ sellerId: sellerIdInput.trim() })
       });
 
       const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
