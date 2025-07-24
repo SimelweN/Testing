@@ -25,8 +25,13 @@ export const clearAllTestData = async (): Promise<boolean> => {
       );
 
     if (ordersError) {
-      console.error("Error deleting test orders:", ordersError);
-      toast.error("Failed to clear test orders: " + ordersError.message);
+      console.error("Error deleting test orders:", {
+        message: ordersError.message,
+        details: ordersError.details,
+        hint: ordersError.hint,
+        code: ordersError.code
+      });
+      toast.error("Failed to clear test orders: " + (ordersError.message || ordersError.details || "Unknown error"));
       return false;
     }
 
