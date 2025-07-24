@@ -78,20 +78,56 @@ interface PayoutResponse {
   };
 }
 
+interface RealSeller {
+  id: string;
+  name: string;
+  email: string;
+  orders: number;
+  has_banking: boolean;
+}
+
 const Developer = () => {
   const navigate = useNavigate();
   const [selectedSeller, setSelectedSeller] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [payoutResponse, setPayoutResponse] = useState<PayoutResponse | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [realSellers, setRealSellers] = useState<RealSeller[]>([]);
+  const [loadingSellers, setLoadingSellers] = useState(true);
 
-  // Mock sellers with delivered orders
-  const mockSellers = [
-    { id: "seller_001", name: "John Doe", email: "john.doe@email.com", orders: 3 },
-    { id: "seller_002", name: "Jane Smith", email: "jane.smith@email.com", orders: 2 },
-    { id: "seller_003", name: "Mike Johnson", email: "mike.johnson@email.com", orders: 1 },
-    { id: "seller_004", name: "Sarah Wilson", email: "sarah.wilson@email.com", orders: 4 },
-  ];
+  // Fetch real sellers with banking details and delivered orders
+  useEffect(() => {
+    loadRealSellers();
+  }, []);
+
+  const loadRealSellers = async () => {
+    setLoadingSellers(true);
+    try {
+      // This would be replaced with actual API call to fetch sellers
+      // For now, showing the structure for real data
+      const response = await fetch('/api/get-sellers-with-delivered-orders');
+      if (!response.ok) {
+        throw new Error('Failed to fetch sellers');
+      }
+
+      const data = await response.json();
+      setRealSellers(data.sellers || []);
+
+      if (data.sellers && data.sellers.length === 0) {
+        toast.info("No sellers with delivered orders and banking details found");
+      }
+    } catch (error) {
+      console.error('Error loading real sellers:', error);
+      toast.error('Failed to load sellers. Using fallback demo for testing.');
+
+      // Fallback to show the structure - in real implementation, this would be empty
+      setRealSellers([
+        { id: "demo_seller", name: "Demo Seller (No Real Data)", email: "demo@example.com", orders: 0, has_banking: false }
+      ]);
+    } finally {
+      setLoadingSellers(false);
+    }
+  };
 
   const handleTestPayoutFunction = async () => {
     if (!selectedSeller) {
