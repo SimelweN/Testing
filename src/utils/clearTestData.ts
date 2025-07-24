@@ -113,34 +113,53 @@ export const clearAllTestData = async (): Promise<boolean> => {
       }
     }
 
-    // Clear any notifications related to test data
+    // Clear any notifications related to test data - split into multiple queries
     let notifCount = 0;
+
+    // Delete notifications with "unknown book" in title
     try {
-      const { error: notifError, count: notifDeleteCount } = await supabase
+      const { error: unknownBookError, count: unknownBookCount } = await supabase
         .from("notifications")
         .delete({ count: "exact" })
-        .or(
-          "title.ilike.%unknown book%," +
-          "message.ilike.%undefined%," +
-          "title.ilike.%system announcement%"
-        );
+        .ilike("title", "%unknown book%");
 
-      if (notifError) {
-        console.error("Error deleting test notifications:", {
-          message: notifError.message,
-          details: notifError.details,
-          hint: notifError.hint,
-          code: notifError.code
-        });
-        // Don't fail the whole operation for notification errors
-      } else {
-        notifCount = notifDeleteCount || 0;
-        if (notifCount > 0) {
-          console.log(`🗑️ Deleted ${notifCount} test notifications`);
-        }
+      if (!unknownBookError) {
+        notifCount += unknownBookCount || 0;
       }
     } catch (err) {
-      console.error("Exception deleting notifications:", err);
+      console.error("Error deleting unknown book notifications:", err);
+    }
+
+    // Delete notifications with "undefined" in message
+    try {
+      const { error: undefinedError, count: undefinedCount } = await supabase
+        .from("notifications")
+        .delete({ count: "exact" })
+        .ilike("message", "%undefined%");
+
+      if (!undefinedError) {
+        notifCount += undefinedCount || 0;
+      }
+    } catch (err) {
+      console.error("Error deleting undefined notifications:", err);
+    }
+
+    // Delete system announcement notifications
+    try {
+      const { error: systemError, count: systemCount } = await supabase
+        .from("notifications")
+        .delete({ count: "exact" })
+        .ilike("title", "%system announcement%");
+
+      if (!systemError) {
+        notifCount += systemCount || 0;
+      }
+    } catch (err) {
+      console.error("Error deleting system announcement notifications:", err);
+    }
+
+    if (notifCount > 0) {
+      console.log(`🗑️ Deleted ${notifCount} test notifications`);
     }
 
     const totalDeleted = (count || 0) + totalPatternCount;
