@@ -139,7 +139,19 @@ const Developer = () => {
 
     } catch (error) {
       console.error('Error loading sellers:', error);
-      toast.error('Failed to load sellers');
+
+      // Always provide fallback demo sellers instead of failing
+      setSellers([
+        {
+          id: "demo_seller_fallback",
+          name: "Demo Seller (Error Fallback)",
+          email: "demo@example.com",
+          orders: 1,
+          has_banking: true
+        }
+      ]);
+
+      toast.warning('Could not load real sellers - Using demo data');
     } finally {
       setLoadingSellers(false);
     }
