@@ -179,28 +179,35 @@ const Developer = () => {
         return;
       }
 
-      // Direct Supabase call using banking-first approach (like banking details components)
+      // Try to connect to Supabase with timeout
       const { createClient } = await import('@supabase/supabase-js');
       const supabase = createClient(
         import.meta.env.VITE_SUPABASE_URL,
         import.meta.env.VITE_SUPABASE_ANON_KEY
       );
 
-      console.log('Step 1: Fetching all banking subaccounts...');
+      console.log('Step 1: Fetching banking subaccounts...');
 
-      // First, get all users who have banking subaccounts (banking-first approach)
-      const { data: bankingAccounts, error: bankingError } = await supabase
-        .from('banking_subaccounts')
-        .select(`
-          user_id,
-          business_name,
-          email,
-          status,
-          bank_name,
-          account_number,
-          created_at
-        `)
-        .eq('status', 'active');
+      // Add timeout to prevent hanging
+      const fetchWithTimeout = Promise.race([
+        supabase
+          .from('banking_subaccounts')
+          .select(`
+            user_id,
+            business_name,
+            email,
+            status,
+            bank_name,
+            account_number,
+            created_at
+          `)
+          .eq('status', 'active'),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Database query timeout')), 5000)
+        )
+      ]);
+
+      const { data: bankingAccounts, error: bankingError } = await fetchWithTimeout;
 
       if (bankingError) {
         console.error('Banking subaccounts query error:', {
