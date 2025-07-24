@@ -287,29 +287,70 @@ const Developer = () => {
             <CardContent className="space-y-6">
               {/* Seller Selection */}
               <div className="space-y-3">
-                <label className="text-sm font-medium text-gray-700">
-                  Select Seller (with delivered orders)
-                </label>
-                <Select value={selectedSeller} onValueChange={setSelectedSeller}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Choose a seller to test..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mockSellers.map((seller) => (
-                      <SelectItem key={seller.id} value={seller.id}>
-                        <div className="flex items-center justify-between w-full">
-                          <span>{seller.name}</span>
-                          <div className="flex items-center space-x-2 ml-4">
-                            <Badge variant="secondary" className="text-xs">
-                              {seller.orders} orders
-                            </Badge>
-                            <span className="text-xs text-gray-500">{seller.email}</span>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-gray-700">
+                    Select Seller (with delivered orders & banking details)
+                  </label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={loadRealSellers}
+                    disabled={loadingSellers}
+                    className="flex items-center space-x-1"
+                  >
+                    <RefreshCw className={`h-3 w-3 ${loadingSellers ? 'animate-spin' : ''}`} />
+                    <span>Refresh</span>
+                  </Button>
+                </div>
+
+                {loadingSellers ? (
+                  <div className="flex items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-lg">
+                    <div className="flex items-center space-x-2 text-gray-500">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                      <span>Loading sellers with banking details...</span>
+                    </div>
+                  </div>
+                ) : realSellers.length === 0 ? (
+                  <div className="flex items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-lg">
+                    <div className="text-center">
+                      <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-600 font-medium">No Eligible Sellers Found</p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        No sellers have both delivered orders and banking details configured.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <Select value={selectedSeller} onValueChange={setSelectedSeller}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Choose a seller to test..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {realSellers.map((seller) => (
+                        <SelectItem key={seller.id} value={seller.id} disabled={!seller.has_banking}>
+                          <div className="flex items-center justify-between w-full">
+                            <span className={!seller.has_banking ? "text-gray-400" : ""}>{seller.name}</span>
+                            <div className="flex items-center space-x-2 ml-4">
+                              <Badge
+                                variant={seller.has_banking ? "default" : "secondary"}
+                                className="text-xs"
+                              >
+                                {seller.orders} orders
+                              </Badge>
+                              <Badge
+                                variant={seller.has_banking ? "default" : "destructive"}
+                                className="text-xs"
+                              >
+                                {seller.has_banking ? "Banking ✓" : "No Banking"}
+                              </Badge>
+                              <span className="text-xs text-gray-500">{seller.email}</span>
+                            </div>
                           </div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
               {/* Test Button */}
