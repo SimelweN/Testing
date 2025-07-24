@@ -339,45 +339,16 @@ const handler = async (req: Request): Promise<Response> => {
 
     let recipientCode = null;
 
-    // For development mode without Paystack
+    // Check for Paystack secret key - required for real recipient creation
     if (!paystackSecretKey) {
-      console.log('Development mode: Mock recipient creation');
-
-      // Generate mock recipient code
-      recipientCode = `RCP_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-      // Update banking_subaccounts with mock recipient code
-      await supabase
-        .from('banking_subaccounts')
-        .update({
-          recipient_code: recipientCode,
-          status: 'active',
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', sellerId);
-
-      // Update banking details with new recipient code
-      bankingDetails.recipient_code = recipientCode;
-
-      const { seller_info, subaccount_details } = generateSellerInfo(bankingDetails);
-
+      console.error('❌ PAYSTACK_SECRET_KEY not found in environment variables');
       return new Response(JSON.stringify({
-        success: true,
-        recipient_code: recipientCode,
-        message: 'Mock recipient created - Ready for manual payment (Development Mode)',
-        development_mode: true,
-        payment_breakdown: paymentBreakdown,
-        ...{ seller_info, subaccount_details },
-        payout_timeline: {
-          orders_delivered: completedOrders.length,
-          total_amount_due: sellerAmount,
-          recipient_created: new Date().toISOString(),
-          ready_for_payout: new Date().toISOString(),
-          next_steps: 'Mock recipient created - Manual payment processing can now be initiated (Dev Mode)'
-        },
-        instructions: 'Recipient created successfully. You can now manually process payment using this recipient code.'
+        error: 'Configuration Error',
+        message: 'Paystack secret key not configured. Please set PAYSTACK_SECRET_KEY environment variable.',
+        required_env_vars: ['PAYSTACK_SECRET_KEY'],
+        current_mode: 'development'
       }), {
-        status: 200,
+        status: 500,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       });
     }
