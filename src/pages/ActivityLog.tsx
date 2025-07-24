@@ -82,6 +82,46 @@ const ActivityLog = () => {
     }
   }, [user]);
 
+  const handleClearTestData = async () => {
+    const confirmClear = window.confirm(
+      "This will permanently delete all test/demo data including 'Unknown Book' orders. Are you sure?"
+    );
+
+    if (!confirmClear) return;
+
+    const success = await clearAllTestData();
+    if (success) {
+      // Reload activities after clearing
+      await loadActivities();
+      // Also refresh pending commits
+      refreshPendingCommits().catch(console.error);
+    }
+  };
+
+  const handleClearAllUserData = async () => {
+    if (!user) return;
+
+    const confirmClear = window.confirm(
+      "⚠️ WARNING: This will permanently delete ALL your orders and notifications. This cannot be undone. Are you absolutely sure?"
+    );
+
+    if (!confirmClear) return;
+
+    const doubleConfirm = window.confirm(
+      "This is your final warning. All your data will be permanently deleted. Continue?"
+    );
+
+    if (!doubleConfirm) return;
+
+    const success = await clearAllUserData(user.id);
+    if (success) {
+      // Reload activities after clearing
+      await loadActivities();
+      // Also refresh pending commits
+      refreshPendingCommits().catch(console.error);
+    }
+  };
+
   useEffect(() => {
     loadActivities();
   }, [user, loadActivities]);
