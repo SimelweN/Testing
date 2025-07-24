@@ -338,18 +338,43 @@ const DeveloperMinimal = () => {
               <div className="space-y-3">
                 <div>
                   <label htmlFor="sellerId" className="block text-sm font-medium text-gray-700 mb-1">
-                    Seller ID for Create-Recipient Test
+                    <Users className="h-4 w-4 inline mr-1" />
+                    Select Seller for Create-Recipient Test
                   </label>
-                  <Input
-                    id="sellerId"
-                    type="text"
+                  <Select
                     value={sellerIdInput}
-                    onChange={(e) => setSellerIdInput(e.target.value)}
-                    placeholder="Enter seller UUID from database"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Use a real seller UUID from your database or test UUID: 00000000-0000-4000-8000-000000000000
-                  </p>
+                    onValueChange={setSellerIdInput}
+                    disabled={loadingSellers}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={loadingSellers ? "Loading sellers..." : "Choose a seller"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="00000000-0000-4000-8000-000000000000">
+                        🧪 Test Seller (Mock Data)
+                      </SelectItem>
+                      {sellers.map((seller) => (
+                        <SelectItem key={seller.id} value={seller.id}>
+                          {seller.name || 'Unnamed'} ({seller.email || 'No email'})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-500">
+                      {loadingSellers ? 'Loading...' : `${sellers.length} sellers available`}
+                    </p>
+                    <Button
+                      onClick={fetchSellers}
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-6"
+                      disabled={loadingSellers}
+                    >
+                      <RefreshCw className={`h-3 w-3 mr-1 ${loadingSellers ? 'animate-spin' : ''}`} />
+                      Refresh
+                    </Button>
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
