@@ -505,12 +505,20 @@ const AdminPayoutTab = () => {
           // Don't fail the whole process if email fails
         }
 
-        // Update local state
+        // Update local state with payment breakdown data
         setPayoutRequests(prev =>
           prev.map(p => p.id === payoutId ? {
             ...p,
             status: 'approved' as PayoutStatus,
-            recipient_code: result.recipient_code
+            recipient_code: result.recipient_code,
+            payment_breakdown: result.payment_breakdown,
+            // Update orders with transaction IDs if available
+            orders: result.payment_breakdown?.order_details ?
+              result.payment_breakdown.order_details.map((orderDetail: any, index: number) => ({
+                ...p.orders[index],
+                paystack_transaction_id: orderDetail.paystack_transaction_id,
+                id: orderDetail.order_id || p.orders[index]?.id
+              })) : p.orders
           } : p)
         );
 
@@ -1032,7 +1040,7 @@ const AdminPayoutTab = () => {
                             <div>• Seller receives email confirmation that payment is being processed</div>
                             <div>• Payment is transferred to seller's bank account (1-3 business days)</div>
                             <div>• Seller receives SMS notification when funds are available</div>
-                            <div>• Transaction is marked as completed in the system</div>
+                            <div>�� Transaction is marked as completed in the system</div>
                           </div>
                         </div>
                       </div>
