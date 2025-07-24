@@ -178,7 +178,12 @@ export const clearAllUserData = async (userId: string): Promise<boolean> => {
 
   } catch (error) {
     console.error("Fatal error clearing user data:", error);
-    toast.error("Failed to clear user data: " + (error as Error).message);
+    const errorMessage = error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+        ? error
+        : JSON.stringify(error);
+    toast.error("Failed to clear user data: " + errorMessage);
     return false;
   }
 };
