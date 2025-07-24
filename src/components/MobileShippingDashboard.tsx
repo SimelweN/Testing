@@ -20,17 +20,17 @@ import {
   ChevronRight,
 } from "lucide-react";
 import CourierGuyTracker from "@/components/courier-guy/CourierGuyTracker";
-import FastwayTrackingOnly from "@/components/fastway/FastwayTrackingOnly";
+
 
 interface MobileShippingDashboardProps {
-  defaultProvider?: "courierGuy" | "fastway";
+  defaultProvider?: "courierGuy";
 }
 
 const MobileShippingDashboard = ({
   defaultProvider = "courierGuy",
 }: MobileShippingDashboardProps) => {
   const [selectedProvider, setSelectedProvider] = useState<
-    "courierGuy" | "fastway"
+    "courierGuy"
   >(defaultProvider);
   const [activeTab, setActiveTab] = useState<"track" | "quote">("track");
 
@@ -43,13 +43,7 @@ const MobileShippingDashboard = ({
       date: "2024-01-15",
       provider: "courierGuy",
     },
-    {
-      id: "FW987654321",
-      status: "in_transit",
-      recipient: "Jane Smith",
-      date: "2024-01-14",
-      provider: "fastway",
-    },
+
   ];
 
   const providers = [
