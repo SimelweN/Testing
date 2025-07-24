@@ -514,6 +514,61 @@ const Developer = () => {
         </div>
       </div>
 
+      {/* Environment Status */}
+      <div className="px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-6xl mx-auto">
+          <Card className="border-2 border-dashed border-gray-300">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <ShieldAlert className="h-5 w-5 text-amber-600" />
+                <span>Environment Configuration</span>
+                <Button
+                  onClick={checkEnvironmentVariables}
+                  variant="outline"
+                  size="sm"
+                  className="ml-auto"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-3 h-3 rounded-full ${envStatus.supabase_url ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  <span className="text-sm">Supabase URL</span>
+                  <Badge variant={envStatus.supabase_url ? "default" : "destructive"} className="text-xs">
+                    {envStatus.supabase_url ? "✓ Configured" : "✗ Missing"}
+                  </Badge>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className={`w-3 h-3 rounded-full ${envStatus.supabase_key ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  <span className="text-sm">Supabase Key</span>
+                  <Badge variant={envStatus.supabase_key ? "default" : "destructive"} className="text-xs">
+                    {envStatus.supabase_key ? "✓ Configured" : "✗ Missing"}
+                  </Badge>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className={`w-3 h-3 rounded-full ${envStatus.paystack_configured ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                  <span className="text-sm">Paystack Secret</span>
+                  <Badge variant={envStatus.paystack_configured ? "default" : "secondary"} className="text-xs">
+                    {envStatus.paystack_configured ? "✓ Configured" : "⚠ Edge Function Env"}
+                  </Badge>
+                </div>
+              </div>
+              {!envStatus.paystack_configured && (
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    <strong>Note:</strong> Set PAYSTACK_SECRET_KEY in edge function environment to create real recipients instead of returning configuration errors.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
       {/* Main Content */}
       <div className="px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-6xl mx-auto space-y-8">
