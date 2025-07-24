@@ -470,6 +470,15 @@ const getUserBooksWithFallback = async (userId: string): Promise<Book[]> => {
       .order("created_at", { ascending: false });
 
     if (booksError) {
+      // Log error with proper formatting
+      console.error('getUserBooksWithFallback - books query failed:', {
+        message: booksError.message || 'Unknown error',
+        code: booksError.code || 'NO_CODE',
+        details: booksError.details || 'No details',
+        hint: booksError.hint || 'No hint',
+        userId
+      });
+
       logDetailedError(
         "getUserBooksWithFallback - books query failed",
         booksError,
