@@ -67,7 +67,17 @@ const AdminPayoutTab = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    loadPayoutData();
+    const loadData = async () => {
+      try {
+        await loadPayoutData();
+      } catch (error) {
+        console.error('Error in useEffect loadPayoutData:', error);
+        toast.error('Failed to load payout data');
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
     // Auto-detect disabled for now - will enable when database is ready
     // autoDetectPayouts();
   }, []);
