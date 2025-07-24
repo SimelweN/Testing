@@ -328,19 +328,39 @@ const ActivityLog = () => {
                 Track your commitments, sales, and marketplace activity
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={loadActivities}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <RefreshCw className="h-4 w-4 mr-2" />
-              )}
-              Refresh
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearTestData}
+                className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear Test Data
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearAllUserData}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Clear All Data
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadActivities}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                )}
+                Refresh
+              </Button>
+            </div>
           </div>
 
           {error && (
