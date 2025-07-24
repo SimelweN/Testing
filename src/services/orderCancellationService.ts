@@ -518,9 +518,7 @@ export class OrderCancellationService {
         case "courier-guy":
           // Call Courier Guy cancel API
           break;
-        case "fastway":
-          // Call Fastway cancel API
-          break;
+
         default:
           console.warn(`Unknown courier service: ${courierService}`);
       }
