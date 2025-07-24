@@ -32,17 +32,37 @@ export const clearAllTestData = async (): Promise<boolean> => {
 
     console.log(`🗑️ Deleted ${count} test orders`);
 
-    // Also delete any orders with specific test patterns
-    const { error: patternError, count: patternCount } = await supabase
-      .from("orders")
-      .delete({ count: "exact" })
-      .like("id", "%2480907b%")
-      .or("id.like.%b327b100%,id.like.%5bb5a0c3%,id.like.%8e1acd99%,id.like.%d4e850bb%");
+    // Also delete any orders with specific test patterns - using individual queries to avoid complex OR syntax
+    let totalPatternCount = 0;
+    const testOrderIds = [
+      "2480907b", "b327b100", "5bb5a0c3", "8e1acd99", "d4e850bb",
+      "dcbc8287", "7b8aa076", "9d6a6c72", "62d0eafa", "d162836e",
+      "ca22899e", "a4b2aeb1", "56656692", "a6812da3", "9db2dae7",
+      "f6dffab3", "f35d4f5e", "56014b83", "d2afffbc", "bbccd49d",
+      "2003aa6c", "ecff28c9", "e81559e6", "2bfa5fd3", "38803ce8"
+    ];
 
-    if (patternError) {
-      console.error("Error deleting pattern orders:", patternError);
-    } else {
-      console.log(`🗑️ Deleted ${patternCount} pattern-matched orders`);
+    for (const orderId of testOrderIds) {
+      try {
+        const { error: patternError, count: patternCount } = await supabase
+          .from("orders")
+          .delete({ count: "exact" })
+          .ilike("id", `%${orderId}%`);
+
+        if (patternError) {
+          console.error(`Error deleting order ${orderId}:`, {
+            message: patternError.message,
+            details: patternError.details,
+            hint: patternError.hint,
+            code: patternError.code
+          });
+        } else if (patternCount && patternCount > 0) {
+          console.log(`🗑️ Deleted ${patternCount} orders matching ${orderId}`);
+          totalPatternCount += patternCount;
+        }
+      } catch (err) {
+        console.error(`Exception deleting order ${orderId}:`, err);
+      }
     }
 
     // Clear any notifications related to test data
