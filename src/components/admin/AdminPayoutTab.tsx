@@ -112,12 +112,8 @@ const AdminPayoutTab = () => {
         throw new Error('Supabase environment variables not configured');
       }
 
-      // Direct Supabase call to get sellers with banking details
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabase = createClient(
-        import.meta.env.VITE_SUPABASE_URL,
-        import.meta.env.VITE_SUPABASE_ANON_KEY
-      );
+      // Use the existing supabase client instead of dynamic import
+      const { supabase } = await import('@/integrations/supabase/client');
 
       console.log('Fetching sellers with banking details and delivered orders...');
 
