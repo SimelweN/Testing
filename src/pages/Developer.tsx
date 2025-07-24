@@ -210,14 +210,22 @@ const Developer = () => {
       const { data: bankingAccounts, error: bankingError } = await fetchWithTimeout;
 
       if (bankingError) {
-        console.error('Banking subaccounts query error:', {
-          message: bankingError.message,
-          details: bankingError.details,
-          hint: bankingError.hint,
-          code: bankingError.code
-        });
+        console.error('Banking subaccounts query error:', bankingError);
 
-        throw new Error(`Failed to fetch banking subaccounts: ${bankingError.message || 'Database error'}`);
+        // Instead of throwing, fall back to demo data
+        console.log('Database query failed, using demo data');
+        setRealSellers([
+          {
+            id: "demo_seller_db_error",
+            name: "Demo Seller (DB Error)",
+            email: "demo@example.com",
+            orders: 2,
+            has_banking: true,
+          }
+        ]);
+        setLoadingSellers(false);
+        toast.warning('Database connection issue - Using demo data');
+        return;
       }
 
       console.log('Banking accounts found:', bankingAccounts?.length || 0);
