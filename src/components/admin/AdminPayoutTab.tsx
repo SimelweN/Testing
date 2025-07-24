@@ -391,6 +391,25 @@ const AdminPayoutTab = () => {
 
   const filteredPayouts = payoutRequests.filter(p => p.status === activeTab);
 
+  // If there's a critical error, show a fallback UI
+  if (isLoading === false && payoutRequests.length === 0 && payoutStats.pending === 0) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Payout Management</h3>
+              <p className="text-gray-600 mb-4">No payout data available at the moment.</p>
+              <Button onClick={() => window.location.reload()}>
+                Refresh Page
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* Stats Cards */}
