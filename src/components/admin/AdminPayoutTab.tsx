@@ -390,6 +390,29 @@ const AdminPayoutTab = () => {
   const filteredPayouts = payoutRequests.filter(p => p.status === activeTab);
 
   // If there's a critical error, show a fallback UI
+  if (hasError) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">
+              <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Payouts</h3>
+              <p className="text-gray-600 mb-4">Something went wrong while loading the payout data.</p>
+              <Button onClick={() => {
+                setHasError(false);
+                setIsLoading(true);
+                loadPayoutData();
+              }}>
+                Try Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (isLoading === false && payoutRequests.length === 0 && payoutStats.pending === 0) {
     return (
       <div className="p-6">
