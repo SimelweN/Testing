@@ -229,13 +229,14 @@ const Developer = () => {
     setPayoutResponse(null);
 
     try {
-      console.log(`Calling pay-seller function for seller: ${selectedSeller}`);
+      console.log(`Calling pay-seller edge function for seller: ${selectedSeller}`);
 
-      // Call the actual pay-seller function
-      const response = await fetch('/api/pay-seller', {
+      // Call the Supabase edge function directly
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pay-seller`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
           sellerId: selectedSeller
@@ -243,23 +244,24 @@ const Developer = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('Supabase function error:', errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}\n${errorText}`);
       }
 
       const result = await response.json();
 
       if (result.success) {
         setPayoutResponse(result);
-        toast.success("Payout function executed successfully - Real recipient created!");
+        toast.success("Real pay-seller function executed successfully - Recipient created!");
       } else {
-        throw new Error(result.error || "Payout function returned unsuccessful result");
+        throw new Error(result.error || "Pay-seller function returned unsuccessful result");
       }
     } catch (error) {
       console.error("Error calling pay-seller function:", error);
 
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-      toast.error(`Failed to execute payout function: ${errorMessage}`);
+      toast.error(`Failed to execute pay-seller function: ${errorMessage}`);
 
       // Set error response for display
       setPayoutResponse({
