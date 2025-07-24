@@ -40,6 +40,7 @@ FUNCTIONS=(
     "courier-guy-track"
     "create-order"
     "create-paystack-subaccount"
+    "create-recipient"
     "debug-email-template"
     "decline-commit"
     "fastway-quote"
