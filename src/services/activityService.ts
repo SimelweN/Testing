@@ -227,7 +227,7 @@ export class ActivityService {
             console.log(
               "📝 Notifications table not available, using sample activities",
             );
-            return this.createSampleActivities(userId);
+            return [];
           }
 
           // Only log errors that aren't table-not-found issues
