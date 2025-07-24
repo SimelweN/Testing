@@ -122,21 +122,32 @@ const DeveloperMinimal = () => {
   // Test edge function availability (safe, no crashing)
   const testEdgeFunction = async () => {
     const startTime = Date.now();
-    
+
     try {
       toast.info('Testing create-recipient function connectivity...');
-      
+
+      // Get Supabase URL from environment
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) {
+        throw new Error('VITE_SUPABASE_URL not configured');
+      }
+
       // Very basic connectivity test with timeout
-      const timeoutPromise = new Promise((_, reject) => 
+      const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Request timeout (5s)')), 5000)
       );
-      
-      const fetchPromise = fetch('/functions/v1/create-recipient', {
+
+      // Use correct Supabase functions endpoint
+      const functionsUrl = `${supabaseUrl}/functions/v1/create-recipient`;
+      const fetchPromise = fetch(functionsUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
         body: JSON.stringify({ sellerId: 'connectivity-test' })
       });
-      
+
       const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
       const duration = Date.now() - startTime;
       
