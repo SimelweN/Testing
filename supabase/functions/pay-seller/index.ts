@@ -118,38 +118,95 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Get seller banking details from banking_subaccounts table
-    console.log('Fetching banking subaccount for seller:', sellerId);
+    // Get seller banking details using the same approach as "Sellers' Banking Info" section
+    console.log('🔍 Fetching banking subaccount for seller:', sellerId);
 
-    // First try to find by user_id
-    let { data: bankingDetails, error: bankingError } = await supabase
-      .from('banking_subaccounts')
-      .select('*')
-      .eq('user_id', sellerId)
-      .maybeSingle();
+    // Step 1: Get subaccount_code from profiles table
+    console.log('📋 Checking profile table for subaccount_code...');
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('subaccount_code, preferences, email')
+      .eq('id', sellerId)
+      .single();
 
-    // If not found by user_id, get the first available record for demo
-    if (!bankingDetails) {
-      console.log('No banking subaccount found for user_id, getting first available record for demo');
-      const { data: demoData, error: demoError } = await supabase
-        .from('banking_subaccounts')
-        .select('*')
-        .limit(1)
-        .single();
-
-      bankingDetails = demoData;
-      bankingError = demoError;
+    if (profileError) {
+      console.error('❌ Error fetching profile data:', profileError);
+      return new Response(JSON.stringify({
+        error: 'Failed to fetch seller profile data',
+        details: profileError.message
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
     }
 
-    console.log('Banking subaccount query result:', { data: bankingDetails, error: bankingError });
+    const subaccountCode = profileData?.subaccount_code;
 
-    if (bankingError || !bankingDetails) {
-      console.error('Banking subaccount not found:', bankingError);
-      return new Response(JSON.stringify({ error: 'Seller banking subaccount not found' }), {
+    if (!subaccountCode) {
+      console.log('❌ No subaccount code found in profile');
+      return new Response(JSON.stringify({
+        error: 'Seller banking subaccount not found',
+        message: 'No subaccount code found in seller profile. Seller needs to complete banking setup first.'
+      }), {
         status: 404,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       });
     }
+
+    console.log('✅ Found subaccount code:', subaccountCode);
+
+    // Step 2: Get detailed banking info from banking_subaccounts table using subaccount_code
+    console.log('📦 Fetching detailed banking info...');
+    const { data: bankingDetails, error: bankingError } = await supabase
+      .from('banking_subaccounts')
+      .select('*')
+      .eq('subaccount_code', subaccountCode)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (bankingError) {
+      console.error('❌ Error fetching banking details:', bankingError);
+      return new Response(JSON.stringify({
+        error: 'Failed to fetch banking details',
+        details: bankingError.message
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
+    }
+
+    if (!bankingDetails) {
+      console.log('❌ No banking details found for subaccount code');
+
+      // Fallback - use preferences data if available
+      const preferences = profileData?.preferences || {};
+      const fallbackBankingDetails = {
+        subaccount_code: subaccountCode,
+        business_name: preferences.business_name || `Seller ${sellerId}`,
+        bank_name: preferences.bank_details?.bank_name || 'Banking details incomplete',
+        account_number: preferences.bank_details?.account_number || 'Not available',
+        bank_code: preferences.bank_details?.bank_code || 'N/A',
+        email: profileData?.email || 'Please update'
+      };
+
+      return new Response(JSON.stringify({
+        error: 'Incomplete banking setup',
+        message: 'Banking details found in profile preferences but not in banking_subaccounts table. Please complete banking setup.',
+        fallback_data: fallbackBankingDetails
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
+    }
+
+    console.log('✅ Banking subaccount data retrieved successfully:', {
+      subaccount_code: bankingDetails.subaccount_code,
+      business_name: bankingDetails.business_name,
+      bank_name: bankingDetails.bank_name,
+      account_number: bankingDetails.account_number?.slice(-4).padStart(bankingDetails.account_number?.length || 0, '*'),
+      email: bankingDetails.email
+    });
 
     // Calculate payment breakdown from completed orders
     const totalBookAmount = completedOrders.reduce((sum, order) => sum + Number(order.amount), 0);
