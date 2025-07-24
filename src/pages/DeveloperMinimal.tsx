@@ -160,7 +160,7 @@ const DeveloperMinimal = () => {
     } catch (error) {
       const duration = Date.now() - startTime;
       const testResult: TestResult = {
-        test: 'Create-Recipient Function',
+        test: 'Pay-Seller Function',
         status: 'error',
         message: `Connection failed: ${error instanceof Error ? error.message : 'Network error'}`,
         details: `Failed after ${duration}ms`
