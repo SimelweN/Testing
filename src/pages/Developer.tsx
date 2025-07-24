@@ -97,7 +97,15 @@ const Developer = () => {
 
   // Fetch real sellers with banking details and delivered orders
   useEffect(() => {
-    loadRealSellers();
+    // Add delay and error handling to prevent immediate crashes
+    const timer = setTimeout(() => {
+      loadRealSellers().catch((error) => {
+        console.error('Failed to load sellers on mount:', error);
+        setLoadingSellers(false);
+      });
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const loadRealSellers = async () => {
