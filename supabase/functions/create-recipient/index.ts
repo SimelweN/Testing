@@ -52,7 +52,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Fetch completed orders for seller
     console.log('Fetching completed orders for seller:', sellerId);
-
+    
     const { data: ordersData, error: ordersError } = await supabase
       .from('orders')
       .select(`
@@ -76,9 +76,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (ordersError) {
       console.error('Error fetching orders:', ordersError);
-      return new Response(JSON.stringify({
+      return new Response(JSON.stringify({ 
         error: 'Failed to fetch order data',
-        details: ordersError.message
+        details: ordersError.message 
       }), {
         status: 500,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -103,13 +103,13 @@ const handler = async (req: Request): Promise<Response> => {
     // Fetch buyer information for completed orders
     const buyerIds = [...new Set(completedOrders.map(order => order.buyer_id).filter(Boolean))];
     let buyersInfo = {};
-
+    
     if (buyerIds.length > 0) {
       const { data: buyersData } = await supabase
         .from('profiles')
         .select('id, full_name, first_name, last_name, email')
         .in('id', buyerIds);
-
+      
       if (buyersData) {
         buyersInfo = buyersData.reduce((acc, buyer) => {
           acc[buyer.id] = buyer;
@@ -120,14 +120,14 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Get seller banking details from banking_subaccounts table
     console.log('Fetching banking subaccount for seller:', sellerId);
-
+    
     // First try to find by user_id
     let { data: bankingDetails, error: bankingError } = await supabase
       .from('banking_subaccounts')
       .select('*')
       .eq('user_id', sellerId)
       .maybeSingle();
-
+    
     // If not found by user_id, get the first available record for demo
     if (!bankingDetails) {
       console.log('No banking subaccount found for user_id, getting first available record for demo');
@@ -136,11 +136,11 @@ const handler = async (req: Request): Promise<Response> => {
         .select('*')
         .limit(1)
         .single();
-
+      
       bankingDetails = demoData;
       bankingError = demoError;
     }
-
+    
     console.log('Banking subaccount query result:', { data: bankingDetails, error: bankingError });
 
     if (bankingError || !bankingDetails) {
@@ -157,21 +157,21 @@ const handler = async (req: Request): Promise<Response> => {
       const deliveryData = order.delivery_data || {};
       return sum + Number(deliveryData.delivery_fee || 0);
     }, 0);
-
+    
     const platformBookCommission = totalBookAmount * 0.10; // 10% of book price
     const platformDeliveryFees = totalDeliveryFees; // 100% of delivery fees
     const totalPlatformEarnings = platformBookCommission + platformDeliveryFees;
     const sellerAmount = totalBookAmount - platformBookCommission; // Seller gets 90% of book price
-
+    
     // Completed order details with buyer info and comprehensive timeline
     const orderDetails = completedOrders.map(order => {
       const buyer = buyersInfo[order.buyer_id];
-      const buyerName = buyer?.full_name ||
+      const buyerName = buyer?.full_name || 
                        (buyer?.first_name && buyer?.last_name ? `${buyer.first_name} ${buyer.last_name}` : null) ||
                        'Anonymous Buyer';
-
+      
       const deliveryData = order.delivery_data || {};
-
+      
       return {
         order_id: order.id,
         book: {
@@ -211,7 +211,7 @@ const handler = async (req: Request): Promise<Response> => {
         }
       };
     });
-
+    
     const paymentBreakdown = {
       total_orders: completedOrders.length,
       total_book_sales: totalBookAmount,
@@ -255,10 +255,10 @@ const handler = async (req: Request): Promise<Response> => {
     // For development mode without Paystack
     if (!paystackSecretKey) {
       console.log('Development mode: Mock recipient creation');
-
+      
       // Generate mock recipient code
       recipientCode = `RCP_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
+      
       // Update banking_subaccounts with mock recipient code
       await supabase
         .from('banking_subaccounts')
@@ -360,7 +360,7 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
   } catch (error: any) {
-    console.error('Error in pay-seller function:', error);
+    console.error('Error in create-recipient function:', error);
     return new Response(JSON.stringify({
       error: 'Internal server error',
       details: error.message

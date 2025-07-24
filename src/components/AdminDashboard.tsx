@@ -428,7 +428,7 @@ const AdminDashboard = () => {
             <div className="flex items-center space-x-4">
               {/* Developer Dashboard Access */}
               <Button
-                onClick={() => navigate("/developer")}
+                onClick={() => navigate("/developer-simple")}
                 variant="outline"
                 size="sm"
                 className="hidden sm:flex items-center space-x-2 bg-slate-900 text-white border-slate-900 hover:bg-slate-800"
