@@ -243,10 +243,10 @@ export class ActivityService {
           `✅ Found ${notifications?.length || 0} activities in notifications table`,
         );
 
-        // If no notifications found, create sample activities
+        // If no notifications found, return empty array
         if (!notifications || notifications.length === 0) {
-          console.log("No activities found, creating sample activities");
-          return this.createSampleActivities(userId);
+          console.log("No activities found, returning empty array");
+          return [];
         }
 
         // Convert notifications to activities with safety checks
