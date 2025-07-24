@@ -117,6 +117,15 @@ const Footer = () => {
               </li>
               <li>
                 <Link
+                  to="/faq"
+                  className="text-gray-600 hover:text-book-600 text-sm"
+                  onClick={handleLinkClick}
+                >
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link
                   to="/report"
                   className="text-gray-600 hover:text-book-600 text-sm"
                   onClick={handleLinkClick}
