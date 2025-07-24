@@ -74,6 +74,20 @@ const logDetailedError = (context: string, error: unknown) => {
     return;
   }
 
+  // Format the error properly to prevent [object Object]
+  if (error && typeof error === 'object') {
+    const errorObj = error as any;
+    console.error(`[BookQueries - ${context}]`, {
+      message: errorObj.message || 'Unknown error',
+      code: errorObj.code || 'NO_CODE',
+      details: errorObj.details || 'No details',
+      hint: errorObj.hint || 'No hint',
+      timestamp: new Date().toISOString()
+    });
+  } else {
+    console.error(`[BookQueries - ${context}]`, error);
+  }
+
   // Use safe error logging to prevent [object Object] issues
   safeLogError(`BookQueries - ${context}`, error);
 
