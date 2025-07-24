@@ -96,34 +96,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
     }
   };
 
-  const clearAllOrders = async () => {
-    if (!user) return;
 
-    const confirmClear = window.confirm(
-      "Are you sure you want to clear all your order data? This action cannot be undone."
-    );
-
-    if (!confirmClear) return;
-
-    try {
-      const { error } = await supabase
-        .from("orders")
-        .delete()
-        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
-
-      if (error) {
-        console.error("Error clearing orders:", error);
-        toast.error("Failed to clear orders");
-        return;
-      }
-
-      setOrders([]);
-      toast.success("All order data cleared successfully");
-    } catch (error) {
-      console.error("Error clearing orders:", error);
-      toast.error("Failed to clear orders");
-    }
-  };
 
   const getUserRole = (order: Order): "buyer" | "seller" => {
     return order.buyer_id === user?.id ? "buyer" : "seller";
