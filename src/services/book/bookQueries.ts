@@ -129,6 +129,17 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
         const { data: booksData, error: booksError } = await query;
 
         if (booksError) {
+          // Log error with proper formatting to prevent [object Object]
+          console.error('Books query failed:', {
+            message: booksError.message || 'Unknown error',
+            code: booksError.code || 'NO_CODE',
+            details: booksError.details || 'No details',
+            hint: booksError.hint || 'No hint',
+            retryCount,
+            filters,
+            timestamp: new Date().toISOString()
+          });
+
           logDetailedError("Books query failed", {
             error: booksError,
             retryCount,
