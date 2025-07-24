@@ -137,19 +137,37 @@ export const clearAllUserData = async (userId: string): Promise<boolean> => {
       .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`);
 
     if (ordersError) {
-      console.error("Error deleting user orders:", ordersError);
-      toast.error("Failed to clear orders: " + ordersError.message);
+      console.error("Error deleting user orders:", {
+        message: ordersError.message,
+        details: ordersError.details,
+        hint: ordersError.hint,
+        code: ordersError.code
+      });
+      toast.error("Failed to clear orders: " + (ordersError.message || ordersError.details || "Unknown error"));
       return false;
     }
 
     // Delete all notifications for this user
-    const { error: notifError, count: notifCount } = await supabase
-      .from("notifications")
-      .delete({ count: "exact" })
-      .eq("user_id", userId);
+    let notifCount = 0;
+    try {
+      const { error: notifError, count: notifDeleteCount } = await supabase
+        .from("notifications")
+        .delete({ count: "exact" })
+        .eq("user_id", userId);
 
-    if (notifError) {
-      console.error("Error deleting user notifications:", notifError);
+      if (notifError) {
+        console.error("Error deleting user notifications:", {
+          message: notifError.message,
+          details: notifError.details,
+          hint: notifError.hint,
+          code: notifError.code
+        });
+        // Don't fail the whole operation for notification errors
+      } else {
+        notifCount = notifDeleteCount || 0;
+      }
+    } catch (err) {
+      console.error("Exception deleting user notifications:", err);
     }
 
     const totalDeleted = (orderCount || 0) + (notifCount || 0);
