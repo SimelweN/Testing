@@ -25,7 +25,7 @@ import { toast } from "sonner";
 
 interface UnifiedTrackingComponentProps {
   initialTrackingNumber?: string;
-  provider?: "courier-guy" | "fastway";
+  provider?: "courier-guy";
   onClose?: () => void;
 }
 
@@ -132,9 +132,6 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
     switch (provider) {
       case "courier-guy":
         return "🚚";
-      case "fastway":
-        return "📦";
-
       default:
         return "🚛";
     }
@@ -233,9 +230,6 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
                   <div>
                     <CardTitle className="text-xl">
                       {trackingData.provider === "courier-guy" && "Courier Guy"}
-                      {trackingData.provider === "fastway" &&
-                        "Fastway Couriers"}
-
                     </CardTitle>
                     <p className="text-gray-600">
                       Tracking: {trackingData.tracking_number}
