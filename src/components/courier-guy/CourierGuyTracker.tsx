@@ -120,7 +120,7 @@ const CourierGuyTracker = ({
                   id="trackingNumber"
                   value={trackingNumber}
                   onChange={(e) => setTrackingNumber(e.target.value)}
-                  placeholder="Enter your Courier Guy tracking number"
+                  placeholder={placeholder}
                   className="flex-1"
                 />
                 <Button
