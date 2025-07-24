@@ -109,24 +109,27 @@ const AdminPayoutTab = () => {
           orders: [
             {
               id: 'order_001',
-              book_title: 'Physics Textbook',
+              book_title: 'Advanced Physics Textbook (3rd Edition)',
               amount: 200.00,
               delivered_at: new Date().toISOString(),
-              buyer_email: 'buyer1@email.com'
+              buyer_email: 'sarah.johnson@uct.ac.za',
+              buyer_name: 'Sarah Johnson'
             },
             {
               id: 'order_002',
-              book_title: 'Mathematics Guide',
+              book_title: 'Mathematics for Engineering Students',
               amount: 150.00,
               delivered_at: new Date().toISOString(),
-              buyer_email: 'buyer2@email.com'
+              buyer_email: 'mike.chen@wits.ac.za',
+              buyer_name: 'Mike Chen'
             },
             {
               id: 'order_003',
-              book_title: 'Chemistry Notes',
+              book_title: 'Organic Chemistry Lab Manual',
               amount: 100.00,
               delivered_at: new Date().toISOString(),
-              buyer_email: 'buyer3@email.com'
+              buyer_email: 'emma.davis@stellenbosch.ac.za',
+              buyer_name: 'Emma Davis'
             }
           ]
         },
