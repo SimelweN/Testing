@@ -488,6 +488,40 @@ const Developer = () => {
     });
   };
 
+  // Error boundary - if there's a component error, show a safe fallback
+  if (componentError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <Card className="max-w-md w-full mx-4">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <AlertCircle className="h-5 w-5 text-red-600" />
+              <span>Developer Dashboard Error</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-gray-600">
+              The developer dashboard encountered an error and couldn't load properly.
+            </p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-sm text-red-800 font-mono">{componentError}</p>
+            </div>
+            <div className="flex space-x-3">
+              <Button onClick={() => window.location.reload()} variant="outline" size="sm">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Reload Page
+              </Button>
+              <Button onClick={() => navigate("/admin")} variant="outline" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Admin
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header */}
