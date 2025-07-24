@@ -222,6 +222,7 @@ const AdminPayoutTab = () => {
 
     } catch (error) {
       console.error('Error loading payout data:', error);
+      setHasError(true);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
 
       // Check if it's a database access issue
