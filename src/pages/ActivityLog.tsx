@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import OrderManagementView from "@/components/orders/OrderManagementView";
 import OrderNotificationSystem from "@/components/notifications/OrderNotificationSystem";
+import { clearAllTestData, clearAllUserData } from "@/utils/clearTestData";
 
 const ActivityLog = () => {
   const { user, profile } = useAuth();
