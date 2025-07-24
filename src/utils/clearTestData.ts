@@ -113,7 +113,12 @@ export const clearAllTestData = async (): Promise<boolean> => {
 
   } catch (error) {
     console.error("Fatal error clearing test data:", error);
-    toast.error("Failed to clear test data: " + (error as Error).message);
+    const errorMessage = error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+        ? error
+        : JSON.stringify(error);
+    toast.error("Failed to clear test data: " + errorMessage);
     return false;
   }
 };
