@@ -155,17 +155,16 @@ const DeveloperMinimal = () => {
       // Try to parse response body for error details
       let responseBody = '';
       let errorMessage = '';
+      let parsedResponse: any = null;
+
       try {
-        // Clone response to avoid consuming the body
-        const responseClone = response.clone();
-        const responseText = await responseClone.text();
-        responseBody = responseText;
-        if (responseText) {
-          const parsed = JSON.parse(responseText);
-          errorMessage = parsed.error || parsed.message || 'Unknown error';
+        responseBody = await response.text();
+        if (responseBody) {
+          parsedResponse = JSON.parse(responseBody);
+          errorMessage = parsedResponse.error || parsedResponse.message || 'Unknown error';
         }
       } catch (e) {
-        errorMessage = 'Failed to parse response';
+        errorMessage = `Parse error: ${responseBody.substring(0, 100)}`;
       }
 
       const testResult: TestResult = {
