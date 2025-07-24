@@ -170,7 +170,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         quotes,
-        providers: ["self", "courier-guy", "fastway"],
+        providers: ["self", "courier-guy"],
         total_quotes: quotes.length,
         provider_errors: providerErrors.length > 0 ? providerErrors : undefined,
         request_details: {
