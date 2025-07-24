@@ -691,7 +691,7 @@ const Developer = () => {
                 ) : (
                   <div className="flex items-center space-x-2">
                     <Play className="h-4 w-4" />
-                    <span>Call Real Pay-Seller Function</span>
+                    <span>Call Real Create-Recipient Function</span>
                   </div>
                 )}
               </Button>
