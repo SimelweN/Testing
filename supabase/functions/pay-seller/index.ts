@@ -50,9 +50,9 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Fetch actual completed orders from database
+    // Fetch completed orders for seller
     console.log('Fetching completed orders for seller:', sellerId);
-    
+
     const { data: ordersData, error: ordersError } = await supabase
       .from('orders')
       .select(`
@@ -66,17 +66,19 @@ const handler = async (req: Request): Promise<Response> => {
         delivery_status,
         delivery_data,
         amount,
-        status
+        status,
+        payment_status
       `)
       .eq('seller_id', sellerId)
       .eq('delivery_status', 'delivered')
-      .eq('status', 'delivered');
+      .eq('status', 'delivered')
+      .order('created_at', { ascending: false });
 
     if (ordersError) {
       console.error('Error fetching orders:', ordersError);
-      return new Response(JSON.stringify({ 
+      return new Response(JSON.stringify({
         error: 'Failed to fetch order data',
-        details: ordersError.message 
+        details: ordersError.message
       }), {
         status: 500,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -98,16 +100,34 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // Fetch buyer information for completed orders
+    const buyerIds = [...new Set(completedOrders.map(order => order.buyer_id).filter(Boolean))];
+    let buyersInfo = {};
+
+    if (buyerIds.length > 0) {
+      const { data: buyersData } = await supabase
+        .from('profiles')
+        .select('id, full_name, first_name, last_name, email')
+        .in('id', buyerIds);
+
+      if (buyersData) {
+        buyersInfo = buyersData.reduce((acc, buyer) => {
+          acc[buyer.id] = buyer;
+          return acc;
+        }, {});
+      }
+    }
+
     // Get seller banking details from banking_subaccounts table
     console.log('Fetching banking subaccount for seller:', sellerId);
-    
+
     // First try to find by user_id
     let { data: bankingDetails, error: bankingError } = await supabase
       .from('banking_subaccounts')
       .select('*')
       .eq('user_id', sellerId)
       .maybeSingle();
-    
+
     // If not found by user_id, get the first available record for demo
     if (!bankingDetails) {
       console.log('No banking subaccount found for user_id, getting first available record for demo');
@@ -116,11 +136,11 @@ const handler = async (req: Request): Promise<Response> => {
         .select('*')
         .limit(1)
         .single();
-      
+
       bankingDetails = demoData;
       bankingError = demoError;
     }
-    
+
     console.log('Banking subaccount query result:', { data: bankingDetails, error: bankingError });
 
     if (bankingError || !bankingDetails) {
@@ -137,39 +157,61 @@ const handler = async (req: Request): Promise<Response> => {
       const deliveryData = order.delivery_data || {};
       return sum + Number(deliveryData.delivery_fee || 0);
     }, 0);
-    
+
     const platformBookCommission = totalBookAmount * 0.10; // 10% of book price
     const platformDeliveryFees = totalDeliveryFees; // 100% of delivery fees
     const totalPlatformEarnings = platformBookCommission + platformDeliveryFees;
     const sellerAmount = totalBookAmount - platformBookCommission; // Seller gets 90% of book price
-    
-    // Order timeline and details
-    const orderDetails = completedOrders.map(order => ({
-      order_id: order.id,
-      book: {
-        title: 'Book Title',
-        price: order.amount,
-        category: 'N/A',
-        condition: 'N/A'
-      },
-      buyer: {
-        name: 'N/A',
-        email: order.buyer_email
-      },
-      timeline: {
-        order_created: order.created_at,
-        payment_received: order.paid_at,
-        seller_committed: order.committed_at,
-        delivered: order.delivery_data?.delivered_at || 'Recently delivered'
-      },
-      amounts: {
-        book_price: order.amount,
-        delivery_fee: order.delivery_data?.delivery_fee || 0,
-        platform_commission: Number(order.amount) * 0.10,
-        seller_earnings: Number(order.amount) * 0.90
-      }
-    }));
-    
+
+    // Completed order details with buyer info and comprehensive timeline
+    const orderDetails = completedOrders.map(order => {
+      const buyer = buyersInfo[order.buyer_id];
+      const buyerName = buyer?.full_name ||
+                       (buyer?.first_name && buyer?.last_name ? `${buyer.first_name} ${buyer.last_name}` : null) ||
+                       'Anonymous Buyer';
+
+      const deliveryData = order.delivery_data || {};
+
+      return {
+        order_id: order.id,
+        book: {
+          title: 'Book Title',
+          price: order.amount,
+          category: 'N/A',
+          condition: 'N/A'
+        },
+        buyer: {
+          name: buyerName,
+          email: order.buyer_email || buyer?.email,
+          buyer_id: order.buyer_id
+        },
+        timeline: {
+          order_created: order.created_at,
+          payment_received: order.paid_at,
+          seller_committed: order.committed_at,
+          book_collected: deliveryData.collected_at || deliveryData.pickup_scheduled_at,
+          book_picked_up: deliveryData.picked_up_at || deliveryData.courier_collected_at,
+          in_transit: deliveryData.in_transit_at,
+          out_for_delivery: deliveryData.out_for_delivery_at,
+          delivered: deliveryData.delivered_at || order.delivery_data?.delivered_at,
+          delivery_confirmed: deliveryData.delivery_confirmed_at
+        },
+        delivery_details: {
+          courier_service: deliveryData.courier_service || 'N/A',
+          tracking_number: deliveryData.tracking_number || 'N/A',
+          delivery_address: deliveryData.delivery_address || 'N/A',
+          delivery_instructions: deliveryData.delivery_instructions || 'N/A',
+          delivery_status: order.delivery_status
+        },
+        amounts: {
+          book_price: order.amount,
+          delivery_fee: deliveryData.delivery_fee || 0,
+          platform_commission: Number(order.amount) * 0.10,
+          seller_earnings: Number(order.amount) * 0.90
+        }
+      };
+    });
+
     const paymentBreakdown = {
       total_orders: completedOrders.length,
       total_book_sales: totalBookAmount,
@@ -213,10 +255,10 @@ const handler = async (req: Request): Promise<Response> => {
     // For development mode without Paystack
     if (!paystackSecretKey) {
       console.log('Development mode: Mock recipient creation');
-      
+
       // Generate mock recipient code
       recipientCode = `RCP_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       // Update banking_subaccounts with mock recipient code
       await supabase
         .from('banking_subaccounts')
