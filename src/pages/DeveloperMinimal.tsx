@@ -42,6 +42,170 @@ const Developer = () => {
   const [payoutResponse, setPayoutResponse] = useState<PayoutResponse | null>(null);
   const [payoutLoading, setPayoutLoading] = useState(false);
 
+  const loadSellers = async () => {
+    setLoadingSellers(true);
+    try {
+      console.log('Loading sellers...');
+
+      // Try to load real sellers first
+      if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(
+          import.meta.env.VITE_SUPABASE_URL,
+          import.meta.env.VITE_SUPABASE_ANON_KEY
+        );
+
+        try {
+          // Get banking accounts first
+          const { data: bankingAccounts, error: bankingError } = await supabase
+            .from('banking_subaccounts')
+            .select('user_id, business_name, email, status')
+            .eq('status', 'active')
+            .limit(10);
+
+          if (!bankingError && bankingAccounts && bankingAccounts.length > 0) {
+            // Check orders for each seller
+            const sellersData = await Promise.all(
+              bankingAccounts.map(async (banking) => {
+                const { data: orders } = await supabase
+                  .from('orders')
+                  .select('seller_id')
+                  .eq('seller_id', banking.user_id)
+                  .eq('delivery_status', 'delivered')
+                  .eq('status', 'delivered');
+
+                return {
+                  id: banking.user_id,
+                  name: banking.business_name || `Seller ${banking.user_id}`,
+                  email: banking.email,
+                  orders: orders?.length || 0,
+                  has_banking: true
+                };
+              })
+            );
+
+            const validSellers = sellersData.filter(s => s.orders > 0);
+            if (validSellers.length > 0) {
+              setSellers(validSellers);
+              toast.success(`Found ${validSellers.length} eligible sellers`);
+              return;
+            }
+          }
+        } catch (error) {
+          console.log('Database query failed, using demo sellers');
+        }
+      }
+
+      // Fallback to demo sellers
+      setSellers([
+        {
+          id: "demo_seller_001",
+          name: "Demo Seller 1",
+          email: "demo1@example.com",
+          orders: 2,
+          has_banking: true
+        },
+        {
+          id: "demo_seller_002",
+          name: "Demo Seller 2",
+          email: "demo2@example.com",
+          orders: 1,
+          has_banking: true
+        }
+      ]);
+      toast.info('Using demo sellers for testing');
+
+    } catch (error) {
+      console.error('Error loading sellers:', error);
+      toast.error('Failed to load sellers');
+    } finally {
+      setLoadingSellers(false);
+    }
+  };
+
+  const testPayoutFunction = async () => {
+    if (!selectedSeller) {
+      toast.error('Please select a seller first');
+      return;
+    }
+
+    setPayoutLoading(true);
+    setPayoutResponse(null);
+
+    try {
+      const selectedSellerData = sellers.find(s => s.id === selectedSeller);
+      console.log('Testing payout for:', selectedSellerData);
+
+      // Demo simulation for demo sellers
+      if (selectedSeller.startsWith('demo_seller_')) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        const demoResponse: PayoutResponse = {
+          success: true,
+          recipient_code: `DEMO_RCP_${Date.now()}`,
+          message: "Demo recipient created successfully (Simulation)",
+          payment_breakdown: {
+            total_orders: selectedSellerData?.orders || 1,
+            seller_amount: (selectedSellerData?.orders || 1) * 180.00,
+            platform_earnings: {
+              total: (selectedSellerData?.orders || 1) * 45.00
+            }
+          },
+          seller_info: {
+            name: selectedSellerData?.name || 'Demo Seller',
+            email: selectedSellerData?.email || 'demo@example.com',
+            account_number: '****DEMO',
+            bank_name: 'Demo Bank'
+          }
+        };
+
+        setPayoutResponse(demoResponse);
+        toast.success('Demo payout function completed!');
+        return;
+      }
+
+      // Real function call for actual sellers
+      if (!import.meta.env.VITE_SUPABASE_URL) {
+        throw new Error('Supabase URL not configured');
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pay-seller`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ sellerId: selectedSeller }),
+      });
+
+      const responseText = await response.text();
+      const result = responseText ? JSON.parse(responseText) : {};
+
+      if (!response.ok) {
+        throw new Error(result?.error || `HTTP ${response.status}`);
+      }
+
+      if (result.success) {
+        setPayoutResponse(result);
+        toast.success('Real payout function executed successfully!');
+      } else {
+        throw new Error(result.error || 'Function returned unsuccessful result');
+      }
+
+    } catch (error) {
+      console.error('Payout function error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Payout function failed: ${errorMessage}`);
+
+      setPayoutResponse({
+        success: false,
+        message: `Error: ${errorMessage}`
+      });
+    } finally {
+      setPayoutLoading(false);
+    }
+  };
+
   const testFunction = () => {
     setIsLoading(true);
     toast.info('Testing basic functionality...');
@@ -50,6 +214,10 @@ const Developer = () => {
       toast.success('Basic functionality works!');
     }, 1500);
   };
+
+  useEffect(() => {
+    loadSellers();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
