@@ -65,6 +65,7 @@ const AdminPayoutTab = () => {
   const [activeTab, setActiveTab] = useState<PayoutStatus>('pending');
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
