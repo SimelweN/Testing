@@ -83,23 +83,8 @@ const handler = async (req: Request): Promise<Response> => {
       console.log('No completed orders found, but continuing with mock data for testing');
     }
 
-    // Fetch buyer information for completed orders
-    const buyerIds = [...new Set(completedOrders.map(order => order.buyer_id).filter(Boolean))];
-    let buyersInfo = {};
-    
-    if (buyerIds.length > 0) {
-      const { data: buyersData } = await supabase
-        .from('profiles')
-        .select('id, full_name, first_name, last_name, email')
-        .in('id', buyerIds);
-      
-      if (buyersData) {
-        buyersInfo = buyersData.reduce((acc, buyer) => {
-          acc[buyer.id] = buyer;
-          return acc;
-        }, {});
-      }
-    }
+    // Skip buyer info fetching for now to prevent timeouts
+    const buyersInfo = {};
 
     // Get seller banking details from banking_subaccounts table
     console.log('Fetching banking subaccount for seller:', sellerId);
