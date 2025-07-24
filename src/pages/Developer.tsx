@@ -154,11 +154,29 @@ const Developer = () => {
   const loadRealSellers = async () => {
     setLoadingSellers(true);
     try {
-      console.log('Fetching sellers with banking details (banking-first approach)...');
+      console.log('Fetching sellers with banking details...');
 
       // Check if we have the required environment variables
       if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        throw new Error('Supabase environment variables not configured');
+        console.warn('Supabase environment variables not configured, using demo data');
+        setRealSellers([
+          {
+            id: "demo_seller_001",
+            name: "Demo Seller 1 (No DB Config)",
+            email: "demo1@example.com",
+            orders: 2,
+            has_banking: true,
+          },
+          {
+            id: "demo_seller_002",
+            name: "Demo Seller 2 (No DB Config)",
+            email: "demo2@example.com",
+            orders: 1,
+            has_banking: true,
+          }
+        ]);
+        setLoadingSellers(false);
+        return;
       }
 
       // Direct Supabase call using banking-first approach (like banking details components)
