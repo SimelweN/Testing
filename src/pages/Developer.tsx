@@ -356,22 +356,33 @@ const Developer = () => {
               {/* Test Button */}
               <Button
                 onClick={handleTestPayoutFunction}
-                disabled={!selectedSeller || isLoading}
+                disabled={!selectedSeller || isLoading || realSellers.length === 0 || loadingSellers}
                 className="w-full bg-purple-600 hover:bg-purple-700"
                 size="lg"
               >
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>Testing Payout Function...</span>
+                    <span>Calling Real Pay-Seller Function...</span>
                   </div>
                 ) : (
                   <div className="flex items-center space-x-2">
                     <Play className="h-4 w-4" />
-                    <span>Run Payout Function Test</span>
+                    <span>Call Real Pay-Seller Function</span>
                   </div>
                 )}
               </Button>
+
+              {realSellers.length === 0 && !loadingSellers && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle className="h-4 w-4 text-amber-600" />
+                    <span className="text-sm text-amber-800">
+                      To test this function, you need sellers with both delivered orders and banking details configured.
+                    </span>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
