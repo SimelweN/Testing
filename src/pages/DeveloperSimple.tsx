@@ -7,13 +7,50 @@ import { Code, ArrowLeft, AlertCircle, Play, User, DollarSign, CheckCircle, Refr
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
+interface RealSeller {
+  id: string;
+  name: string;
+  email: string;
+  orders: number;
+  has_banking: boolean;
+  banking_status?: string;
+  business_name?: string;
+  bank_name?: string;
+  account_number?: string;
+}
+
+interface PayoutResponse {
+  success: boolean;
+  recipient_code?: string;
+  message: string;
+  payment_breakdown?: {
+    total_orders: number;
+    seller_amount: number;
+    platform_earnings: {
+      total: number;
+    };
+  };
+  seller_info?: {
+    name: string;
+    email: string;
+    account_number: string;
+    bank_name: string;
+  };
+}
+
 const Developer = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedSeller, setSelectedSeller] = useState<string>("");
+  const [realSellers, setRealSellers] = useState<RealSeller[]>([]);
+  const [loadingSellers, setLoadingSellers] = useState(false);
+  const [payoutResponse, setPayoutResponse] = useState<PayoutResponse | null>(null);
+  const [payoutLoading, setPayoutLoading] = useState(false);
 
   useEffect(() => {
     console.log('Developer component mounted successfully');
     toast.success('Developer Dashboard loaded');
+    loadSellers();
   }, []);
 
   return (
