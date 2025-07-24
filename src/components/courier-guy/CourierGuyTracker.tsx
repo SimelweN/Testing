@@ -18,7 +18,17 @@ import {
   CourierGuyTrackingInfo,
 } from "@/services/courierGuyService";
 
-const CourierGuyTracker = () => {
+interface CourierGuyTrackerProps {
+  placeholder?: string;
+  showBranding?: boolean;
+  compact?: boolean;
+}
+
+const CourierGuyTracker = ({
+  placeholder = "Enter your Courier Guy tracking number",
+  showBranding = true,
+  compact = false
+}: CourierGuyTrackerProps = {}) => {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [trackingInfo, setTrackingInfo] =
