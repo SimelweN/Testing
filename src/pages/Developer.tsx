@@ -305,9 +305,9 @@ const Developer = () => {
 
       // Check if this is a demo seller (when database isn't accessible)
       if (selectedSeller.startsWith('demo_seller_')) {
-        console.log('Demo mode - simulating pay-seller function');
+        console.log('Demo mode - simulating create-recipient function');
 
-        // Simulate the pay-seller function response for demo
+        // Simulate the create-recipient function response for demo
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         const demoResponse = {
@@ -362,7 +362,7 @@ const Developer = () => {
         };
 
         setPayoutResponse(demoResponse);
-        toast.success("Demo pay-seller function executed - This is a simulation!");
+        toast.success("Demo create-recipient function executed - This is a simulation!");
         return;
       }
 
@@ -371,9 +371,9 @@ const Developer = () => {
         throw new Error("Supabase URL not configured");
       }
 
-      console.log('Calling real pay-seller edge function...');
+      console.log('Calling real create-recipient edge function...');
 
-      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pay-seller`;
+      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-recipient`;
       const response = await fetch(functionUrl, {
         method: 'POST',
         headers: {
@@ -402,15 +402,15 @@ const Developer = () => {
 
       if (result.success) {
         setPayoutResponse(result);
-        toast.success("Real pay-seller function executed successfully - Recipient created!");
+        toast.success("Real create-recipient function executed successfully - Recipient created!");
       } else {
-        throw new Error(result.error || result.message || "Pay-seller function returned unsuccessful result");
+        throw new Error(result.error || result.message || "Create-recipient function returned unsuccessful result");
       }
     } catch (error) {
-      console.error("Error calling pay-seller function:", error);
+      console.error("Error calling create-recipient function:", error);
 
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-      toast.error(`Failed to execute pay-seller function: ${errorMessage}`);
+      toast.error(`Failed to execute create-recipient function: ${errorMessage}`);
 
       setPayoutResponse({
         success: false,
