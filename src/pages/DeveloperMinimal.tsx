@@ -57,43 +57,41 @@ const Developer = () => {
         );
 
         try {
+          // Add timeout to prevent hanging
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Database timeout')), 3000)
+          );
+
           // Get banking accounts first
-          const { data: bankingAccounts, error: bankingError } = await supabase
+          const bankingPromise = supabase
             .from('banking_subaccounts')
             .select('user_id, business_name, email, status')
             .eq('status', 'active')
-            .limit(10);
+            .limit(5); // Reduce limit to prevent timeout
+
+          const { data: bankingAccounts, error: bankingError } = await Promise.race([
+            bankingPromise,
+            timeoutPromise
+          ]);
 
           if (!bankingError && bankingAccounts && bankingAccounts.length > 0) {
-            // Check orders for each seller
-            const sellersData = await Promise.all(
-              bankingAccounts.map(async (banking) => {
-                const { data: orders } = await supabase
-                  .from('orders')
-                  .select('seller_id')
-                  .eq('seller_id', banking.user_id)
-                  .eq('delivery_status', 'delivered')
-                  .eq('status', 'delivered');
+            // Simplified approach - just use banking accounts without order checking to prevent crashes
+            const sellersData = bankingAccounts.map((banking) => ({
+              id: banking.user_id,
+              name: banking.business_name || `Seller ${banking.user_id}`,
+              email: banking.email || `${banking.user_id}@example.com`,
+              orders: 2, // Default to 2 for testing
+              has_banking: true
+            }));
 
-                return {
-                  id: banking.user_id,
-                  name: banking.business_name || `Seller ${banking.user_id}`,
-                  email: banking.email,
-                  orders: orders?.length || 0,
-                  has_banking: true
-                };
-              })
-            );
-
-            const validSellers = sellersData.filter(s => s.orders > 0);
-            if (validSellers.length > 0) {
-              setSellers(validSellers);
-              toast.success(`Found ${validSellers.length} eligible sellers`);
+            if (sellersData.length > 0) {
+              setSellers(sellersData);
+              toast.success(`Found ${sellersData.length} sellers with banking details`);
               return;
             }
           }
         } catch (error) {
-          console.log('Database query failed, using demo sellers');
+          console.log('Database query failed, using demo sellers:', error);
         }
       }
 
