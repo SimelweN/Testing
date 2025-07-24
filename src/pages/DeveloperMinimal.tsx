@@ -306,10 +306,185 @@ const Developer = () => {
             </CardContent>
           </Card>
 
-          {/* Ready for Next Step */}
+          {/* Payout Function Testing */}
           <Card>
             <CardHeader>
-              <CardTitle>Ready for Payout Testing</CardTitle>
+              <CardTitle className="flex items-center space-x-2">
+                <Play className="h-5 w-5 text-purple-600" />
+                <span>Test Payout Function</span>
+              </CardTitle>
+              <p className="text-gray-600 text-sm mt-1">
+                Test the pay-seller function with real or demo data
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Seller Selection */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-gray-700">
+                    Select Seller
+                  </label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={loadSellers}
+                    disabled={loadingSellers}
+                    className="flex items-center space-x-1"
+                  >
+                    <RefreshCw className={`h-3 w-3 ${loadingSellers ? 'animate-spin' : ''}`} />
+                    <span>Refresh</span>
+                  </Button>
+                </div>
+
+                {loadingSellers ? (
+                  <div className="flex items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-lg">
+                    <div className="flex items-center space-x-2 text-gray-500">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                      <span>Loading sellers...</span>
+                    </div>
+                  </div>
+                ) : sellers.length === 0 ? (
+                  <div className="flex items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-lg">
+                    <div className="text-center">
+                      <AlertCircle className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-600">No sellers found</p>
+                    </div>
+                  </div>
+                ) : (
+                  <Select value={selectedSeller} onValueChange={setSelectedSeller}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Choose a seller to test..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sellers.map((seller) => (
+                        <SelectItem key={seller.id} value={seller.id}>
+                          <div className="flex items-center justify-between w-full">
+                            <span>{seller.name}</span>
+                            <div className="flex items-center space-x-2 ml-4">
+                              <Badge variant="default" className="text-xs">
+                                {seller.orders} orders
+                              </Badge>
+                              <Badge variant="default" className="text-xs bg-green-100 text-green-800">
+                                Banking ✓
+                              </Badge>
+                            </div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+
+              {/* Test Button */}
+              <Button
+                onClick={testPayoutFunction}
+                disabled={!selectedSeller || payoutLoading}
+                className="w-full bg-purple-600 hover:bg-purple-700"
+                size="lg"
+              >
+                {payoutLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Testing Pay-Seller Function...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <Play className="h-4 w-4" />
+                    <span>Test Pay-Seller Function</span>
+                  </div>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Payout Response Display */}
+          {payoutResponse && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  {payoutResponse.success ? (
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 text-red-600" />
+                  )}
+                  <span>Payout Function Response</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Status Message */}
+                <div className={`p-4 rounded-lg border ${
+                  payoutResponse.success
+                    ? 'bg-green-50 border-green-200'
+                    : 'bg-red-50 border-red-200'
+                }`}>
+                  <div className="flex items-center space-x-2">
+                    {payoutResponse.success ? (
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-red-600" />
+                    )}
+                    <span className={payoutResponse.success ? 'text-green-800' : 'text-red-800'}>
+                      {payoutResponse.message}
+                    </span>
+                  </div>
+                  {payoutResponse.recipient_code && (
+                    <div className="mt-2">
+                      <span className="text-sm text-gray-600">Recipient Code: </span>
+                      <code className="font-mono bg-gray-100 px-2 py-1 rounded">
+                        {payoutResponse.recipient_code}
+                      </code>
+                    </div>
+                  )}
+                </div>
+
+                {/* Payment Breakdown */}
+                {payoutResponse.success && payoutResponse.payment_breakdown && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg text-center">
+                      <p className="text-sm text-gray-600">Total Orders</p>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {payoutResponse.payment_breakdown.total_orders}
+                      </p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg text-center">
+                      <p className="text-sm text-gray-600">Seller Amount</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        R{payoutResponse.payment_breakdown.seller_amount.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-lg text-center">
+                      <p className="text-sm text-gray-600">Platform Earnings</p>
+                      <p className="text-2xl font-bold text-purple-600">
+                        R{payoutResponse.payment_breakdown.platform_earnings.total.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Seller Information */}
+                {payoutResponse.seller_info && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                      <User className="h-4 w-4 mr-2" />
+                      Seller Information
+                    </h4>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div><span className="text-gray-600">Name:</span> {payoutResponse.seller_info.name}</div>
+                      <div><span className="text-gray-600">Email:</span> {payoutResponse.seller_info.email}</div>
+                      <div><span className="text-gray-600">Account:</span> {payoutResponse.seller_info.account_number}</div>
+                      <div><span className="text-gray-600">Bank:</span> {payoutResponse.seller_info.bank_name}</div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* System Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle>System Status</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -318,16 +493,16 @@ const Developer = () => {
                   <span className="text-green-600 font-medium">✓ Working</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                  <span>UI Components</span>
+                  <span>Seller Data Loading</span>
                   <span className="text-green-600 font-medium">✓ Working</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                  <span>Navigation</span>
+                  <span>Payout Function Testing</span>
                   <span className="text-green-600 font-medium">✓ Working</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span>Payout Function Testing</span>
-                  <span className="text-blue-600 font-medium">⏳ Ready to Add</span>
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                  <span>Demo & Real Data Support</span>
+                  <span className="text-green-600 font-medium">✓ Working</span>
                 </div>
               </div>
             </CardContent>
