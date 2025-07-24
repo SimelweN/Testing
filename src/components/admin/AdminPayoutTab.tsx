@@ -43,6 +43,7 @@ interface PayoutRequest {
     amount: number;
     delivered_at: string;
     buyer_email: string;
+    buyer_name?: string;
   }>;
 }
 
