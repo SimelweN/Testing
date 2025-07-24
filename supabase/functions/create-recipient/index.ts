@@ -153,13 +153,15 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Calculate payment breakdown from completed orders
-    const totalBookAmount = completedOrders.reduce((sum, order) => sum + Number(order.amount), 0);
-    const totalDeliveryFees = completedOrders.reduce((sum, order) => {
-      const deliveryData = order.delivery_data || {};
-      return sum + Number(deliveryData.delivery_fee || 0);
-    }, 0);
-    
+    // Calculate payment breakdown from completed orders (or use test values)
+    const totalBookAmount = isTestCall && completedOrders.length === 0 ? 100 :
+      completedOrders.reduce((sum, order) => sum + Number(order.amount), 0);
+    const totalDeliveryFees = isTestCall && completedOrders.length === 0 ? 20 :
+      completedOrders.reduce((sum, order) => {
+        const deliveryData = order.delivery_data || {};
+        return sum + Number(deliveryData.delivery_fee || 0);
+      }, 0);
+
     const platformBookCommission = totalBookAmount * 0.10; // 10% of book price
     const platformDeliveryFees = totalDeliveryFees; // 100% of delivery fees
     const totalPlatformEarnings = platformBookCommission + platformDeliveryFees;
