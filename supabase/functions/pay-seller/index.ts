@@ -287,7 +287,7 @@ const handler = async (req: Request): Promise<Response> => {
     };
 
     if (bankingDetails.recipient_code) {
-      console.log('Recipient already exists:', bankingDetails.recipient_code);
+      console.log('✅ Recipient already exists:', bankingDetails.recipient_code);
 
       return new Response(JSON.stringify({
         success: true,
@@ -298,8 +298,26 @@ const handler = async (req: Request): Promise<Response> => {
         seller_info: {
           name: bankingDetails.business_name,
           email: bankingDetails.email,
-          account_number: bankingDetails.account_number.slice(-4).padStart(bankingDetails.account_number.length, '*'),
+          account_number: bankingDetails.account_number?.slice(-4).padStart(bankingDetails.account_number?.length || 0, '*'),
           bank_name: bankingDetails.bank_name
+        },
+        subaccount_details: {
+          subaccount_code: bankingDetails.subaccount_code,
+          business_name: bankingDetails.business_name,
+          bank_name: bankingDetails.bank_name,
+          account_number: bankingDetails.account_number,
+          bank_code: bankingDetails.bank_code,
+          email: bankingDetails.email,
+          status: bankingDetails.status,
+          created_at: bankingDetails.created_at,
+          updated_at: bankingDetails.updated_at
+        },
+        payout_timeline: {
+          orders_delivered: completedOrders.length,
+          total_amount_due: sellerAmount,
+          recipient_created: bankingDetails.created_at,
+          ready_for_payout: new Date().toISOString(),
+          next_steps: 'Manual payment processing can now be initiated'
         }
       }), {
         status: 200,
