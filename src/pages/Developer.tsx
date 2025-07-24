@@ -259,41 +259,26 @@ const Developer = () => {
       console.error('Error loading real sellers:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
 
-      // Check if it's a table access issue
-      if (errorMessage.includes('permission') || errorMessage.includes('does not exist') || errorMessage.includes('relation') || errorMessage.includes('column')) {
-        console.log('Database access issue detected, falling back to demo mode');
-        toast.warning('Database access issue - Using demo mode for testing');
+      // Always fall back to demo data on any error
+      console.log('Error detected, falling back to demo mode');
+      toast.warning('Could not load real data - Using demo sellers');
 
-        // Provide demo sellers for testing when database isn't accessible
-        setRealSellers([
-          {
-            id: "demo_seller_001",
-            name: "Demo Seller 1 (DB Issue)",
-            email: "demo1@example.com",
-            orders: 2,
-            has_banking: true,
-            banking_status: 'active',
-            business_name: 'Demo Business 1',
-            bank_name: 'Demo Bank',
-            account_number: '****DEMO'
-          },
-          {
-            id: "demo_seller_002",
-            name: "Demo Seller 2 (DB Issue)",
-            email: "demo2@example.com",
-            orders: 1,
-            has_banking: true,
-            banking_status: 'active',
-            business_name: 'Demo Business 2',
-            bank_name: 'Demo Bank',
-            account_number: '****TEST'
-          }
-        ]);
-        toast.info('Demo sellers loaded - Database tables may need to be created');
-      } else {
-        toast.error(`Failed to load sellers: ${errorMessage}`);
-        setRealSellers([]);
-      }
+      setRealSellers([
+        {
+          id: "demo_seller_001",
+          name: "Demo Seller 1",
+          email: "demo1@example.com",
+          orders: 2,
+          has_banking: true,
+        },
+        {
+          id: "demo_seller_002",
+          name: "Demo Seller 2",
+          email: "demo2@example.com",
+          orders: 1,
+          has_banking: true,
+        }
+      ]);
     } finally {
       setLoadingSellers(false);
     }
