@@ -319,27 +319,7 @@ const InformativeShippingDashboard = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Support Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Need Help with Your Delivery?</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-gray-600 mb-4">
-              Our support team is here to help with any shipping questions or issues.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Button variant="outline" className="justify-start">
-                <Phone className="h-4 w-4 mr-2" />
-                Call Support
-              </Button>
-              <Button variant="outline" className="justify-start">
-                <Mail className="h-4 w-4 mr-2" />
-                Email Support
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+
       </div>
     </div>
   );
