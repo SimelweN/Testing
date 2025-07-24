@@ -238,6 +238,14 @@ function App() {
                           </AdminProtectedRoute>
                         }
                       />
+                      <Route
+                        path="/developer"
+                        element={
+                          <AdminProtectedRoute>
+                            <Developer />
+                          </AdminProtectedRoute>
+                        }
+                      />
 
 
                       {/* Support Routes */}
