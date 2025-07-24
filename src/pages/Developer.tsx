@@ -105,12 +105,19 @@ const Developer = () => {
     try {
       console.log('Fetching real sellers with delivered orders...');
 
+      // Check if we have the required environment variables
+      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+        throw new Error('Supabase environment variables not configured');
+      }
+
       // Direct Supabase call instead of API route
       const { createClient } = await import('@supabase/supabase-js');
       const supabase = createClient(
         import.meta.env.VITE_SUPABASE_URL,
         import.meta.env.VITE_SUPABASE_ANON_KEY
       );
+
+      console.log('Querying orders table for delivered orders...');
 
       // Get all orders that have been delivered
       const { data: deliveredOrders, error: ordersError } = await supabase
@@ -126,8 +133,14 @@ const Developer = () => {
         .eq('status', 'delivered');
 
       if (ordersError) {
-        throw new Error(`Failed to fetch delivered orders: ${ordersError.message}`);
+        console.error('Orders query error:', ordersError);
+        throw new Error(`Failed to fetch delivered orders: ${ordersError.message || ordersError.details || 'Unknown database error'}`);
       }
+
+      console.log('Orders query result:', {
+        count: deliveredOrders?.length || 0,
+        hasData: !!deliveredOrders
+      });
 
       if (!deliveredOrders || deliveredOrders.length === 0) {
         toast.info("No delivered orders found in database");
@@ -138,6 +151,11 @@ const Developer = () => {
       // Group orders by seller and count them
       const sellerOrderCounts = deliveredOrders.reduce((acc, order) => {
         const sellerId = order.seller_id;
+        if (!sellerId) {
+          console.warn('Order without seller_id found:', order);
+          return acc;
+        }
+
         if (!acc[sellerId]) {
           acc[sellerId] = {
             id: sellerId,
@@ -153,7 +171,14 @@ const Developer = () => {
       const sellersWithOrders = Object.values(sellerOrderCounts);
       console.log('Found sellers with delivered orders:', sellersWithOrders.length);
 
+      if (sellersWithOrders.length === 0) {
+        toast.info("No valid sellers found with delivered orders");
+        setRealSellers([]);
+        return;
+      }
+
       // For each seller, check if they have banking details
+      console.log('Checking banking details for sellers...');
       const sellersWithBanking = await Promise.all(
         sellersWithOrders.map(async (seller) => {
           try {
@@ -162,6 +187,10 @@ const Developer = () => {
               .select('user_id, business_name, email, status')
               .eq('user_id', seller.id)
               .maybeSingle();
+
+            if (bankingError) {
+              console.warn(`Banking query error for seller ${seller.id}:`, bankingError);
+            }
 
             return {
               ...seller,
@@ -204,7 +233,8 @@ const Developer = () => {
 
     } catch (error) {
       console.error('Error loading real sellers:', error);
-      toast.error(`Failed to load sellers: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error(`Failed to load sellers: ${errorMessage}`);
 
       // Empty state on error
       setRealSellers([]);
