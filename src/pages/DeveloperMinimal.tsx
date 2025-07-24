@@ -292,6 +292,24 @@ const DeveloperMinimal = () => {
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div>
+                  <label htmlFor="sellerId" className="block text-sm font-medium text-gray-700 mb-1">
+                    Seller ID for Create-Recipient Test
+                  </label>
+                  <input
+                    id="sellerId"
+                    type="text"
+                    value={sellerIdInput}
+                    onChange={(e) => setSellerIdInput(e.target.value)}
+                    placeholder="Enter seller UUID from database"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Use a real seller UUID from your database or test UUID: 00000000-0000-4000-8000-000000000000
+                  </p>
+                </div>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <Button
                   onClick={runBasicTests}
