@@ -897,7 +897,19 @@ const AdminPayoutTab = () => {
                                 <span className="font-bold text-green-600">{formatCurrency(order.amount)}</span>
                               </div>
 
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                                {/* Order & Payment IDs */}
+                                <div className="space-y-2">
+                                  <h5 className="font-medium text-gray-800 flex items-center">
+                                    <CreditCard className="h-3 w-3 mr-1" />
+                                    Order & Payment IDs
+                                  </h5>
+                                  <div className="pl-4 space-y-1">
+                                    <div><span className="text-gray-600">Order ID:</span> <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">{order.id}</span></div>
+                                    <div><span className="text-gray-600">Transaction ID:</span> <span className="font-mono text-xs bg-blue-100 px-2 py-1 rounded">{(order as any).paystack_transaction_id || 'N/A'}</span></div>
+                                  </div>
+                                </div>
+
                                 {/* Buyer Information */}
                                 <div className="space-y-2">
                                   <h5 className="font-medium text-gray-800 flex items-center">
