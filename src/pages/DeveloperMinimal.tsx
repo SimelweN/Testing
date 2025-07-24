@@ -382,6 +382,35 @@ const DeveloperMinimal = () => {
             </Card>
           )}
 
+          {/* Deployment Guidance */}
+          <Card className="border-2 border-orange-200 bg-orange-50">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <AlertCircle className="h-5 w-5 text-orange-600" />
+                <span>Edge Function Deployment Status</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <p className="text-sm text-orange-800">
+                  The create-recipient function returned a 404 error, indicating it's not deployed to Supabase.
+                </p>
+                <div className="bg-white p-3 rounded border border-orange-200">
+                  <h4 className="font-medium text-gray-900 mb-2">To fix this issue:</h4>
+                  <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside">
+                    <li>The function has been added to the deployment script</li>
+                    <li>Run: <code className="bg-gray-100 px-1 rounded">./deploy-functions.sh</code></li>
+                    <li>Or manually deploy: <code className="bg-gray-100 px-1 rounded">supabase functions deploy create-recipient</code></li>
+                    <li>Verify deployment in Supabase Dashboard</li>
+                  </ol>
+                </div>
+                <p className="text-xs text-orange-700">
+                  Note: You need Supabase CLI installed and authenticated for deployment.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* System Status */}
           <Card>
             <CardHeader>
