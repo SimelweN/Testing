@@ -48,7 +48,30 @@ const Developer = () => {
     try {
       console.log('Loading sellers...');
 
-      // Try to load real sellers first
+      // Check environment variables first
+      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+        console.log('Supabase environment variables not configured, using demo sellers');
+        setSellers([
+          {
+            id: "demo_seller_001",
+            name: "Demo Seller 1 (No Config)",
+            email: "demo1@example.com",
+            orders: 2,
+            has_banking: true
+          },
+          {
+            id: "demo_seller_002",
+            name: "Demo Seller 2 (No Config)",
+            email: "demo2@example.com",
+            orders: 1,
+            has_banking: true
+          }
+        ]);
+        toast.info('Using demo sellers - Environment not configured');
+        return;
+      }
+
+      // Try to load real sellers
       if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
         const { createClient } = await import('@supabase/supabase-js');
         const supabase = createClient(
