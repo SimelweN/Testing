@@ -146,17 +146,19 @@ const AdminPayoutTab = () => {
           orders: [
             {
               id: 'order_004',
-              book_title: 'Biology Handbook',
+              book_title: 'Human Biology: Comprehensive Handbook',
               amount: 180.00,
               delivered_at: new Date(Date.now() - 86400000).toISOString(),
-              buyer_email: 'buyer4@email.com'
+              buyer_email: 'james.williams@up.ac.za',
+              buyer_name: 'James Williams'
             },
             {
               id: 'order_005',
-              book_title: 'English Literature',
+              book_title: 'English Literature: Contemporary Works',
               amount: 90.00,
               delivered_at: new Date(Date.now() - 86400000).toISOString(),
-              buyer_email: 'buyer5@email.com'
+              buyer_email: 'lisa.thompson@uj.ac.za',
+              buyer_name: 'Lisa Thompson'
             }
           ]
         }
