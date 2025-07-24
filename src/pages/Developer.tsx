@@ -94,6 +94,11 @@ const Developer = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [realSellers, setRealSellers] = useState<RealSeller[]>([]);
   const [loadingSellers, setLoadingSellers] = useState(true);
+  const [envStatus, setEnvStatus] = useState<{
+    supabase_url: boolean;
+    supabase_key: boolean;
+    paystack_configured: boolean;
+  }>({ supabase_url: false, supabase_key: false, paystack_configured: false });
 
   // Fetch real sellers with banking details and delivered orders
   useEffect(() => {
