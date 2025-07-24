@@ -37,6 +37,7 @@ interface PayoutRequest {
   created_at: string;
   status: PayoutStatus;
   recipient_code?: string;
+  payment_breakdown?: any; // Store the detailed payment breakdown from edge function
   orders: Array<{
     id: string;
     book_title: string;
@@ -44,6 +45,7 @@ interface PayoutRequest {
     delivered_at: string;
     buyer_email: string;
     buyer_name?: string;
+    paystack_transaction_id?: string; // Add transaction ID field
   }>;
 }
 
