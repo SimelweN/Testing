@@ -105,12 +105,14 @@ const CourierGuyTracker = ({
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Tracking Form */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Search className="mr-2 h-5 w-5" />
-            Track Your Shipment
-          </CardTitle>
-        </CardHeader>
+        {showBranding && (
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Search className="mr-2 h-5 w-5" />
+              Track Your Shipment
+            </CardTitle>
+          </CardHeader>
+        )}
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
