@@ -18,6 +18,12 @@ interface TestResult {
   details?: string;
 }
 
+interface Seller {
+  id: string;
+  name: string;
+  email: string;
+}
+
 const DeveloperMinimal = () => {
   const navigate = useNavigate();
   const [testResults, setTestResults] = useState<TestResult[]>([]);
