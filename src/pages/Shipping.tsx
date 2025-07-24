@@ -1,15 +1,15 @@
 import React from "react";
 import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
-import MobileShippingDashboard from "@/components/MobileShippingDashboard";
+import InformativeShippingDashboard from "@/components/InformativeShippingDashboard";
 
 const Shipping = () => {
   return (
     <Layout>
       <SEO
-        title="Shipping & Delivery - ReBooked Solutions"
-        description="Track your textbook deliveries with Courier Guy, Fastway, and ShipLogic. Real-time tracking for all your orders."
-        keywords="shipping, delivery, courier guy, fastway, shiplogic, tracking, textbook delivery"
+        title="Shipping & Delivery Information - ReBooked Solutions"
+        description="Learn about our shipping process and track your textbook deliveries. Powered by Courier Guy for reliable nationwide delivery across South Africa."
+        keywords="shipping process, delivery tracking, courier guy, textbook delivery, order tracking, south africa shipping"
         url="https://www.rebookedsolutions.co.za/shipping"
       />
 
@@ -17,16 +17,15 @@ const Shipping = () => {
         <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
           <div className="text-center mb-6 sm:mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-book-800 mb-2 sm:mb-4">
-              Track Your Orders
+              Shipping & Delivery Information
             </h1>
             <p className="text-gray-600 text-sm sm:text-base max-w-3xl mx-auto px-4">
-              Track your textbook deliveries with our integrated shipping
-              providers including Courier Guy, Fastway, and ShipLogic. Shipments
-              are automatically created when you purchase books.
+              Learn how we deliver your textbooks safely and track your orders in real-time.
+              All shipments are handled by our trusted partner Courier Guy for reliable delivery across South Africa.
             </p>
           </div>
 
-          <MobileShippingDashboard />
+          <InformativeShippingDashboard />
         </div>
       </div>
     </Layout>
