@@ -296,46 +296,177 @@ const Developer = () => {
       <div className="px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-6xl mx-auto space-y-8">
           
-          {/* Basic Test Card */}
+          {/* Payout Function Testing */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Code className="h-5 w-5 text-purple-600" />
-                <span>Developer Dashboard - Basic Test</span>
+                <Play className="h-5 w-5 text-purple-600" />
+                <span>Test Payout Function</span>
               </CardTitle>
               <p className="text-gray-600">
-                This is a simplified version to test basic rendering
+                Test the pay-seller function with real sellers or demo data
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center space-x-2 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                <span className="text-green-800">Developer Dashboard is rendering successfully!</span>
+              {/* Seller Selection */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-gray-700">
+                    Select Seller (with banking details)
+                  </label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={loadSellers}
+                    disabled={loadingSellers}
+                    className="flex items-center space-x-1"
+                  >
+                    <RefreshCw className={`h-3 w-3 ${loadingSellers ? 'animate-spin' : ''}`} />
+                    <span>Refresh</span>
+                  </Button>
+                </div>
+
+                {loadingSellers ? (
+                  <div className="flex items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-lg">
+                    <div className="flex items-center space-x-2 text-gray-500">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                      <span>Loading sellers...</span>
+                    </div>
+                  </div>
+                ) : realSellers.length === 0 ? (
+                  <div className="flex items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-lg">
+                    <div className="text-center">
+                      <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-600 font-medium">No Eligible Sellers Found</p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        No sellers with banking details and delivered orders found.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <Select value={selectedSeller} onValueChange={setSelectedSeller}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Choose a seller to test..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {realSellers.map((seller) => (
+                        <SelectItem key={seller.id} value={seller.id}>
+                          <div className="flex items-center justify-between w-full">
+                            <span>{seller.name}</span>
+                            <div className="flex items-center space-x-2 ml-4">
+                              <Badge variant="default" className="text-xs">
+                                {seller.orders} orders
+                              </Badge>
+                              <Badge variant="default" className="text-xs bg-green-100 text-green-800">
+                                Banking ✓
+                              </Badge>
+                            </div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
-              
+
+              {/* Test Button */}
               <Button
-                onClick={() => {
-                  setIsLoading(true);
-                  setTimeout(() => {
-                    setIsLoading(false);
-                    toast.success('Test button works!');
-                  }, 1000);
-                }}
-                disabled={isLoading}
+                onClick={testPayoutFunction}
+                disabled={!selectedSeller || payoutLoading || loadingSellers}
                 className="w-full bg-purple-600 hover:bg-purple-700"
                 size="lg"
               >
-                {isLoading ? (
+                {payoutLoading ? (
                   <div className="flex items-center space-x-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>Testing...</span>
+                    <span>Testing Pay-Seller Function...</span>
                   </div>
                 ) : (
-                  <span>Test Basic Functionality</span>
+                  <div className="flex items-center space-x-2">
+                    <Play className="h-4 w-4" />
+                    <span>Test Pay-Seller Function</span>
+                  </div>
                 )}
               </Button>
             </CardContent>
           </Card>
+
+          {/* Payout Response Display */}
+          {payoutResponse && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  {payoutResponse.success ? (
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 text-red-600" />
+                  )}
+                  <span>Function Response</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className={`p-4 rounded-lg border ${
+                  payoutResponse.success
+                    ? 'bg-green-50 border-green-200'
+                    : 'bg-red-50 border-red-200'
+                }`}>
+                  <div className="flex items-center space-x-2">
+                    {payoutResponse.success ? (
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-red-600" />
+                    )}
+                    <span className={payoutResponse.success ? 'text-green-800' : 'text-red-800'}>
+                      {payoutResponse.message}
+                    </span>
+                  </div>
+                  {payoutResponse.recipient_code && (
+                    <div className="mt-2">
+                      <span className="text-sm text-gray-600">Recipient Code: </span>
+                      <code className="font-mono bg-gray-100 px-2 py-1 rounded">
+                        {payoutResponse.recipient_code}
+                      </code>
+                    </div>
+                  )}
+                </div>
+
+                {payoutResponse.success && payoutResponse.payment_breakdown && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg text-center">
+                      <p className="text-sm text-gray-600">Total Orders</p>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {payoutResponse.payment_breakdown.total_orders}
+                      </p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg text-center">
+                      <p className="text-sm text-gray-600">Seller Amount</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        R{payoutResponse.payment_breakdown.seller_amount.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-lg text-center">
+                      <p className="text-sm text-gray-600">Platform Earnings</p>
+                      <p className="text-2xl font-bold text-purple-600">
+                        R{payoutResponse.payment_breakdown.platform_earnings.total.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {payoutResponse.seller_info && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-gray-900 mb-2">Seller Information</h4>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div><span className="text-gray-600">Name:</span> {payoutResponse.seller_info.name}</div>
+                      <div><span className="text-gray-600">Email:</span> {payoutResponse.seller_info.email}</div>
+                      <div><span className="text-gray-600">Account:</span> {payoutResponse.seller_info.account_number}</div>
+                      <div><span className="text-gray-600">Bank:</span> {payoutResponse.seller_info.bank_name}</div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Status Card */}
           <Card>
