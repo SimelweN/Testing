@@ -103,27 +103,111 @@ const Developer = () => {
   const loadRealSellers = async () => {
     setLoadingSellers(true);
     try {
-      // This would be replaced with actual API call to fetch sellers
-      // For now, showing the structure for real data
-      const response = await fetch('/api/get-sellers-with-delivered-orders');
-      if (!response.ok) {
-        throw new Error('Failed to fetch sellers');
+      console.log('Fetching real sellers with delivered orders...');
+
+      // Direct Supabase call instead of API route
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        import.meta.env.VITE_SUPABASE_URL,
+        import.meta.env.VITE_SUPABASE_ANON_KEY
+      );
+
+      // Get all orders that have been delivered
+      const { data: deliveredOrders, error: ordersError } = await supabase
+        .from('orders')
+        .select(`
+          seller_id,
+          seller_name,
+          seller_email,
+          delivery_status,
+          status
+        `)
+        .eq('delivery_status', 'delivered')
+        .eq('status', 'delivered');
+
+      if (ordersError) {
+        throw new Error(`Failed to fetch delivered orders: ${ordersError.message}`);
       }
 
-      const data = await response.json();
-      setRealSellers(data.sellers || []);
-
-      if (data.sellers && data.sellers.length === 0) {
-        toast.info("No sellers with delivered orders and banking details found");
+      if (!deliveredOrders || deliveredOrders.length === 0) {
+        toast.info("No delivered orders found in database");
+        setRealSellers([]);
+        return;
       }
+
+      // Group orders by seller and count them
+      const sellerOrderCounts = deliveredOrders.reduce((acc, order) => {
+        const sellerId = order.seller_id;
+        if (!acc[sellerId]) {
+          acc[sellerId] = {
+            id: sellerId,
+            name: order.seller_name || `Seller ${sellerId}`,
+            email: order.seller_email || 'unknown@email.com',
+            orders: 0
+          };
+        }
+        acc[sellerId].orders++;
+        return acc;
+      }, {});
+
+      const sellersWithOrders = Object.values(sellerOrderCounts);
+      console.log('Found sellers with delivered orders:', sellersWithOrders.length);
+
+      // For each seller, check if they have banking details
+      const sellersWithBanking = await Promise.all(
+        sellersWithOrders.map(async (seller) => {
+          try {
+            const { data: bankingData, error: bankingError } = await supabase
+              .from('banking_subaccounts')
+              .select('user_id, business_name, email, status')
+              .eq('user_id', seller.id)
+              .maybeSingle();
+
+            return {
+              ...seller,
+              has_banking: !bankingError && bankingData !== null,
+              banking_status: bankingData?.status || 'none',
+              business_name: bankingData?.business_name || seller.name
+            };
+          } catch (error) {
+            console.error(`Error checking banking for seller ${seller.id}:`, error);
+            return {
+              ...seller,
+              has_banking: false,
+              banking_status: 'error'
+            };
+          }
+        })
+      );
+
+      // Sort by: banking details first, then by order count
+      const sortedSellers = sellersWithBanking.sort((a, b) => {
+        if (a.has_banking && !b.has_banking) return -1;
+        if (!a.has_banking && b.has_banking) return 1;
+        return b.orders - a.orders;
+      });
+
+      const eligibleSellers = sortedSellers.filter(seller => seller.has_banking);
+
+      console.log('Sellers with banking details:', eligibleSellers.length);
+      console.log('Total sellers with delivered orders:', sortedSellers.length);
+
+      setRealSellers(sortedSellers);
+
+      if (sortedSellers.length === 0) {
+        toast.info("No sellers with delivered orders found");
+      } else if (eligibleSellers.length === 0) {
+        toast.warning(`Found ${sortedSellers.length} sellers with delivered orders, but none have banking details configured`);
+      } else {
+        toast.success(`Found ${eligibleSellers.length} eligible sellers (with banking details) out of ${sortedSellers.length} total`);
+      }
+
     } catch (error) {
       console.error('Error loading real sellers:', error);
-      toast.error('Failed to load sellers. Using fallback demo for testing.');
+      toast.error(`Failed to load sellers: ${error.message}`);
 
-      // Fallback to show the structure - in real implementation, this would be empty
-      setRealSellers([
-        { id: "demo_seller", name: "Demo Seller (No Real Data)", email: "demo@example.com", orders: 0, has_banking: false }
-      ]);
+      // Empty state on error
+      setRealSellers([]);
     } finally {
       setLoadingSellers(false);
     }
