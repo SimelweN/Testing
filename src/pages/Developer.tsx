@@ -99,6 +99,7 @@ const Developer = () => {
     supabase_key: boolean;
     paystack_configured: boolean;
   }>({ supabase_url: false, supabase_key: false, paystack_configured: false });
+  const [componentError, setComponentError] = useState<string | null>(null);
 
   // Check environment variables status
   const checkEnvironmentVariables = async () => {
