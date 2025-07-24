@@ -163,7 +163,7 @@ const DeveloperMinimal = () => {
       setTestResults(prev => [...prev, testResult]);
       
       if (response.status === 404) {
-        toast.warning('Create-recipient function not deployed or not accessible');
+        toast.warning('Create-recipient function not deployed - needs deployment');
       } else {
         toast.success('Create-recipient function is reachable');
       }
