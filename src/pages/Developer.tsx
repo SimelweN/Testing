@@ -686,7 +686,7 @@ const Developer = () => {
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>Calling Real Create-Recipient Function...</span>
+                    <span>Calling Real Pay-Seller Function...</span>
                   </div>
                 ) : (
                   <div className="flex items-center space-x-2">
