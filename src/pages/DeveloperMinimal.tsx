@@ -131,7 +131,7 @@ const DeveloperMinimal = () => {
         setTimeout(() => reject(new Error('Request timeout (5s)')), 5000)
       );
       
-      const fetchPromise = fetch('/functions/v1/pay-seller', {
+      const fetchPromise = fetch('/functions/v1/create-recipient', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sellerId: 'connectivity-test' })
