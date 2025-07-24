@@ -103,139 +103,108 @@ const Developer = () => {
   const loadRealSellers = async () => {
     setLoadingSellers(true);
     try {
-      console.log('Fetching real sellers with delivered orders...');
+      console.log('Fetching sellers with banking details (banking-first approach)...');
 
       // Check if we have the required environment variables
       if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
         throw new Error('Supabase environment variables not configured');
       }
 
-      // Direct Supabase call instead of API route
+      // Direct Supabase call using banking-first approach (like banking details components)
       const { createClient } = await import('@supabase/supabase-js');
       const supabase = createClient(
         import.meta.env.VITE_SUPABASE_URL,
         import.meta.env.VITE_SUPABASE_ANON_KEY
       );
 
-      console.log('Querying orders table for delivered orders...');
+      console.log('Step 1: Fetching all banking subaccounts...');
 
-      // Get all orders that have been delivered
-      const { data: deliveredOrders, error: ordersError } = await supabase
-        .from('orders')
+      // First, get all users who have banking subaccounts (banking-first approach)
+      const { data: bankingAccounts, error: bankingError } = await supabase
+        .from('banking_subaccounts')
         .select(`
-          seller_id,
-          seller_name,
-          seller_email,
-          delivery_status,
-          status
+          user_id,
+          business_name,
+          email,
+          status,
+          bank_name,
+          account_number,
+          created_at
         `)
-        .eq('delivery_status', 'delivered')
-        .eq('status', 'delivered');
+        .eq('status', 'active');
 
-      if (ordersError) {
-        console.error('Orders query error details:', {
-          message: ordersError.message,
-          details: ordersError.details,
-          hint: ordersError.hint,
-          code: ordersError.code
+      if (bankingError) {
+        console.error('Banking subaccounts query error:', {
+          message: bankingError.message,
+          details: bankingError.details,
+          hint: bankingError.hint,
+          code: bankingError.code
         });
 
-        const errorMsg = ordersError.message || ordersError.details || `Database error (code: ${ordersError.code})` || 'Unknown database error';
-        throw new Error(`Failed to fetch delivered orders: ${errorMsg}`);
+        throw new Error(`Failed to fetch banking subaccounts: ${bankingError.message || 'Database error'}`);
       }
 
-      console.log('Orders query result:', {
-        count: deliveredOrders?.length || 0,
-        hasData: !!deliveredOrders
-      });
+      console.log('Banking accounts found:', bankingAccounts?.length || 0);
 
-      if (!deliveredOrders || deliveredOrders.length === 0) {
-        toast.info("No delivered orders found in database");
+      if (!bankingAccounts || bankingAccounts.length === 0) {
+        toast.info("No sellers with banking details found");
         setRealSellers([]);
         return;
       }
 
-      // Group orders by seller and count them
-      const sellerOrderCounts = deliveredOrders.reduce((acc, order) => {
-        const sellerId = order.seller_id;
-        if (!sellerId) {
-          console.warn('Order without seller_id found:', order);
-          return acc;
-        }
+      console.log('Step 2: Checking delivered orders for each seller with banking...');
 
-        if (!acc[sellerId]) {
-          acc[sellerId] = {
-            id: sellerId,
-            name: order.seller_name || `Seller ${sellerId}`,
-            email: order.seller_email || 'unknown@email.com',
-            orders: 0
-          };
-        }
-        acc[sellerId].orders++;
-        return acc;
-      }, {});
-
-      const sellersWithOrders = Object.values(sellerOrderCounts);
-      console.log('Found sellers with delivered orders:', sellersWithOrders.length);
-
-      if (sellersWithOrders.length === 0) {
-        toast.info("No valid sellers found with delivered orders");
-        setRealSellers([]);
-        return;
-      }
-
-      // For each seller, check if they have banking details
-      console.log('Checking banking details for sellers...');
-      const sellersWithBanking = await Promise.all(
-        sellersWithOrders.map(async (seller) => {
+      // For each seller with banking, check if they have delivered orders
+      const sellersWithOrders = await Promise.all(
+        bankingAccounts.map(async (banking) => {
           try {
-            const { data: bankingData, error: bankingError } = await supabase
-              .from('banking_subaccounts')
-              .select('user_id, business_name, email, status')
-              .eq('user_id', seller.id)
-              .maybeSingle();
+            // Query orders with simpler fields that definitely exist
+            const { data: orders, error: ordersError } = await supabase
+              .from('orders')
+              .select('seller_id, amount, delivery_status, status, created_at')
+              .eq('seller_id', banking.user_id)
+              .eq('delivery_status', 'delivered')
+              .eq('status', 'delivered');
 
-            if (bankingError) {
-              console.warn(`Banking query error for seller ${seller.id}:`, bankingError);
+            if (ordersError) {
+              console.warn(`Orders query error for seller ${banking.user_id}:`, ordersError);
+              return null; // Skip this seller if orders query fails
             }
 
+            const orderCount = orders?.length || 0;
+            console.log(`Seller ${banking.user_id}: ${orderCount} delivered orders`);
+
             return {
-              ...seller,
-              has_banking: !bankingError && bankingData !== null,
-              banking_status: bankingData?.status || 'none',
-              business_name: bankingData?.business_name || seller.name
+              id: banking.user_id,
+              name: banking.business_name || `Seller ${banking.user_id}`,
+              email: banking.email,
+              orders: orderCount,
+              has_banking: true,
+              banking_status: banking.status,
+              business_name: banking.business_name,
+              bank_name: banking.bank_name,
+              account_number: banking.account_number ? `****${banking.account_number.slice(-4)}` : 'Hidden'
             };
           } catch (error) {
-            console.error(`Error checking banking for seller ${seller.id}:`, error);
-            return {
-              ...seller,
-              has_banking: false,
-              banking_status: 'error'
-            };
+            console.error(`Error checking orders for seller ${banking.user_id}:`, error);
+            return null;
           }
         })
       );
 
-      // Sort by: banking details first, then by order count
-      const sortedSellers = sellersWithBanking.sort((a, b) => {
-        if (a.has_banking && !b.has_banking) return -1;
-        if (!a.has_banking && b.has_banking) return 1;
-        return b.orders - a.orders;
-      });
+      // Filter out null results and only keep sellers with delivered orders
+      const validSellers = sellersWithOrders
+        .filter(seller => seller !== null && seller.orders > 0)
+        .sort((a, b) => b.orders - a.orders); // Sort by order count
 
-      const eligibleSellers = sortedSellers.filter(seller => seller.has_banking);
+      console.log('Valid sellers with delivered orders and banking:', validSellers.length);
 
-      console.log('Sellers with banking details:', eligibleSellers.length);
-      console.log('Total sellers with delivered orders:', sortedSellers.length);
+      setRealSellers(validSellers);
 
-      setRealSellers(sortedSellers);
-
-      if (sortedSellers.length === 0) {
-        toast.info("No sellers with delivered orders found");
-      } else if (eligibleSellers.length === 0) {
-        toast.warning(`Found ${sortedSellers.length} sellers with delivered orders, but none have banking details configured`);
+      if (validSellers.length === 0) {
+        toast.warning("Found sellers with banking details, but none have delivered orders");
       } else {
-        toast.success(`Found ${eligibleSellers.length} eligible sellers (with banking details) out of ${sortedSellers.length} total`);
+        toast.success(`Found ${validSellers.length} eligible sellers with banking details and delivered orders`);
       }
 
     } catch (error) {
@@ -243,30 +212,36 @@ const Developer = () => {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
 
       // Check if it's a table access issue
-      if (errorMessage.includes('permission') || errorMessage.includes('does not exist') || errorMessage.includes('relation')) {
-        toast.error('Database access issue: Orders table may not exist or permissions not set');
-        console.log('Falling back to demo mode due to database access issues');
+      if (errorMessage.includes('permission') || errorMessage.includes('does not exist') || errorMessage.includes('relation') || errorMessage.includes('column')) {
+        console.log('Database access issue detected, falling back to demo mode');
+        toast.warning('Database access issue - Using demo mode for testing');
 
         // Provide demo sellers for testing when database isn't accessible
         setRealSellers([
           {
             id: "demo_seller_001",
-            name: "Demo Seller 1 (No DB Access)",
+            name: "Demo Seller 1 (DB Issue)",
             email: "demo1@example.com",
             orders: 2,
             has_banking: true,
-            banking_status: 'demo'
+            banking_status: 'active',
+            business_name: 'Demo Business 1',
+            bank_name: 'Demo Bank',
+            account_number: '****DEMO'
           },
           {
             id: "demo_seller_002",
-            name: "Demo Seller 2 (No DB Access)",
+            name: "Demo Seller 2 (DB Issue)",
             email: "demo2@example.com",
             orders: 1,
-            has_banking: false,
-            banking_status: 'demo'
+            has_banking: true,
+            banking_status: 'active',
+            business_name: 'Demo Business 2',
+            bank_name: 'Demo Bank',
+            account_number: '****TEST'
           }
         ]);
-        toast.info('Using demo sellers for testing (database not accessible)');
+        toast.info('Demo sellers loaded - Database tables may need to be created');
       } else {
         toast.error(`Failed to load sellers: ${errorMessage}`);
         setRealSellers([]);
