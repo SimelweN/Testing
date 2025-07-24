@@ -34,7 +34,7 @@ const DeveloperSimple = () => {
       // Test 2: Try basic function call
       let functionCallResult = "Not tested";
       try {
-        const response = await fetch('/functions/v1/pay-seller', {
+        const response = await fetch('/functions/v1/create-recipient', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sellerId: 'test_basic' })
