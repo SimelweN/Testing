@@ -133,8 +133,15 @@ const Developer = () => {
         .eq('status', 'delivered');
 
       if (ordersError) {
-        console.error('Orders query error:', ordersError);
-        throw new Error(`Failed to fetch delivered orders: ${ordersError.message || ordersError.details || 'Unknown database error'}`);
+        console.error('Orders query error details:', {
+          message: ordersError.message,
+          details: ordersError.details,
+          hint: ordersError.hint,
+          code: ordersError.code
+        });
+
+        const errorMsg = ordersError.message || ordersError.details || `Database error (code: ${ordersError.code})` || 'Unknown database error';
+        throw new Error(`Failed to fetch delivered orders: ${errorMsg}`);
       }
 
       console.log('Orders query result:', {
