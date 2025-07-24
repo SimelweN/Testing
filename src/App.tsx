@@ -247,7 +247,14 @@ function App() {
                           </AdminProtectedRoute>
                         }
                       />
-
+                      <Route
+                        path="/developer-simple"
+                        element={
+                          <AdminProtectedRoute>
+                            <DeveloperSimple />
+                          </AdminProtectedRoute>
+                        }
+                      />
 
                       {/* Support Routes */}
                       <Route path="/contact" element={<ContactUs />} />
