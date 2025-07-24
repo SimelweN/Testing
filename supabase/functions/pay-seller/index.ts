@@ -18,6 +18,33 @@ interface PaystackRecipientRequest {
   currency: string;
 }
 
+// Helper function to generate consistent seller and subaccount info
+const generateSellerInfo = (bankingDetails: any) => {
+  const maskedAccountNumber = bankingDetails.account_number?.slice(-4).padStart(bankingDetails.account_number?.length || 0, '*');
+
+  return {
+    seller_info: {
+      name: bankingDetails.business_name,
+      email: bankingDetails.email,
+      account_number: maskedAccountNumber,
+      bank_name: bankingDetails.bank_name
+    },
+    subaccount_details: {
+      subaccount_code: bankingDetails.subaccount_code,
+      business_name: bankingDetails.business_name,
+      bank_name: bankingDetails.bank_name,
+      account_number: bankingDetails.account_number,
+      bank_code: bankingDetails.bank_code,
+      email: bankingDetails.email,
+      status: bankingDetails.status,
+      created_at: bankingDetails.created_at,
+      updated_at: bankingDetails.updated_at,
+      recipient_code: bankingDetails.recipient_code,
+      ...(bankingDetails.fallback_source && { fallback_source: bankingDetails.fallback_source })
+    }
+  };
+};
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
