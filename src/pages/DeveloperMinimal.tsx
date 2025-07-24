@@ -167,7 +167,7 @@ const DeveloperMinimal = () => {
       };
       
       setTestResults(prev => [...prev, testResult]);
-      toast.error('Create-recipient function connectivity test failed');
+      toast.error('Pay-seller function connectivity test failed');
     }
   };
 
