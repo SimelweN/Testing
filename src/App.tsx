@@ -44,7 +44,7 @@ import AuthCallback from "./pages/AuthCallback";
 // Admin Pages
 import Admin from "./pages/Admin";
 import AdminReports from "./pages/AdminReports";
-import Developer from "./pages/Developer";
+import Developer from "./pages/DeveloperSimple";
 
 
 // Support Pages
