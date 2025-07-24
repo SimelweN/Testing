@@ -169,7 +169,7 @@ CREATE TABLE IF NOT EXISTS public.delivery_automation_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   order_id UUID NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
   action TEXT NOT NULL,
-  provider TEXT, -- 'courier_guy', 'fastway'
+  provider TEXT, -- 'courier_guy'
   request_data JSONB,
   response_data JSONB,
   status TEXT NOT NULL CHECK (status IN ('success', 'failed', 'pending')),
