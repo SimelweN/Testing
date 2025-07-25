@@ -35,7 +35,54 @@ class LockerService {
 
   constructor() {
     // Try to get API key from environment variables
-    this.apiKey = process.env.COURIER_GUY_API_KEY || null;
+    this.apiKey = import.meta.env.VITE_COURIER_GUY_API_KEY || null;
+    if (!this.apiKey) {
+      console.warn('⚠️ No Courier Guy API key found. Set VITE_COURIER_GUY_API_KEY environment variable for real API access.');
+    }
+  }
+
+  /**
+   * Set API key for authentication
+   */
+  setApiKey(apiKey: string): void {
+    this.apiKey = apiKey;
+    console.log('🔑 Courier Guy API key updated');
+  }
+
+  /**
+   * Test API connectivity
+   */
+  async testApiConnectivity(): Promise<{ success: boolean; endpoint?: string; error?: string }> {
+    console.log('🧪 Testing Courier Guy API connectivity...');
+
+    for (const endpoint of this.apiEndpoints) {
+      try {
+        const response = await axios.get(endpoint, {
+          timeout: 10000,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+          },
+          params: {
+            limit: 1 // Just test with 1 record
+          }
+        });
+
+        if (response.status === 200) {
+          console.log(`✅ API connectivity test successful: ${endpoint}`);
+          return { success: true, endpoint };
+        }
+      } catch (error) {
+        console.warn(`⚠️ API test failed for ${endpoint}:`, error);
+        continue;
+      }
+    }
+
+    return {
+      success: false,
+      error: 'All API endpoints failed connectivity test'
+    };
   }
 
   /**
