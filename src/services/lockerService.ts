@@ -134,7 +134,8 @@ class LockerService {
     }
 
     // Test direct API calls
-    for (const endpoint of this.apiEndpoints) {
+    const endpoints = [`${this.getBaseUrl()}${this.endpoints.lockers}`];
+    for (const endpoint of endpoints) {
       try {
         console.log(`🧪 Testing direct call to: ${endpoint}`);
 
@@ -251,7 +252,7 @@ class LockerService {
 
     // Strategy 3: Use cached data if available
     if (this.lockers.length > 0) {
-      console.log('��� Strategy 3: Using cached locker data');
+      console.log('🎯 Strategy 3: Using cached locker data');
       return this.lockers;
     }
 
@@ -288,7 +289,7 @@ class LockerService {
         }
       });
 
-      console.log('📡 Proxy response:', {
+      console.log('���� Proxy response:', {
         hasError: !!response.error,
         hasData: !!response.data,
         dataKeys: response.data ? Object.keys(response.data) : []
