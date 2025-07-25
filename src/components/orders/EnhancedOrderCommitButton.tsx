@@ -45,14 +45,7 @@ interface EnhancedOrderCommitButtonProps {
   className?: string;
 }
 
-interface Locker {
-  id: string;
-  name: string;
-  address: string;
-  city: string;
-  postalCode: string;
-  operatingHours: string;
-}
+// Use LockerLocation from lockerService instead of custom Locker interface
 
 const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
   orderId,
