@@ -67,8 +67,8 @@ const Policies = () => {
         </div>
 
         <div className="w-full">
-          <div className="mb-6 sm:mb-8">
-            <div className="flex flex-wrap gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-100 rounded-lg">
+          <div className="mb-8 sm:mb-12">
+            <div className="flex flex-wrap gap-3 sm:gap-4 p-4 sm:p-6 bg-gray-50 rounded-xl shadow-sm border border-gray-200">
               <Button
                 onClick={() => setActiveTab("privacy")}
                 variant={activeTab === "privacy" ? "default" : "outline"}
