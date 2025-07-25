@@ -683,65 +683,82 @@ class LockerService {
    * Search lockers based on filters
    */
   async searchLockers(filters: LockerSearchFilters): Promise<LockerLocation[]> {
-    const allLockers = await this.getLockers();
-    let filteredLockers = [...allLockers];
+    try {
+      const allLockers = await this.getLockers();
 
-    // Filter by search query (name, address, city)
-    if (filters.search_query?.trim()) {
-      const query = filters.search_query.toLowerCase().trim();
-      filteredLockers = filteredLockers.filter(locker =>
-        locker.name.toLowerCase().includes(query) ||
-        locker.address.toLowerCase().includes(query) ||
-        locker.city.toLowerCase().includes(query)
-      );
-    }
+      if (!allLockers || allLockers.length === 0) {
+        console.warn('⚠️ No lockers available for searching');
+        return [];
+      }
 
-    // Filter by city
-    if (filters.city?.trim()) {
-      filteredLockers = filteredLockers.filter(locker =>
-        locker.city.toLowerCase().includes(filters.city!.toLowerCase())
-      );
-    }
+      let filteredLockers = [...allLockers];
 
-    // Filter by province
-    if (filters.province?.trim()) {
-      filteredLockers = filteredLockers.filter(locker =>
-        locker.province.toLowerCase().includes(filters.province!.toLowerCase())
-      );
-    }
-
-    // Filter by radius if coordinates provided
-    if (filters.latitude && filters.longitude && filters.radius_km) {
-      filteredLockers = filteredLockers.filter(locker => {
-        const distance = this.calculateDistance(
-          filters.latitude!,
-          filters.longitude!,
-          locker.latitude,
-          locker.longitude
+      // Filter by search query (name, address, city)
+      if (filters.search_query?.trim()) {
+        const query = filters.search_query.toLowerCase().trim();
+        filteredLockers = filteredLockers.filter(locker =>
+          locker.name.toLowerCase().includes(query) ||
+          locker.address.toLowerCase().includes(query) ||
+          locker.city.toLowerCase().includes(query)
         );
-        return distance <= filters.radius_km!;
-      });
+      }
 
-      // Sort by distance
-      filteredLockers.sort((a, b) => {
-        const distanceA = this.calculateDistance(
-          filters.latitude!,
-          filters.longitude!,
-          a.latitude,
-          a.longitude
+      // Filter by city
+      if (filters.city?.trim()) {
+        filteredLockers = filteredLockers.filter(locker =>
+          locker.city.toLowerCase().includes(filters.city!.toLowerCase())
         );
-        const distanceB = this.calculateDistance(
-          filters.latitude!,
-          filters.longitude!,
-          b.latitude,
-          b.longitude
+      }
+
+      // Filter by province
+      if (filters.province?.trim()) {
+        filteredLockers = filteredLockers.filter(locker =>
+          locker.province.toLowerCase().includes(filters.province!.toLowerCase())
         );
-        return distanceA - distanceB;
-      });
+      }
+
+      // Filter by radius if coordinates provided
+      if (filters.latitude && filters.longitude && filters.radius_km) {
+        try {
+          filteredLockers = filteredLockers.filter(locker => {
+            const distance = this.calculateDistance(
+              filters.latitude!,
+              filters.longitude!,
+              locker.latitude,
+              locker.longitude
+            );
+            return distance <= filters.radius_km!;
+          });
+
+          // Sort by distance
+          filteredLockers.sort((a, b) => {
+            const distanceA = this.calculateDistance(
+              filters.latitude!,
+              filters.longitude!,
+              a.latitude,
+              a.longitude
+            );
+            const distanceB = this.calculateDistance(
+              filters.latitude!,
+              filters.longitude!,
+              b.latitude,
+              b.longitude
+            );
+            return distanceA - distanceB;
+          });
+        } catch (distanceError) {
+          console.warn('⚠️ Error calculating distances, skipping radius filter:', distanceError);
+          // Continue without radius filtering
+        }
+      }
+
+      console.log(`🔍 Search returned ${filteredLockers.length} lockers`);
+      return filteredLockers;
+    } catch (error) {
+      console.error('❌ Error in searchLockers:', error);
+      // Return empty array as fallback
+      return [];
     }
-
-    console.log(`🔍 Search returned ${filteredLockers.length} lockers`);
-    return filteredLockers;
   }
 
   /**
