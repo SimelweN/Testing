@@ -526,31 +526,23 @@ const Developer = () => {
     const buyer = getTestBuyer();
 
     const payload = {
-      bookId: book?.id || 'mock-book-1',
-      buyerId: buyer?.id || 'mock-buyer-1',
-      sellerId: book?.seller_id || 'mock-seller-1',
-      amount: (book?.price || 100) * 100, // Convert to cents
-      currency: 'ZAR',
-      paymentMethod: 'card',
-      reference: `TEST_PURCHASE_${Date.now()}`,
-      shippingDetails: {
+      book_id: book?.id || 'mock-book-1',
+      buyer_id: buyer?.id || 'mock-buyer-1',
+      seller_id: book?.seller_id || 'mock-seller-1',
+      amount: book?.price || 100, // Use actual amount, not cents
+      payment_reference: `TEST_PURCHASE_${Date.now()}`,
+      buyer_email: buyer?.email || 'test@example.com',
+      shipping_address: {
         name: buyer?.name || 'Test Buyer',
         email: buyer?.email || 'test@example.com',
         phone: buyer?.phone || '+27123456789',
-        address: {
-          street: '456 University Road',
-          suburb: 'Rondebosch',
-          city: 'Cape Town',
-          province: 'Western Cape',
-          postalCode: '7700',
-          country: 'South Africa'
-        }
-      },
-      bookDetails: {
-        title: book?.title || 'Test Book',
-        isbn: book?.isbn || '9781234567890',
-        condition: book?.condition || 'good',
-        price: book?.price || 100
+        street: '456 University Road',
+        suburb: 'Rondebosch',
+        city: 'Cape Town',
+        province: 'Western Cape',
+        postal_code: '7700',
+        country: 'South Africa',
+        special_instructions: 'Test order - handle with care'
       }
     };
 
