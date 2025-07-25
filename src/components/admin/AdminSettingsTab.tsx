@@ -21,7 +21,8 @@ import { Badge } from "@/components/ui/badge";
 import { createBroadcast } from "@/services/broadcastService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Settings, MessageSquare, Megaphone, Trash2 } from "lucide-react";
+import { Settings, MessageSquare, Megaphone, Trash2, Mail } from "lucide-react";
+import SupabaseEmailSetupGuide from "@/components/SupabaseEmailSetupGuide";
 
 
 
@@ -104,6 +105,21 @@ const AdminSettingsTab = ({
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5" />
+            Email Service Configuration
+          </CardTitle>
+          <CardDescription>
+            Configure Supabase email settings for user registration and notifications
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SupabaseEmailSetupGuide />
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

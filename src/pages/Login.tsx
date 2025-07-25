@@ -134,7 +134,13 @@ const Login = () => {
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Login failed";
-      console.error("Login error in component:", errorMessage);
+
+      // Better error logging
+      console.group("🔐 Login Error Details");
+      console.error("Error:", error);
+      console.error("Message:", errorMessage);
+      console.error("Email:", email);
+      console.groupEnd();
 
       setLoginError(errorMessage);
 

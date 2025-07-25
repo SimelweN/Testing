@@ -232,7 +232,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
       // Show success messages based on delivery method
       if (deliveryMethod === "locker") {
         toast.success("✅ Order committed with Locker Drop-Off!", {
-          description: "🚀 Get paid 3 days earlier with locker delivery!",
+          description: "🚀 Get paid earlier with locker delivery!",
           duration: 5000,
         });
 
@@ -417,7 +417,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
                       <Package className="w-4 h-4" />
                       Locker Drop-Off 
                       <Badge className="bg-green-100 text-green-800 text-xs">
-                        💰 3 Days Earlier Payment
+                        💰 Earlier Payment
                       </Badge>
                     </Label>
                     <p className="text-sm text-gray-600 mt-1">
@@ -430,7 +430,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
                         <DollarSign className="w-4 h-4 text-green-600 mt-0.5" />
                         <div>
                           <p className="text-sm font-medium text-green-800">
-                            Get paid 3 days earlier when using locker drop-off.
+                            Get paid earlier when using locker drop-off.
                           </p>
                           <div className="flex items-center gap-1 mt-1">
                             <Info className="w-3 h-3 text-green-600" />
@@ -489,7 +489,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
                       <ul className="text-gray-700 space-y-1 ml-6">
                         <li>• You'll receive a QR code and drop-off instructions via email</li>
                         <li>• Drop off your package at the selected locker using the QR code</li>
-                        <li>• Payment will be processed 3 days earlier than standard pickup</li>
+                        <li>• Payment will be processed earlier than standard pickup</li>
                         <li>• Tracking updates will be sent automatically</li>
                       </ul>
                     </div>
@@ -510,7 +510,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
                   <li>• QR code and drop-off instructions sent to your email</li>
                   <li>• Drop off at selected locker within 24 hours</li>
                   <li>• Automatic tracking and buyer notifications</li>
-                  <li>• Payment processed 3 days earlier than standard</li>
+                  <li>• Payment processed earlier than standard</li>
                 </>
               ) : (
                 <>

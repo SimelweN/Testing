@@ -122,83 +122,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsLoading(true);
         console.log("🔄 AuthContext register called with:", { email, name });
 
-        // Import backup email service
-        const { BackupEmailService } = await import("@/utils/backupEmailService");
+        // Create user account - Supabase handles email confirmation automatically
+        console.log('🔧 Creating user account with email verification...');
 
-        // Create user account without email confirmation to avoid Supabase email issues
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: { name },
-            emailRedirectTo: `${window.location.origin}/verify`,
-            // Try to disable email confirmation to prevent errors
+            emailRedirectTo: `${window.location.origin}/verify` // Supabase uses this in the email link
           },
         });
 
         if (error) {
           console.error("❌ Supabase signup failed:", error);
-
-          // If it's an email-related error, try without confirmation
-          if (error.message.toLowerCase().includes('email')) {
-            console.log("📧 Email error detected, trying manual account creation...");
-
-            // Try backup email service instead
-            const emailResult = await BackupEmailService.sendConfirmationEmail({
-              to: email,
-              name,
-              type: 'confirmation'
-            });
-
-            if (emailResult.success) {
-              console.log("✅ Account created via backup service");
-              return { needsVerification: true };
-            } else {
-              console.log("⚠️ Both signup and backup failed, but user can continue");
-              return { needsVerification: false, emailWarning: true };
-            }
-          }
-
           throw new Error(error.message);
         }
 
         // Handle successful Supabase signup
         if (data.user && !data.session) {
-          // Email verification is enabled - send our backup confirmation
-          console.log("✅ Supabase signup successful, sending backup confirmation");
-
-          const emailResult = await BackupEmailService.sendConfirmationEmail({
-            to: email,
-            name,
-            type: 'confirmation'
-          });
-
-          if (emailResult.success) {
-            console.log("✅ Backup confirmation email sent");
-          } else {
-            console.warn("⚠️ Backup email failed but account created");
-          }
-
+          // Email verification is required - Supabase will send confirmation email automatically
+          console.log("✅ Supabase signup successful - email confirmation required");
+          console.log("📧 Supabase will send confirmation email automatically");
           return { needsVerification: true };
         }
 
         if (data.user && data.session) {
-          // User is immediately logged in - send welcome email
-          console.log("✅ User immediately logged in, sending welcome email");
-
-          const emailResult = await BackupEmailService.sendConfirmationEmail({
-            to: email,
-            name,
-            type: 'welcome'
-          });
-
-          if (emailResult.success) {
-            console.log("✅ Welcome email sent");
-            return { needsVerification: false };
-          } else {
-            console.warn("⚠️ Welcome email failed");
-            return { needsVerification: false, emailWarning: true };
-          }
+          // User is immediately logged in - no email verification needed
+          console.log("✅ User immediately logged in - no email verification required");
+          return { needsVerification: false };
         }
 
         // Fallback case

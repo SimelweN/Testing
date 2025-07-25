@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Mail, Lock, User, Loader2 } from "lucide-react";
 import { BackupEmailService } from "@/utils/backupEmailService";
 
+
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -89,10 +90,10 @@ const Register = () => {
         toast.success("Account created successfully! You can now log in.", {
           duration: 4000,
         });
-        toast.warning(
-          "Note: Email confirmation service is temporarily unavailable.",
+        toast.info(
+          "📧 Note: Email confirmation service is temporarily unavailable, but your account is fully functional!",
           {
-            duration: 6000,
+            duration: 8000,
           },
         );
 
@@ -116,10 +117,13 @@ const Register = () => {
         }, 1000);
       }
     } catch (error: unknown) {
-      console.error(
-        "❌ Registration error in component:",
-        error instanceof Error ? error.message : String(error),
-      );
+      // Better error logging
+      console.group("📝 Registration Error Details");
+      console.error("Error:", error);
+      console.error("Message:", error instanceof Error ? error.message : String(error));
+      console.error("Email:", email);
+      console.error("Name:", name);
+      console.groupEnd();
 
       const errorMessage =
         error instanceof Error
@@ -129,52 +133,30 @@ const Register = () => {
       // Check if it's an email-related error
       if (
         errorMessage.toLowerCase().includes("email") ||
-        errorMessage.toLowerCase().includes("confirmation")
+        errorMessage.toLowerCase().includes("confirmation") ||
+        errorMessage.toLowerCase().includes("smtp") ||
+        errorMessage.toLowerCase().includes("mail") ||
+        errorMessage.toLowerCase().includes("supabase")
       ) {
-        // Try to send backup confirmation email
-        console.log("📧 Email issue detected, trying backup email service...");
-        setUserEmail(email);
+        // Show user-friendly message for email service issues
+        toast.error("📧 Email Service Configuration Required", {
+          duration: 8000,
+        });
 
-        try {
-          const backupResult = await BackupEmailService.sendConfirmationEmail({ to: email });
-
-          if (backupResult.success) {
-            setEmailSent(true);
-            toast.success("Account created! Confirmation email sent via backup service.", {
-              duration: 6000
-            });
-            toast.info("Please check your email (including spam folder) for the confirmation link.", {
-              duration: 8000
-            });
-
-            setTimeout(() => {
-              navigate("/login", {
-                state: {
-                  message: "Account created! Please check your email for the confirmation link.",
-                  email,
-                },
-              });
-            }, 3000);
-          } else {
-            toast.warning("Account created successfully! You can log in, but email confirmation may be delayed.", {
-              duration: 8000
-            });
-            setTimeout(() => {
-              navigate("/login", { state: { email } });
-            }, 3000);
+        toast.info(
+          "The email confirmation system needs to be set up by an administrator. " +
+          "Please contact support or try again later once the email service is configured.",
+          {
+            duration: 10000,
           }
-        } catch (backupError) {
-          console.error("Backup email also failed:", backupError);
-          toast.warning("Account created! Email service is temporarily unavailable, but you can still log in.", {
-            duration: 8000
-          });
-          setTimeout(() => {
-            navigate("/login", { state: { email } });
-          }, 2000);
-        }
+        );
+
+        console.log("📧 Email service configuration needed - user informed");
       } else {
         // Show the error to the user
-        toast.error(errorMessage);
+        toast.error(errorMessage, {
+          duration: 6000,
+        });
       }
     } finally {
       setIsLoading(false);
@@ -250,7 +232,7 @@ const Register = () => {
                     <Input
                       id="password"
                       type="password"
-                      placeholder="••••••••"
+                      placeholder="��•••••••"
                       className="pl-10"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
