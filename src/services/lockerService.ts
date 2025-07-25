@@ -407,6 +407,8 @@ class LockerService {
     // Handle different response formats
     if (Array.isArray(data)) {
       rawLockers = data;
+    } else if (data?.terminals && Array.isArray(data.terminals)) {
+      rawLockers = data.terminals;
     } else if (data?.lockers && Array.isArray(data.lockers)) {
       rawLockers = data.lockers;
     } else if (data?.data && Array.isArray(data.data)) {
@@ -418,6 +420,13 @@ class LockerService {
       return [];
     }
 
+    // Check if this looks like PUDO terminal data
+    if (rawLockers.length > 0 && rawLockers[0]?.terminal_id) {
+      console.log('🔍 Detected PUDO terminal format');
+      return this.processPudoTerminals(rawLockers);
+    }
+
+    // Use generic processing for other formats
     return this.processLockerData(rawLockers);
   }
 
