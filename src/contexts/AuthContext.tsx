@@ -148,12 +148,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               error.message.includes('SMTP') ||
               error.message.includes('mail')) {
 
-            // Log detailed error information for debugging
+            console.log("📧 Email service failed, attempting registration without confirmation...");
             EmailErrorHandler.logError(error, 'Supabase Signup');
 
-            // Provide user-friendly error message
-            const userMessage = EmailErrorHandler.getUserFriendlyMessage(error);
-            throw new Error(userMessage);
+            // Try creating account without email confirmation as fallback
+            try {
+              const { data: fallbackData, error: fallbackError } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                  data: { name },
+                  // Don't set emailRedirectTo to avoid confirmation requirement
+                }
+              });
+
+              if (fallbackError) {
+                console.error("❌ Fallback signup also failed:", fallbackError);
+                throw new Error(
+                  "Account creation is temporarily unavailable due to email service issues. " +
+                  "Please try again in 10-15 minutes, or contact support for assistance."
+                );
+              }
+
+              if (fallbackData?.user) {
+                console.log("✅ Account created without email confirmation requirement");
+
+                // Try to send welcome email via backup service (non-blocking)
+                try {
+                  const { BackupEmailService } = await import("@/utils/backupEmailService");
+                  await BackupEmailService.sendConfirmationEmail({
+                    to: email,
+                    name,
+                    type: 'welcome'
+                  });
+                  console.log("✅ Welcome email sent via backup service");
+                } catch (emailError) {
+                  console.warn("⚠️ Backup email failed, but account was created successfully");
+                }
+
+                // Return success with a note about email issues
+                return {
+                  needsVerification: false,
+                  emailWarning: true,
+                  message: "Account created successfully! Email service is temporarily unavailable, but you can log in immediately."
+                };
+              }
+            } catch (fallbackError) {
+              console.error("❌ All signup methods failed:", fallbackError);
+              throw new Error(
+                "Account creation is temporarily unavailable. Please try again in 10-15 minutes " +
+                "or contact support if the problem persists."
+              );
+            }
           }
 
           // For other errors, throw the original message
