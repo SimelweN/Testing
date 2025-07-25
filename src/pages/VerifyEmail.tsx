@@ -93,7 +93,7 @@ const VerifyEmail = () => {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
         if (sessionError) {
-          console.error('��� Error getting session:', sessionError);
+          console.error('❌ Error getting session:', sessionError);
         }
 
         if (session?.user) {
@@ -182,22 +182,41 @@ const VerifyEmail = () => {
                   <XCircle className="h-12 w-12 mx-auto text-red-600" />
                   <div>
                     <h3 className="font-semibold text-red-800 mb-2">Verification Issue</h3>
-                    <p className="text-gray-600">{message}</p>
+                    <p className="text-gray-600 text-sm">{message}</p>
                   </div>
+
+                  {/* Debug information for development */}
+                  {import.meta.env.DEV && (
+                    <details className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                      <summary className="cursor-pointer font-medium">Debug Info (Dev Mode)</summary>
+                      <div className="mt-2 space-y-1">
+                        <p><strong>URL:</strong> {window.location.href}</p>
+                        <p><strong>Hash:</strong> {window.location.hash || 'None'}</p>
+                        <p><strong>Search:</strong> {window.location.search || 'None'}</p>
+                      </div>
+                    </details>
+                  )}
+
                   <div className="space-y-2">
-                    <Button 
+                    <Button
+                      onClick={() => window.location.reload()}
+                      className="w-full"
+                    >
+                      Retry Verification
+                    </Button>
+                    <Button
                       onClick={() => navigate('/login')}
                       variant="outline"
                       className="w-full"
                     >
                       Go to Login
                     </Button>
-                    <Button 
+                    <Button
                       onClick={() => navigate('/register')}
                       variant="outline"
                       className="w-full"
                     >
-                      Try Again
+                      Register Again
                     </Button>
                   </div>
                 </div>
