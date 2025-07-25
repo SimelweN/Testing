@@ -350,9 +350,10 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
             </Alert>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredLockers.map(locker => (
-                <LockerCard key={locker.id} locker={locker} />
-              ))}
+              {filteredLockers.map((locker, index) => {
+                console.log(`🔍 Rendering locker ${index + 1}:`, locker.name, locker.city);
+                return <LockerCard key={locker.id} locker={locker} />;
+              })}
             </div>
           )}
         </TabsContent>
