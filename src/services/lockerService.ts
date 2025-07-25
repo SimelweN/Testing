@@ -784,7 +784,7 @@ class LockerService {
    */
   async testFullPudoApiIntegration(): Promise<{ success: boolean; lockers?: LockerLocation[]; error?: string; details?: any }> {
     try {
-      console.log('🧪 Testing full PUDO API integration...');
+      console.log('🧪 Testing full PUDO API integration with fallback strategy...');
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       if (!supabaseUrl) {
@@ -793,7 +793,67 @@ class LockerService {
 
       const edgeFunctionUrl = `${supabaseUrl}/functions/v1/courier-guy-lockers`;
 
-      // Test the full API integration
+      // Try multiple configurations: production first, then sandbox
+      const testConfigs = [
+        {
+          name: 'Production API',
+          useSandbox: false,
+          endpoints: ['https://api-pudo.co.za/lockers-data']
+        },
+        {
+          name: 'Sandbox API',
+          useSandbox: true,
+          endpoints: ['https://sandbox-api.pudo.co.za/lockers-data']
+        }
+      ];
+
+      for (const config of testConfigs) {
+        console.log(`🔄 Testing ${config.name}...`);
+
+        try {
+          const response = await fetch(edgeFunctionUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+            },
+            body: JSON.stringify({
+              apiKey: this.apiKey,
+              endpoints: config.endpoints,
+              useSandbox: config.useSandbox
+            }),
+            signal: AbortSignal.timeout(25000) // 25 second timeout per attempt
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log(`📡 ${config.name} response:`, data);
+
+            if (data.success && data.lockers) {
+              const processedLockers = this.extractLockersFromResponse(data.lockers);
+              console.log(`✅ Success with ${config.name}: ${processedLockers.length} lockers`);
+              return {
+                success: true,
+                lockers: processedLockers,
+                details: {
+                  environment: config.name,
+                  totalCount: data.totalCount || processedLockers.length,
+                  method: data.method,
+                  strategy: data.strategy,
+                  source: data.source
+                }
+              };
+            }
+          }
+
+          console.log(`❌ ${config.name} failed with status ${response.status}`);
+        } catch (configError) {
+          console.log(`❌ ${config.name} error:`, configError instanceof Error ? configError.message : 'Unknown error');
+        }
+      }
+
+      // If both environments fail, get detailed error from production attempt
+      console.log('🔍 Both environments failed, getting detailed error info...');
       const response = await fetch(edgeFunctionUrl, {
         method: 'POST',
         headers: {
@@ -802,10 +862,10 @@ class LockerService {
         },
         body: JSON.stringify({
           apiKey: this.apiKey,
-          endpoints: [`${this.getBaseUrl()}/lockers-data`],
-          useSandbox: this.useSandbox
+          endpoints: ['https://api-pudo.co.za/lockers-data'],
+          useSandbox: false
         }),
-        signal: AbortSignal.timeout(30000) // 30 second timeout for testing
+        signal: AbortSignal.timeout(30000)
       });
 
       if (!response.ok) {
@@ -813,32 +873,17 @@ class LockerService {
         return {
           success: false,
           error: `HTTP ${response.status}: ${response.statusText}`,
-          details: { errorText, url: edgeFunctionUrl }
+          details: { errorText, url: edgeFunctionUrl, testedEnvironments: ['Production', 'Sandbox'] }
         };
       }
 
       const data = await response.json();
-      console.log('📡 Full API test response:', data);
+      return {
+        success: false,
+        error: data.error || 'Both production and sandbox APIs failed',
+        details: { ...data, testedEnvironments: ['Production', 'Sandbox'] }
+      };
 
-      if (data.success && data.lockers) {
-        const processedLockers = this.extractLockersFromResponse(data.lockers);
-        return {
-          success: true,
-          lockers: processedLockers,
-          details: {
-            totalCount: data.totalCount || processedLockers.length,
-            method: data.method,
-            strategy: data.strategy,
-            source: data.source
-          }
-        };
-      } else {
-        return {
-          success: false,
-          error: data.error || 'No lockers in response',
-          details: data
-        };
-      }
     } catch (error) {
       console.error('❌ Full PUDO API test failed:', error);
       return {
