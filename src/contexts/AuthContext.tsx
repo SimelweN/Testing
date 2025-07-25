@@ -144,41 +144,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
         // Handle successful Supabase signup
         if (data.user && !data.session) {
-          // Email verification is enabled - send our backup confirmation
-          console.log("✅ Supabase signup successful, sending backup confirmation");
-
-          const emailResult = await BackupEmailService.sendConfirmationEmail({
-            to: email,
-            name,
-            type: 'confirmation'
-          });
-
-          if (emailResult.success) {
-            console.log("✅ Backup confirmation email sent");
-          } else {
-            console.warn("⚠️ Backup email failed but account created");
-          }
-
+          // Email verification is required - Supabase will send confirmation email automatically
+          console.log("✅ Supabase signup successful - email confirmation required");
+          console.log("📧 Supabase will send confirmation email automatically");
           return { needsVerification: true };
         }
 
         if (data.user && data.session) {
-          // User is immediately logged in - send welcome email
-          console.log("✅ User immediately logged in, sending welcome email");
-
-          const emailResult = await BackupEmailService.sendConfirmationEmail({
-            to: email,
-            name,
-            type: 'welcome'
-          });
-
-          if (emailResult.success) {
-            console.log("✅ Welcome email sent");
-            return { needsVerification: false };
-          } else {
-            console.warn("⚠️ Welcome email failed");
-            return { needsVerification: false, emailWarning: true };
-          }
+          // User is immediately logged in - no email verification needed
+          console.log("✅ User immediately logged in - no email verification required");
+          return { needsVerification: false };
         }
 
         // Fallback case
