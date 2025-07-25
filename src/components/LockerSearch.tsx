@@ -113,10 +113,10 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
 
   const filterLockers = async () => {
     const filters: LockerSearchFilters = {};
-    
+
     if (searchQuery.trim()) filters.search_query = searchQuery;
-    if (selectedCity) filters.city = selectedCity;
-    if (selectedProvince) filters.province = selectedProvince;
+    if (selectedCity && selectedCity !== 'all') filters.city = selectedCity;
+    if (selectedProvince && selectedProvince !== 'all') filters.province = selectedProvince;
 
     try {
       const filtered = await lockerService.searchLockers(filters);
