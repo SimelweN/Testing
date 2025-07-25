@@ -92,6 +92,25 @@ export const clearAllTestData = async (): Promise<boolean> => {
 
     for (const orderId of testOrderIds) {
       try {
+        // First check if any orders match this pattern
+        const { data: matchingOrders, error: checkError } = await supabase
+          .from("orders")
+          .select("id, status, created_at")
+          .ilike("id", `%${orderId}%`);
+
+        if (checkError) {
+          console.error(`Error checking for order ${orderId}:`, checkError.message || checkError);
+          continue;
+        }
+
+        if (!matchingOrders || matchingOrders.length === 0) {
+          console.log(`No orders found matching pattern ${orderId}`);
+          continue;
+        }
+
+        console.log(`Found ${matchingOrders.length} orders matching ${orderId}:`, matchingOrders.map(o => o.id));
+
+        // Now attempt to delete
         const { error: patternError, count: patternCount } = await supabase
           .from("orders")
           .delete({ count: "exact" })
