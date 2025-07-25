@@ -33,8 +33,9 @@ serve(async (req) => {
     }
 
     const apiEndpoints = endpoints || [
-      'https://api.pudo.co.za/lockers',
-      'https://api.thecourierguy.co.za/locker-to-door/lockers'
+      'https://api-pudo.co.za/lockers/terminals',
+      'https://api-pudo.co.za/lockers',
+      'https://sandbox-api.pudo.co.za/lockers/terminals',
     ]
 
     // Try each endpoint
