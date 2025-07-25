@@ -119,35 +119,90 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           orderSummary: orderSummary.book.id
         });
 
-                                // Simple and robust error message extraction
+                                // Enhanced error message extraction with better debugging
         const extractErrorMessage = (err: any): string => {
-          // Direct string check first
-          if (typeof err === 'string') {
-            return err === '[object Object]' ? 'String conversion error' : err;
+          console.log('🔍 Extracting error message from:', err);
+          console.log('🔍 Error type:', typeof err);
+          console.log('🔍 Error constructor:', err?.constructor?.name);
+
+          // Handle null/undefined
+          if (err === null || err === undefined) {
+            return 'Edge function returned null/undefined error';
           }
 
-          // Check for standard error properties
+          // Direct string check first
+          if (typeof err === 'string') {
+            return err === '[object Object]' ? 'String conversion error - edge function returned malformed error' : err;
+          }
+
+          // Check for standard error properties in order of priority
           if (err && typeof err === 'object') {
+            // Check for FunctionsError structure (Supabase specific)
+            if (err.context && err.context.message) {
+              console.log('🔍 Found context.message:', err.context.message);
+              return String(err.context.message);
+            }
+
+            // Standard error message
             if (typeof err.message === 'string' && err.message && err.message !== '[object Object]') {
+              console.log('🔍 Found message:', err.message);
               return err.message;
             }
+
+            // Database error details
             if (typeof err.details === 'string' && err.details && err.details !== '[object Object]') {
+              console.log('🔍 Found details:', err.details);
               return err.details;
             }
+
+            // Postgres hint
             if (typeof err.hint === 'string' && err.hint && err.hint !== '[object Object]') {
+              console.log('🔍 Found hint:', err.hint);
               return err.hint;
             }
+
+            // Error code
             if (err.code) {
+              console.log('🔍 Found code:', err.code);
               return `Error code: ${String(err.code)}`;
             }
 
-            // Try to extract meaningful info from object
+            // Name with fallback message
             if (err.name) {
+              console.log('🔍 Found name:', err.name);
               return `${err.name}: ${err.message || 'Unknown error'}`;
+            }
+
+            // Try to get meaningful keys from the object
+            const keys = Object.keys(err);
+            console.log('🔍 Error object keys:', keys);
+
+            if (keys.length > 0) {
+              // Look for common error properties
+              for (const key of ['error', 'msg', 'description', 'reason']) {
+                if (err[key] && typeof err[key] === 'string') {
+                  console.log(`🔍 Found ${key}:`, err[key]);
+                  return err[key];
+                }
+              }
+
+              // Fallback: describe the error structure
+              return `Edge function error - object with keys: ${keys.join(', ')}`;
             }
           }
 
-          return 'Unknown error occurred';
+          // Last resort: try JSON stringify with fallback
+          try {
+            const stringified = JSON.stringify(err);
+            if (stringified && stringified !== '{}' && stringified !== 'null') {
+              console.log('🔍 JSON stringified:', stringified);
+              return `Edge function error: ${stringified}`;
+            }
+          } catch (jsonError) {
+            console.log('🔍 JSON stringify failed:', jsonError);
+          }
+
+          return 'Edge function returned an unknown error format';
         };
 
         const userFriendlyMessage = extractErrorMessage(error);
@@ -252,11 +307,23 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         }
 
                         // Final safety check and throw
-        const finalMessage = String(userFriendlyMessage || 'Unknown error');
-        const safeMessage = finalMessage === '[object Object]' ? 'Edge Function failed' : finalMessage;
+        // Final message validation
+        let finalMessage = String(userFriendlyMessage || 'Unknown error');
 
-        console.log("🔍 FINAL ERROR MESSAGE:", safeMessage);
-        throw new Error(`Edge Function Error: ${safeMessage}`);
+        // Double-check for [object Object] and provide better message
+        if (finalMessage === '[object Object]') {
+          finalMessage = 'Edge function failed with unreadable error format';
+          console.error('🚨 [object Object] detected! Original error:', error);
+          console.error('🚨 This indicates error object stringification failed');
+        }
+
+        // Provide more context
+        const contextualMessage = finalMessage.includes('Edge function')
+          ? finalMessage
+          : `Edge function (process-book-purchase) error: ${finalMessage}`;
+
+        console.log("🔍 FINAL ERROR MESSAGE:", contextualMessage);
+        throw new Error(contextualMessage);
       }
 
       console.log("✅ Edge Function Success Response:", data);
