@@ -48,10 +48,29 @@ const LockerSearchPage: React.FC = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6">
-        <LockerSearch 
-          onLockerSelect={handleLockerSelect}
-          showSelectionMode={true}
-        />
+        <Tabs defaultValue="search" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="search" className="flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              Locker Search
+            </TabsTrigger>
+            <TabsTrigger value="debug" className="flex items-center gap-2">
+              <Bug className="w-4 h-4" />
+              API Debug
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="search" className="mt-6">
+            <LockerSearch
+              onLockerSelect={handleLockerSelect}
+              showSelectionMode={true}
+            />
+          </TabsContent>
+
+          <TabsContent value="debug" className="mt-6">
+            <LockerApiDebug />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
