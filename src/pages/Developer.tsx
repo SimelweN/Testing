@@ -1352,7 +1352,7 @@ const Developer = () => {
                         <SelectValue placeholder="Select a book" />
                       </SelectTrigger>
                       <SelectContent>
-                        {books.map(book => (
+                        {books.filter(book => book && book.id).map(book => (
                           <SelectItem key={book.id} value={book.id}>
                             {book.title} - R{book.price} ({book.seller_name})
                           </SelectItem>
