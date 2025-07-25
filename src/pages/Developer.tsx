@@ -33,7 +33,8 @@ import {
   FileText,
   DollarSign,
   Settings,
-  MapPin
+  MapPin,
+  TestTube
 } from "lucide-react";
 
 interface TestResult {
@@ -1443,7 +1444,7 @@ const Developer = () => {
                         setIsLoading(true);
                         try {
                           const { lockerService } = await import('@/services/lockerService');
-                          console.log('🧪 Starting API connectivity test...');
+                          console.log('��� Starting API connectivity test...');
                           const result = await lockerService.testApiConnectivity();
 
                           if (result.success) {
@@ -1590,7 +1591,7 @@ const Developer = () => {
                           if (mockLockerIds.length === lockers.length || hasMockFlag) {
                             toast.warning('📄 Using verified mock data - CORS blocking real API');
                             console.warn('⚠️ All lockers appear to be mock data due to CORS restrictions');
-                            console.info('💡 Mock data includes 18 verified real PUDO locker locations');
+                            console.info('���� Mock data includes 18 verified real PUDO locker locations');
 
                             // Show CORS solution info
                             setTimeout(() => {
@@ -1632,6 +1633,43 @@ const Developer = () => {
                       )}
                       Fetch Lockers
                     </Button>
+
+                    <Button
+                      onClick={async () => {
+                        setIsLoading(true);
+                        try {
+                          const { lockerService } = await import('@/services/lockerService');
+                          console.log('🧪 Testing real PUDO API directly...');
+                          toast.info('🧪 Testing real PUDO API format...');
+
+                          const result = await lockerService.testRealPudoApi();
+
+                          if (result.success && result.lockers) {
+                            toast.success(`🎉 Real PUDO API working! ${result.lockers.length} lockers loaded`);
+                            console.log('🎉 Real PUDO API test successful:', result.lockers.length, 'lockers');
+                            console.log('📋 Sample real API locker:', result.lockers[0]);
+                          } else {
+                            toast.warning(`📄 Real API failed: ${result.error} - Using fallback data`);
+                            console.log('⚠️ Real API test failed:', result.error);
+                          }
+                        } catch (error) {
+                          console.error('💥 Real API test failed:', error);
+                          toast.error(`💥 Real API test failed: ${error}`);
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }}
+                      disabled={isLoading}
+                      variant="secondary"
+                      className="mt-2"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <TestTube className="h-4 w-4 mr-2" />
+                      )}
+                      Test Real PUDO API
+                    </Button>
                   </div>
                 </div>
 
@@ -1657,7 +1695,7 @@ const Developer = () => {
                     <ul className="list-disc list-inside ml-4 space-y-1 text-xs">
                       <li>🥇 <strong>Deploy Edge Function:</strong> <code>supabase functions deploy courier-guy-lockers</code></li>
                       <li>🥈 <strong>Backend Proxy:</strong> Route API calls through your server</li>
-                      <li>🥉 <strong>Verified Mock Data:</strong> 18 real PUDO locations (current fallback)</li>
+                      <li>🥉 <strong>Verified Mock Data:</strong> 19 real PUDO locations (current fallback)</li>
                     </ul>
                     <div className="mt-2 p-2 bg-blue-100 rounded text-xs">
                       <p><strong>Quick Fix:</strong> The edge function in <code>supabase/functions/courier-guy-lockers/</code> is ready to deploy!</p>

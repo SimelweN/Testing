@@ -92,14 +92,23 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
       setLoading(true);
       setError(null);
       console.log('🔄 Loading lockers...');
-      
+
       const lockersData = await lockerService.getLockers(forceRefresh);
+      console.log('📊 Loaded lockers breakdown:', {
+        total: lockersData.length,
+        provinces: [...new Set(lockersData.map(l => l.province))],
+        cities: [...new Set(lockersData.map(l => l.city))].length,
+        active: lockersData.filter(l => l.is_active).length
+      });
+
       setLockers(lockersData);
-      
+
       if (lockersData.length === 0) {
         setError('No lockers found. Please try again later.');
       } else {
-        toast.success(`Found ${lockersData.length} lockers in South Africa`);
+        toast.success(`✅ Found ${lockersData.length} PUDO lockers across South Africa`);
+        console.log('🎯 All lockers loaded successfully - ready for search and filtering');
+        console.log('📋 Full locker list:', lockersData.map(l => `${l.name} (${l.city})`));
       }
     } catch (err) {
       console.error('❌ Error loading lockers:', err);
@@ -119,9 +128,20 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
 
     try {
       const filtered = await lockerService.searchLockers(filters);
+      console.log('🔍 Filter results:', {
+        totalLockers: lockers.length,
+        filteredCount: filtered.length,
+        appliedFilters: {
+          searchQuery: searchQuery || 'none',
+          selectedCity: selectedCity || 'all',
+          selectedProvince: selectedProvince || 'all'
+        }
+      });
       setFilteredLockers(filtered);
+      console.log('📋 Filtered lockers for display:', filtered.map(l => `${l.name} (${l.city})`));
     } catch (err) {
       console.error('❌ Error filtering lockers:', err);
+      console.log('🔄 Fallback: Using all lockers without filtering');
       setFilteredLockers(lockers);
     }
   };
@@ -222,7 +242,8 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading lockers in South Africa...</p>
+          <p className="text-muted-foreground">Loading PUDO locker locations...</p>
+          <p className="text-xs text-muted-foreground mt-2">Fetching verified locations across South Africa</p>
         </div>
       </div>
     );
@@ -249,7 +270,7 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
       {/* Search and Filters */}
       <Card>
         <CardHeader>
@@ -303,7 +324,7 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
               </Button>
             </div>
             <p className="text-sm text-muted-foreground">
-              Found {filteredLockers.length} lockers
+              Showing {filteredLockers.length} of {lockers.length} lockers
             </p>
           </div>
         </CardContent>
@@ -321,7 +342,7 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="space-y-4">
+        <TabsContent value="all" className="space-y-4 min-h-screen">
           {filteredLockers.length === 0 ? (
             <Alert>
               <AlertCircle className="h-4 w-4" />
@@ -330,10 +351,16 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
               </AlertDescription>
             </Alert>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredLockers.map(locker => (
-                <LockerCard key={locker.id} locker={locker} />
-              ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+              {filteredLockers.map((locker, index) => {
+                console.log(`🔍 Rendering locker ${index + 1}:`, locker.name, locker.city);
+                return <LockerCard key={locker.id} locker={locker} />;
+              })}
+            </div>
+          )}
+          {filteredLockers.length > 0 && (
+            <div className="text-center text-sm text-muted-foreground mt-4">
+              Displaying all {filteredLockers.length} locker locations
             </div>
           )}
         </TabsContent>

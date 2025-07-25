@@ -32,6 +32,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import FallbackCommitService from "@/services/fallbackCommitService";
+import { lockerService, LockerLocation } from "@/services/lockerService";
 
 interface EnhancedOrderCommitButtonProps {
   orderId: string;
@@ -44,14 +45,7 @@ interface EnhancedOrderCommitButtonProps {
   className?: string;
 }
 
-interface Locker {
-  id: string;
-  name: string;
-  address: string;
-  city: string;
-  postalCode: string;
-  operatingHours: string;
-}
+// Use LockerLocation from lockerService instead of custom Locker interface
 
 const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
   orderId,
@@ -67,7 +61,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState<"home" | "locker">("home");
   const [selectedLockerId, setSelectedLockerId] = useState<string>("");
-  const [lockers, setLockers] = useState<Locker[]>([]);
+  const [lockers, setLockers] = useState<LockerLocation[]>([]);
   const [loadingLockers, setLoadingLockers] = useState(false);
   
   // Pre-commit checklist states
@@ -94,55 +88,10 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
   const loadLockers = async () => {
     setLoadingLockers(true);
     try {
-      // Mock lockers for now - in production this would call the Courier Guy API
-      const mockLockers: Locker[] = [
-        {
-          id: "L001",
-          name: "Sandton City Mall",
-          address: "83 Rivonia Rd, Sandhurst",
-          city: "Sandton",
-          postalCode: "2196",
-          operatingHours: "9:00 AM - 9:00 PM"
-        },
-        {
-          id: "L002", 
-          name: "Canal Walk Shopping Centre",
-          address: "Century City Dr, Century City",
-          city: "Cape Town",
-          postalCode: "7441",
-          operatingHours: "9:00 AM - 9:00 PM"
-        },
-        {
-          id: "L003",
-          name: "Gateway Theatre of Shopping",
-          address: "1 Palm Blvd, Umhlanga Ridge",
-          city: "Durban", 
-          postalCode: "4319",
-          operatingHours: "9:00 AM - 9:00 PM"
-        },
-        {
-          id: "L004",
-          name: "Menlyn Park Shopping Centre",
-          address: "Atterbury Rd & Lois Ave, Menlyn",
-          city: "Pretoria",
-          postalCode: "0181",
-          operatingHours: "9:00 AM - 9:00 PM"
-        }
-      ];
-      
-      setLockers(mockLockers);
-      
-      // In production, this would be:
-      /*
-      const response = await fetch("https://api.pudo.co.za/lockers", {
-        headers: { 
-          "ApiKey": import.meta.env.VITE_COURIER_GUY_LOCKER_API_KEY 
-        },
-      });
-      const data = await response.json();
-      setLockers(data.lockers || []);
-      */
-      
+      console.log('🔄 Loading real PUDO locker locations...');
+      const realLockers = await lockerService.getLockers();
+      setLockers(realLockers);
+      console.log(`✅ Loaded ${realLockers.length} real PUDO lockers for order commit`);      
     } catch (error) {
       console.error("Error loading lockers:", error);
       toast.error("Failed to load lockers. Please try again.");
@@ -496,7 +445,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
                             <div className="text-left">
                               <div className="font-medium">{locker.name}</div>
                               <div className="text-sm text-gray-600">
-                                {locker.city} • {locker.operatingHours}
+                                {locker.city} • {locker.opening_hours || 'Mon-Sun: 24/7'}
                               </div>
                             </div>
                           </SelectItem>

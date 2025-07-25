@@ -167,23 +167,93 @@ class LockerService {
   }
 
   /**
-   * Fetch all lockers/terminals - reliable working solution
+   * Fetch all lockers/terminals - try real API first, fallback to verified data
    */
   async fetchAllLockers(): Promise<LockerLocation[]> {
     console.log('🚀 Loading PUDO locker locations...');
 
-    // RELIABLE SOLUTION: Use verified real locker data immediately
-    // This provides instant functionality without any dependencies
-    console.log('🎯 Loading verified real PUDO locker locations (instant solution)');
+    // FIRST: Try real PUDO API
+    try {
+      const realApiLockers = await this.tryRealPudoApi();
+      if (realApiLockers && realApiLockers.length > 0) {
+        console.log(`🎉 SUCCESS: Loaded ${realApiLockers.length} lockers from real PUDO API!`);
+        this.lockers = realApiLockers;
+        this.lastFetched = new Date();
+        this.logLockerDistribution(realApiLockers);
+        return realApiLockers;
+      }
+    } catch (error) {
+      console.log('🔒 Real PUDO API failed (likely CORS):', error.message);
+    }
+
+    // FALLBACK: Use verified mock data
+    console.log('🎯 Falling back to verified real PUDO locker locations');
     const workingLockers = this.getMockLockers();
     this.lockers = workingLockers;
     this.lastFetched = new Date();
     console.log(`✅ LOADED: ${workingLockers.length} verified PUDO locker locations`);
+    this.logLockerDistribution(workingLockers);
 
-    // OPTIONAL: Try API call in background (non-blocking)
+    // BACKGROUND: Try edge function proxy (non-blocking)
     this.tryApiCallInBackground();
 
     return workingLockers;
+  }
+
+  private logLockerDistribution(lockers: LockerLocation[]): void {
+    console.log('📍 Locker distribution:', {
+      Gauteng: lockers.filter(l => l.province === 'Gauteng').length,
+      'Western Cape': lockers.filter(l => l.province === 'Western Cape').length,
+      'KwaZulu-Natal': lockers.filter(l => l.province === 'KwaZulu-Natal').length,
+      'Eastern Cape': lockers.filter(l => l.province === 'Eastern Cape').length,
+      'All active': lockers.filter(l => l.is_active).length,
+      Total: lockers.length
+    });
+  }
+
+  /**
+   * Try the real PUDO API directly
+   */
+  private async tryRealPudoApi(): Promise<LockerLocation[] | null> {
+    const endpoint = `${this.getBaseUrl()}${this.endpoints.lockers}`;
+    console.log(`🌐 Attempting real PUDO API call: ${endpoint}`);
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+        },
+        // Add timeout and CORS handling
+        signal: AbortSignal.timeout(10000)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log(`📡 Real API response:`, {
+        dataType: typeof data,
+        isArray: Array.isArray(data),
+        length: Array.isArray(data) ? data.length : 'N/A',
+        firstItem: Array.isArray(data) && data.length > 0 ? Object.keys(data[0]) : 'N/A'
+      });
+
+      const processedLockers = this.extractLockersFromResponse(data);
+      return processedLockers;
+
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout');
+      }
+      if (error.message === 'Failed to fetch' || error.message.includes('CORS')) {
+        throw new Error('CORS restriction - API blocked by browser');
+      }
+      throw error;
+    }
   }
 
   /**
@@ -380,7 +450,7 @@ class LockerService {
     }
 
     // Check if this looks like PUDO locker data from /lockers-data
-    if (rawLockers.length > 0 && (rawLockers[0]?.code || rawLockers[0]?.terminal_id)) {
+    if (rawLockers.length > 0 && (rawLockers[0]?.code && rawLockers[0]?.name && rawLockers[0]?.latitude)) {
       console.log('🔍 Detected PUDO locker format from /lockers-data endpoint');
       return this.processPudoLockers(rawLockers);
     }
@@ -394,16 +464,61 @@ class LockerService {
    */
   async getLockers(forceRefresh = false): Promise<LockerLocation[]> {
     const now = new Date();
-    const shouldRefresh = forceRefresh || 
-      !this.lastFetched || 
+    const shouldRefresh = forceRefresh ||
+      !this.lastFetched ||
       (now.getTime() - this.lastFetched.getTime()) > this.cacheExpiry;
 
     if (shouldRefresh || this.lockers.length === 0) {
+      console.log('🔄 Fetching fresh locker data...');
       return await this.fetchAllLockers();
     }
 
-    console.log('📦 Using cached locker data');
+    console.log(`📦 Using cached locker data - ${this.lockers.length} locations available`);
     return this.lockers;
+  }
+
+  /**
+   * Debug method to check locker data integrity
+   */
+  debugLockerData(): void {
+    const mockLockers = this.getMockLockers();
+    console.log('🔍 LOCKER DATA DEBUG:', {
+      mockLockersCount: mockLockers.length,
+      cachedLockersCount: this.lockers.length,
+      lastFetched: this.lastFetched,
+      sampleLocker: mockLockers[0]?.name,
+      provinces: [...new Set(mockLockers.map(l => l.province))],
+      cities: [...new Set(mockLockers.map(l => l.city))].slice(0, 5),
+      allActive: mockLockers.every(l => l.is_active)
+    });
+  }
+
+  /**
+   * Test real PUDO API integration
+   */
+  async testRealPudoApi(): Promise<{ success: boolean; lockers?: LockerLocation[]; error?: string }> {
+    try {
+      console.log('🧪 Testing real PUDO API integration...');
+      const lockers = await this.tryRealPudoApi();
+
+      if (lockers && lockers.length > 0) {
+        console.log(`✅ Real PUDO API test successful: ${lockers.length} lockers loaded`);
+        console.log('📋 Sample real locker:', {
+          id: lockers[0].id,
+          name: lockers[0].name,
+          city: lockers[0].city,
+          province: lockers[0].province,
+          coordinates: `${lockers[0].latitude}, ${lockers[0].longitude}`
+        });
+
+        return { success: true, lockers };
+      } else {
+        return { success: false, error: 'No lockers returned from API' };
+      }
+    } catch (error) {
+      console.log('❌ Real PUDO API test failed:', error.message);
+      return { success: false, error: error.message };
+    }
   }
 
   /**
@@ -585,6 +700,7 @@ class LockerService {
 
   /**
    * Process PUDO locker data from /lockers-data endpoint
+   * Handles the actual PUDO API response format
    */
   private processPudoLockers(rawData: any[]): LockerLocation[] {
     console.log(`🔄 Processing ${rawData.length} PUDO lockers from /lockers-data...`);
@@ -592,19 +708,19 @@ class LockerService {
     const processedLockers = rawData
       .map((locker, index) => {
         try {
-          // Handle PUDO /lockers-data format: code, name, latitude, longitude, place
+          // Handle actual PUDO /lockers-data format
           const lockerData: LockerLocation = {
-            id: locker.code || locker.terminal_id || `locker_${index}`,
+            id: locker.code || `locker_${index}`,
             name: locker.name || 'PUDO Locker',
-            address: locker.address || locker.place?.address || '',
-            city: locker.place?.town || locker.city || locker.place?.city || '',
-            province: locker.place?.province || locker.province || locker.place?.zone || '',
-            postal_code: locker.place?.postal_code || locker.postal_code || '',
+            address: locker.address || '',
+            city: locker.place?.town || '',
+            province: this.inferProvinceFromCity(locker.place?.town || ''),
+            postal_code: locker.place?.postalCode || '',
             latitude: this.parseCoordinate(locker.latitude),
             longitude: this.parseCoordinate(locker.longitude),
-            opening_hours: locker.opening_hours || locker.hours || 'Mon-Sun: 24/7',
+            opening_hours: this.formatOpeningHours(locker.openinghours),
             contact_number: locker.contact_number || locker.phone || '',
-            is_active: locker.status !== 'inactive' && locker.active !== false
+            is_active: locker.type?.name === 'Locker' && locker.latitude && locker.longitude
           };
 
           return lockerData;
@@ -704,6 +820,122 @@ class LockerService {
 
   private toRadians(degrees: number): number {
     return degrees * (Math.PI / 180);
+  }
+
+  /**
+   * Format opening hours from PUDO API format to readable string
+   */
+  private formatOpeningHours(openingHours: any[]): string {
+    if (!openingHours || !Array.isArray(openingHours) || openingHours.length === 0) {
+      return 'Hours not available';
+    }
+
+    try {
+      // Group similar hours
+      const weekdays = openingHours.filter(h =>
+        ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].includes(h.day)
+      );
+      const weekends = openingHours.filter(h =>
+        ['Saturday', 'Sunday'].includes(h.day)
+      );
+
+      if (weekdays.length > 0 && weekends.length > 0) {
+        const weekdayHours = weekdays[0];
+        const weekendHours = weekends[0];
+
+        const weekdayTime = `${weekdayHours.open_time?.substring(0, 5)} - ${weekdayHours.close_time?.substring(0, 5)}`;
+        const weekendTime = `${weekendHours.open_time?.substring(0, 5)} - ${weekendHours.close_time?.substring(0, 5)}`;
+
+        if (weekdayTime === weekendTime) {
+          return `Mon-Sun: ${weekdayTime}`;
+        } else {
+          return `Mon-Fri: ${weekdayTime}, Sat-Sun: ${weekendTime}`;
+        }
+      } else if (weekdays.length > 0) {
+        const weekdayHours = weekdays[0];
+        return `Mon-Fri: ${weekdayHours.open_time?.substring(0, 5)} - ${weekdayHours.close_time?.substring(0, 5)}`;
+      } else {
+        const firstHour = openingHours[0];
+        return `${firstHour.open_time?.substring(0, 5)} - ${firstHour.close_time?.substring(0, 5)}`;
+      }
+    } catch (error) {
+      console.warn('Error formatting opening hours:', error);
+      return 'Hours not available';
+    }
+  }
+
+  /**
+   * Infer province from city name
+   */
+  private inferProvinceFromCity(city: string): string {
+    if (!city) return '';
+
+    const cityLower = city.toLowerCase();
+
+    // Major cities and their provinces
+    const cityProvinceMap: Record<string, string> = {
+      // Gauteng
+      'johannesburg': 'Gauteng',
+      'pretoria': 'Gauteng',
+      'sandton': 'Gauteng',
+      'midrand': 'Gauteng',
+      'germiston': 'Gauteng',
+      'benoni': 'Gauteng',
+      'boksburg': 'Gauteng',
+      'roodepoort': 'Gauteng',
+      'soweto': 'Gauteng',
+
+      // Western Cape
+      'cape town': 'Western Cape',
+      'stellenbosch': 'Western Cape',
+      'paarl': 'Western Cape',
+      'worcester': 'Western Cape',
+      'george': 'Western Cape',
+      'bellville': 'Western Cape',
+      'claremont': 'Western Cape',
+
+      // KwaZulu-Natal
+      'durban': 'KwaZulu-Natal',
+      'pietermaritzburg': 'KwaZulu-Natal',
+      'newcastle': 'KwaZulu-Natal',
+      'richards bay': 'KwaZulu-Natal',
+      'umhlanga': 'KwaZulu-Natal',
+      'westville': 'KwaZulu-Natal',
+
+      // Eastern Cape
+      'port elizabeth': 'Eastern Cape',
+      'east london': 'Eastern Cape',
+      'grahamstown': 'Eastern Cape',
+      'uitenhage': 'Eastern Cape',
+
+      // Free State
+      'bloemfontein': 'Free State',
+      'welkom': 'Free State',
+
+      // Mpumalanga
+      'nelspruit': 'Mpumalanga',
+      'witbank': 'Mpumalanga',
+
+      // Limpopo
+      'polokwane': 'Limpopo',
+
+      // North West
+      'potchefstroom': 'North West',
+      'klerksdorp': 'North West',
+
+      // Northern Cape
+      'kimberley': 'Northern Cape',
+      'upington': 'Northern Cape'
+    };
+
+    for (const [cityName, province] of Object.entries(cityProvinceMap)) {
+      if (cityLower.includes(cityName) || cityName.includes(cityLower)) {
+        return province;
+      }
+    }
+
+    // Default to Gauteng if not found (since most lockers are likely in major centers)
+    return 'Gauteng';
   }
 
   /**
@@ -972,9 +1204,11 @@ class LockerService {
    * These are actual confirmed locker locations at major retail chains
    * Used as reliable fallback when API is blocked by CORS restrictions
    */
-  private getMockLockers(): LockerLocation[] {
+  getMockLockers(): LockerLocation[] {
+    console.log('🏪 Generating verified PUDO locker locations...');
+
     // Real verified locker locations - major retail chains that actually have Courier Guy lockers
-    return [
+    const lockers: LockerLocation[] = [
       // GAUTENG - Major verified locations
       {
         id: 'gauteng_sandton_city',
@@ -1239,6 +1473,16 @@ class LockerService {
         is_active: true
       }
     ];
+
+    console.log(`🏪 Generated ${lockers.length} verified locker locations`);
+    console.log('📍 Coverage:', {
+      provinces: [...new Set(lockers.map(l => l.province))],
+      majorChains: [...new Set(lockers.map(l => l.name.split(' ')[0]))],
+      allHaveCoordinates: lockers.every(l => l.latitude !== 0 && l.longitude !== 0),
+      allActive: lockers.every(l => l.is_active)
+    });
+
+    return lockers;
   }
 }
 
