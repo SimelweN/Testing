@@ -167,23 +167,37 @@ class LockerService {
   }
 
   /**
-   * Fetch all lockers/terminals - try real API first, fallback to verified data
+   * Fetch all lockers/terminals - try edge function first, then direct API, fallback to verified data
    */
   async fetchAllLockers(): Promise<LockerLocation[]> {
     console.log('🚀 Loading PUDO locker locations...');
 
-    // FIRST: Try real PUDO API
+    // FIRST: Try edge function proxy (handles CORS and gets real API data)
+    try {
+      const proxyLockers = await this.fetchLockersViaProxy();
+      if (proxyLockers && proxyLockers.length > 0) {
+        console.log(`🎉 SUCCESS: Loaded ${proxyLockers.length} lockers from edge function proxy!`);
+        this.lockers = proxyLockers;
+        this.lastFetched = new Date();
+        this.logLockerDistribution(proxyLockers);
+        return proxyLockers;
+      }
+    } catch (error) {
+      console.log('🔒 Edge function proxy failed:', error.message);
+    }
+
+    // SECOND: Try real PUDO API directly (will likely fail due to CORS)
     try {
       const realApiLockers = await this.tryRealPudoApi();
       if (realApiLockers && realApiLockers.length > 0) {
-        console.log(`🎉 SUCCESS: Loaded ${realApiLockers.length} lockers from real PUDO API!`);
+        console.log(`🎉 SUCCESS: Loaded ${realApiLockers.length} lockers from direct PUDO API!`);
         this.lockers = realApiLockers;
         this.lastFetched = new Date();
         this.logLockerDistribution(realApiLockers);
         return realApiLockers;
       }
     } catch (error) {
-      console.log('🔒 Real PUDO API failed (likely CORS):', error.message);
+      console.log('🔒 Direct PUDO API failed (likely CORS):', error.message);
     }
 
     // FALLBACK: Use verified mock data
@@ -193,9 +207,6 @@ class LockerService {
     this.lastFetched = new Date();
     console.log(`✅ LOADED: ${workingLockers.length} verified PUDO locker locations`);
     this.logLockerDistribution(workingLockers);
-
-    // BACKGROUND: Try edge function proxy (non-blocking)
-    this.tryApiCallInBackground();
 
     return workingLockers;
   }
