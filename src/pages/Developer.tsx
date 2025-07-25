@@ -275,7 +275,7 @@ const Developer = () => {
       }
 
       toast.error(`❌ Critical database error: ${errorMessage}`);
-      toast.warning('��� Please check your Supabase configuration and database permissions');
+      toast.warning('🚨 Please check your Supabase configuration and database permissions');
     }
   };
 
@@ -343,22 +343,36 @@ const Developer = () => {
           }
         }
 
-        // 3. Try to extract from response body if available
-        if (!errorMessage && error.context?.response?.body) {
-          try {
-            const body = error.context.response.body;
-            if (typeof body === 'string') {
-              try {
-                const parsed = JSON.parse(body);
-                errorMessage = parsed.error || parsed.message || parsed.details || body;
-              } catch (e) {
-                errorMessage = body;
+        // 3. Try to extract from context response body (PRIORITY - Supabase functions put errors here)
+        if (error.context?.response) {
+          console.log(`🔍 ${functionName} response context:`, error.context.response);
+
+          const response = error.context.response;
+
+          // Try to get the response text/body
+          if (response.body) {
+            try {
+              let bodyContent = response.body;
+              console.log(`📄 ${functionName} response body:`, bodyContent);
+
+              if (typeof bodyContent === 'string') {
+                try {
+                  const parsed = JSON.parse(bodyContent);
+                  errorMessage = parsed.error || parsed.message || parsed.details || parsed.description || bodyContent;
+                } catch (e) {
+                  errorMessage = bodyContent;
+                }
+              } else if (typeof bodyContent === 'object' && bodyContent !== null) {
+                errorMessage = bodyContent.error || bodyContent.message || bodyContent.details || JSON.stringify(bodyContent);
               }
-            } else if (typeof body === 'object') {
-              errorMessage = body.error || body.message || body.details || JSON.stringify(body);
+            } catch (e) {
+              console.error('Error parsing response body:', e);
             }
-          } catch (e) {
-            console.error('Error parsing response body:', e);
+          }
+
+          // If no body, try other response properties
+          if (!errorMessage && response.statusText) {
+            errorMessage = response.statusText;
           }
         }
 
