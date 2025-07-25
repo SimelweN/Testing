@@ -489,7 +489,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
                       <ul className="text-gray-700 space-y-1 ml-6">
                         <li>• You'll receive a QR code and drop-off instructions via email</li>
                         <li>• Drop off your package at the selected locker using the QR code</li>
-                        <li>• Payment will be processed 3 days earlier than standard pickup</li>
+                        <li>• Payment will be processed earlier than standard pickup</li>
                         <li>• Tracking updates will be sent automatically</li>
                       </ul>
                     </div>
