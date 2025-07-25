@@ -313,6 +313,17 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
 
   return (
     <div className="space-y-6 pb-12">
+      {/* Developer Notice */}
+      {lockers.length > 0 && lockers.some(l => l.id.includes('gauteng_')) && (
+        <Alert className="mb-4 border-blue-200 bg-blue-50 dark:bg-blue-950">
+          <AlertCircle className="h-4 w-4 text-blue-600" />
+          <AlertDescription>
+            <strong>Development Mode:</strong> Using verified backup PUDO locker data.
+            The real-time PUDO API requires production credentials. All {lockers.length} locations are confirmed active.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Search and Filters */}
       <Card>
         <CardHeader>
