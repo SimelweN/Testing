@@ -616,6 +616,64 @@ class LockerService {
   }
 
   /**
+   * Process PUDO terminal data specifically
+   */
+  private processPudoTerminals(rawData: any[]): LockerLocation[] {
+    console.log(`🔄 Processing ${rawData.length} PUDO terminals...`);
+
+    const processedLockers = rawData
+      .map((terminal, index) => {
+        try {
+          const locker: LockerLocation = {
+            id: terminal.terminal_id || `terminal_${index}`,
+            name: terminal.name || terminal.location_name || 'PUDO Locker',
+            address: terminal.address || terminal.full_address || '',
+            city: terminal.city || terminal.locality || '',
+            province: terminal.province || terminal.zone || terminal.state || '',
+            postal_code: terminal.postal_code || terminal.code || '',
+            latitude: this.parseCoordinate(terminal.latitude || terminal.lat),
+            longitude: this.parseCoordinate(terminal.longitude || terminal.lng),
+            opening_hours: terminal.opening_hours || terminal.hours || 'Mon-Sun: 24/7',
+            contact_number: terminal.contact_number || terminal.phone || '',
+            is_active: terminal.status !== 'inactive' && terminal.active !== false
+          };
+
+          return locker;
+        } catch (error) {
+          console.warn('⚠️ Error processing PUDO terminal at index', index, ':', terminal, error);
+          return null;
+        }
+      })
+      .filter((locker): locker is LockerLocation => {
+        if (!locker) return false;
+
+        const hasValidCoords = locker.latitude !== 0 && locker.longitude !== 0;
+        const hasValidLocation = locker.city && locker.province;
+        const isActive = locker.is_active;
+
+        if (!hasValidCoords) {
+          console.debug(`🚫 Skipping terminal ${locker.id}: Invalid coordinates`);
+          return false;
+        }
+
+        if (!hasValidLocation) {
+          console.debug(`🚫 Skipping terminal ${locker.id}: Missing city/province`);
+          return false;
+        }
+
+        if (!isActive) {
+          console.debug(`🚫 Skipping terminal ${locker.id}: Not active`);
+          return false;
+        }
+
+        return true;
+      });
+
+    console.log(`✅ Successfully processed ${processedLockers.length} valid terminals from ${rawData.length} raw records`);
+    return processedLockers;
+  }
+
+  /**
    * Parse coordinate value safely
    */
   private parseCoordinate(value: any): number {
