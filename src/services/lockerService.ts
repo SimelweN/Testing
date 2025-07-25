@@ -211,7 +211,7 @@ class LockerService {
     }
 
     // FALLBACK: Use verified mock data (this should always work)
-    console.log('🎯 Using verified PUDO locker locations (fallback)');
+    console.log('��� Using verified PUDO locker locations (fallback)');
     try {
       const workingLockers = this.getMockLockers();
       if (!workingLockers || workingLockers.length === 0) {
@@ -387,6 +387,12 @@ class LockerService {
       if (!response.ok) {
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
 
+        // Handle 502 errors (edge function runtime issues)
+        if (response.status === 502) {
+          console.log('🔒 Edge function 502 error - likely timeout or runtime issue');
+          throw new Error('Edge function temporarily unavailable (502 error)');
+        }
+
         try {
           const errorData = await response.json();
           if (errorData.error) {
@@ -401,7 +407,10 @@ class LockerService {
             }
           }
         } catch (e) {
-          console.log('⚠️ Could not parse error response');
+          console.log('⚠️ Could not parse error response - likely empty 502');
+          if (response.status === 502) {
+            throw new Error('Edge function runtime error (502)');
+          }
         }
 
         throw new Error(errorMessage);
