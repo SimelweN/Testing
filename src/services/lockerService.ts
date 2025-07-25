@@ -71,7 +71,7 @@ class LockerService {
       }
       */
     } catch (error) {
-      console.error('❌ Error fetching lockers:', error);
+      console.error('��� Error fetching lockers:', error);
 
       // Return cached data if available
       if (this.lockers.length > 0) {
@@ -266,6 +266,7 @@ class LockerService {
    */
   private getMockLockers(): LockerLocation[] {
     return [
+      // Gauteng Province
       {
         id: 'mock_1',
         name: 'Pick n Pay Sandton City',
@@ -283,6 +284,37 @@ class LockerService {
       },
       {
         id: 'mock_2',
+        name: 'Checkers Rosebank',
+        address: 'Rosebank Mall, 50 Bath Avenue',
+        city: 'Johannesburg',
+        province: 'Gauteng',
+        postal_code: '2196',
+        latitude: -26.1440,
+        longitude: 28.0407,
+        opening_hours: 'Mon-Sun: 7:00-21:00',
+        contact_number: '011 447 5000',
+        is_active: true,
+        locker_capacity: 30,
+        available_slots: 12,
+      },
+      {
+        id: 'mock_3',
+        name: 'Woolworths Menlyn',
+        address: 'Menlyn Park Shopping Centre, Pretoria',
+        city: 'Pretoria',
+        province: 'Gauteng',
+        postal_code: '0181',
+        latitude: -25.7852,
+        longitude: 28.2761,
+        opening_hours: 'Mon-Sun: 9:00-21:00',
+        contact_number: '012 348 4000',
+        is_active: true,
+        locker_capacity: 45,
+        available_slots: 18,
+      },
+      // Western Cape Province
+      {
+        id: 'mock_4',
         name: 'Woolworths Canal Walk',
         address: 'Canal Walk Shopping Centre, Century City',
         city: 'Cape Town',
@@ -297,7 +329,38 @@ class LockerService {
         available_slots: 15,
       },
       {
-        id: 'mock_3',
+        id: 'mock_5',
+        name: 'Pick n Pay V&A Waterfront',
+        address: 'Victoria & Alfred Waterfront',
+        city: 'Cape Town',
+        province: 'Western Cape',
+        postal_code: '8001',
+        latitude: -33.9022,
+        longitude: 18.4186,
+        opening_hours: 'Mon-Sun: 9:00-21:00',
+        contact_number: '021 408 7600',
+        is_active: true,
+        locker_capacity: 35,
+        available_slots: 22,
+      },
+      {
+        id: 'mock_6',
+        name: 'Checkers Stellenbosch',
+        address: 'Eikestad Mall, Andringa Street',
+        city: 'Stellenbosch',
+        province: 'Western Cape',
+        postal_code: '7600',
+        latitude: -33.9321,
+        longitude: 18.8602,
+        opening_hours: 'Mon-Sat: 8:00-20:00, Sun: 9:00-18:00',
+        contact_number: '021 887 9200',
+        is_active: true,
+        locker_capacity: 25,
+        available_slots: 9,
+      },
+      // KwaZulu-Natal Province
+      {
+        id: 'mock_7',
         name: 'Gateway Theatre of Shopping',
         address: '1 Palm Boulevard, Umhlanga Ridge',
         city: 'Durban',
@@ -310,6 +373,36 @@ class LockerService {
         is_active: true,
         locker_capacity: 35,
         available_slots: 8,
+      },
+      {
+        id: 'mock_8',
+        name: 'Woolworths Pavilion',
+        address: 'Pavilion Shopping Centre, Westville',
+        city: 'Durban',
+        province: 'KwaZulu-Natal',
+        postal_code: '3629',
+        latitude: -29.8258,
+        longitude: 30.9186,
+        opening_hours: 'Mon-Sun: 9:00-21:00',
+        contact_number: '031 265 0300',
+        is_active: true,
+        locker_capacity: 28,
+        available_slots: 14,
+      },
+      {
+        id: 'mock_9',
+        name: 'Pick n Pay Pietermaritzburg',
+        address: 'Liberty Midlands Mall, Pietermaritzburg',
+        city: 'Pietermaritzburg',
+        province: 'KwaZulu-Natal',
+        postal_code: '3201',
+        latitude: -29.6046,
+        longitude: 30.3794,
+        opening_hours: 'Mon-Sun: 8:00-20:00',
+        contact_number: '033 346 1000',
+        is_active: true,
+        locker_capacity: 20,
+        available_slots: 7,
       },
     ];
   }
