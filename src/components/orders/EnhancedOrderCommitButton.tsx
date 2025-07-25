@@ -445,7 +445,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
                             <div className="text-left">
                               <div className="font-medium">{locker.name}</div>
                               <div className="text-sm text-gray-600">
-                                {locker.city} • {locker.operatingHours}
+                                {locker.city} • {locker.opening_hours || 'Mon-Sun: 24/7'}
                               </div>
                             </div>
                           </SelectItem>
