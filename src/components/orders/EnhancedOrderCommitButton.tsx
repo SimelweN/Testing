@@ -510,7 +510,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
                   <li>• QR code and drop-off instructions sent to your email</li>
                   <li>• Drop off at selected locker within 24 hours</li>
                   <li>• Automatic tracking and buyer notifications</li>
-                  <li>• Payment processed 3 days earlier than standard</li>
+                  <li>• Payment processed earlier than standard</li>
                 </>
               ) : (
                 <>
