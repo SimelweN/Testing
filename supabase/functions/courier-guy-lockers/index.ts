@@ -33,10 +33,10 @@ serve(async (req) => {
       )
     }
 
+    const baseUrl = useSandbox ? 'https://sandbox-api.pudo.co.za' : 'https://api-pudo.co.za'
     const apiEndpoints = endpoints || [
-      'https://api-pudo.co.za/lockers/terminals',
-      'https://api-pudo.co.za/lockers',
-      'https://sandbox-api.pudo.co.za/lockers/terminals',
+      `${baseUrl}/lockers/terminals`,
+      `${baseUrl}/lockers`,
     ]
 
     // Try each endpoint
