@@ -547,6 +547,53 @@ class LockerService {
   }
 
   /**
+   * Test edge function connectivity and API response
+   */
+  async testEdgeFunction(): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      console.log('🧪 Testing edge function connectivity...');
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) {
+        return { success: false, error: 'Supabase URL not configured' };
+      }
+
+      const edgeFunctionUrl = `${supabaseUrl}/functions/v1/courier-guy-lockers`;
+      console.log('🌐 Edge function URL:', edgeFunctionUrl);
+
+      // Test with a simple test request first
+      const response = await fetch(edgeFunctionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({
+          test: true
+        })
+      });
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: `HTTP ${response.status}: ${response.statusText}`
+        };
+      }
+
+      const data = await response.json();
+      console.log('✅ Edge function test response:', data);
+
+      return { success: true, data };
+    } catch (error) {
+      console.error('❌ Edge function test failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
    * Test real PUDO API integration
    */
   async testRealPudoApi(): Promise<{ success: boolean; lockers?: LockerLocation[]; error?: string }> {
@@ -635,7 +682,7 @@ class LockerService {
       });
     }
 
-    console.log(`🔍 Search returned ${filteredLockers.length} lockers`);
+    console.log(`�� Search returned ${filteredLockers.length} lockers`);
     return filteredLockers;
   }
 
