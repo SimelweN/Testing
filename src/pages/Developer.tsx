@@ -297,41 +297,91 @@ const Developer = () => {
       let statusCode = 200;
 
       if (error) {
-        console.error(`❌ ${functionName} error:`, error);
+        console.error(`❌ ${functionName} error object:`, error);
+        console.error(`❌ ${functionName} error keys:`, Object.keys(error));
+        console.error(`❌ ${functionName} data object:`, data);
 
-        // Extract detailed error information
-        if (error.context?.response) {
-          // If there's a response object, try to get status and body
-          const response = error.context.response;
-          statusCode = response.status || 400;
-
-          if (response.body) {
-            try {
-              const errorBody = typeof response.body === 'string' ? JSON.parse(response.body) : response.body;
-              errorMessage = errorBody.error || errorBody.message || errorBody.details || error.message;
-            } catch (e) {
-              errorMessage = response.body || error.message;
-            }
-          } else {
-            errorMessage = error.message;
-          }
-        } else if (error.details) {
-          errorMessage = error.details;
-        } else if (error.message) {
-          errorMessage = error.message;
+        // Extract status code first
+        if (error.status) {
+          statusCode = error.status;
+        } else if (error.context?.response?.status) {
+          statusCode = error.context.response.status;
         } else {
-          errorMessage = JSON.stringify(error);
+          statusCode = 400;
         }
 
-        // Try to get more details from the data object if available
+        // Try multiple ways to extract the actual error message
+
+        // 1. Check if data contains error info (common pattern)
         if (data && typeof data === 'object') {
           if (data.error) {
-            errorMessage = data.error;
+            errorMessage = typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
           } else if (data.message) {
             errorMessage = data.message;
           } else if (data.details) {
             errorMessage = data.details;
+          } else if (data.description) {
+            errorMessage = data.description;
           }
+        }
+
+        // 2. If no error from data, try error object properties
+        if (!errorMessage) {
+          if (error.message && error.message !== 'Edge Function returned a non-2xx status code') {
+            errorMessage = error.message;
+          } else if (error.details) {
+            errorMessage = error.details;
+          } else if (error.description) {
+            errorMessage = error.description;
+          } else if (error.error) {
+            errorMessage = typeof error.error === 'string' ? error.error : JSON.stringify(error.error);
+          }
+        }
+
+        // 3. Try to extract from response body if available
+        if (!errorMessage && error.context?.response?.body) {
+          try {
+            const body = error.context.response.body;
+            if (typeof body === 'string') {
+              try {
+                const parsed = JSON.parse(body);
+                errorMessage = parsed.error || parsed.message || parsed.details || body;
+              } catch (e) {
+                errorMessage = body;
+              }
+            } else if (typeof body === 'object') {
+              errorMessage = body.error || body.message || body.details || JSON.stringify(body);
+            }
+          } catch (e) {
+            console.error('Error parsing response body:', e);
+          }
+        }
+
+        // 4. If still no message, try to stringify the error object intelligently
+        if (!errorMessage) {
+          try {
+            // Create a clean error object with only useful properties
+            const cleanError: any = {};
+
+            ['message', 'details', 'error', 'description', 'code', 'hint'].forEach(key => {
+              if (error[key] && error[key] !== 'Edge Function returned a non-2xx status code') {
+                cleanError[key] = error[key];
+              }
+            });
+
+            if (Object.keys(cleanError).length > 0) {
+              errorMessage = JSON.stringify(cleanError, null, 2);
+            } else {
+              errorMessage = `HTTP ${statusCode} Error - Check edge function logs for details`;
+            }
+          } catch (e) {
+            errorMessage = `HTTP ${statusCode} Error - Unable to parse error details`;
+          }
+        }
+
+        // 5. Final fallback
+        if (!errorMessage || errorMessage === '[object Object]') {
+          errorMessage = `HTTP ${statusCode} Error - Edge function failed. Check Supabase logs for details.`;
         }
       }
 
