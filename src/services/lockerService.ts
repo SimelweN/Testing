@@ -206,8 +206,7 @@ class LockerService {
     // Strategy 2: Try direct PUDO API calls (will likely fail due to CORS)
     console.log('🎯 Strategy 2: Direct PUDO API calls (likely to fail due to CORS)...');
     const endpoints = [
-      `${this.getBaseUrl()}${this.endpoints.lockers}`,
-      `${this.getBaseUrl()}${this.endpoints.legacyLockers}`,
+      `${this.getBaseUrl()}${this.endpoints.lockers}`
     ];
 
     let corsDetected = false;
