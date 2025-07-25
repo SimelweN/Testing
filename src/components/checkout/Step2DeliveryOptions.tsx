@@ -120,13 +120,36 @@ const Step2DeliveryOptions: React.FC<Step2DeliveryOptionsProps> = ({
         });
       }
 
-      // Use the real courier pricing we fetched above
+      // Ensure we always have at least one option
+      if (baseOptions.length === 0) {
+        console.warn("⚠️ No delivery options generated, using default Courier Guy");
+        baseOptions.push({
+          courier: "courier-guy",
+          service_name: "Courier Guy - Standard",
+          price: 100,
+          estimated_days: 2,
+          description: "Standard delivery within 2-3 business days",
+          zone_type: zoneType,
+        });
+      }
+
       console.log("✅ Setting delivery options:", baseOptions);
       setDeliveryOptions(baseOptions);
     } catch (err) {
       console.error("Error fetching delivery options:", err);
-      setError("Failed to load delivery options. Please try again.");
-      toast.error("Failed to load delivery options");
+
+      // Even if there's an error, provide fallback Courier Guy options
+      const fallbackOptions: DeliveryOption[] = [{
+        courier: "courier-guy",
+        service_name: "Courier Guy - Standard",
+        price: 100,
+        estimated_days: 2,
+        description: "Standard delivery within 2-3 business days",
+        zone_type: "national",
+      }];
+
+      setDeliveryOptions(fallbackOptions);
+      toast.warning("Using standard delivery rates");
     } finally {
       setLoading(false);
     }
