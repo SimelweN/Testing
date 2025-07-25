@@ -138,6 +138,7 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
         }
       });
       setFilteredLockers(filtered);
+      console.log('📋 Filtered lockers for display:', filtered.map(l => `${l.name} (${l.city})`));
     } catch (err) {
       console.error('❌ Error filtering lockers:', err);
       console.log('🔄 Fallback: Using all lockers without filtering');
