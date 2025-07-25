@@ -237,7 +237,8 @@ const DeveloperMinimal = () => {
       toast.success(`Loaded ${sellersData?.length || 0} sellers`);
     } catch (error) {
       console.error('Exception fetching sellers:', error);
-      toast.error('Failed to load sellers');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error(`Failed to load sellers: ${errorMessage}`);
     } finally {
       setLoadingSellers(false);
     }
