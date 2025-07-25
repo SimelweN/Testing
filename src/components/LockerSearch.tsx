@@ -6,14 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  MapPin, 
-  Search, 
-  Filter, 
-  Navigation, 
-  Clock, 
-  Phone, 
-  Package,
+import {
+  MapPin,
+  Search,
+  Filter,
+  Navigation,
+  Clock,
+  Phone,
   Loader2,
   AlertCircle,
   CheckCircle,
