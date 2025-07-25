@@ -52,6 +52,9 @@ serve(async (req) => {
 
         if (apiKey) {
           headers['Authorization'] = `Bearer ${apiKey}`
+          console.log(`🔑 Using API key: ${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}`)
+        } else {
+          console.log('⚠️ No API key provided - may cause authentication errors')
         }
 
         // Fetch with pagination
