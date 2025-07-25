@@ -1,166 +1,192 @@
+import { toast } from "sonner";
+
+export interface RetryOptions {
+  maxRetries?: number;
+  retryDelay?: number;
+  exponentialBackoff?: boolean;
+}
+
+export interface NetworkErrorInfo {
+  isNetworkError: boolean;
+  isAuthError: boolean;
+  isRetryable: boolean;
+  errorMessage: string;
+  suggestedAction: string;
+}
+
 /**
- * Network Error Handler
- * Provides proper error handling and debugging for network issues
+ * Analyzes errors to determine if they're network-related and retryable
  */
+export function analyzeError(error: any): NetworkErrorInfo {
+  const errorMessage = error?.message || error?.details || String(error);
+  const errorLower = errorMessage.toLowerCase();
 
-// Known third-party services and development tools that might fail
-const THIRD_PARTY_SERVICES = [
-  "fullstory.com",
-  "edge.fullstory.com",
-  "google-analytics.com",
-  "googletagmanager.com",
-  "maps.googleapis.com",
-  "maps.google.com",
-];
+  // Check for network errors
+  const isNetworkError = 
+    errorLower.includes('failed to fetch') ||
+    errorLower.includes('network error') ||
+    errorLower.includes('connection') ||
+    errorLower.includes('timeout') ||
+    errorLower.includes('cors') ||
+    error?.code === 'NETWORK_ERROR';
 
-const DEVELOPMENT_SERVICES = [
-  "@vite/client",
-  "ping",
-  "messageHandler",
-  "waitForSuccessfulPing",
-];
+  // Check for auth errors
+  const isAuthError = 
+    errorLower.includes('auth') ||
+    errorLower.includes('unauthorized') ||
+    errorLower.includes('invalid_grant') ||
+    error?.code === '401';
 
-const GOOGLE_MAPS_RETRY_PATTERNS = [
-  "failed to load google maps script",
-  "google maps script, retrying",
-  "retrying in",
-  "failed to load google maps script, retrying in",
-  "google maps script error",
-  "maps api error",
-];
+  // Determine if retryable
+  const isRetryable = isNetworkError || (isAuthError && errorLower.includes('fetch'));
 
-// Check if an error is from a third-party service
-const isThirdPartyError = (url: string): boolean => {
-  return THIRD_PARTY_SERVICES.some((service) => url.includes(service));
+  let suggestedAction = "Please try again";
+  if (isNetworkError) {
+    suggestedAction = "Check your internet connection and try again";
+  } else if (isAuthError) {
+    suggestedAction = "Please refresh the page and log in again";
+  }
+
+  return {
+    isNetworkError,
+    isAuthError,
+    isRetryable,
+    errorMessage,
+    suggestedAction
+  };
+}
+
+/**
+ * Retry function with exponential backoff
+ */
+export async function withRetry<T>(
+  operation: () => Promise<T>,
+  options: RetryOptions = {}
+): Promise<T> {
+  const {
+    maxRetries = 3,
+    retryDelay = 1000,
+    exponentialBackoff = true
+  } = options;
+
+  let lastError: any;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      
+      const errorInfo = analyzeError(error);
+      
+      // Don't retry if it's not a retryable error
+      if (!errorInfo.isRetryable) {
+        throw error;
+      }
+      
+      // Don't retry on the last attempt
+      if (attempt === maxRetries) {
+        break;
+      }
+      
+      // Calculate delay for next attempt
+      const delay = exponentialBackoff 
+        ? retryDelay * Math.pow(2, attempt)
+        : retryDelay;
+      
+      console.warn(`[NetworkErrorHandler] Attempt ${attempt + 1} failed, retrying in ${delay}ms:`, errorInfo.errorMessage);
+      
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  // All retries failed
+  const errorInfo = analyzeError(lastError);
+  console.error(`[NetworkErrorHandler] All ${maxRetries + 1} attempts failed:`, errorInfo);
+  
+  // Show user-friendly error message
+  toast.error("Connection Error", {
+    description: errorInfo.suggestedAction,
+    duration: 8000,
+  });
+  
+  throw lastError;
+}
+
+/**
+ * Handle Supabase-specific errors with appropriate user feedback
+ */
+export function handleSupabaseError(error: any, context?: string): void {
+  const errorInfo = analyzeError(error);
+  
+  console.error(`[SupabaseError] ${context || 'Operation failed'}:`, {
+    message: errorInfo.errorMessage,
+    isNetworkError: errorInfo.isNetworkError,
+    isAuthError: errorInfo.isAuthError,
+    fullError: error
+  });
+
+  if (errorInfo.isNetworkError) {
+    toast.error("Network Connection Issue", {
+      description: "Please check your internet connection and try again.",
+      duration: 8000,
+    });
+  } else if (errorInfo.isAuthError) {
+    toast.error("Authentication Error", {
+      description: "Please refresh the page and log in again.",
+      duration: 8000,
+    });
+  } else {
+    toast.error("Service Error", {
+      description: errorInfo.errorMessage || "An unexpected error occurred.",
+      duration: 6000,
+    });
+  }
+}
+
+/**
+ * Enhanced error extractor that handles various error formats
+ */
+export function extractErrorMessage(error: any): string {
+  if (!error) return "Unknown error";
+  
+  // Try different properties where error messages might be stored
+  const possibleMessages = [
+    error.message,
+    error.details,
+    error.hint,
+    error.error_description,
+    error.description
+  ];
+  
+  for (const msg of possibleMessages) {
+    if (msg && typeof msg === 'string') {
+      return msg;
+    }
+  }
+  
+  // If it's a string, return it
+  if (typeof error === 'string') {
+    return error;
+  }
+  
+  // Try to extract from nested error
+  if (error.error && typeof error.error === 'object') {
+    return extractErrorMessage(error.error);
+  }
+  
+  // Last resort - stringify
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return "Error details unavailable";
+  }
+}
+
+export default {
+  analyzeError,
+  withRetry,
+  handleSupabaseError,
+  extractErrorMessage
 };
-
-// Check if a URL is a Supabase URL that we should never intercept
-const isSupabaseUrl = (url: string): boolean => {
-  return (
-    url.includes("supabase.co") ||
-    url.includes("/functions/v1/") ||
-    url.includes("/rest/v1/") ||
-    url.includes("/auth/v1/")
-  );
-};
-
-// Check if an error is from development tools (Vite HMR)
-const isDevelopmentError = (message: string, stack?: string): boolean => {
-  const fullText = `${message} ${stack || ""}`;
-
-  // Check for Vite-specific development errors only
-  const isViteError = DEVELOPMENT_SERVICES.some((service) =>
-    fullText.includes(service),
-  );
-
-  // Also check for specific Vite development server patterns on fly.dev
-  const isViteDevServer =
-    fullText.includes(".fly.dev/@vite/client") ||
-    fullText.includes(".fly.dev/?reload=") ||
-    (fullText.includes(".fly.dev") && fullText.includes("ping"));
-
-  return isViteError || isViteDevServer;
-};
-
-// Check if an error is from Google Maps retry logic
-const isGoogleMapsRetryError = (message: string): boolean => {
-  const msg = message.toLowerCase();
-  return GOOGLE_MAPS_RETRY_PATTERNS.some((pattern) => msg.includes(pattern));
-};
-
-// Override fetch to provide better error handling
-const originalFetch = window.fetch;
-// Save original fetch for debugging tools
-(window.fetch as any).__original__ = originalFetch;
-
-// TEMPORARILY DISABLED: Fetch override completely disabled to debug body stream issues
-// window.fetch remains the original browser fetch function
-
-// Global error handler for script loading errors (including Google Maps)
-window.addEventListener("error", (event) => {
-  const message = event.message || event.error?.message || "";
-
-  // Suppress Google Maps script loading errors
-  if (isGoogleMapsRetryError(message) || message.toLowerCase().includes("google maps")) {
-    event.preventDefault();
-    return false;
-  }
-});
-
-// Handle unhandled promise rejections
-window.addEventListener("unhandledrejection", (event) => {
-  const error = event.reason;
-  const message = error?.message || error?.toString() || "";
-  const stack = error?.stack || "";
-
-  // Suppress third-party service errors
-  if (isThirdPartyError(message)) {
-    if (import.meta.env.DEV) {
-      console.debug("Third-party service rejection suppressed:", message);
-    }
-    event.preventDefault();
-    return;
-  }
-
-  // Suppress development tool errors (Vite HMR)
-  if (isDevelopmentError(message, stack)) {
-    if (import.meta.env.DEV) {
-      console.debug("Development tool rejection suppressed:", message);
-    }
-    event.preventDefault();
-    return;
-  }
-
-  // Suppress Google Maps retry messages
-  if (isGoogleMapsRetryError(message)) {
-    if (import.meta.env.DEV) {
-      console.debug("Google Maps retry message suppressed:", message);
-    }
-    event.preventDefault();
-    return;
-  }
-
-  // Log all other unhandled rejections properly
-  console.error("Unhandled promise rejection:", error);
-});
-
-// Handle global errors
-window.addEventListener("error", (event) => {
-  const { message, filename, error } = event;
-  const stack = error?.stack || "";
-
-  // Suppress errors from third-party services
-  if (filename && isThirdPartyError(filename)) {
-    if (import.meta.env.DEV) {
-      console.debug("Third-party script error suppressed:", message);
-    }
-    event.preventDefault();
-    return;
-  }
-
-  // Suppress development tool errors
-  if (
-    isDevelopmentError(message || "", stack) ||
-    (filename && isDevelopmentError(filename))
-  ) {
-    if (import.meta.env.DEV) {
-      console.debug("Development tool error suppressed:", message);
-    }
-    event.preventDefault();
-    return;
-  }
-
-  // Suppress Google Maps retry messages
-  if (isGoogleMapsRetryError(message || "")) {
-    if (import.meta.env.DEV) {
-      console.debug("Google Maps retry message suppressed:", message);
-    }
-    event.preventDefault();
-    return;
-  }
-
-  // Log all other errors properly
-  console.error("Global error:", { message, filename, error });
-});
-
-export {};
