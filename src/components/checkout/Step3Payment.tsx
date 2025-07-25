@@ -1241,7 +1241,7 @@ Time: ${new Date().toISOString()}
             </div>
 
             <p className="text-xs text-red-600">
-              Click "Full Diagnostic" to identify the root cause of the [object Object] error
+              Click buttons to test edge function. Check console for detailed logs. Based on network logs, the edge function is working but returning "Book not found" error.
             </p>
           </CardContent>
         </Card>
