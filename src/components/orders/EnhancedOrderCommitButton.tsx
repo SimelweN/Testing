@@ -430,7 +430,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
                         <DollarSign className="w-4 h-4 text-green-600 mt-0.5" />
                         <div>
                           <p className="text-sm font-medium text-green-800">
-                            Get paid 3 days earlier when using locker drop-off.
+                            Get paid earlier when using locker drop-off.
                           </p>
                           <div className="flex items-center gap-1 mt-1">
                             <Info className="w-3 h-3 text-green-600" />
