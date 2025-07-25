@@ -175,7 +175,10 @@ const VerifyEmail = () => {
     // Add a small delay to let any URL processing happen
     const timeoutId = setTimeout(handleEmailConfirmation, 100);
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   return (
