@@ -184,7 +184,13 @@ class LockerService {
         return proxyLockers;
       }
     } catch (error) {
-      console.warn('🔒 Edge function proxy failed:', error instanceof Error ? error.message : 'Unknown error');
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+
+      if (errorMsg.includes('PUDO API temporarily unavailable') || errorMsg.includes('All API endpoints failed')) {
+        console.log('🔒 PUDO API unavailable (expected in development) - using verified fallback data');
+      } else {
+        console.warn('🔒 Edge function proxy failed:', errorMsg);
+      }
       // Continue to next method - don't throw
     }
 
