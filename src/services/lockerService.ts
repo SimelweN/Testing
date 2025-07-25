@@ -753,15 +753,16 @@ class LockerService {
 
   /**
    * Process PUDO locker data from /lockers-data endpoint
-   * Handles the actual PUDO API response format
+   * Handles the actual PUDO API response format with full details
    */
   private processPudoLockers(rawData: any[]): LockerLocation[] {
     console.log(`🔄 Processing ${rawData.length} PUDO lockers from /lockers-data...`);
+    console.log('📋 Sample raw locker data:', rawData[0]);
 
     const processedLockers = rawData
       .map((locker, index) => {
         try {
-          // Handle actual PUDO /lockers-data format
+          // Handle actual PUDO /lockers-data format with full details
           const lockerData: LockerLocation = {
             id: locker.code || `locker_${index}`,
             name: locker.name || 'PUDO Locker',
@@ -775,6 +776,19 @@ class LockerService {
             contact_number: locker.contact_number || locker.phone || '',
             is_active: locker.type?.name === 'Locker' && locker.latitude && locker.longitude
           };
+
+          // Log successful processing with full details
+          if (index < 3) {
+            console.log(`📍 Processed locker ${index + 1}:`, {
+              code: locker.code,
+              name: locker.name,
+              city: locker.place?.town,
+              hasOpeningHours: !!locker.openinghours,
+              hasBoxTypes: !!locker.lstTypesBoxes,
+              coordinates: `${locker.latitude}, ${locker.longitude}`,
+              processed: lockerData
+            });
+          }
 
           return lockerData;
         } catch (error) {
