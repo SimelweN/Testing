@@ -32,7 +32,9 @@ import {
 } from "lucide-react";
 import OrderManagementView from "@/components/orders/OrderManagementView";
 import OrderNotificationSystem from "@/components/notifications/OrderNotificationSystem";
+import EnhancedOrderCommitButton from "@/components/orders/EnhancedOrderCommitButton";
 import { clearAllTestData, clearAllUserData } from "@/utils/clearTestData";
+import { debugTestData, countTestData } from "@/utils/testDataDebug";
 
 const ActivityLog = () => {
   const { user, profile } = useAuth();
@@ -82,9 +84,19 @@ const ActivityLog = () => {
     }
   }, [user]);
 
+  const handleDebugTestData = async () => {
+    console.log("🔍 Starting test data debug...");
+    await debugTestData();
+    const count = await countTestData();
+    alert(`Found ${count} test data items. Check console for details.`);
+  };
+
   const handleClearTestData = async () => {
+    // First show what we'll delete
+    const count = await countTestData();
+
     const confirmClear = window.confirm(
-      "This will permanently delete all test/demo data including 'Unknown Book' orders. Are you sure?"
+      `This will permanently delete ${count} test/demo data items including 'Unknown Book' orders. Are you sure?`
     );
 
     if (!confirmClear) return;
@@ -329,6 +341,15 @@ const ActivityLog = () => {
               </p>
             </div>
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDebugTestData}
+                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+              >
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Debug Data
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
