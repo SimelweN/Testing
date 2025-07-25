@@ -1266,6 +1266,16 @@ class LockerService {
         is_active: true
       }
     ];
+
+    console.log(`🏪 Generated ${lockers.length} verified locker locations`);
+    console.log('📍 Coverage:', {
+      provinces: [...new Set(lockers.map(l => l.province))],
+      majorChains: [...new Set(lockers.map(l => l.name.split(' ')[0]))],
+      allHaveCoordinates: lockers.every(l => l.latitude !== 0 && l.longitude !== 0),
+      allActive: lockers.every(l => l.is_active)
+    });
+
+    return lockers;
   }
 }
 
