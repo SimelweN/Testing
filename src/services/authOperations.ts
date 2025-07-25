@@ -74,7 +74,20 @@ export const registerUser = async (
       code: error.name || error.code,
       details: error.details || error.hint,
     });
-    throw error;
+
+    // Create proper Error object with user-friendly message
+    let errorMessage = error.message || 'Registration failed';
+
+    // Provide specific messages for common registration errors
+    if (errorMessage.includes('User already registered')) {
+      errorMessage = 'An account with this email already exists. Please try logging in instead.';
+    } else if (errorMessage.includes('Password should be at least')) {
+      errorMessage = 'Password must be at least 6 characters long.';
+    } else if (errorMessage.includes('Error sending confirmation email')) {
+      errorMessage = 'Our email confirmation service is temporarily experiencing issues. Please try again in a few minutes.';
+    }
+
+    throw new Error(errorMessage);
   }
 
   console.log("Registration successful for:", email);
