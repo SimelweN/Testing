@@ -187,8 +187,32 @@ const Developer = () => {
         toast.success(`✅ Loaded ${realUsers.length} REAL users from database`);
       } else {
         console.error('❌ Users query failed:', usersError);
-        toast.error(`❌ Failed to load users: ${usersError?.message || 'No users found'}`);
-        return; // Don't continue if we can't load real data
+        const userErrorMsg = usersError?.message || usersError?.details || usersError?.hint || JSON.stringify(usersError) || 'Unknown database error';
+        toast.error(`❌ Failed to load users: ${userErrorMsg}`);
+
+        // Try a simpler users query as fallback
+        console.log('🔄 Trying simpler users query...');
+        const { data: simpleUsersData, error: simpleUsersError } = await supabase
+          .from('profiles')
+          .select('id, name, email')
+          .limit(10);
+
+        if (!simpleUsersError && simpleUsersData && simpleUsersData.length > 0) {
+          const simpleUsers = simpleUsersData.map(user => ({
+            id: user.id,
+            name: user.name || 'Unnamed User',
+            email: user.email || 'No email',
+            phone: '+27123456789'
+          }));
+          setUsers(simpleUsers);
+          setSelectedBuyer(simpleUsers[0].id);
+          setSelectedSeller(simpleUsers[1]?.id || simpleUsers[0].id);
+          toast.success(`✅ Loaded ${simpleUsers.length} users with basic info`);
+        } else {
+          const simpleUserErrorMsg = simpleUsersError?.message || simpleUsersError?.details || JSON.stringify(simpleUsersError) || 'No users found';
+          toast.error(`❌ Simple users query also failed: ${simpleUserErrorMsg}`);
+          return;
+        }
       }
 
       // Load REAL sellers (users who have books)
