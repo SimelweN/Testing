@@ -198,10 +198,19 @@ const Developer = () => {
         }
       }
 
-      const finalBookCount = books.length || booksData?.length || 0;
-      const finalUserCount = users.length || usersData?.length || 0;
+      // Final success message with actual counts
+      const finalBookCount = booksData?.length || 0;
+      const finalUserCount = usersData?.length || 0;
 
-      toast.success(`🎯 Successfully loaded REAL data: ${finalBookCount} books, ${finalUserCount} users`);
+      console.log('📊 Final data summary:', {
+        books: finalBookCount,
+        users: finalUserCount,
+        selectedBook,
+        selectedBuyer,
+        selectedSeller
+      });
+
+      toast.success(`🎯 REAL DATA LOADED: ${finalBookCount} books, ${finalUserCount} users`);
 
     } catch (error) {
       console.error('❌ Critical error loading real data:', error);
