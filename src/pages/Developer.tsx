@@ -1442,14 +1442,33 @@ const Developer = () => {
                         setIsLoading(true);
                         try {
                           const { lockerService } = await import('@/services/lockerService');
+                          console.log('🧪 Starting API connectivity test...');
                           const result = await lockerService.testApiConnectivity();
+
                           if (result.success) {
-                            toast.success(`✅ API connected: ${result.endpoint}`);
+                            toast.success(`✅ API connected via: ${result.endpoint}`);
+                            console.log('✅ API Test Result:', result);
                           } else {
                             toast.error(`❌ API test failed: ${result.error}`);
+                            console.error('❌ API Test Failed:', result);
+
+                            // Show detailed error info
+                            if (result.details?.corsDetected) {
+                              toast.warning('🔒 CORS detected - using backend proxy recommended');
+                            }
+
+                            // Log error details for debugging
+                            if (result.details?.errors) {
+                              console.group('🔍 Detailed Error Analysis');
+                              result.details.errors.forEach((err: any, index: number) => {
+                                console.log(`Error ${index + 1}:`, err);
+                              });
+                              console.groupEnd();
+                            }
                           }
                         } catch (error) {
-                          toast.error(`❌ API test error: ${error}`);
+                          console.error('💥 API test crashed:', error);
+                          toast.error(`💥 API test crashed: ${error}`);
                         } finally {
                           setIsLoading(false);
                         }
