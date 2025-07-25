@@ -167,14 +167,43 @@ class LockerService {
   }
 
   /**
-   * Fetch all lockers/terminals - GUARANTEED to never throw, always returns data
+   * Fetch all lockers/terminals - tries API first, guaranteed fallback
    */
   async fetchAllLockers(): Promise<LockerLocation[]> {
     console.log('🚀 Loading PUDO locker locations...');
 
-    // Skip all API attempts and go straight to reliable data for now
-    // This eliminates any possibility of errors
-    console.log('🎯 Using reliable PUDO locker data (skipping API calls to prevent errors)');
+    // FIRST: Try edge function proxy (should now handle thousands of lockers properly)
+    try {
+      console.log('🌐 Attempting edge function proxy for real PUDO data...');
+      const proxyLockers = await this.fetchLockersViaProxy();
+      if (proxyLockers && proxyLockers.length > 0) {
+        console.log(`🎉 SUCCESS: Loaded ${proxyLockers.length} lockers from edge function proxy!`);
+        this.lockers = proxyLockers;
+        this.lastFetched = new Date();
+        this.logLockerDistribution(proxyLockers);
+        return proxyLockers;
+      }
+    } catch (error) {
+      console.log('🔒 Edge function unavailable - using guaranteed fallback data');
+    }
+
+    // SECOND: Try direct API (will likely fail due to CORS but worth trying)
+    try {
+      console.log('🌐 Attempting direct PUDO API...');
+      const realApiLockers = await this.tryRealPudoApi();
+      if (realApiLockers && realApiLockers.length > 0) {
+        console.log(`🎉 SUCCESS: Loaded ${realApiLockers.length} lockers from direct PUDO API!`);
+        this.lockers = realApiLockers;
+        this.lastFetched = new Date();
+        this.logLockerDistribution(realApiLockers);
+        return realApiLockers;
+      }
+    } catch (error) {
+      console.log('🔒 Direct API blocked by CORS - using fallback data');
+    }
+
+    // FALLBACK: Use guaranteed reliable data
+    console.log('🎯 Using guaranteed reliable PUDO locker data (fallback)');
     return this.getGuaranteedLockerData();
   }
 
@@ -1048,7 +1077,7 @@ class LockerService {
 
           // Log successful processing with full details
           if (index < 3) {
-            console.log(`📍 Processed locker ${index + 1}:`, {
+            console.log(`�� Processed locker ${index + 1}:`, {
               code: locker.code,
               name: locker.name,
               city: locker.place?.town,
