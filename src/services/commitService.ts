@@ -218,24 +218,29 @@ export const getCommitPendingBooks = async (): Promise<any[]> => {
     // a proper orders/transactions table
     console.log("[CommitService] Querying books for user:", user.id);
 
-    const { data: books, error } = await supabase
-      .from("books")
-      .select("id, title, price, sold, created_at, seller_id")
-      .eq("seller_id", user.id)
-      .eq("sold", true)
-      .order("created_at", { ascending: true });
+    // Use retry logic for book query
+    let books;
+    try {
+      const booksResult = await withRetry(async () => {
+        const result = await supabase
+          .from("books")
+          .select("id, title, price, sold, created_at, seller_id")
+          .eq("seller_id", user.id)
+          .eq("sold", true)
+          .order("created_at", { ascending: true });
 
-    console.log(
-      "[CommitService] Query executed, error:",
-      !!error,
-      "data:",
-      !!books,
-    );
+        if (result.error) {
+          throw result.error;
+        }
+        return result;
+      }, { maxRetries: 2, retryDelay: 1500 });
 
-    if (error) {
-      logCommitError("Error fetching pending books", error, {
-        userId: user.id,
-      });
+      books = booksResult.data;
+      console.log("[CommitService] Query successful, found books:", books?.length || 0);
+    } catch (error) {
+      const errorMessage = extractErrorMessage(error);
+      console.error("[CommitService] Error fetching pending books:", errorMessage);
+      handleSupabaseError(error, "Fetching pending books");
       // Return empty array instead of throwing to prevent UI crashes
       return [];
     }
