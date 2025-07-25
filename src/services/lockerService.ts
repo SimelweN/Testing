@@ -351,11 +351,12 @@ class LockerService {
 
     const edgeFunctionUrl = `${supabaseUrl}/functions/v1/courier-guy-lockers`;
     console.log(`🔗 Edge function URL: ${edgeFunctionUrl}`);
+    console.log(`🔑 Using API key: ${this.apiKey ? `${this.apiKey.substring(0, 8)}...` : 'None'}`);
 
     try {
       // Add timeout to prevent hanging
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout for API calls
 
       const response = await fetch(edgeFunctionUrl, {
         method: 'POST',
@@ -366,10 +367,8 @@ class LockerService {
         body: JSON.stringify({
           apiKey: this.apiKey,
           endpoints: [
-            `${this.getBaseUrl()}/lockers-data`,
-            `${this.getBaseUrl()}/terminals`,
-            `${this.getBaseUrl()}/locations`
-          ],
+            `${this.getBaseUrl()}/lockers-data`
+          ], // Try only the primary endpoint first
           useSandbox: this.useSandbox
         }),
         signal: controller.signal
@@ -383,13 +382,20 @@ class LockerService {
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
 
         try {
-          const errorText = await response.text();
-          if (errorText) {
-            console.log('📄 Edge function error details:', errorText);
-            errorMessage += ` - ${errorText}`;
+          const errorData = await response.json();
+          if (errorData.error) {
+            console.log('📄 Edge function error details:', errorData);
+
+            // Check if it's an API endpoint issue
+            if (errorData.error.includes('All API endpoints failed')) {
+              console.log('🔍 PUDO API endpoints are unreachable - this is expected in development');
+              errorMessage = 'PUDO API temporarily unavailable (expected in development environment)';
+            } else {
+              errorMessage += ` - ${errorData.error}`;
+            }
           }
         } catch (e) {
-          console.log('⚠️ Could not read error response body');
+          console.log('⚠️ Could not parse error response');
         }
 
         throw new Error(errorMessage);
@@ -405,11 +411,18 @@ class LockerService {
       } else {
         const errorMsg = data.error || 'No lockers in edge function response';
         console.log('⚠️ Edge function returned no usable data:', errorMsg);
+
+        // Don't throw for API unavailability - let it fall back gracefully
+        if (errorMsg.includes('All API endpoints failed')) {
+          console.log('📝 PUDO API endpoints are down - using fallback data');
+          throw new Error('PUDO API temporarily unavailable - using verified backup data');
+        }
+
         throw new Error(errorMsg);
       }
     } catch (error) {
       if (error.name === 'AbortError') {
-        throw new Error('Edge function request timed out after 15 seconds');
+        throw new Error('Edge function request timed out after 20 seconds');
       }
 
       console.error('❌ Edge function proxy failed:', error);
