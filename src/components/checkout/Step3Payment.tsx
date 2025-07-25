@@ -325,14 +325,31 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         }
 
                         // Final safety check and throw
-        // Final message validation
+        // Final message validation with multiple safety checks
         let finalMessage = String(userFriendlyMessage || 'Unknown error');
 
-        // Double-check for [object Object] and provide better message
-        if (finalMessage === '[object Object]') {
-          finalMessage = 'Edge function failed with unreadable error format';
-          console.error('🚨 [object Object] detected! Original error:', error);
-          console.error('🚨 This indicates error object stringification failed');
+        // Multiple safety checks for [object Object]
+        if (finalMessage === '[object Object]' || finalMessage.includes('[object Object]')) {
+          console.error('🚨 [object Object] detected! Detailed analysis:');
+          console.error('  userFriendlyMessage type:', typeof userFriendlyMessage);
+          console.error('  userFriendlyMessage value:', userFriendlyMessage);
+          console.error('  Original error:', error);
+          console.error('  Error prototype:', Object.getPrototypeOf(error));
+
+          // Try alternative extraction methods
+          finalMessage = 'Edge function error: unable to extract readable error message';
+
+          if (error && typeof error === 'object') {
+            const errorKeys = Object.keys(error);
+            if (errorKeys.length > 0) {
+              finalMessage += ` (error has keys: ${errorKeys.join(', ')})`;
+            }
+          }
+        }
+
+        // Ensure final message is safe for throwing
+        if (typeof finalMessage !== 'string' || finalMessage.includes('[object Object]')) {
+          finalMessage = 'Edge function returned an unprocessable error';
         }
 
         // Provide more context
@@ -341,6 +358,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           : `Edge function (process-book-purchase) error: ${finalMessage}`;
 
         console.log("🔍 FINAL ERROR MESSAGE:", contextualMessage);
+        console.log("🔍 FINAL MESSAGE TYPE:", typeof contextualMessage);
         throw new Error(contextualMessage);
       }
 
