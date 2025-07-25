@@ -8,13 +8,14 @@ serve(async (req) => {
   }
 
   try {
-    const { apiKey, endpoints, test } = await req.json()
-    
-    console.log('🚀 Courier Guy Lockers Proxy - Starting request')
-    console.log('📊 Request details:', { 
-      hasApiKey: !!apiKey, 
+    const { apiKey, endpoints, test, useSandbox } = await req.json()
+
+    console.log('🚀 PUDO Lockers Proxy - Starting request')
+    console.log('📊 Request details:', {
+      hasApiKey: !!apiKey,
       endpointsCount: endpoints?.length || 0,
-      isTest: !!test 
+      isTest: !!test,
+      useSandbox: !!useSandbox
     })
 
     // Test mode - just return success
