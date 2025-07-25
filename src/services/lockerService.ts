@@ -494,6 +494,34 @@ class LockerService {
   }
 
   /**
+   * Test real PUDO API integration
+   */
+  async testRealPudoApi(): Promise<{ success: boolean; lockers?: LockerLocation[]; error?: string }> {
+    try {
+      console.log('🧪 Testing real PUDO API integration...');
+      const lockers = await this.tryRealPudoApi();
+
+      if (lockers && lockers.length > 0) {
+        console.log(`✅ Real PUDO API test successful: ${lockers.length} lockers loaded`);
+        console.log('📋 Sample real locker:', {
+          id: lockers[0].id,
+          name: lockers[0].name,
+          city: lockers[0].city,
+          province: lockers[0].province,
+          coordinates: `${lockers[0].latitude}, ${lockers[0].longitude}`
+        });
+
+        return { success: true, lockers };
+      } else {
+        return { success: false, error: 'No lockers returned from API' };
+      }
+    } catch (error) {
+      console.log('❌ Real PUDO API test failed:', error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
    * Search lockers based on filters
    */
   async searchLockers(filters: LockerSearchFilters): Promise<LockerLocation[]> {
