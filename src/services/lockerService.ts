@@ -257,24 +257,63 @@ class LockerService {
    * Fetch lockers via Supabase edge function proxy (bypasses CORS)
    */
   private async fetchLockersViaProxy(): Promise<LockerLocation[]> {
-    const { supabase } = await import('@/integrations/supabase/client');
+    try {
+      console.log('🔄 Attempting proxy fetch via Supabase edge function...');
+      const { supabase } = await import('@/integrations/supabase/client');
 
-    const response = await supabase.functions.invoke('courier-guy-lockers', {
-      body: {
-        apiKey: this.apiKey,
-        endpoints: this.apiEndpoints
+      const endpoints = [
+        `${this.getBaseUrl()}${this.endpoints.lockers}`,
+        `${this.getBaseUrl()}${this.endpoints.legacyLockers}`,
+      ];
+
+      const response = await supabase.functions.invoke('courier-guy-lockers', {
+        body: {
+          apiKey: this.apiKey,
+          endpoints: endpoints,
+          useSandbox: this.useSandbox
+        }
+      });
+
+      console.log('📡 Proxy response:', {
+        hasError: !!response.error,
+        hasData: !!response.data,
+        dataKeys: response.data ? Object.keys(response.data) : []
+      });
+
+      if (response.error) {
+        console.error('❌ Proxy error details:', response.error);
+        throw new Error(`Proxy error: ${response.error.message || JSON.stringify(response.error)}`);
       }
-    });
 
-    if (response.error) {
-      throw new Error(`Proxy error: ${response.error.message}`);
+      if (response.data?.success === false) {
+        console.error('❌ Proxy returned failure:', response.data);
+        throw new Error(`Proxy failed: ${response.data.error || 'Unknown proxy error'}`);
+      }
+
+      // Handle different response formats from proxy
+      let lockers: any[] = [];
+      if (response.data?.lockers && Array.isArray(response.data.lockers)) {
+        lockers = response.data.lockers;
+      } else if (Array.isArray(response.data)) {
+        lockers = response.data;
+      } else {
+        console.warn('⚠️ Unexpected proxy response format:', response.data);
+        throw new Error('Invalid proxy response format');
+      }
+
+      if (lockers.length === 0) {
+        throw new Error('Proxy returned empty locker list');
+      }
+
+      const processedLockers = this.extractLockersFromResponse(lockers);
+      console.log(`✅ Proxy returned ${processedLockers.length} processed lockers`);
+
+      return processedLockers;
+
+    } catch (error) {
+      console.error('💥 Proxy fetch failed:', error);
+      throw error;
     }
-
-    if (response.data?.lockers && Array.isArray(response.data.lockers)) {
-      return this.processLockerData(response.data.lockers);
-    }
-
-    throw new Error('No lockers returned from proxy');
   }
 
   /**
