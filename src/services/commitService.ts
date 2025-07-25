@@ -182,16 +182,22 @@ export const getCommitPendingBooks = async (): Promise<any[]> => {
   try {
     console.log("[CommitService] Starting getCommitPendingBooks...");
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    // Use retry logic for getting user with better error handling
+    let user;
+    try {
+      const userResult = await withRetry(async () => {
+        const result = await supabase.auth.getUser();
+        if (result.error) {
+          throw result.error;
+        }
+        return result;
+      }, { maxRetries: 2, retryDelay: 1000 });
 
-    if (userError) {
-      console.error(
-        "[CommitService] Authentication error:",
-        userError.message || userError,
-      );
+      user = userResult.data.user;
+    } catch (userError) {
+      const errorMessage = extractErrorMessage(userError);
+      console.error("[CommitService] Authentication error:", errorMessage);
+      handleSupabaseError(userError, "Getting user for commit pending books");
       return [];
     }
 
