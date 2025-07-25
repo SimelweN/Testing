@@ -32,21 +32,25 @@ class LockerService {
   // Available endpoints
   private endpoints = {
     // Locker/Terminal Information
-    lockers: '/lockers/terminals',
+    lockers: '/lockers',
 
     // Rate Calculation
     rates: '/rates',
 
     // Shipment Management
     shipments: '/shipments',
-    trackingByParcel: '/tracking/shipments',
+    shipmentTracking: '/shipments/{shipment_id}/tracking',
+    shipmentLabel: '/shipments/{shipment_id}/label',
+    shipmentSticker: '/shipments/{shipment_id}/sticker',
+    shipmentPOD: '/shipments/{shipment_id}/pod',
+    shipmentReturn: '/shipments/return',
+    shipmentCancel: '/shipments/cancel',
 
-    // Label Generation
-    waybill: '/generate/waybill',
-    sticker: '/generate/sticker',
-
-    // Legacy endpoints (fallback)
-    legacyLockers: '/lockers'
+    // Billing
+    billingStatement: '/billing/statement',
+    billingCreditNotes: '/billing/credit-notes',
+    billingInvoices: '/billing/invoices',
+    billingTransactions: '/billing/transactions'
   };
 
   private lockers: LockerLocation[] = [];
@@ -260,7 +264,7 @@ class LockerService {
     }
 
     const mockLockers = this.getMockLockers();
-    console.log(`���� Loaded ${mockLockers.length} verified mock locker locations`);
+    console.log(`📄 Loaded ${mockLockers.length} verified mock locker locations`);
 
     return mockLockers;
   }
