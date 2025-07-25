@@ -13,6 +13,42 @@ const VerifyEmail = () => {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
+    // Listen for auth state changes (recommended for email verification)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔐 Auth state change:', event, session?.user?.email);
+
+      if (event === 'SIGNED_IN' && session?.user) {
+        console.log('✅ User signed in via email verification');
+        setStatus('success');
+        setMessage('Email verified successfully! You are now logged in.');
+
+        toast.success('✅ Email verified and logged in!');
+
+        setTimeout(() => {
+          navigate('/', { replace: true });
+        }, 2000);
+        return;
+      }
+
+      if (event === 'TOKEN_REFRESHED' && session?.user) {
+        console.log('✅ Token refreshed via email verification');
+        setStatus('success');
+        setMessage('Email verified successfully!');
+
+        toast.success('✅ Email verified!');
+
+        setTimeout(() => {
+          navigate('/login', {
+            state: {
+              message: 'Email verified! You can now log in.',
+              email: session.user.email
+            }
+          });
+        }, 2000);
+        return;
+      }
+    });
+
     const handleEmailConfirmation = async () => {
       try {
         console.log('🔐 Handling email confirmation...');
