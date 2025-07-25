@@ -1125,6 +1125,39 @@ Time: ${new Date().toISOString()}
         </CardContent>
       </Card>
 
+      {/* Debug Section (Development Only) */}
+      {import.meta.env.DEV && (
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader>
+            <CardTitle className="text-red-800 text-sm">🧪 Debug Tools</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={async () => {
+                try {
+                  const debugFn = (window as any).debugEdgeFunction;
+                  if (debugFn) {
+                    const result = await debugFn();
+                    console.log("🧪 Debug result:", result);
+                    toast.info("Debug completed - check console for details");
+                  } else {
+                    toast.error("Debug function not loaded");
+                  }
+                } catch (error) {
+                  console.error("Debug failed:", error);
+                  toast.error("Debug failed: " + String(error));
+                }
+              }}
+              variant="outline"
+              size="sm"
+              className="text-red-700 border-red-300"
+            >
+              🧪 Test Edge Function
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Navigation Buttons */}
       <div className="flex justify-between pt-6">
         <Button variant="outline" onClick={onBack} disabled={processing}>
