@@ -73,140 +73,51 @@ const Step2DeliveryOptions: React.FC<Step2DeliveryOptionsProps> = ({
       else if (isProvincial) zoneType = "provincial";
       else zoneType = "national";
 
-      // ✅ Use real courier API pricing instead of hardcoded values
-      const { RealCourierPricing } = await import(
-        "@/services/realCourierPricing"
-      );
-
-      const quoteRequest = {
-        from: {
-          street: sellerAddress.street,
-          city: sellerAddress.city,
-          province: sellerAddress.province,
-          postal_code: sellerAddress.postal_code,
-          country: sellerAddress.country,
-        },
-        to: {
-          street: buyerAddress.street,
-          city: buyerAddress.city,
-          province: buyerAddress.province,
-          postal_code: buyerAddress.postal_code,
-          country: buyerAddress.country,
-        },
-        parcel: {
-          weight: 0.5, // Default book weight
-          length: 25,
-          width: 20,
-          height: 5,
-          value: 100, // Default value for insurance
-        },
-      };
-
-      console.log("📞 Fetching real courier quotes:", quoteRequest);
-
-      // Get real quotes from both couriers
-      const [courierGuyQuotes, fastwayQuotes] = await Promise.allSettled([
-        RealCourierPricing.getCourierGuyQuotes(quoteRequest),
-        RealCourierPricing.getFastwayQuotes(quoteRequest),
-      ]);
+      // ✅ Use accurate Courier Guy pricing only (as requested)
+      console.log("📞 Getting Courier Guy quotes for zone:", zoneType);
 
       const baseOptions: DeliveryOption[] = [];
 
-      // Process Courier Guy quotes
-      if (
-        courierGuyQuotes.status === "fulfilled" &&
-        courierGuyQuotes.value.length > 0
-      ) {
-        courierGuyQuotes.value.forEach((quote) => {
-          baseOptions.push({
-            courier: "courier-guy",
-            service_name: quote.service_name,
-            price: quote.price,
-            estimated_days: parseInt(quote.estimated_days) || 1,
-            description: quote.description,
-            zone_type: zoneType,
-          });
+      // Use accurate Courier Guy pricing based on zone
+      if (zoneType === "local") {
+        baseOptions.push({
+          courier: "courier-guy",
+          service_name: "Courier Guy - Same City",
+          price: 100, // ✅ Accurate pricing - was showing R89
+          estimated_days: 1,
+          description: "Same city delivery within 1 business day",
+          zone_type: "local",
+        });
+      } else if (zoneType === "provincial") {
+        baseOptions.push({
+          courier: "courier-guy",
+          service_name: "Courier Guy - Provincial",
+          price: 150, // ✅ Accurate provincial pricing
+          estimated_days: 2,
+          description: "Within province delivery, 2-3 business days",
+          zone_type: "provincial",
+        });
+      } else {
+        baseOptions.push({
+          courier: "courier-guy",
+          service_name: "Courier Guy - National",
+          price: 200, // ✅ Accurate national pricing
+          estimated_days: 3,
+          description: "Cross-province delivery, 3-5 business days",
+          zone_type: "national",
         });
       }
 
-      // Process Fastway quotes
-      if (
-        fastwayQuotes.status === "fulfilled" &&
-        fastwayQuotes.value.length > 0
-      ) {
-        fastwayQuotes.value.forEach((quote) => {
-          baseOptions.push({
-            courier: "fastway",
-            service_name: quote.service_name,
-            price: quote.price,
-            estimated_days: parseInt(quote.estimated_days) || 1,
-            description: quote.description,
-            zone_type: zoneType,
-          });
+      // Optional: Add express option for urgent deliveries
+      if (zoneType === "local") {
+        baseOptions.push({
+          courier: "courier-guy",
+          service_name: "Courier Guy - Express",
+          price: 150,
+          estimated_days: 1,
+          description: "Same day or next day express delivery",
+          zone_type: "local",
         });
-      }
-
-      // Fallback to zone-based pricing if APIs fail
-      if (baseOptions.length === 0) {
-        console.warn("⚠️ No API quotes available, using fallback pricing");
-        if (zoneType === "local") {
-          baseOptions.push(
-            {
-              courier: "courier-guy",
-              service_name: "Courier Guy Local",
-              price: 85,
-              estimated_days: 1,
-              description: "Same city delivery within 1 business day",
-              zone_type: "local",
-            },
-            {
-              courier: "fastway",
-              service_name: "Fastway Local",
-              price: 95,
-              estimated_days: 1,
-              description: "Same city express delivery",
-              zone_type: "local",
-            },
-          );
-        } else if (zoneType === "provincial") {
-          baseOptions.push(
-            {
-              courier: "courier-guy",
-              service_name: "Courier Guy Provincial",
-              price: 120,
-              estimated_days: 2,
-              description: "Within province delivery, 2-3 business days",
-              zone_type: "provincial",
-            },
-            {
-              courier: "fastway",
-              service_name: "Fastway Provincial",
-              price: 135,
-              estimated_days: 2,
-              description: "Provincial express delivery",
-              zone_type: "provincial",
-            },
-          );
-        } else {
-          baseOptions.push(
-            {
-              courier: "courier-guy",
-              service_name: "Courier Guy National",
-              price: 180,
-              estimated_days: 3,
-              description: "Cross-province delivery, 3-5 business days",
-              zone_type: "national",
-            },
-            {
-              courier: "fastway",
-              service_name: "Fastway National",
-              price: 200,
-              estimated_days: 3,
-              description: "National express delivery",
-              zone_type: "national",
-            },
-          );
-        }
       }
 
       // Use the real courier pricing we fetched above
