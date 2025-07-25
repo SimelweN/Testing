@@ -101,6 +101,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       );
 
       console.log("📦 Raw Edge Function Response:", { data, error });
+      console.log("📦 Request Body Sent:", JSON.stringify(requestBody, null, 2));
 
                                     if (error) {
         // Direct error logging for debugging
@@ -109,6 +110,8 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         console.log("🔍 DIRECT ERROR LOG - Raw:", error);
         console.log("🔍 DIRECT ERROR LOG - Message:", error?.message);
         console.log("🔍 DIRECT ERROR LOG - Details:", error?.details);
+        console.log("🔍 DIRECT ERROR LOG - Code:", error?.code);
+        console.log("🔍 DIRECT ERROR LOG - Hint:", error?.hint);
         console.log("🔍 DIRECT ERROR LOG - Stringified:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
 
         const errorDetails = logError("Edge Function Error", error, {
