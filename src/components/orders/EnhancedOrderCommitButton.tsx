@@ -168,9 +168,9 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
         })
       };
 
-      // Call the commit-to-sale function with enhanced data
+      // Call the enhanced-commit-to-sale function with enhanced data
       const { data, error } = await supabase.functions.invoke(
-        "commit-to-sale",
+        "enhanced-commit-to-sale",
         {
           body: commitData,
         },
