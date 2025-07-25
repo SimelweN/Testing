@@ -225,9 +225,31 @@ const LockerApiDebug: React.FC = () => {
             {results.data && (
               <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded text-sm">
                 <p className="font-medium mb-2">Response Data:</p>
-                <pre className="whitespace-pre-wrap">
-                  {JSON.stringify(results.data, null, 2)}
-                </pre>
+                <div className="space-y-2">
+                  {results.data.totalCount && (
+                    <div className="text-green-600 font-medium">
+                      Total Lockers Found: {results.data.totalCount}
+                    </div>
+                  )}
+                  {results.data.method && (
+                    <div className="text-blue-600">
+                      Method: {results.data.method}
+                    </div>
+                  )}
+                  {results.data.strategy && (
+                    <div className="text-purple-600">
+                      Pagination Strategy: {results.data.strategy.page}/{results.data.strategy.limit}
+                    </div>
+                  )}
+                </div>
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-blue-600 hover:text-blue-800">
+                    Show Raw Response (click to expand)
+                  </summary>
+                  <pre className="whitespace-pre-wrap mt-2 text-xs max-h-96 overflow-y-auto">
+                    {JSON.stringify(results.data, null, 2)}
+                  </pre>
+                </details>
               </div>
             )}
 
