@@ -203,7 +203,10 @@ export const logoutUser = async () => {
       code: error.name || error.code,
       details: error.details || error.hint,
     });
-    throw error;
+
+    // Create proper Error object with user-friendly message
+    const errorMessage = error.message || 'Logout failed. Please try again.';
+    throw new Error(errorMessage);
   }
   console.log("Logout successful");
 };
