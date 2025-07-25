@@ -27,7 +27,12 @@ import {
   Terminal,
   Bug,
   Zap,
-  Send
+  Send,
+  Clock,
+  ShoppingCart,
+  FileText,
+  DollarSign,
+  Settings
 } from "lucide-react";
 
 interface TestResult {
@@ -46,12 +51,15 @@ interface TestBook {
   price: number;
   seller_id: string;
   seller_name: string;
+  isbn?: string;
+  condition?: string;
 }
 
 interface TestUser {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   address?: any;
 }
 
@@ -75,52 +83,170 @@ const Developer = () => {
 
   const loadTestData = async () => {
     try {
-      // Load books
-      const { data: booksData } = await supabase
+      console.log('Loading test data...');
+      
+      // Load books with proper error handling
+      const { data: booksData, error: booksError } = await supabase
         .from('books')
         .select(`
           id,
           title,
           price,
           seller_id,
-          profiles:seller_id (name)
+          isbn,
+          book_condition,
+          profiles!books_seller_id_fkey (name, email)
         `)
         .eq('status', 'available')
-        .limit(10);
+        .limit(20);
 
-      if (booksData) {
+      console.log('Books query result:', { booksData, booksError });
+
+      if (booksError) {
+        console.error('Books error:', booksError);
+        // Create mock books if query fails
+        const mockBooks = [
+          {
+            id: 'mock-book-1',
+            title: 'Introduction to Computer Science',
+            price: 299.99,
+            seller_id: 'mock-seller-1',
+            seller_name: 'Mock Seller 1',
+            isbn: '9781234567890',
+            condition: 'good'
+          },
+          {
+            id: 'mock-book-2', 
+            title: 'Advanced Mathematics',
+            price: 199.99,
+            seller_id: 'mock-seller-2',
+            seller_name: 'Mock Seller 2',
+            isbn: '9780987654321',
+            condition: 'excellent'
+          }
+        ];
+        setBooks(mockBooks);
+        setSelectedBook(mockBooks[0].id);
+        toast.warning('Using mock book data - database query failed');
+      } else if (booksData && booksData.length > 0) {
         const formattedBooks = booksData.map(book => ({
           id: book.id,
           title: book.title,
           price: book.price,
           seller_id: book.seller_id,
-          seller_name: book.profiles?.name || 'Unknown Seller'
+          seller_name: book.profiles?.name || 'Unknown Seller',
+          isbn: book.isbn,
+          condition: book.book_condition
         }));
         setBooks(formattedBooks);
-        if (formattedBooks.length > 0) {
-          setSelectedBook(formattedBooks[0].id);
-        }
+        setSelectedBook(formattedBooks[0].id);
+        console.log('Books loaded:', formattedBooks);
+      } else {
+        // Create mock books if no data
+        const mockBooks = [
+          {
+            id: 'mock-book-1',
+            title: 'Test Book 1',
+            price: 150.00,
+            seller_id: 'mock-seller-1',
+            seller_name: 'Test Seller',
+            isbn: '9781234567890',
+            condition: 'good'
+          }
+        ];
+        setBooks(mockBooks);
+        setSelectedBook(mockBooks[0].id);
+        toast.info('Using mock book data - no books found');
       }
 
       // Load users
-      const { data: usersData } = await supabase
+      const { data: usersData, error: usersError } = await supabase
         .from('profiles')
-        .select('id, name, email')
+        .select('id, name, email, phone')
         .not('name', 'is', null)
         .limit(20);
 
-      if (usersData) {
+      console.log('Users query result:', { usersData, usersError });
+
+      if (usersError) {
+        console.error('Users error:', usersError);
+        // Create mock users
+        const mockUsers = [
+          {
+            id: 'mock-buyer-1',
+            name: 'Test Buyer',
+            email: 'buyer@test.com',
+            phone: '+27123456789'
+          },
+          {
+            id: 'mock-seller-1', 
+            name: 'Test Seller',
+            email: 'seller@test.com',
+            phone: '+27987654321'
+          }
+        ];
+        setUsers(mockUsers);
+        setSelectedBuyer(mockUsers[0].id);
+        setSelectedSeller(mockUsers[1].id);
+        toast.warning('Using mock user data - database query failed');
+      } else if (usersData && usersData.length > 0) {
         setUsers(usersData);
-        if (usersData.length > 0) {
-          setSelectedBuyer(usersData[0].id);
-          setSelectedSeller(usersData[1]?.id || usersData[0].id);
-        }
+        setSelectedBuyer(usersData[0].id);
+        setSelectedSeller(usersData[1]?.id || usersData[0].id);
+        console.log('Users loaded:', usersData);
+      } else {
+        // Create mock users if no data
+        const mockUsers = [
+          {
+            id: 'mock-buyer-1',
+            name: 'Test Buyer',
+            email: 'buyer@test.com',
+            phone: '+27123456789'
+          }
+        ];
+        setUsers(mockUsers);
+        setSelectedBuyer(mockUsers[0].id);
+        setSelectedSeller(mockUsers[0].id);
+        toast.info('Using mock user data - no users found');
       }
 
-      toast.success(`Loaded ${booksData?.length || 0} books and ${usersData?.length || 0} users for testing`);
+      toast.success(`Loaded ${books.length || 1} books and ${users.length || 1} users for testing`);
     } catch (error) {
       console.error('Error loading test data:', error);
-      toast.error('Failed to load test data');
+      toast.error(`Failed to load test data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      // Fallback to mock data
+      const mockBooks = [
+        {
+          id: 'mock-book-1',
+          title: 'Test Book',
+          price: 100.00,
+          seller_id: 'mock-seller-1',
+          seller_name: 'Test Seller',
+          isbn: '9781234567890',
+          condition: 'good'
+        }
+      ];
+      const mockUsers = [
+        {
+          id: 'mock-buyer-1',
+          name: 'Test Buyer',
+          email: 'buyer@test.com',
+          phone: '+27123456789'
+        },
+        {
+          id: 'mock-seller-1',
+          name: 'Test Seller', 
+          email: 'seller@test.com',
+          phone: '+27987654321'
+        }
+      ];
+      
+      setBooks(mockBooks);
+      setUsers(mockUsers);
+      setSelectedBook(mockBooks[0].id);
+      setSelectedBuyer(mockUsers[0].id);
+      setSelectedSeller(mockUsers[1].id);
     }
   };
 
@@ -129,6 +255,8 @@ const Developer = () => {
     setIsLoading(true);
 
     try {
+      console.log(`Calling ${functionName} with payload:`, payload);
+      
       const { data, error } = await supabase.functions.invoke(functionName, {
         body: payload
       });
@@ -172,186 +300,727 @@ const Developer = () => {
     }
   };
 
-  // Test Functions
-  const testProcessBookPurchase = async () => {
-    if (!selectedBook || !selectedBuyer) {
-      toast.error('Please select a book and buyer');
-      return;
-    }
+  // Get current test data
+  const getTestBook = () => books.find(b => b.id === selectedBook) || books[0];
+  const getTestBuyer = () => users.find(u => u.id === selectedBuyer) || users[0];
+  const getTestSeller = () => users.find(u => u.id === selectedSeller) || users[0];
 
-    const book = books.find(b => b.id === selectedBook);
-    const buyer = users.find(u => u.id === selectedBuyer);
+  // ALL EDGE FUNCTIONS WITH PROPER PAYLOADS
+
+  // 1. CORE ORDER MANAGEMENT
+  const testCreateOrder = async () => {
+    const book = getTestBook();
+    const buyer = getTestBuyer();
+    const seller = getTestSeller();
 
     const payload = {
-      bookId: selectedBook,
-      buyerId: selectedBuyer,
-      sellerId: book?.seller_id,
-      amount: book?.price || 100,
-      paymentMethod: 'card',
+      bookId: book?.id || 'mock-book-1',
+      buyerId: buyer?.id || 'mock-buyer-1',
+      sellerId: book?.seller_id || seller?.id || 'mock-seller-1',
+      quantity: 1,
+      totalAmount: book?.price || 100,
       shippingAddress: {
+        name: buyer?.name || 'Test User',
+        email: buyer?.email || 'test@example.com',
+        phone: buyer?.phone || '+27123456789',
         street: '123 Test Street',
+        suburb: 'Gardens',
         city: 'Cape Town',
         province: 'Western Cape',
         postalCode: '8001',
+        country: 'South Africa',
+        specialInstructions: 'Test order - please handle with care'
+      },
+      metadata: {
+        source: 'developer_test',
+        timestamp: new Date().toISOString()
+      }
+    };
+
+    await callEdgeFunction('create-order', payload);
+  };
+
+  const testProcessBookPurchase = async () => {
+    const book = getTestBook();
+    const buyer = getTestBuyer();
+
+    const payload = {
+      bookId: book?.id || 'mock-book-1',
+      buyerId: buyer?.id || 'mock-buyer-1',
+      sellerId: book?.seller_id || 'mock-seller-1',
+      amount: (book?.price || 100) * 100, // Convert to cents
+      currency: 'ZAR',
+      paymentMethod: 'card',
+      reference: `TEST_PURCHASE_${Date.now()}`,
+      shippingDetails: {
+        name: buyer?.name || 'Test Buyer',
+        email: buyer?.email || 'test@example.com',
+        phone: buyer?.phone || '+27123456789',
+        address: {
+          street: '456 University Road',
+          suburb: 'Rondebosch',
+          city: 'Cape Town',
+          province: 'Western Cape',
+          postalCode: '7700',
+          country: 'South Africa'
+        }
+      },
+      bookDetails: {
+        title: book?.title || 'Test Book',
+        isbn: book?.isbn || '9781234567890',
+        condition: book?.condition || 'good',
+        price: book?.price || 100
+      }
+    };
+
+    await callEdgeFunction('process-book-purchase', payload);
+  };
+
+  const testProcessMultiSellerPurchase = async () => {
+    const books = [getTestBook()];
+    const buyer = getTestBuyer();
+
+    const payload = {
+      buyerId: buyer?.id || 'mock-buyer-1',
+      orders: books.map(book => ({
+        bookId: book?.id || 'mock-book-1',
+        sellerId: book?.seller_id || 'mock-seller-1',
+        quantity: 1,
+        price: book?.price || 100,
+        title: book?.title || 'Test Book'
+      })),
+      totalAmount: (books[0]?.price || 100) * 100,
+      currency: 'ZAR',
+      reference: `MULTI_${Date.now()}`,
+      shippingAddress: {
+        name: buyer?.name || 'Test Buyer',
+        email: buyer?.email || 'test@example.com',
+        phone: buyer?.phone || '+27123456789',
+        street: '789 Main Road',
+        suburb: 'Claremont',
+        city: 'Cape Town',
+        province: 'Western Cape',
+        postalCode: '7708',
         country: 'South Africa'
       }
     };
 
-    toast.info(`Testing book purchase: "${book?.title}" by ${buyer?.name}`);
-    await callEdgeFunction('process-book-purchase', payload);
+    await callEdgeFunction('process-multi-seller-purchase', payload);
   };
 
-  const testEmailSending = async () => {
-    const recipient = customEmail || users.find(u => u.id === selectedBuyer)?.email;
-    if (!recipient) {
-      toast.error('Please select a user or enter an email');
-      return;
-    }
-
-    const emailPayloads = {
-      approval: {
-        to: recipient,
-        subject: 'Order Approved - Test Email',
-        template: 'order_approved',
-        data: {
-          orderId: 'TEST-001',
-          bookTitle: books.find(b => b.id === selectedBook)?.title || 'Test Book',
-          sellerName: books.find(b => b.id === selectedBook)?.seller_name || 'Test Seller'
-        }
-      },
-      denial: {
-        to: recipient,
-        subject: 'Order Denied - Test Email',
-        template: 'order_denied',
-        data: {
-          orderId: 'TEST-001',
-          reason: 'Test denial reason'
-        }
-      },
-      welcome: {
-        to: recipient,
-        subject: 'Welcome - Test Email',
-        template: 'welcome',
-        data: {
-          userName: users.find(u => u.id === selectedBuyer)?.name || 'Test User'
-        }
-      }
-    };
-
-    toast.info(`Sending ${emailTemplate} email to ${recipient}`);
-    await callEdgeFunction('send-email', emailPayloads[emailTemplate as keyof typeof emailPayloads]);
-  };
-
-  const testDeliveryQuote = async () => {
+  const testCancelOrder = async () => {
     const payload = {
-      from: {
-        address: '1 Long Street, Cape Town',
-        city: 'Cape Town',
-        province: 'Western Cape',
-        postalCode: '8001'
-      },
-      to: {
-        address: '100 Main Road, Rondebosch',
-        city: 'Cape Town', 
-        province: 'Western Cape',
-        postalCode: '7700'
-      },
-      package: {
-        weight: 0.5,
-        dimensions: { length: 20, width: 15, height: 3 }
+      orderId: `TEST_ORDER_${Date.now()}`,
+      userId: getTestBuyer()?.id || 'mock-buyer-1',
+      reason: 'Customer requested cancellation - Developer test',
+      refundAmount: 100.00,
+      currency: 'ZAR',
+      notifyUser: true
+    };
+
+    await callEdgeFunction('cancel-order', payload);
+  };
+
+  // 2. COMMIT SYSTEM
+  const testCommitToSale = async () => {
+    const book = getTestBook();
+    const seller = getTestSeller();
+
+    const payload = {
+      orderId: `TEST_ORDER_${Date.now()}`,
+      sellerId: seller?.id || book?.seller_id || 'mock-seller-1',
+      bookId: book?.id || 'mock-book-1',
+      commitmentType: 'standard',
+      estimatedDeliveryDays: 3,
+      deliveryMethod: 'courier',
+      sellerNotes: 'Book is in excellent condition and will be packaged carefully',
+      pricing: {
+        bookPrice: book?.price || 100,
+        deliveryFee: 25.00,
+        totalAmount: (book?.price || 100) + 25.00
       }
     };
 
-    toast.info('Getting delivery quote between Cape Town and Rondebosch');
-    await callEdgeFunction('courier-guy-quote', payload);
+    await callEdgeFunction('commit-to-sale', payload);
   };
 
-  const testPaystackPayment = async () => {
-    const book = books.find(b => b.id === selectedBook);
-    const buyer = users.find(u => u.id === selectedBuyer);
+  const testEnhancedCommitToSale = async () => {
+    const book = getTestBook();
+    const seller = getTestSeller();
+
+    const payload = {
+      orderId: `ENH_ORDER_${Date.now()}`,
+      sellerId: seller?.id || 'mock-seller-1',
+      bookId: book?.id || 'mock-book-1',
+      commitmentDetails: {
+        type: 'enhanced',
+        guaranteedDelivery: true,
+        insuranceIncluded: true,
+        trackingEnabled: true,
+        estimatedDays: 2
+      },
+      sellerProfile: {
+        name: seller?.name || 'Test Seller',
+        email: seller?.email || 'seller@test.com',
+        rating: 4.8,
+        completedSales: 25
+      },
+      bookCondition: {
+        overall: book?.condition || 'good',
+        pages: 'excellent',
+        cover: 'good',
+        notes: 'Minor shelf wear, all pages intact'
+      }
+    };
+
+    await callEdgeFunction('enhanced-commit-to-sale', payload);
+  };
+
+  const testDeclineCommit = async () => {
+    const payload = {
+      orderId: `TEST_ORDER_${Date.now()}`,
+      sellerId: getTestSeller()?.id || 'mock-seller-1',
+      reason: 'Book no longer available - sold locally',
+      alternativeBooks: [],
+      refundProcessing: true,
+      notificationRequired: true,
+      metadata: {
+        declinedAt: new Date().toISOString(),
+        source: 'developer_test'
+      }
+    };
+
+    await callEdgeFunction('decline-commit', payload);
+  };
+
+  const testAutoExpireCommits = async () => {
+    const payload = {
+      checkExpiredAfterHours: 24,
+      notifyBeforeExpiryHours: 2,
+      autoRefund: true,
+      emailNotifications: true,
+      batchSize: 50,
+      dryRun: false
+    };
+
+    await callEdgeFunction('auto-expire-commits', payload);
+  };
+
+  const testCheckExpiredOrders = async () => {
+    const payload = {
+      checkAfterDays: 7,
+      includeCommitted: true,
+      includePending: true,
+      autoAction: 'notify',
+      batchSize: 100
+    };
+
+    await callEdgeFunction('check-expired-orders', payload);
+  };
+
+  const testProcessOrderReminders = async () => {
+    const payload = {
+      reminderTypes: ['commit_reminder', 'delivery_reminder', 'payment_reminder'],
+      scheduleHours: [24, 48, 72],
+      emailEnabled: true,
+      smsEnabled: false,
+      batchSize: 25
+    };
+
+    await callEdgeFunction('process-order-reminders', payload);
+  };
+
+  const testMarkCollected = async () => {
+    const payload = {
+      orderId: `TEST_ORDER_${Date.now()}`,
+      buyerId: getTestBuyer()?.id || 'mock-buyer-1',
+      sellerId: getTestSeller()?.id || 'mock-seller-1',
+      collectionMethod: 'courier_delivery',
+      collectionDate: new Date().toISOString(),
+      confirmationCode: 'ABC123',
+      signature: 'Test Signature',
+      photos: [],
+      notes: 'Order collected successfully - developer test'
+    };
+
+    await callEdgeFunction('mark-collected', payload);
+  };
+
+  // 3. PAYMENT PROCESSING
+  const testInitializePaystackPayment = async () => {
+    const book = getTestBook();
+    const buyer = getTestBuyer();
 
     const payload = {
       email: buyer?.email || 'test@example.com',
       amount: (book?.price || 100) * 100, // Convert to cents
-      reference: `TEST_${Date.now()}`,
+      currency: 'ZAR',
+      reference: `PAY_${Date.now()}`,
       callback_url: `${window.location.origin}/payment-callback`,
       metadata: {
-        bookId: selectedBook,
-        buyerId: selectedBuyer,
-        sellerId: book?.seller_id
+        bookId: book?.id || 'mock-book-1',
+        buyerId: buyer?.id || 'mock-buyer-1',
+        sellerId: book?.seller_id || 'mock-seller-1',
+        bookTitle: book?.title || 'Test Book',
+        source: 'developer_test'
+      },
+      channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money'],
+      customer: {
+        email: buyer?.email || 'test@example.com',
+        first_name: buyer?.name?.split(' ')[0] || 'Test',
+        last_name: buyer?.name?.split(' ')[1] || 'User',
+        phone: buyer?.phone || '+27123456789'
       }
     };
 
-    toast.info(`Initializing payment for R${book?.price || 100}`);
     await callEdgeFunction('initialize-paystack-payment', payload);
   };
 
-  const testCreateRecipient = async () => {
-    if (!selectedSeller) {
-      toast.error('Please select a seller');
-      return;
-    }
-
-    const seller = users.find(u => u.id === selectedSeller);
-    
+  const testVerifyPaystackPayment = async () => {
     const payload = {
-      sellerId: selectedSeller,
-      name: seller?.name || 'Test Seller',
-      email: seller?.email || 'seller@example.com',
-      bankCode: '058', // GTBank
-      accountNumber: '0123456789',
-      currency: 'ZAR'
+      reference: `PAY_${Date.now()}`,
+      expectedAmount: 10000, // R100.00 in cents
+      currency: 'ZAR',
+      orderId: `TEST_ORDER_${Date.now()}`,
+      metadata: {
+        bookId: getTestBook()?.id || 'mock-book-1',
+        buyerId: getTestBuyer()?.id || 'mock-buyer-1',
+        verification_source: 'developer_test'
+      }
     };
 
-    toast.info(`Creating Paystack recipient for ${seller?.name}`);
+    await callEdgeFunction('verify-paystack-payment', payload);
+  };
+
+  const testPaystackWebhook = async () => {
+    const payload = {
+      event: 'charge.success',
+      data: {
+        id: 12345678,
+        domain: 'test',
+        status: 'success',
+        reference: `WEBHOOK_${Date.now()}`,
+        amount: 10000,
+        message: 'Payment successful',
+        gateway_response: 'Successful',
+        paid_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        channel: 'card',
+        currency: 'ZAR',
+        ip_address: '127.0.0.1',
+        metadata: {
+          bookId: getTestBook()?.id || 'mock-book-1',
+          buyerId: getTestBuyer()?.id || 'mock-buyer-1',
+          test_webhook: true
+        },
+        customer: {
+          id: 123456,
+          first_name: 'Test',
+          last_name: 'User',
+          email: 'test@example.com'
+        }
+      }
+    };
+
+    await callEdgeFunction('paystack-webhook', payload);
+  };
+
+  const testPaystackRefundManagement = async () => {
+    const payload = {
+      transactionId: `TXN_${Date.now()}`,
+      refundAmount: 5000, // R50.00 in cents
+      currency: 'ZAR',
+      reason: 'Customer requested refund - developer test',
+      orderId: `TEST_ORDER_${Date.now()}`,
+      customerId: getTestBuyer()?.id || 'mock-buyer-1',
+      refundType: 'full',
+      merchantNote: 'Processing refund for test transaction',
+      notifyCustomer: true
+    };
+
+    await callEdgeFunction('paystack-refund-management', payload);
+  };
+
+  const testPaystackSplitManagement = async () => {
+    const book = getTestBook();
+    const seller = getTestSeller();
+
+    const payload = {
+      splitCode: `SPLIT_${Date.now()}`,
+      transactionAmount: (book?.price || 100) * 100,
+      currency: 'ZAR',
+      splits: [
+        {
+          subaccount: 'ACCT_123456789',
+          share: 8500, // 85% to seller
+          description: 'Seller payment'
+        },
+        {
+          subaccount: 'ACCT_PLATFORM',
+          share: 1500, // 15% platform fee
+          description: 'Platform commission'
+        }
+      ],
+      reference: `SPLIT_${Date.now()}`,
+      metadata: {
+        orderId: `TEST_ORDER_${Date.now()}`,
+        sellerId: seller?.id || 'mock-seller-1',
+        bookId: book?.id || 'mock-book-1'
+      }
+    };
+
+    await callEdgeFunction('paystack-split-management', payload);
+  };
+
+  // 4. ACCOUNT MANAGEMENT
+  const testCreatePaystackSubaccount = async () => {
+    const seller = getTestSeller();
+
+    const payload = {
+      business_name: `${seller?.name || 'Test Seller'} Books`,
+      settlement_bank: '058', // GTBank
+      account_number: '0123456789',
+      percentage_charge: 15.0,
+      description: 'Subaccount for book seller - developer test',
+      primary_contact_email: seller?.email || 'seller@test.com',
+      primary_contact_name: seller?.name || 'Test Seller',
+      primary_contact_phone: seller?.phone || '+27123456789',
+      metadata: {
+        sellerId: seller?.id || 'mock-seller-1',
+        created_via: 'developer_test',
+        verification_status: 'pending'
+      }
+    };
+
+    await callEdgeFunction('create-paystack-subaccount', payload);
+  };
+
+  const testManagePaystackSubaccount = async () => {
+    const seller = getTestSeller();
+
+    const payload = {
+      action: 'update',
+      subaccountCode: `ACCT_${Date.now()}`,
+      sellerId: seller?.id || 'mock-seller-1',
+      updates: {
+        business_name: `Updated ${seller?.name || 'Test Seller'} Books`,
+        percentage_charge: 12.0,
+        settlement_schedule: 'weekly',
+        primary_contact_email: seller?.email || 'seller@test.com'
+      },
+      metadata: {
+        updated_via: 'developer_test',
+        update_reason: 'Testing subaccount management'
+      }
+    };
+
+    await callEdgeFunction('manage-paystack-subaccount', payload);
+  };
+
+  const testCreateRecipient = async () => {
+    const seller = getTestSeller();
+
+    const payload = {
+      sellerId: seller?.id || 'mock-seller-1',
+      name: seller?.name || 'Test Seller',
+      email: seller?.email || 'seller@test.com',
+      type: 'nuban',
+      currency: 'ZAR',
+      bank_code: '058',
+      account_number: '0123456789',
+      description: 'Recipient for book sales payouts',
+      metadata: {
+        created_via: 'developer_test',
+        seller_verification: 'pending',
+        payout_schedule: 'weekly'
+      }
+    };
+
     await callEdgeFunction('create-recipient', payload);
   };
 
-  const testOrderCommit = async () => {
-    const book = books.find(b => b.id === selectedBook);
-    
+  // 5. DELIVERY & SHIPPING
+  const testCourierGuyQuote = async () => {
     const payload = {
-      orderId: `TEST_ORDER_${Date.now()}`,
-      sellerId: book?.seller_id || selectedSeller,
-      bookId: selectedBook,
-      commitmentType: 'standard',
-      estimatedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
+      collection_address: {
+        street_address: '1 Long Street',
+        suburb: 'Cape Town City Centre',
+        city: 'Cape Town',
+        province: 'Western Cape',
+        postal_code: '8001',
+        country: 'South Africa'
+      },
+      delivery_address: {
+        street_address: '100 Main Road',
+        suburb: 'Rondebosch',
+        city: 'Cape Town',
+        province: 'Western Cape',
+        postal_code: '7700',
+        country: 'South Africa'
+      },
+      parcel_details: {
+        weight: 0.5,
+        length: 20,
+        width: 15,
+        height: 3,
+        description: 'Textbook',
+        value: getTestBook()?.price || 100
+      },
+      service_type: 'standard',
+      insurance_required: true,
+      delivery_instructions: 'Handle with care - textbook'
     };
 
-    toast.info('Testing order commit functionality');
-    await callEdgeFunction('commit-to-sale', payload);
+    await callEdgeFunction('courier-guy-quote', payload);
   };
 
-  const testHealthCheck = async () => {
-    toast.info('Running system health check');
-    await callEdgeFunction('health-test', {});
+  const testCourierGuyShipment = async () => {
+    const book = getTestBook();
+    const buyer = getTestBuyer();
+    const seller = getTestSeller();
+
+    const payload = {
+      order_id: `SHIP_ORDER_${Date.now()}`,
+      collection_details: {
+        name: seller?.name || 'Test Seller',
+        email: seller?.email || 'seller@test.com',
+        phone: seller?.phone || '+27123456789',
+        address: {
+          street_address: '789 Seller Street',
+          suburb: 'Gardens',
+          city: 'Cape Town',
+          province: 'Western Cape',
+          postal_code: '8001',
+          country: 'South Africa'
+        },
+        collection_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        special_instructions: 'Call before collection'
+      },
+      delivery_details: {
+        name: buyer?.name || 'Test Buyer',
+        email: buyer?.email || 'buyer@test.com',
+        phone: buyer?.phone || '+27987654321',
+        address: {
+          street_address: '456 Buyer Avenue',
+          suburb: 'Rondebosch',
+          city: 'Cape Town',
+          province: 'Western Cape',
+          postal_code: '7700',
+          country: 'South Africa'
+        },
+        delivery_instructions: 'Leave with security if not home'
+      },
+      parcel_info: {
+        weight: 0.5,
+        dimensions: { length: 20, width: 15, height: 3 },
+        contents: book?.title || 'Test Book',
+        value: book?.price || 100,
+        fragile: false
+      }
+    };
+
+    await callEdgeFunction('courier-guy-shipment', payload);
   };
 
+  const testCourierGuyTrack = async () => {
+    const payload = {
+      tracking_number: `TRK${Date.now()}`,
+      waybill_number: `WB${Date.now()}`,
+      order_reference: `ORD_${Date.now()}`,
+      detailed_tracking: true,
+      include_events: true,
+      notify_customer: false
+    };
+
+    await callEdgeFunction('courier-guy-track', payload);
+  };
+
+  const testGetDeliveryQuotes = async () => {
+    const payload = {
+      from_address: {
+        street: '1 Wale Street',
+        city: 'Cape Town',
+        province: 'Western Cape',
+        postal_code: '8001',
+        country: 'ZA'
+      },
+      to_address: {
+        street: '85 Main Road',
+        city: 'Cape Town',
+        province: 'Western Cape',
+        postal_code: '7700',
+        country: 'ZA'
+      },
+      package_details: {
+        weight_kg: 0.5,
+        length_cm: 20,
+        width_cm: 15,
+        height_cm: 3,
+        declared_value: getTestBook()?.price || 100
+      },
+      service_types: ['standard', 'express', 'overnight'],
+      insurance_required: true,
+      signature_required: false
+    };
+
+    await callEdgeFunction('get-delivery-quotes', payload);
+  };
+
+  const testAutomateDelivery = async () => {
+    const payload = {
+      order_id: `AUTO_ORDER_${Date.now()}`,
+      automation_type: 'full',
+      trigger_conditions: {
+        payment_confirmed: true,
+        seller_committed: true,
+        address_verified: true
+      },
+      delivery_preferences: {
+        preferred_courier: 'courier_guy',
+        service_level: 'standard',
+        insurance_value: getTestBook()?.price || 100,
+        delivery_window: '9am-5pm'
+      },
+      notifications: {
+        sms_updates: true,
+        email_updates: true,
+        push_notifications: false
+      }
+    };
+
+    await callEdgeFunction('automate-delivery', payload);
+  };
+
+  // 6. COMMUNICATION
+  const testSendEmail = async () => {
+    const recipient = customEmail || getTestBuyer()?.email || 'test@example.com';
+    const book = getTestBook();
+
+    const emailPayloads = {
+      approval: {
+        to: recipient,
+        subject: 'Order Approved - Your Book Purchase',
+        template: 'order_approved',
+        data: {
+          orderId: `ORDER_${Date.now()}`,
+          bookTitle: book?.title || 'Test Book',
+          sellerName: book?.seller_name || 'Test Seller',
+          price: `R${book?.price || 100}`,
+          estimatedDelivery: '3-5 business days'
+        }
+      },
+      denial: {
+        to: recipient,
+        subject: 'Order Update - Unable to Process',
+        template: 'order_denied',
+        data: {
+          orderId: `ORDER_${Date.now()}`,
+          bookTitle: book?.title || 'Test Book',
+          reason: 'Book no longer available',
+          refundAmount: `R${book?.price || 100}`,
+          refundTimeframe: '3-5 business days'
+        }
+      },
+      welcome: {
+        to: recipient,
+        subject: 'Welcome to BookHub!',
+        template: 'welcome',
+        data: {
+          userName: getTestBuyer()?.name || 'Test User',
+          loginUrl: `${window.location.origin}/login`,
+          supportEmail: 'support@bookhub.com'
+        }
+      }
+    };
+
+    await callEdgeFunction('send-email', emailPayloads[emailTemplate as keyof typeof emailPayloads]);
+  };
+
+  const testDebugEmailTemplate = async () => {
+    const payload = {
+      template_name: emailTemplate,
+      recipient_email: customEmail || getTestBuyer()?.email || 'test@example.com',
+      test_data: {
+        orderId: `DEBUG_${Date.now()}`,
+        userName: getTestBuyer()?.name || 'Test User',
+        bookTitle: getTestBook()?.title || 'Test Book',
+        amount: getTestBook()?.price || 100,
+        timestamp: new Date().toISOString()
+      },
+      render_only: false,
+      include_preview: true,
+      debug_mode: true
+    };
+
+    await callEdgeFunction('debug-email-template', payload);
+  };
+
+  // 7. UTILITIES
+  const testHealthTest = async () => {
+    const payload = {
+      check_database: true,
+      check_external_apis: true,
+      check_email_service: true,
+      check_payment_gateway: true,
+      check_storage: true,
+      detailed_response: true,
+      timeout_seconds: 30
+    };
+
+    await callEdgeFunction('health-test', payload);
+  };
+
+  // UI FUNCTIONS
   const clearResults = () => {
     setTestResults([]);
     toast.info('Test results cleared');
   };
 
   const runAllTests = async () => {
-    toast.info('Running comprehensive test suite...');
+    toast.info('Running comprehensive test suite - all 20+ functions...');
     
-    // Run tests in sequence with delays
-    const tests = [
-      () => testHealthCheck(),
-      () => testProcessBookPurchase(),
-      () => testEmailSending(),
-      () => testDeliveryQuote(),
-      () => testPaystackPayment(),
-      () => testCreateRecipient(),
-      () => testOrderCommit()
+    const allTests = [
+      { name: 'Health Check', func: testHealthTest },
+      { name: 'Create Order', func: testCreateOrder },
+      { name: 'Process Book Purchase', func: testProcessBookPurchase },
+      { name: 'Process Multi-Seller Purchase', func: testProcessMultiSellerPurchase },
+      { name: 'Cancel Order', func: testCancelOrder },
+      { name: 'Commit To Sale', func: testCommitToSale },
+      { name: 'Enhanced Commit To Sale', func: testEnhancedCommitToSale },
+      { name: 'Decline Commit', func: testDeclineCommit },
+      { name: 'Auto Expire Commits', func: testAutoExpireCommits },
+      { name: 'Check Expired Orders', func: testCheckExpiredOrders },
+      { name: 'Process Order Reminders', func: testProcessOrderReminders },
+      { name: 'Mark Collected', func: testMarkCollected },
+      { name: 'Initialize Paystack Payment', func: testInitializePaystackPayment },
+      { name: 'Verify Paystack Payment', func: testVerifyPaystackPayment },
+      { name: 'Paystack Webhook', func: testPaystackWebhook },
+      { name: 'Paystack Refund Management', func: testPaystackRefundManagement },
+      { name: 'Paystack Split Management', func: testPaystackSplitManagement },
+      { name: 'Create Paystack Subaccount', func: testCreatePaystackSubaccount },
+      { name: 'Manage Paystack Subaccount', func: testManagePaystackSubaccount },
+      { name: 'Create Recipient', func: testCreateRecipient },
+      { name: 'Courier Guy Quote', func: testCourierGuyQuote },
+      { name: 'Courier Guy Shipment', func: testCourierGuyShipment },
+      { name: 'Courier Guy Track', func: testCourierGuyTrack },
+      { name: 'Get Delivery Quotes', func: testGetDeliveryQuotes },
+      { name: 'Automate Delivery', func: testAutomateDelivery },
+      { name: 'Send Email', func: testSendEmail },
+      { name: 'Debug Email Template', func: testDebugEmailTemplate }
     ];
 
-    for (const test of tests) {
-      await test();
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay between tests
+    for (const test of allTests) {
+      try {
+        toast.info(`Testing: ${test.name}...`);
+        await test.func();
+        await new Promise(resolve => setTimeout(resolve, 800)); // Delay between tests
+      } catch (error) {
+        console.error(`Error in ${test.name}:`, error);
+        toast.error(`${test.name} failed`);
+      }
     }
 
-    toast.success('Comprehensive test suite completed!');
+    toast.success(`Comprehensive test suite completed! Tested ${allTests.length} functions.`);
   };
 
   return (
@@ -379,7 +1048,7 @@ const Developer = () => {
                     Developer Dashboard
                   </h1>
                   <p className="text-sm text-gray-500">
-                    Test all website functionalities
+                    Test all 27 edge functions with proper payloads
                   </p>
                 </div>
               </div>
@@ -395,7 +1064,7 @@ const Developer = () => {
                 ) : (
                   <Zap className="h-4 w-4 mr-2" />
                 )}
-                Run All Tests
+                Test All 27 Functions
               </Button>
               <Button
                 onClick={clearResults}
@@ -414,26 +1083,30 @@ const Developer = () => {
         <div className="max-w-6xl mx-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             {/* Navigation Tabs */}
-            <TabsList className="grid grid-cols-2 lg:grid-cols-5 gap-2 h-auto p-1">
+            <TabsList className="grid grid-cols-3 lg:grid-cols-6 gap-2 h-auto p-1">
               <TabsTrigger value="overview" className="flex flex-col items-center p-3">
                 <Bug className="h-4 w-4 mb-1" />
                 <span className="text-xs">Overview</span>
               </TabsTrigger>
               <TabsTrigger value="orders" className="flex flex-col items-center p-3">
                 <Package className="h-4 w-4 mb-1" />
-                <span className="text-xs">Orders</span>
+                <span className="text-xs">Orders (12)</span>
               </TabsTrigger>
               <TabsTrigger value="payments" className="flex flex-col items-center p-3">
                 <CreditCard className="h-4 w-4 mb-1" />
-                <span className="text-xs">Payments</span>
+                <span className="text-xs">Payments (7)</span>
+              </TabsTrigger>
+              <TabsTrigger value="accounts" className="flex flex-col items-center p-3">
+                <Users className="h-4 w-4 mb-1" />
+                <span className="text-xs">Accounts (3)</span>
               </TabsTrigger>
               <TabsTrigger value="delivery" className="flex flex-col items-center p-3">
                 <Truck className="h-4 w-4 mb-1" />
-                <span className="text-xs">Delivery</span>
+                <span className="text-xs">Delivery (5)</span>
               </TabsTrigger>
               <TabsTrigger value="communication" className="flex flex-col items-center p-3">
                 <Mail className="h-4 w-4 mb-1" />
-                <span className="text-xs">Email</span>
+                <span className="text-xs">Email (2)</span>
               </TabsTrigger>
             </TabsList>
 
@@ -443,6 +1116,7 @@ const Developer = () => {
                 <CardTitle className="flex items-center space-x-2">
                   <Database className="h-5 w-5" />
                   <span>Test Data Selection</span>
+                  <Badge variant="outline">Auto-loaded</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -493,6 +1167,19 @@ const Developer = () => {
                     </Select>
                   </div>
                 </div>
+                <div className="mt-4 flex justify-between items-center">
+                  <div className="flex space-x-4 text-sm text-gray-600">
+                    <span>Books: {books.length}</span>
+                    <span>Users: {users.length}</span>
+                  </div>
+                  <Button
+                    onClick={loadTestData}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Refresh Data
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -505,7 +1192,7 @@ const Developer = () => {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <Button
-                      onClick={testHealthCheck}
+                      onClick={testHealthTest}
                       disabled={isLoading}
                       className="w-full"
                     >
@@ -517,26 +1204,24 @@ const Developer = () => {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Test Data Status</CardTitle>
+                    <CardTitle>Quick Stats</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>Books Available:</span>
-                        <Badge variant="outline">{books.length}</Badge>
+                        <span>Total Edge Functions:</span>
+                        <Badge variant="outline">27</Badge>
                       </div>
                       <div className="flex justify-between">
-                        <span>Users Available:</span>
-                        <Badge variant="outline">{users.length}</Badge>
+                        <span>Tests Run:</span>
+                        <Badge variant="outline">{testResults.length}</Badge>
                       </div>
-                      <Button
-                        onClick={loadTestData}
-                        variant="outline"
-                        size="sm"
-                        className="w-full mt-3"
-                      >
-                        Refresh Test Data
-                      </Button>
+                      <div className="flex justify-between">
+                        <span>Success Rate:</span>
+                        <Badge variant={testResults.length > 0 && testResults.filter(r => r.status === 'success').length / testResults.length > 0.8 ? 'default' : 'destructive'}>
+                          {testResults.length > 0 ? `${Math.round((testResults.filter(r => r.status === 'success').length / testResults.length) * 100)}%` : '0%'}
+                        </Badge>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -544,84 +1229,118 @@ const Developer = () => {
             </TabsContent>
 
             <TabsContent value="orders">
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Order Processing Tests</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Button
-                        onClick={testProcessBookPurchase}
-                        disabled={isLoading}
-                        className="h-20 flex flex-col"
-                      >
-                        <Package className="h-6 w-6 mb-2" />
-                        Test Book Purchase
-                      </Button>
-                      <Button
-                        onClick={testOrderCommit}
-                        disabled={isLoading}
-                        variant="outline"
-                        className="h-20 flex flex-col"
-                      >
-                        <CheckCircle className="h-6 w-6 mb-2" />
-                        Test Order Commit
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <Button onClick={testCreateOrder} disabled={isLoading} className="h-20 flex flex-col">
+                  <ShoppingCart className="h-6 w-6 mb-2" />
+                  Create Order
+                </Button>
+                <Button onClick={testProcessBookPurchase} disabled={isLoading} className="h-20 flex flex-col">
+                  <Package className="h-6 w-6 mb-2" />
+                  Process Purchase
+                </Button>
+                <Button onClick={testProcessMultiSellerPurchase} disabled={isLoading} className="h-20 flex flex-col">
+                  <Users className="h-6 w-6 mb-2" />
+                  Multi-Seller
+                </Button>
+                <Button onClick={testCancelOrder} disabled={isLoading} className="h-20 flex flex-col">
+                  <XCircle className="h-6 w-6 mb-2" />
+                  Cancel Order
+                </Button>
+                <Button onClick={testCommitToSale} disabled={isLoading} className="h-20 flex flex-col">
+                  <CheckCircle className="h-6 w-6 mb-2" />
+                  Commit Sale
+                </Button>
+                <Button onClick={testEnhancedCommitToSale} disabled={isLoading} className="h-20 flex flex-col">
+                  <Zap className="h-6 w-6 mb-2" />
+                  Enhanced Commit
+                </Button>
+                <Button onClick={testDeclineCommit} disabled={isLoading} className="h-20 flex flex-col">
+                  <AlertCircle className="h-6 w-6 mb-2" />
+                  Decline Commit
+                </Button>
+                <Button onClick={testAutoExpireCommits} disabled={isLoading} className="h-20 flex flex-col">
+                  <Clock className="h-6 w-6 mb-2" />
+                  Auto Expire
+                </Button>
+                <Button onClick={testCheckExpiredOrders} disabled={isLoading} className="h-20 flex flex-col">
+                  <AlertCircle className="h-6 w-6 mb-2" />
+                  Check Expired
+                </Button>
+                <Button onClick={testProcessOrderReminders} disabled={isLoading} className="h-20 flex flex-col">
+                  <Mail className="h-6 w-6 mb-2" />
+                  Order Reminders
+                </Button>
+                <Button onClick={testMarkCollected} disabled={isLoading} className="h-20 flex flex-col">
+                  <CheckCircle className="h-6 w-6 mb-2" />
+                  Mark Collected
+                </Button>
               </div>
             </TabsContent>
 
             <TabsContent value="payments">
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Payment System Tests</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Button
-                        onClick={testPaystackPayment}
-                        disabled={isLoading}
-                        className="h-20 flex flex-col"
-                      >
-                        <CreditCard className="h-6 w-6 mb-2" />
-                        Initialize Payment
-                      </Button>
-                      <Button
-                        onClick={testCreateRecipient}
-                        disabled={isLoading}
-                        variant="outline"
-                        className="h-20 flex flex-col"
-                      >
-                        <Users className="h-6 w-6 mb-2" />
-                        Create Recipient
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <Button onClick={testInitializePaystackPayment} disabled={isLoading} className="h-20 flex flex-col">
+                  <CreditCard className="h-6 w-6 mb-2" />
+                  Initialize Payment
+                </Button>
+                <Button onClick={testVerifyPaystackPayment} disabled={isLoading} className="h-20 flex flex-col">
+                  <CheckCircle className="h-6 w-6 mb-2" />
+                  Verify Payment
+                </Button>
+                <Button onClick={testPaystackWebhook} disabled={isLoading} className="h-20 flex flex-col">
+                  <Code className="h-6 w-6 mb-2" />
+                  Webhook Test
+                </Button>
+                <Button onClick={testPaystackRefundManagement} disabled={isLoading} className="h-20 flex flex-col">
+                  <DollarSign className="h-6 w-6 mb-2" />
+                  Refund Management
+                </Button>
+                <Button onClick={testPaystackSplitManagement} disabled={isLoading} className="h-20 flex flex-col">
+                  <Settings className="h-6 w-6 mb-2" />
+                  Split Management
+                </Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="accounts">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <Button onClick={testCreatePaystackSubaccount} disabled={isLoading} className="h-20 flex flex-col">
+                  <Users className="h-6 w-6 mb-2" />
+                  Create Subaccount
+                </Button>
+                <Button onClick={testManagePaystackSubaccount} disabled={isLoading} className="h-20 flex flex-col">
+                  <Settings className="h-6 w-6 mb-2" />
+                  Manage Subaccount
+                </Button>
+                <Button onClick={testCreateRecipient} disabled={isLoading} className="h-20 flex flex-col">
+                  <CreditCard className="h-6 w-6 mb-2" />
+                  Create Recipient
+                </Button>
               </div>
             </TabsContent>
 
             <TabsContent value="delivery">
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Delivery System Tests</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <Button
-                      onClick={testDeliveryQuote}
-                      disabled={isLoading}
-                      className="w-full h-20 flex flex-col"
-                    >
-                      <Truck className="h-6 w-6 mb-2" />
-                      Test Delivery Quote
-                    </Button>
-                  </CardContent>
-                </Card>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <Button onClick={testCourierGuyQuote} disabled={isLoading} className="h-20 flex flex-col">
+                  <DollarSign className="h-6 w-6 mb-2" />
+                  Courier Quote
+                </Button>
+                <Button onClick={testCourierGuyShipment} disabled={isLoading} className="h-20 flex flex-col">
+                  <Truck className="h-6 w-6 mb-2" />
+                  Create Shipment
+                </Button>
+                <Button onClick={testCourierGuyTrack} disabled={isLoading} className="h-20 flex flex-col">
+                  <Package className="h-6 w-6 mb-2" />
+                  Track Package
+                </Button>
+                <Button onClick={testGetDeliveryQuotes} disabled={isLoading} className="h-20 flex flex-col">
+                  <FileText className="h-6 w-6 mb-2" />
+                  Delivery Quotes
+                </Button>
+                <Button onClick={testAutomateDelivery} disabled={isLoading} className="h-20 flex flex-col">
+                  <Zap className="h-6 w-6 mb-2" />
+                  Automate Delivery
+                </Button>
               </div>
             </TabsContent>
 
@@ -629,7 +1348,7 @@ const Developer = () => {
               <div className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Email System Tests</CardTitle>
+                    <CardTitle>Email Configuration</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -656,16 +1375,19 @@ const Developer = () => {
                         />
                       </div>
                     </div>
-                    <Button
-                      onClick={testEmailSending}
-                      disabled={isLoading}
-                      className="w-full h-16 flex items-center justify-center"
-                    >
-                      <Send className="h-5 w-5 mr-2" />
-                      Send Test Email
-                    </Button>
                   </CardContent>
                 </Card>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Button onClick={testSendEmail} disabled={isLoading} className="h-20 flex flex-col">
+                    <Send className="h-6 w-6 mb-2" />
+                    Send Email
+                  </Button>
+                  <Button onClick={testDebugEmailTemplate} disabled={isLoading} className="h-20 flex flex-col">
+                    <Bug className="h-6 w-6 mb-2" />
+                    Debug Email Template
+                  </Button>
+                </div>
               </div>
             </TabsContent>
 
@@ -675,7 +1397,10 @@ const Developer = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span>Test Results</span>
-                    <Badge variant="outline">{testResults.length} tests</Badge>
+                    <div className="flex space-x-2">
+                      <Badge variant="outline">{testResults.filter(r => r.status === 'success').length} success</Badge>
+                      <Badge variant="destructive">{testResults.filter(r => r.status === 'error').length} failed</Badge>
+                    </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
