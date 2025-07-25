@@ -243,49 +243,7 @@ class LockerService {
     }
   }
 
-  /**
-   * Alternative JSONP approach to bypass CORS (may work with some APIs)
-   */
-  private async fetchLockersViaJSONP(): Promise<LockerLocation[]> {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      const callbackName = `pudoCallback_${Date.now()}`;
 
-      // Set up callback
-      (window as any)[callbackName] = (data: any) => {
-        try {
-          const lockers = this.extractLockersFromResponse(data);
-          resolve(lockers);
-        } catch (error) {
-          reject(error);
-        } finally {
-          // Cleanup
-          document.head.removeChild(script);
-          delete (window as any)[callbackName];
-        }
-      };
-
-      // Set up error handling
-      script.onerror = () => {
-        document.head.removeChild(script);
-        delete (window as any)[callbackName];
-        reject(new Error('JSONP request failed'));
-      };
-
-      // Try JSONP request (will fail if API doesn't support JSONP)
-      script.src = `${this.getBaseUrl()}${this.endpoints.lockers}?callback=${callbackName}`;
-      document.head.appendChild(script);
-
-      // Timeout after 10 seconds
-      setTimeout(() => {
-        if (document.head.contains(script)) {
-          document.head.removeChild(script);
-          delete (window as any)[callbackName];
-          reject(new Error('JSONP request timed out'));
-        }
-      }, 10000);
-    });
-  }
 
   /**
    * Advanced: Try edge function proxy (for production deployments)
