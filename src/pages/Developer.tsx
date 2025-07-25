@@ -151,9 +151,32 @@ const Developer = () => {
           setSelectedBook(simpleBooks[0].id);
           toast.success(`✅ Loaded ${simpleBooks.length} books with basic info`);
         } else {
-          const simpleErrorMsg = simpleBooksError?.message || simpleBooksError?.details || JSON.stringify(simpleBooksError) || 'No books found';
+          const simpleErrorMsg = simpleBooksError?.message || simpleBooksError?.details || (simpleBooksError ? JSON.stringify(simpleBooksError, null, 2) : 'No books found');
           toast.error(`❌ Simple query also failed: ${simpleErrorMsg}`);
-          return;
+          // Use mock data as final fallback
+          const mockBooks = [
+            {
+              id: 'mock-book-1',
+              title: 'Introduction to Computer Science',
+              price: 250,
+              seller_id: 'mock-seller-1',
+              seller_name: 'Test Seller',
+              isbn: '978-0123456789',
+              condition: 'good'
+            },
+            {
+              id: 'mock-book-2',
+              title: 'Mathematics for Engineers',
+              price: 180,
+              seller_id: 'mock-seller-2',
+              seller_name: 'Another Seller',
+              isbn: '978-0987654321',
+              condition: 'excellent'
+            }
+          ];
+          setBooks(mockBooks);
+          setSelectedBook(mockBooks[0].id);
+          toast.warning('📚 Using mock books data');
         }
       }
 
@@ -323,7 +346,7 @@ const Developer = () => {
       let statusCode = 200;
 
       if (error) {
-        console.error(`❌ ${functionName} error object:`, error);
+        console.error(`�� ${functionName} error object:`, error);
         console.error(`❌ ${functionName} error keys:`, Object.keys(error));
         console.error(`❌ ${functionName} error.context:`, error.context);
         console.error(`❌ ${functionName} data object:`, data);
