@@ -144,32 +144,17 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
   };
 
   const filterLockers = async () => {
+    // Build filters object
     const filters: LockerSearchFilters = {};
-
     if (searchQuery.trim()) filters.search_query = searchQuery;
     if (selectedCity && selectedCity !== 'all') filters.city = selectedCity;
     if (selectedProvince && selectedProvince !== 'all') filters.province = selectedProvince;
 
+    // Always use client-side filtering to avoid any API errors
+    let filtered = [...lockers];
+
     try {
-      const filtered = await lockerService.searchLockers(filters);
-      console.log('🔍 Filter results:', {
-        totalLockers: lockers.length,
-        filteredCount: filtered.length,
-        appliedFilters: {
-          searchQuery: searchQuery || 'none',
-          selectedCity: selectedCity || 'all',
-          selectedProvince: selectedProvince || 'all'
-        }
-      });
-      setFilteredLockers(filtered);
-      console.log('📋 Filtered lockers for display:', filtered.map(l => `${l.name} (${l.city})`));
-    } catch (err) {
-      console.warn('❌ Error filtering lockers:', err);
-      console.log('🔄 Fallback: Using simple client-side filtering');
-
-      // Fallback to simple client-side filtering
-      let filtered = [...lockers];
-
+      // Apply filters directly on the existing lockers array
       if (filters.search_query) {
         const query = filters.search_query.toLowerCase();
         filtered = filtered.filter(locker =>
@@ -191,7 +176,22 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
         );
       }
 
+      console.log('🔍 Filter results:', {
+        totalLockers: lockers.length,
+        filteredCount: filtered.length,
+        appliedFilters: {
+          searchQuery: searchQuery || 'none',
+          selectedCity: selectedCity || 'all',
+          selectedProvince: selectedProvince || 'all'
+        }
+      });
+
       setFilteredLockers(filtered);
+      console.log('📋 Filtered lockers for display:', filtered.map(l => `${l.name} (${l.city})`));
+    } catch (err) {
+      console.warn('❌ Error in client-side filtering:', err);
+      // Even client-side filtering failed - just show all lockers
+      setFilteredLockers(lockers);
     }
   };
 
