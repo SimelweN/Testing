@@ -24,63 +24,164 @@ export interface LockerSearchFilters {
 }
 
 class LockerService {
-  private baseURL = 'https://api.thecourierguy.co.za';
+  private apiEndpoints = [
+    'https://api.pudo.co.za/lockers',
+    'https://api.thecourierguy.co.za/locker-to-door/lockers'
+  ];
   private lockers: LockerLocation[] = [];
   private lastFetched: Date | null = null;
   private cacheExpiry = 1000 * 60 * 30; // 30 minutes cache
+  private apiKey: string | null = null;
+
+  constructor() {
+    // Try to get API key from environment variables
+    this.apiKey = process.env.COURIER_GUY_API_KEY || null;
+  }
 
   /**
-   * Fetch all lockers from Courier Guy API (currently using mock data due to CORS issues)
+   * Fetch all lockers from Courier Guy API with pagination and proper authentication
    */
   async fetchAllLockers(): Promise<LockerLocation[]> {
-    try {
-      // Use mock data directly due to CORS issues with external API
-      console.log('🎭 Using mock locker data (external API blocked by CORS)');
-      this.lockers = this.getMockLockers();
-      this.lastFetched = new Date();
-      console.log(`✅ Loaded ${this.lockers.length} mock lockers`);
-      return this.lockers;
+    console.log('🚀 Attempting to fetch lockers from Courier Guy API...');
 
-      /*
-      // TODO: Enable when API access is configured through backend proxy
-      console.log('🔄 Fetching lockers from Courier Guy API...');
-
-      const response = await axios.get(`${this.baseURL}/pudo-lockers`, {
-        timeout: 10000,
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
+    // Try each endpoint until one works
+    for (const endpoint of this.apiEndpoints) {
+      try {
+        const allLockers = await this.fetchAllLockersFromEndpoint(endpoint);
+        if (allLockers.length > 0) {
+          this.lockers = allLockers;
+          this.lastFetched = new Date();
+          console.log(`✅ Successfully fetched ${this.lockers.length} lockers from ${endpoint}`);
+          return this.lockers;
         }
-      });
-
-      if (response.data && Array.isArray(response.data)) {
-        this.lockers = this.processLockerData(response.data);
-        this.lastFetched = new Date();
-        console.log(`✅ Successfully fetched ${this.lockers.length} lockers`);
-        return this.lockers;
-      } else if (response.data?.data && Array.isArray(response.data.data)) {
-        this.lockers = this.processLockerData(response.data.data);
-        this.lastFetched = new Date();
-        console.log(`✅ Successfully fetched ${this.lockers.length} lockers`);
-        return this.lockers;
-      } else {
-        console.error('❌ Unexpected API response format:', response.data);
-        throw new Error('Unexpected API response format');
+      } catch (error) {
+        console.warn(`⚠️ Failed to fetch from ${endpoint}:`, error);
+        continue;
       }
-      */
-    } catch (error) {
-      console.error('❌ Error fetching lockers:', error);
-
-      // Return cached data if available
-      if (this.lockers.length > 0) {
-        console.log('📦 Using cached locker data');
-        return this.lockers;
-      }
-
-      // Return mock data as fallback
-      console.log('🎭 Using mock locker data as fallback');
-      return this.getMockLockers();
     }
+
+    // If all API calls fail, fall back to cached data or mock data
+    console.error('❌ All API endpoints failed');
+
+    if (this.lockers.length > 0) {
+      console.log('📦 Using cached locker data');
+      return this.lockers;
+    }
+
+    console.log('🎭 Using mock locker data as fallback');
+    return this.getMockLockers();
+  }
+
+  /**
+   * Fetch lockers from a specific endpoint with pagination
+   */
+  private async fetchAllLockersFromEndpoint(endpoint: string): Promise<LockerLocation[]> {
+    const allLockers: LockerLocation[] = [];
+    let page = 1;
+    const limit = 100; // Fetch 100 lockers per page
+    let hasMorePages = true;
+
+    while (hasMorePages) {
+      try {
+        console.log(`📄 Fetching page ${page} from ${endpoint}...`);
+
+        const response = await axios.get(endpoint, {
+          timeout: 15000,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+          },
+          params: {
+            page: page,
+            limit: limit,
+            status: 'active' // Only fetch active lockers
+          }
+        });
+
+        console.log(`📡 API Response for page ${page}:`, {
+          status: response.status,
+          dataType: typeof response.data,
+          hasData: !!response.data,
+          isArray: Array.isArray(response.data)
+        });
+
+        const pageLockers = this.extractLockersFromResponse(response.data);
+
+        if (pageLockers.length === 0) {
+          console.log(`📄 Page ${page} returned no lockers, stopping pagination`);
+          hasMorePages = false;
+        } else {
+          allLockers.push(...pageLockers);
+          console.log(`📄 Page ${page}: Added ${pageLockers.length} lockers (Total: ${allLockers.length})`);
+
+          // Check if we should continue pagination
+          if (pageLockers.length < limit) {
+            console.log(`📄 Page ${page} returned fewer than ${limit} lockers, assuming last page`);
+            hasMorePages = false;
+          } else {
+            page++;
+          }
+        }
+
+        // Safety limit to prevent infinite loops
+        if (page > 50) {
+          console.warn('⚠️ Reached maximum page limit (50), stopping pagination');
+          hasMorePages = false;
+        }
+
+      } catch (error) {
+        if (page === 1) {
+          // If first page fails, try without pagination
+          console.log(`🔄 Retrying ${endpoint} without pagination parameters...`);
+          try {
+            const response = await axios.get(endpoint, {
+              timeout: 15000,
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+              }
+            });
+
+            const lockers = this.extractLockersFromResponse(response.data);
+            allLockers.push(...lockers);
+            console.log(`✅ Fetched ${lockers.length} lockers without pagination`);
+            break;
+          } catch (retryError) {
+            throw retryError;
+          }
+        } else {
+          console.warn(`⚠️ Error fetching page ${page}, stopping pagination:`, error);
+          hasMorePages = false;
+        }
+      }
+    }
+
+    return allLockers;
+  }
+
+  /**
+   * Extract lockers from various possible API response formats
+   */
+  private extractLockersFromResponse(data: any): LockerLocation[] {
+    let rawLockers: any[] = [];
+
+    // Handle different response formats
+    if (Array.isArray(data)) {
+      rawLockers = data;
+    } else if (data?.lockers && Array.isArray(data.lockers)) {
+      rawLockers = data.lockers;
+    } else if (data?.data && Array.isArray(data.data)) {
+      rawLockers = data.data;
+    } else if (data?.results && Array.isArray(data.results)) {
+      rawLockers = data.results;
+    } else {
+      console.warn('⚠️ Unexpected API response format:', data);
+      return [];
+    }
+
+    return this.processLockerData(rawLockers);
   }
 
   /**
