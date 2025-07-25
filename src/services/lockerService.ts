@@ -56,13 +56,14 @@ class LockerService {
   private useSandbox: boolean = false;
 
   constructor() {
-    // Try to get API key from environment variables
-    this.apiKey = import.meta.env.VITE_PUDO_API_KEY || import.meta.env.VITE_COURIER_GUY_API_KEY || null;
+    // Try to get API key from environment variables or use provided key
+    this.apiKey = import.meta.env.VITE_PUDO_API_KEY ||
+                  import.meta.env.VITE_COURIER_GUY_API_KEY ||
+                  '37102346|dpTTHKfhJYBQh79UfHmOj8P0IPtt8ImFz0VeHXWr65621bae';
     this.useSandbox = import.meta.env.VITE_PUDO_SANDBOX === 'true' || false;
 
-    if (!this.apiKey) {
-      console.warn('⚠️ No PUDO API key found. Set VITE_PUDO_API_KEY environment variable for real API access.');
-      console.info('💡 Get your API key from: https://customer.pudo.co.za (Settings → API Keys)');
+    if (this.apiKey === '37102346|dpTTHKfhJYBQh79UfHmOj8P0IPtt8ImFz0VeHXWr65621bae') {
+      console.log('🔑 Using provided PUDO API key for testing');
     }
 
     if (this.useSandbox) {
@@ -259,7 +260,7 @@ class LockerService {
     }
 
     const mockLockers = this.getMockLockers();
-    console.log(`📄 Loaded ${mockLockers.length} verified mock locker locations`);
+    console.log(`���� Loaded ${mockLockers.length} verified mock locker locations`);
 
     return mockLockers;
   }
@@ -433,7 +434,7 @@ class LockerService {
 
             const lockers = this.extractLockersFromResponse(response.data);
             allLockers.push(...lockers);
-            console.log(`��� Fetched ${lockers.length} lockers without pagination`);
+            console.log(`✅ Fetched ${lockers.length} lockers without pagination`);
             break;
           } catch (retryError) {
             throw retryError;
