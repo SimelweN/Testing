@@ -1444,7 +1444,7 @@ const Developer = () => {
                         setIsLoading(true);
                         try {
                           const { lockerService } = await import('@/services/lockerService');
-                          console.log('🧪 Starting API connectivity test...');
+                          console.log('��� Starting API connectivity test...');
                           const result = await lockerService.testApiConnectivity();
 
                           if (result.success) {
@@ -1695,7 +1695,7 @@ const Developer = () => {
                     <ul className="list-disc list-inside ml-4 space-y-1 text-xs">
                       <li>🥇 <strong>Deploy Edge Function:</strong> <code>supabase functions deploy courier-guy-lockers</code></li>
                       <li>🥈 <strong>Backend Proxy:</strong> Route API calls through your server</li>
-                      <li>🥉 <strong>Verified Mock Data:</strong> 18 real PUDO locations (current fallback)</li>
+                      <li>🥉 <strong>Verified Mock Data:</strong> 19 real PUDO locations (current fallback)</li>
                     </ul>
                     <div className="mt-2 p-2 bg-blue-100 rounded text-xs">
                       <p><strong>Quick Fix:</strong> The edge function in <code>supabase/functions/courier-guy-lockers/</code> is ready to deploy!</p>
