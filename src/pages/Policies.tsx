@@ -16,12 +16,15 @@ const Policies = () => {
         keywords="policies, terms, privacy, POPIA, consumer protection, ReBooked Solutions"
       />
 
-      <div className="container mx-auto px-4 py-4 sm:py-8 max-w-6xl">
-        <div className="mb-6 sm:mb-8 text-center">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
-            ReBooked Solutions – Platform Policies
+      <div className="container mx-auto px-4 py-6 sm:py-12 max-w-7xl">
+        <div className="mb-8 sm:mb-12 text-center">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6">
+            Platform Policies
           </h1>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mt-4 max-w-4xl mx-auto">
+          <p className="text-lg text-gray-600 mb-6 max-w-3xl mx-auto">
+            Complete policy documentation for ReBooked Solutions
+          </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6 mt-6 max-w-5xl mx-auto shadow-sm">
             <div className="text-blue-800 text-xs sm:text-sm space-y-1 sm:space-y-0">
               <div className="flex flex-col sm:flex-row sm:items-center justify-center flex-wrap gap-1 sm:gap-2">
                 <span>
