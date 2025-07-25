@@ -733,6 +733,122 @@ class LockerService {
   }
 
   /**
+   * Format opening hours from PUDO API format to readable string
+   */
+  private formatOpeningHours(openingHours: any[]): string {
+    if (!openingHours || !Array.isArray(openingHours) || openingHours.length === 0) {
+      return 'Hours not available';
+    }
+
+    try {
+      // Group similar hours
+      const weekdays = openingHours.filter(h =>
+        ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].includes(h.day)
+      );
+      const weekends = openingHours.filter(h =>
+        ['Saturday', 'Sunday'].includes(h.day)
+      );
+
+      if (weekdays.length > 0 && weekends.length > 0) {
+        const weekdayHours = weekdays[0];
+        const weekendHours = weekends[0];
+
+        const weekdayTime = `${weekdayHours.open_time?.substring(0, 5)} - ${weekdayHours.close_time?.substring(0, 5)}`;
+        const weekendTime = `${weekendHours.open_time?.substring(0, 5)} - ${weekendHours.close_time?.substring(0, 5)}`;
+
+        if (weekdayTime === weekendTime) {
+          return `Mon-Sun: ${weekdayTime}`;
+        } else {
+          return `Mon-Fri: ${weekdayTime}, Sat-Sun: ${weekendTime}`;
+        }
+      } else if (weekdays.length > 0) {
+        const weekdayHours = weekdays[0];
+        return `Mon-Fri: ${weekdayHours.open_time?.substring(0, 5)} - ${weekdayHours.close_time?.substring(0, 5)}`;
+      } else {
+        const firstHour = openingHours[0];
+        return `${firstHour.open_time?.substring(0, 5)} - ${firstHour.close_time?.substring(0, 5)}`;
+      }
+    } catch (error) {
+      console.warn('Error formatting opening hours:', error);
+      return 'Hours not available';
+    }
+  }
+
+  /**
+   * Infer province from city name
+   */
+  private inferProvinceFromCity(city: string): string {
+    if (!city) return '';
+
+    const cityLower = city.toLowerCase();
+
+    // Major cities and their provinces
+    const cityProvinceMap: Record<string, string> = {
+      // Gauteng
+      'johannesburg': 'Gauteng',
+      'pretoria': 'Gauteng',
+      'sandton': 'Gauteng',
+      'midrand': 'Gauteng',
+      'germiston': 'Gauteng',
+      'benoni': 'Gauteng',
+      'boksburg': 'Gauteng',
+      'roodepoort': 'Gauteng',
+      'soweto': 'Gauteng',
+
+      // Western Cape
+      'cape town': 'Western Cape',
+      'stellenbosch': 'Western Cape',
+      'paarl': 'Western Cape',
+      'worcester': 'Western Cape',
+      'george': 'Western Cape',
+      'bellville': 'Western Cape',
+      'claremont': 'Western Cape',
+
+      // KwaZulu-Natal
+      'durban': 'KwaZulu-Natal',
+      'pietermaritzburg': 'KwaZulu-Natal',
+      'newcastle': 'KwaZulu-Natal',
+      'richards bay': 'KwaZulu-Natal',
+      'umhlanga': 'KwaZulu-Natal',
+      'westville': 'KwaZulu-Natal',
+
+      // Eastern Cape
+      'port elizabeth': 'Eastern Cape',
+      'east london': 'Eastern Cape',
+      'grahamstown': 'Eastern Cape',
+      'uitenhage': 'Eastern Cape',
+
+      // Free State
+      'bloemfontein': 'Free State',
+      'welkom': 'Free State',
+
+      // Mpumalanga
+      'nelspruit': 'Mpumalanga',
+      'witbank': 'Mpumalanga',
+
+      // Limpopo
+      'polokwane': 'Limpopo',
+
+      // North West
+      'potchefstroom': 'North West',
+      'klerksdorp': 'North West',
+
+      // Northern Cape
+      'kimberley': 'Northern Cape',
+      'upington': 'Northern Cape'
+    };
+
+    for (const [cityName, province] of Object.entries(cityProvinceMap)) {
+      if (cityLower.includes(cityName) || cityName.includes(cityLower)) {
+        return province;
+      }
+    }
+
+    // Default to Gauteng if not found (since most lockers are likely in major centers)
+    return 'Gauteng';
+  }
+
+  /**
    * Calculate shipping rates for different service types
    */
   async calculateRates(params: {
