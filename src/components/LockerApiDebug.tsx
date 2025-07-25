@@ -328,41 +328,52 @@ const LockerApiDebug: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Button 
-              onClick={testEdgeFunction} 
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <Button
+              onClick={testEdgeFunction}
               disabled={testing}
               variant="outline"
             >
               {testing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Test Edge Function
             </Button>
-            
-            <Button 
-              onClick={testDirectApi} 
+
+            <Button
+              onClick={testDirectApi}
               disabled={testing}
               variant="outline"
             >
               {testing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Test Direct API
             </Button>
-            
-            <Button 
-              onClick={testConnectivity} 
+
+            <Button
+              onClick={testConnectivity}
               disabled={testing}
               variant="outline"
             >
               {testing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Test Connectivity
             </Button>
-            
-            <Button 
-              onClick={getLockers} 
+
+            <Button
+              onClick={testFullApiIntegration}
               disabled={testing}
-              variant="default"
+              variant="secondary"
+              className="col-span-full md:col-span-1"
             >
               {testing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              Get Lockers
+              Test Full API Integration
+            </Button>
+
+            <Button
+              onClick={getLockers}
+              disabled={testing}
+              variant="default"
+              className="col-span-full md:col-span-1"
+            >
+              {testing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Get Lockers (Current)
             </Button>
           </div>
           
