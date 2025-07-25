@@ -29,6 +29,7 @@ import AdminContactTab from "@/components/admin/AdminContactTab";
 import AdminResourcesTab from "@/components/admin/AdminResourcesTab";
 import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
 import AdminPayoutTab from "@/components/admin/AdminPayoutTab";
+import AdminUtilitiesTab from "@/components/admin/AdminUtilitiesTab";
 
 
 
@@ -53,6 +54,7 @@ import {
   ChevronRight,
   Code,
   Banknote,
+  Wrench,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -395,6 +397,13 @@ const AdminDashboard = () => {
       description: "Seller payouts and recipients",
     },
     {
+      value: "utilities",
+      label: "Utilities",
+      icon: Wrench,
+      color: "text-orange-600",
+      description: "Testing tools and database management",
+    },
+    {
       value: "settings",
       label: "Settings",
       icon: Settings,
@@ -636,6 +645,14 @@ const AdminDashboard = () => {
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-0">
                   <AdminPayoutTab />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="utilities" className="mt-0 space-y-6">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-6">
+                  <AdminUtilitiesTab />
                 </CardContent>
               </Card>
             </TabsContent>
