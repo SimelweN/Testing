@@ -24,14 +24,36 @@ export interface LockerSearchFilters {
 }
 
 class LockerService {
-  private apiEndpoints = [
-    'https://api.pudo.co.za/lockers',
-    'https://api.thecourierguy.co.za/locker-to-door/lockers'
-  ];
+  // PUDO API Base URLs
+  private baseUrl = 'https://api-pudo.co.za';
+  private sandboxUrl = 'https://sandbox-api.pudo.co.za';
+  private devUrl = 'https://dev.api-pudo.co.za';
+
+  // Available endpoints
+  private endpoints = {
+    // Locker/Terminal Information
+    lockers: '/lockers/terminals',
+
+    // Rate Calculation
+    rates: '/rates',
+
+    // Shipment Management
+    shipments: '/shipments',
+    trackingByParcel: '/tracking/shipments',
+
+    // Label Generation
+    waybill: '/generate/waybill',
+    sticker: '/generate/sticker',
+
+    // Legacy endpoints (fallback)
+    legacyLockers: '/lockers'
+  };
+
   private lockers: LockerLocation[] = [];
   private lastFetched: Date | null = null;
   private cacheExpiry = 1000 * 60 * 30; // 30 minutes cache
   private apiKey: string | null = null;
+  private useSandbox: boolean = false;
 
   constructor() {
     // Try to get API key from environment variables
