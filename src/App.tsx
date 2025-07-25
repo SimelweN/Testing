@@ -221,6 +221,10 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
+                      <Route
+                        path="/lockers"
+                        element={<LockerSearchPage />}
+                      />
 
                                             {/* Admin Routes */}
                       <Route
