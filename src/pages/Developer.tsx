@@ -126,8 +126,34 @@ const Developer = () => {
         toast.success(`✅ Loaded ${realBooks.length} REAL books from database`);
       } else {
         console.error('❌ Books query failed:', booksError);
-        toast.error(`❌ Failed to load books: ${booksError?.message || 'No books found'}`);
-        return; // Don't continue if we can't load real data
+        const errorMsg = booksError?.message || booksError?.details || booksError?.hint || JSON.stringify(booksError) || 'Unknown database error';
+        toast.error(`❌ Failed to load books: ${errorMsg}`);
+
+        // Try a simpler query as fallback
+        console.log('🔄 Trying simpler books query...');
+        const { data: simpleBooksData, error: simpleBooksError } = await supabase
+          .from('books')
+          .select('id, title, price, seller_id')
+          .limit(10);
+
+        if (!simpleBooksError && simpleBooksData && simpleBooksData.length > 0) {
+          const simpleBooks = simpleBooksData.map(book => ({
+            id: book.id,
+            title: book.title,
+            price: book.price,
+            seller_id: book.seller_id,
+            seller_name: 'Seller (Name not loaded)',
+            isbn: 'ISBN not available',
+            condition: 'unknown'
+          }));
+          setBooks(simpleBooks);
+          setSelectedBook(simpleBooks[0].id);
+          toast.success(`✅ Loaded ${simpleBooks.length} books with basic info`);
+        } else {
+          const simpleErrorMsg = simpleBooksError?.message || simpleBooksError?.details || JSON.stringify(simpleBooksError) || 'No books found';
+          toast.error(`❌ Simple query also failed: ${simpleErrorMsg}`);
+          return;
+        }
       }
 
       // Load REAL users (both buyers and sellers)
