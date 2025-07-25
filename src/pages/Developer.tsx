@@ -275,7 +275,7 @@ const Developer = () => {
       }
 
       toast.error(`❌ Critical database error: ${errorMessage}`);
-      toast.warning('🚨 Please check your Supabase configuration and database permissions');
+      toast.warning('��� Please check your Supabase configuration and database permissions');
     }
   };
 
@@ -303,13 +303,14 @@ const Developer = () => {
       if (error) {
         console.error(`❌ ${functionName} error object:`, error);
         console.error(`❌ ${functionName} error keys:`, Object.keys(error));
+        console.error(`❌ ${functionName} error.context:`, error.context);
         console.error(`❌ ${functionName} data object:`, data);
 
-        // Extract status code first
-        if (error.status) {
-          statusCode = error.status;
-        } else if (error.context?.response?.status) {
+        // Extract status code from context
+        if (error.context?.response?.status) {
           statusCode = error.context.response.status;
+        } else if (error.status) {
+          statusCode = error.status;
         } else {
           statusCode = 400;
         }
