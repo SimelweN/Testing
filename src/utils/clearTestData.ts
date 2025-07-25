@@ -38,9 +38,12 @@ export const clearAllTestData = async (): Promise<boolean> => {
       .is("buyer_id", null);
 
     if (buyerIdError) {
-      console.error("Error deleting orders with null buyer_id:", buyerIdError);
+      const errorMsg = buyerIdError.message || buyerIdError.details || 'Unknown error';
+      console.error("Error deleting orders with null buyer_id:", errorMsg);
+      console.error("Full buyerId error:", JSON.stringify(buyerIdError, null, 2));
     } else {
       totalOrdersDeleted += buyerIdCount || 0;
+      console.log(`✅ Deleted ${buyerIdCount || 0} orders with null buyer_id`);
     }
 
     // Delete orders with null seller_id
