@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import EdgeFunctionTester from "@/components/admin/EdgeFunctionTester";
+import ProcessBookPurchaseTester from "@/components/admin/ProcessBookPurchaseTester";
 
 interface PayoutResponse {
   success: boolean;
