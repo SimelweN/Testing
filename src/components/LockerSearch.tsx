@@ -342,7 +342,7 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="space-y-4">
+        <TabsContent value="all" className="space-y-4 min-h-screen">
           {filteredLockers.length === 0 ? (
             <Alert>
               <AlertCircle className="h-4 w-4" />
@@ -351,11 +351,16 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
               </AlertDescription>
             </Alert>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
               {filteredLockers.map((locker, index) => {
                 console.log(`🔍 Rendering locker ${index + 1}:`, locker.name, locker.city);
                 return <LockerCard key={locker.id} locker={locker} />;
               })}
+            </div>
+          )}
+          {filteredLockers.length > 0 && (
+            <div className="text-center text-sm text-muted-foreground mt-4">
+              Displaying all {filteredLockers.length} locker locations
             </div>
           )}
         </TabsContent>
