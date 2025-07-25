@@ -98,12 +98,14 @@ export const clearAllTestData = async (): Promise<boolean> => {
           .ilike("id", `%${orderId}%`);
 
         if (patternError) {
-          console.error(`Error deleting order ${orderId}:`, {
-            message: patternError.message,
-            details: patternError.details,
-            hint: patternError.hint,
-            code: patternError.code
-          });
+          // Extract error message in multiple ways to handle different error formats
+          const errorMessage = patternError.message ||
+                              patternError.details ||
+                              patternError.hint ||
+                              (typeof patternError === 'string' ? patternError : 'Unknown error');
+
+          console.error(`Error deleting order ${orderId}:`, errorMessage);
+          console.error(`Full error object for ${orderId}:`, JSON.stringify(patternError, null, 2));
         } else if (patternCount && patternCount > 0) {
           console.log(`🗑️ Deleted ${patternCount} orders matching ${orderId}`);
           totalPatternCount += patternCount;
