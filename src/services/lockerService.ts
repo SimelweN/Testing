@@ -90,7 +90,7 @@ class LockerService {
    */
   setApiKey(apiKey: string): void {
     this.apiKey = apiKey;
-    console.log('🔑 Courier Guy API key updated');
+    console.log('�� Courier Guy API key updated');
   }
 
   /**
@@ -179,10 +179,10 @@ class LockerService {
   }
 
   /**
-   * Fetch all lockers from Courier Guy API with pagination and proper authentication
+   * Fetch all lockers/terminals from PUDO API
    */
   async fetchAllLockers(): Promise<LockerLocation[]> {
-    console.log('🚀 Attempting to fetch lockers from Courier Guy API...');
+    console.log('🚀 Attempting to fetch lockers from PUDO API...');
 
     // First try using Supabase edge function proxy (bypasses CORS)
     try {
@@ -198,25 +198,51 @@ class LockerService {
       console.warn('⚠️ Proxy method failed:', error);
     }
 
-    // Try direct API calls (will likely fail due to CORS)
-    console.log('🔄 Trying direct API calls...');
-    for (const endpoint of this.apiEndpoints) {
+    // Try direct PUDO API calls
+    console.log('🔄 Trying direct PUDO API calls...');
+    const endpoints = [
+      `${this.getBaseUrl()}${this.endpoints.lockers}`,
+      `${this.getBaseUrl()}${this.endpoints.legacyLockers}`,
+    ];
+
+    for (const endpoint of endpoints) {
       try {
-        const allLockers = await this.fetchAllLockersFromEndpoint(endpoint);
-        if (allLockers.length > 0) {
-          this.lockers = allLockers;
-          this.lastFetched = new Date();
-          console.log(`✅ Successfully fetched ${this.lockers.length} lockers from ${endpoint}`);
-          return this.lockers;
+        console.log(`🔄 Fetching from: ${endpoint}`);
+
+        const response = await axios.get(endpoint, {
+          timeout: 15000,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+          }
+        });
+
+        console.log(`📡 PUDO API Response:`, {
+          status: response.status,
+          dataType: typeof response.data,
+          isArray: Array.isArray(response.data),
+          count: Array.isArray(response.data) ? response.data.length : 'N/A'
+        });
+
+        if (response.status === 200 && response.data) {
+          const lockers = this.extractLockersFromResponse(response.data);
+
+          if (lockers.length > 0) {
+            this.lockers = lockers;
+            this.lastFetched = new Date();
+            console.log(`✅ Successfully fetched ${this.lockers.length} lockers from PUDO API`);
+            return this.lockers;
+          }
         }
       } catch (error) {
-        this.logDetailedError(`Direct API call to ${endpoint}`, error);
+        this.logDetailedError(`Direct PUDO API call to ${endpoint}`, error);
         continue;
       }
     }
 
     // If all API calls fail, fall back to cached data or mock data
-    console.error('❌ All API endpoints failed - using fallback data');
+    console.error('❌ All PUDO API endpoints failed - using fallback data');
 
     if (this.lockers.length > 0) {
       console.log('📦 Using cached locker data');
