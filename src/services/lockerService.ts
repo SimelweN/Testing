@@ -511,10 +511,10 @@ class LockerService {
       return [];
     }
 
-    // Check if this looks like PUDO terminal data
-    if (rawLockers.length > 0 && rawLockers[0]?.terminal_id) {
-      console.log('🔍 Detected PUDO terminal format');
-      return this.processPudoTerminals(rawLockers);
+    // Check if this looks like PUDO locker data from /lockers-data
+    if (rawLockers.length > 0 && (rawLockers[0]?.code || rawLockers[0]?.terminal_id)) {
+      console.log('🔍 Detected PUDO locker format from /lockers-data endpoint');
+      return this.processPudoLockers(rawLockers);
     }
 
     // Use generic processing for other formats
@@ -682,7 +682,7 @@ class LockerService {
         const isActive = locker.is_active;
 
         if (!hasValidCoords) {
-          console.debug(`�� Skipping locker ${locker.id}: Invalid coordinates`);
+          console.debug(`🚫 Skipping locker ${locker.id}: Invalid coordinates`);
           return false;
         }
 
