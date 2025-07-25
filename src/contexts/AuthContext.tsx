@@ -149,23 +149,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               error.message.includes('SMTP') ||
               error.message.includes('mail')) {
 
-            console.log("📧 Email service error detected - checking Supabase configuration...");
+            console.log("📧 Supabase email service error - configuration needed");
             EmailErrorHandler.logError(error, 'Supabase Signup');
 
-            // Check if this is a configuration issue
-            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-            console.log('🔍 Supabase URL:', supabaseUrl);
-            console.log('🔍 Environment variables check:', {
-              hasSupabaseUrl: !!import.meta.env.VITE_SUPABASE_URL,
-              hasSupabaseKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
-              environment: import.meta.env.MODE,
-            });
+            // Log configuration check for admins
+            console.group("🔧 Supabase Email Configuration Required");
+            console.log("📋 To fix this issue, configure SMTP in Supabase Dashboard:");
+            console.log("1. Go to Supabase Dashboard → Authentication → Settings");
+            console.log("2. Scroll to 'SMTP Settings' section");
+            console.log("3. Enable 'Enable custom SMTP'");
+            console.log("4. Configure your email provider (Gmail, SendGrid, etc.)");
+            console.log("5. Test the configuration");
+            console.log("6. Ensure 'Confirm email' is enabled in Auth settings");
+            console.groupEnd();
 
-            // Provide specific error message for email configuration issues
+            // User-friendly error message
             throw new Error(
-              "Email confirmation service is not properly configured. " +
-              "Please contact the administrator to configure Supabase email settings. " +
-              "This requires setting up SMTP credentials in the Supabase dashboard."
+              "Email confirmation is not set up yet. Please try again in a few minutes " +
+              "or contact support if the issue persists. The administrator needs to " +
+              "configure email settings in the Supabase dashboard."
             );
           }
 
