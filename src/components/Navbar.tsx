@@ -169,6 +169,16 @@ const Navbar = () => {
               <Truck className="w-4 h-4" />
               <span>Shipping</span>
             </Link>
+
+            <Link
+              to="/lockers"
+              className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-book-600 ${
+                isActive("/lockers") ? "text-book-600" : "text-gray-700"
+              }`}
+            >
+              <MapPin className="w-4 h-4" />
+              <span>Lockers</span>
+            </Link>
           </div>
 
           {/* Right Side Actions */}
