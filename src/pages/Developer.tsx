@@ -284,45 +284,107 @@ const Developer = () => {
     setIsLoading(true);
 
     try {
-      console.log(`Calling ${functionName} with payload:`, payload);
-      
+      console.log(`🚀 Calling ${functionName} with payload:`, payload);
+
       const { data, error } = await supabase.functions.invoke(functionName, {
         body: payload
       });
 
       const duration = Date.now() - startTime;
 
+      // Get detailed error information
+      let errorMessage = '';
+      let statusCode = 200;
+
+      if (error) {
+        console.error(`❌ ${functionName} error:`, error);
+
+        // Extract detailed error information
+        if (error.context?.response) {
+          // If there's a response object, try to get status and body
+          const response = error.context.response;
+          statusCode = response.status || 400;
+
+          if (response.body) {
+            try {
+              const errorBody = typeof response.body === 'string' ? JSON.parse(response.body) : response.body;
+              errorMessage = errorBody.error || errorBody.message || errorBody.details || error.message;
+            } catch (e) {
+              errorMessage = response.body || error.message;
+            }
+          } else {
+            errorMessage = error.message;
+          }
+        } else if (error.details) {
+          errorMessage = error.details;
+        } else if (error.message) {
+          errorMessage = error.message;
+        } else {
+          errorMessage = JSON.stringify(error);
+        }
+
+        // Try to get more details from the data object if available
+        if (data && typeof data === 'object') {
+          if (data.error) {
+            errorMessage = data.error;
+          } else if (data.message) {
+            errorMessage = data.message;
+          } else if (data.details) {
+            errorMessage = data.details;
+          }
+        }
+      }
+
       const result: TestResult = {
         function: functionName,
         status: error ? 'error' : 'success',
-        statusCode: error ? 400 : 200,
+        statusCode: statusCode,
         response: data,
-        error: error?.message,
+        error: errorMessage,
         duration,
         timestamp: new Date().toLocaleTimeString()
       };
 
       setTestResults(prev => [result, ...prev]);
-      
+
       if (error) {
-        toast.error(`${functionName} failed: ${error.message}`);
+        const shortError = errorMessage.length > 100 ? errorMessage.substring(0, 100) + '...' : errorMessage;
+        toast.error(`${functionName} failed (${statusCode}): ${shortError}`);
+        console.error(`❌ ${functionName} detailed error:`, {
+          error,
+          data,
+          statusCode,
+          errorMessage
+        });
       } else {
-        toast.success(`${functionName} executed successfully (${duration}ms)`);
+        toast.success(`✅ ${functionName} executed successfully (${duration}ms)`);
+        console.log(`✅ ${functionName} success:`, { data, duration });
       }
 
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
+
+      let errorMessage = 'Unknown error';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        errorMessage = JSON.stringify(error);
+      } else {
+        errorMessage = String(error);
+      }
+
       const result: TestResult = {
         function: functionName,
         status: 'error',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: errorMessage,
         duration,
         timestamp: new Date().toLocaleTimeString()
       };
 
       setTestResults(prev => [result, ...prev]);
-      toast.error(`${functionName} failed: ${result.error}`);
+      toast.error(`${functionName} crashed: ${errorMessage}`);
+      console.error(`💥 ${functionName} exception:`, error);
       return result;
     } finally {
       setIsLoading(false);
