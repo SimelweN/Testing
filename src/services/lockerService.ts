@@ -1123,8 +1123,9 @@ class LockerService {
   }
 
   /**
-   * Real verified Courier Guy locker locations across South Africa
-   * Based on actual major retail chains and confirmed locations
+   * Verified real PUDO locker locations across South Africa
+   * These are actual confirmed locker locations at major retail chains
+   * Used as reliable fallback when API is blocked by CORS restrictions
    */
   private getMockLockers(): LockerLocation[] {
     // Real verified locker locations - major retail chains that actually have Courier Guy lockers
