@@ -127,7 +127,7 @@ const Developer = () => {
         toast.success(`✅ Loaded ${realBooks.length} REAL books from database`);
       } else {
         console.error('❌ Books query failed:', booksError);
-        const errorMsg = booksError?.message || booksError?.details || booksError?.hint || JSON.stringify(booksError) || 'Unknown database error';
+        const errorMsg = booksError?.message || booksError?.details || booksError?.hint || (booksError ? JSON.stringify(booksError, null, 2) : 'Unknown database error');
         toast.error(`❌ Failed to load books: ${errorMsg}`);
 
         // Try a simpler query as fallback
