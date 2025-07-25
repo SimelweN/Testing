@@ -308,6 +308,19 @@ const Navbar = () => {
                 <span>Shipping</span>
               </Link>
 
+              <Link
+                to="/lockers"
+                className={`flex items-center space-x-3 px-4 py-3 text-base font-medium rounded-md transition-colors min-h-[44px] ${
+                  isActive("/lockers")
+                    ? "bg-book-50 text-book-600"
+                    : "text-gray-700 hover:bg-gray-50 hover:text-book-600"
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <MapPin className="w-5 h-5" />
+                <span>Find Lockers</span>
+              </Link>
+
               {isAuthenticated ? (
                 <>
                   <Link
