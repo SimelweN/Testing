@@ -1502,15 +1502,15 @@ const Policies = () => {
         </div>
 
         {/* Contact Section */}
-        <Card className="mt-6 sm:mt-8">
-          <CardHeader className="pb-4 sm:pb-6">
-            <CardTitle className="text-lg sm:text-xl lg:text-2xl flex items-center gap-2">
-              <Mail className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
+        <Card className="mt-8 sm:mt-12 shadow-lg border-gray-200">
+          <CardHeader className="pb-6 sm:pb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+            <CardTitle className="text-xl sm:text-2xl lg:text-3xl flex items-center gap-3 text-gray-800">
+              <Mail className="h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0 text-blue-600" />
               <span>Contact Information</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="px-4 sm:px-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-6">
+          <CardContent className="px-6 sm:px-8 py-6 sm:py-8">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200 rounded-xl p-6 sm:p-8 shadow-sm">
               <p className="text-blue-700 mb-3 sm:mb-4 text-sm sm:text-base">
                 All queries, complaints, and policy-related matters must be
                 directed to:
