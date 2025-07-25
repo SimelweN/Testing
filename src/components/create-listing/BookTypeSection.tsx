@@ -189,7 +189,7 @@ export const BookTypeSection = ({
                 <SelectValue placeholder="Select university year (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Not specified</SelectItem>
+                <SelectItem value="not-specified">Not specified</SelectItem>
                 {UNIVERSITY_YEARS.map((year) => (
                   <SelectItem key={year} value={year}>
                     {year}
