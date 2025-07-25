@@ -148,18 +148,18 @@ const LockerApiDebug: React.FC = () => {
   const getLockers = async () => {
     setTesting(true);
     setResults(null);
-    
+
     try {
       console.log('🧪 Fetching all lockers...');
       const lockers = await lockerService.getLockers(true); // Force refresh
-      
+
       setResults({
         type: 'get-lockers',
         success: true,
         lockers: lockers.slice(0, 3), // Show first 3 for preview
         totalCount: lockers.length
       });
-      
+
       toast.success(`✅ Loaded ${lockers.length} lockers`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -169,6 +169,43 @@ const LockerApiDebug: React.FC = () => {
         error: errorMessage
       });
       toast.error(`❌ Failed to get lockers: ${errorMessage}`);
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const testFullApiIntegration = async () => {
+    setTesting(true);
+    setResults(null);
+
+    try {
+      console.log('🧪 Testing full PUDO API integration...');
+      const result = await lockerService.testFullPudoApiIntegration();
+
+      setResults({
+        type: 'full-api-integration',
+        ...result
+      });
+
+      if (result.success) {
+        toast.success(`✅ Full API integration working! Found ${result.lockers?.length || 0} lockers`);
+      } else {
+        if (result.error?.includes('502')) {
+          toast.error('❌ Edge function has runtime errors (502)', {
+            description: 'Check edge function logs for syntax or runtime issues'
+          });
+        } else {
+          toast.error(`❌ API integration failed: ${result.error}`);
+        }
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setResults({
+        type: 'full-api-integration',
+        success: false,
+        error: errorMessage
+      });
+      toast.error(`❌ Test failed: ${errorMessage}`);
     } finally {
       setTesting(false);
     }
