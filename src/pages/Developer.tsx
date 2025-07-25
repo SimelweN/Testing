@@ -1539,17 +1539,24 @@ const Developer = () => {
                     API Troubleshooting Guide
                   </h4>
                   <div className="text-sm text-blue-800 space-y-2">
-                    <p><strong>Common Issue:</strong> CORS (Cross-Origin Resource Sharing) restrictions</p>
-                    <p><strong>Why it happens:</strong> Browsers block direct API calls to external domains for security</p>
+                    <p><strong>PUDO API Integration:</strong> Complete shipping and locker service</p>
+                    <p><strong>Available Endpoints:</strong></p>
+                    <ul className="list-disc list-inside ml-4 space-y-1 text-xs">
+                      <li>🏪 <code>/lockers/terminals</code> - Get all locker locations</li>
+                      <li>💰 <code>/rates</code> - Calculate shipping rates (D2L, L2D, L2L, D2D)</li>
+                      <li>📦 <code>/shipments</code> - Create and manage shipments</li>
+                      <li>🔍 <code>/tracking/shipments</code> - Track parcels</li>
+                      <li>🏷️ <code>/generate/waybill</code> - Generate shipping labels</li>
+                    </ul>
+                    <p><strong>Common Issue:</strong> CORS restrictions on direct API calls</p>
                     <p><strong>Solutions:</strong></p>
                     <ul className="list-disc list-inside ml-4 space-y-1">
-                      <li>✅ Use Supabase Edge Function proxy (recommended)</li>
-                      <li>✅ Set up backend API proxy</li>
-                      <li>✅ Enable CORS on Courier Guy API (if you control it)</li>
-                      <li>📄 Falls back to comprehensive mock data</li>
+                      <li>✅ Use Supabase Edge Function proxy (bypasses CORS)</li>
+                      <li>✅ Set up backend API proxy server</li>
+                      <li>📄 Falls back to verified locker locations</li>
                     </ul>
                     <p className="text-xs mt-2 text-blue-600">
-                      💡 Check browser console (F12) for detailed error logs
+                      💡 API Docs: <a href="https://api-pudo.co.za" target="_blank" className="underline">api-pudo.co.za</a> | Console logs: F12
                     </p>
                   </div>
                 </div>
