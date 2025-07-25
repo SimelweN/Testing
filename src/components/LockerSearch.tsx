@@ -92,14 +92,22 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
       setLoading(true);
       setError(null);
       console.log('🔄 Loading lockers...');
-      
+
       const lockersData = await lockerService.getLockers(forceRefresh);
+      console.log('📊 Loaded lockers breakdown:', {
+        total: lockersData.length,
+        provinces: [...new Set(lockersData.map(l => l.province))],
+        cities: [...new Set(lockersData.map(l => l.city))].length,
+        active: lockersData.filter(l => l.is_active).length
+      });
+
       setLockers(lockersData);
-      
+
       if (lockersData.length === 0) {
         setError('No lockers found. Please try again later.');
       } else {
-        toast.success(`Found ${lockersData.length} lockers in South Africa`);
+        toast.success(`✅ Found ${lockersData.length} PUDO lockers across South Africa`);
+        console.log('🎯 All lockers loaded successfully - ready for search and filtering');
       }
     } catch (err) {
       console.error('❌ Error loading lockers:', err);
