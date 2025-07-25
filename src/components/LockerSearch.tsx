@@ -270,7 +270,7 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
       {/* Search and Filters */}
       <Card>
         <CardHeader>
