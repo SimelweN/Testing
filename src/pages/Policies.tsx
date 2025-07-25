@@ -1511,11 +1511,11 @@ const Policies = () => {
           </CardHeader>
           <CardContent className="px-6 sm:px-8 py-6 sm:py-8">
             <div className="bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200 rounded-xl p-6 sm:p-8 shadow-sm">
-              <p className="text-blue-700 mb-3 sm:mb-4 text-sm sm:text-base">
+              <p className="text-blue-800 mb-4 sm:mb-6 text-base sm:text-lg font-medium">
                 All queries, complaints, and policy-related matters must be
                 directed to:
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
                   <p className="text-blue-700 text-sm sm:text-base">
                     <strong>Email:</strong>{" "}
