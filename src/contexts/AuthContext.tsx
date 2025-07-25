@@ -139,20 +139,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (error) {
           console.error("❌ Supabase signup failed:", error);
 
+          // Import email error handler
+          const { EmailErrorHandler } = await import("@/utils/emailErrorHandler");
+
           // Handle specific email confirmation errors gracefully
           if (error.message.toLowerCase().includes('email') ||
               error.message.includes('confirmation') ||
               error.message.includes('SMTP') ||
               error.message.includes('mail')) {
 
-            console.log("📧 Email service error detected - providing user-friendly fallback");
+            // Log detailed error information for debugging
+            EmailErrorHandler.logError(error, 'Supabase Signup');
 
-            // Instead of trying complex workarounds, provide clear guidance
-            throw new Error(
-              "Account creation is temporarily affected by email service issues. " +
-              "This is a known issue with the email provider. Please try again in a few minutes, " +
-              "or contact support for immediate assistance."
-            );
+            // Provide user-friendly error message
+            const userMessage = EmailErrorHandler.getUserFriendlyMessage(error);
+            throw new Error(userMessage);
           }
 
           // For other errors, throw the original message
