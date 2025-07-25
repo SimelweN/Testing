@@ -35,7 +35,6 @@ serve(async (req) => {
 
   try {
     // Parse request body
-    let requestBody;
     const bodyResult = await enhancedParseRequestBody(req, corsHeaders);
     if (!bodyResult.success) {
       return bodyResult.errorResponse!;

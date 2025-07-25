@@ -76,12 +76,13 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
             // Call the process-book-purchase function to finalize the order
       const requestBody = {
-        user_id: userId,
         book_id: orderSummary.book.id,
-        email: userData.user.email,
-        shipping_address: orderSummary.buyer_address,
+        buyer_id: userId,
+        seller_id: orderSummary.book.seller_id,
+        amount: orderSummary.total_price,
         payment_reference: paystackResponse.reference,
-        total_amount: orderSummary.total_price,
+        buyer_email: userData.user.email,
+        shipping_address: orderSummary.buyer_address,
         delivery_details: {
           method: orderSummary.delivery.service_name,
           courier: orderSummary.delivery.courier,
