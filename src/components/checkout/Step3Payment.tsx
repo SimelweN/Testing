@@ -137,90 +137,62 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           orderSummary: orderSummary.book.id
         });
 
-                                // Enhanced error message extraction with better debugging
+                                // Fixed error message extraction for Supabase FunctionsError
         const extractErrorMessage = (err: any): string => {
           console.log('🔍 Extracting error message from:', err);
-          console.log('🔍 Error type:', typeof err);
-          console.log('🔍 Error constructor:', err?.constructor?.name);
 
           // Handle null/undefined
           if (err === null || err === undefined) {
-            return 'Edge function returned null/undefined error';
+            return 'Edge function returned null error';
           }
 
-          // Direct string check first
+          // Direct string check
           if (typeof err === 'string') {
-            return err === '[object Object]' ? 'String conversion error - edge function returned malformed error' : err;
+            return err === '[object Object]' ? 'Edge function returned unreadable error' : err;
           }
 
-          // Check for standard error properties in order of priority
+          // Handle Supabase FunctionsError objects
           if (err && typeof err === 'object') {
-            // Check for FunctionsError structure (Supabase specific)
-            if (err.context && err.context.message) {
-              console.log('🔍 Found context.message:', err.context.message);
+            // Most common Supabase patterns
+            if (err.context?.message) {
               return String(err.context.message);
             }
 
-            // Standard error message
-            if (typeof err.message === 'string' && err.message && err.message !== '[object Object]') {
-              console.log('🔍 Found message:', err.message);
-              return err.message;
+            if (err.message && err.message !== '[object Object]') {
+              return String(err.message);
             }
 
-            // Database error details
-            if (typeof err.details === 'string' && err.details && err.details !== '[object Object]') {
-              console.log('🔍 Found details:', err.details);
-              return err.details;
+            if (err.details && err.details !== '[object Object]') {
+              return String(err.details);
             }
 
-            // Postgres hint
-            if (typeof err.hint === 'string' && err.hint && err.hint !== '[object Object]') {
-              console.log('🔍 Found hint:', err.hint);
-              return err.hint;
+            if (err.hint) {
+              return String(err.hint);
             }
 
-            // Error code
             if (err.code) {
-              console.log('🔍 Found code:', err.code);
-              return `Error code: ${String(err.code)}`;
+              return `Error code: ${err.code}`;
             }
 
-            // Name with fallback message
-            if (err.name) {
-              console.log('🔍 Found name:', err.name);
-              return `${err.name}: ${err.message || 'Unknown error'}`;
+            // Check if this looks like a network error
+            if (err.name === 'FunctionsError' || err.name === 'FunctionsHttpError') {
+              return 'Edge function is not available or not deployed';
             }
 
-            // Try to get meaningful keys from the object
+            // Try to extract any string property
             const keys = Object.keys(err);
-            console.log('🔍 Error object keys:', keys);
-
-            if (keys.length > 0) {
-              // Look for common error properties
-              for (const key of ['error', 'msg', 'description', 'reason']) {
-                if (err[key] && typeof err[key] === 'string') {
-                  console.log(`🔍 Found ${key}:`, err[key]);
-                  return err[key];
-                }
+            for (const key of keys) {
+              const value = err[key];
+              if (typeof value === 'string' && value && value !== '[object Object]') {
+                return `${key}: ${value}`;
               }
-
-              // Fallback: describe the error structure
-              return `Edge function error - object with keys: ${keys.join(', ')}`;
             }
+
+            // If all else fails, describe what we have
+            return `Edge function error (${err.constructor?.name || 'Unknown'}) with keys: ${keys.join(', ')}`;
           }
 
-          // Last resort: try JSON stringify with fallback
-          try {
-            const stringified = JSON.stringify(err);
-            if (stringified && stringified !== '{}' && stringified !== 'null') {
-              console.log('🔍 JSON stringified:', stringified);
-              return `Edge function error: ${stringified}`;
-            }
-          } catch (jsonError) {
-            console.log('🔍 JSON stringify failed:', jsonError);
-          }
-
-          return 'Edge function returned an unknown error format';
+          return 'Edge function returned an unrecognizable error';
         };
 
         const userFriendlyMessage = extractErrorMessage(error);
