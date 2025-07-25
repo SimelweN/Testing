@@ -56,139 +56,241 @@ serve(async (req) => {
           console.log('⚠️ No API key provided - may cause authentication errors')
         }
 
-        // First try a simple request without pagination to test connectivity
+        // First try a simple request without pagination to test connectivity and log full response
         console.log(`🧪 Testing basic connectivity to ${endpoint}`)
         try {
           const testResponse = await fetch(endpoint, {
             method: 'GET',
             headers,
-            signal: AbortSignal.timeout(10000)
+            signal: AbortSignal.timeout(15000)
           })
 
           console.log(`🧪 Test response: ${testResponse.status} ${testResponse.statusText}`)
 
           if (testResponse.ok) {
             const testData = await testResponse.json()
-            console.log(`🧪 Test data received:`, typeof testData, Array.isArray(testData) ? `Array[${testData.length}]` : 'Object')
 
-            // If we get data directly, return it
-            if (Array.isArray(testData) && testData.length > 0) {
-              console.log(`✅ Direct response success - ${testData.length} items`)
+            // LOG FULL RESPONSE STRUCTURE FOR DEBUGGING
+            console.log('🔍 FULL API RESPONSE STRUCTURE:')
+            console.log(JSON.stringify(testData, null, 2))
+
+            console.log(`📊 Response analysis:`, {
+              dataType: typeof testData,
+              isArray: Array.isArray(testData),
+              keys: typeof testData === 'object' ? Object.keys(testData) : 'N/A',
+              arrayLength: Array.isArray(testData) ? testData.length : 'N/A'
+            })
+
+            // Try to extract lockers from various possible structures
+            let lockers = []
+            if (Array.isArray(testData)) {
+              lockers = testData
+              console.log(`✅ Found ${lockers.length} lockers in direct array response`)
+            } else if (testData.lockers && Array.isArray(testData.lockers)) {
+              lockers = testData.lockers
+              console.log(`✅ Found ${lockers.length} lockers in data.lockers`)
+            } else if (testData.data && Array.isArray(testData.data)) {
+              lockers = testData.data
+              console.log(`✅ Found ${lockers.length} lockers in data.data`)
+            } else if (testData.results && Array.isArray(testData.results)) {
+              lockers = testData.results
+              console.log(`✅ Found ${lockers.length} lockers in data.results`)
+            } else if (testData.items && Array.isArray(testData.items)) {
+              lockers = testData.items
+              console.log(`✅ Found ${lockers.length} lockers in data.items`)
+            }
+
+            if (lockers.length > 0) {
+              console.log(`🎉 SUCCESS: Found ${lockers.length} lockers via direct request`)
+              console.log(`📋 Sample locker:`, lockers[0])
+
               return new Response(
                 JSON.stringify({
                   success: true,
-                  lockers: testData,
+                  lockers: lockers,
                   source: endpoint,
-                  method: 'direct'
+                  method: 'direct',
+                  totalCount: lockers.length,
+                  rawResponseStructure: typeof testData === 'object' ? Object.keys(testData) : 'array'
                 }),
                 {
                   headers: { ...corsHeaders, 'Content-Type': 'application/json' }
                 }
               )
+            } else {
+              console.log('⚠️ No lockers found in direct response, trying pagination...')
             }
+          } else {
+            console.log(`❌ Test response failed: ${testResponse.status} ${testResponse.statusText}`)
           }
         } catch (testError) {
           console.log(`🧪 Simple test failed: ${testError.message}`)
         }
 
-        // If simple test didn't work, try with pagination
-        const allLockers: any[] = []
-        let page = 1
-        let hasMorePages = true
+        // Try with different pagination strategies
+        console.log('🔄 Trying pagination strategies...')
 
-        while (hasMorePages && page <= 50) { // Safety limit
-          const url = new URL(endpoint)
-          url.searchParams.set('page', page.toString())
-          url.searchParams.set('limit', '100')
-          url.searchParams.set('status', 'active')
+        const paginationStrategies = [
+          // Strategy 1: Standard page/limit
+          { page: 'page', limit: 'limit', limitValue: 100 },
+          // Strategy 2: offset/limit
+          { page: 'offset', limit: 'limit', limitValue: 100 },
+          // Strategy 3: page/size
+          { page: 'page', limit: 'size', limitValue: 100 },
+          // Strategy 4: page/per_page
+          { page: 'page', limit: 'per_page', limitValue: 100 }
+        ]
 
-          console.log(`📄 Fetching page ${page} from ${url.toString()}`)
+        for (const strategy of paginationStrategies) {
+          console.log(`🧪 Trying pagination strategy: ${strategy.page}/${strategy.limit}`)
 
-          const response = await fetch(url.toString(), {
-            method: 'GET',
-            headers,
-            signal: AbortSignal.timeout(15000) // 15 second timeout
-          })
+          const allLockers: any[] = []
+          let pageNum = 1
+          let hasMorePages = true
+          let totalFetched = 0
 
-          console.log(`📡 Response: ${response.status} ${response.statusText}`)
+          while (hasMorePages && pageNum <= 50 && totalFetched < 10000) { // Safety limits
+            const url = new URL(endpoint)
 
-          if (!response.ok) {
-            if (page === 1) {
-              // Try without pagination on first page failure
-              console.log('🔄 Retrying without pagination...')
-              const simpleResponse = await fetch(endpoint, {
+            // Set pagination parameters based on strategy
+            if (strategy.page === 'offset') {
+              url.searchParams.set('offset', ((pageNum - 1) * strategy.limitValue).toString())
+            } else {
+              url.searchParams.set(strategy.page, pageNum.toString())
+            }
+            url.searchParams.set(strategy.limit, strategy.limitValue.toString())
+
+            // Try without status filter first (user suggested this might be limiting results)
+            if (pageNum === 1) {
+              console.log(`📄 Page ${pageNum} - trying WITHOUT status filter`)
+            } else {
+              url.searchParams.set('status', 'active')
+            }
+
+            console.log(`📄 Fetching page ${pageNum} from ${url.toString()}`)
+
+            try {
+              const response = await fetch(url.toString(), {
                 method: 'GET',
                 headers,
-                signal: AbortSignal.timeout(15000)
+                signal: AbortSignal.timeout(20000) // 20 second timeout
               })
 
-              if (simpleResponse.ok) {
-                const data = await simpleResponse.json()
-                console.log(`✅ Success without pagination: ${JSON.stringify(data).substring(0, 200)}...`)
-                
-                return new Response(
-                  JSON.stringify({ 
-                    success: true,
-                    lockers: Array.isArray(data) ? data : data.lockers || data.data || [],
-                    source: endpoint,
-                    method: 'simple'
-                  }),
-                  { 
-                    headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-                  }
-                )
+              console.log(`📡 Page ${pageNum} response: ${response.status} ${response.statusText}`)
+
+              if (!response.ok) {
+                console.log(`❌ Page ${pageNum} failed: ${response.status}`)
+                if (pageNum === 1) {
+                  break // Try next strategy
+                } else {
+                  hasMorePages = false // End this strategy
+                  break
+                }
+              }
+
+              const data = await response.json()
+
+              // Log full response structure for first page
+              if (pageNum === 1) {
+                console.log(`🔍 PAGINATION RESPONSE STRUCTURE (page 1):`)
+                console.log(JSON.stringify(data, null, 2))
+              }
+
+              // Extract lockers from response with more comprehensive checking
+              let pageLockers: any[] = []
+              let paginationMeta: any = null
+
+              if (Array.isArray(data)) {
+                pageLockers = data
+              } else if (data.lockers && Array.isArray(data.lockers)) {
+                pageLockers = data.lockers
+                paginationMeta = { total: data.total, hasMore: data.hasMore, totalPages: data.totalPages }
+              } else if (data.data && Array.isArray(data.data)) {
+                pageLockers = data.data
+                paginationMeta = { total: data.total, hasMore: data.hasMore, totalPages: data.totalPages }
+              } else if (data.results && Array.isArray(data.results)) {
+                pageLockers = data.results
+                paginationMeta = { total: data.total, hasMore: data.hasMore, totalPages: data.totalPages }
+              } else if (data.items && Array.isArray(data.items)) {
+                pageLockers = data.items
+                paginationMeta = { total: data.total, hasMore: data.hasMore, totalPages: data.totalPages }
+              }
+
+              console.log(`📊 Page ${pageNum}: Found ${pageLockers.length} lockers`)
+              if (paginationMeta) {
+                console.log(`📊 Pagination meta:`, paginationMeta)
+              }
+
+              if (pageLockers.length === 0) {
+                console.log(`📄 Page ${pageNum} returned no lockers, stopping pagination`)
+                hasMorePages = false
+              } else {
+                allLockers.push(...pageLockers)
+                totalFetched += pageLockers.length
+                console.log(`📄 Page ${pageNum}: Added ${pageLockers.length} lockers (Total: ${allLockers.length})`)
+
+                // Check for natural pagination end
+                if (paginationMeta?.hasMore === false) {
+                  console.log('📄 API indicates no more pages')
+                  hasMorePages = false
+                } else if (paginationMeta?.totalPages && pageNum >= paginationMeta.totalPages) {
+                  console.log(`📄 Reached total pages: ${paginationMeta.totalPages}`)
+                  hasMorePages = false
+                } else if (pageLockers.length < strategy.limitValue) {
+                  console.log(`📄 Page ${pageNum} returned fewer than ${strategy.limitValue} lockers, assuming last page`)
+                  hasMorePages = false
+                } else {
+                  pageNum++
+                }
+              }
+            } catch (pageError) {
+              console.error(`❌ Error fetching page ${pageNum}:`, pageError.message)
+              if (pageNum === 1) {
+                break // Try next strategy
+              } else {
+                hasMorePages = false
               }
             }
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
           }
 
-          const data = await response.json()
-          console.log(`📊 Page ${page} data type:`, typeof data, Array.isArray(data) ? `Array[${data.length}]` : 'Object')
+          if (allLockers.length > 0) {
+            console.log(`🎉 SUCCESS with strategy ${strategy.page}/${strategy.limit}: ${allLockers.length} lockers`)
 
-          // Extract lockers from response
-          let pageLockers: any[] = []
-          if (Array.isArray(data)) {
-            pageLockers = data
-          } else if (data.lockers && Array.isArray(data.lockers)) {
-            pageLockers = data.lockers
-          } else if (data.data && Array.isArray(data.data)) {
-            pageLockers = data.data
-          } else if (data.results && Array.isArray(data.results)) {
-            pageLockers = data.results
-          }
-
-          if (pageLockers.length === 0) {
-            console.log(`📄 Page ${page} returned no lockers, stopping pagination`)
-            hasMorePages = false
-          } else {
-            allLockers.push(...pageLockers)
-            console.log(`📄 Page ${page}: Added ${pageLockers.length} lockers (Total: ${allLockers.length})`)
-            
-            if (pageLockers.length < 100) {
-              console.log(`📄 Page ${page} returned fewer than 100 lockers, assuming last page`)
-              hasMorePages = false
-            } else {
-              page++
-            }
+            return new Response(
+              JSON.stringify({
+                success: true,
+                lockers: allLockers,
+                source: endpoint,
+                method: 'paginated',
+                strategy: strategy,
+                totalPages: pageNum - 1,
+                totalCount: allLockers.length
+              }),
+              {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              }
+            )
           }
         }
 
-        if (allLockers.length > 0) {
-          console.log(`✅ Successfully fetched ${allLockers.length} lockers from ${endpoint}`)
-          
-          return new Response(
-            JSON.stringify({ 
-              success: true,
-              lockers: allLockers,
-              source: endpoint,
-              method: 'paginated',
-              totalPages: page - 1
-            }),
-            { 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-            }
-          )
-        }
+          if (allLockers.length > 0) {
+            console.log(`🎉 SUCCESS with strategy ${strategy.page}/${strategy.limit}: ${allLockers.length} lockers`)
+
+            return new Response(
+              JSON.stringify({
+                success: true,
+                lockers: allLockers,
+                source: endpoint,
+                method: 'paginated',
+                strategy: strategy,
+                totalPages: pageNum - 1,
+                totalCount: allLockers.length
+              }),
+              {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              }
+            )
+          }
 
       } catch (error) {
         console.error(`❌ Error with endpoint ${endpoint}:`, error)

@@ -38,6 +38,7 @@ FUNCTIONS=(
     "courier-guy-quote"
     "courier-guy-shipment"
     "courier-guy-track"
+    "courier-guy-lockers"
     "create-order"
     "create-paystack-subaccount"
     "create-recipient"

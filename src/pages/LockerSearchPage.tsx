@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin } from 'lucide-react';
+import { ArrowLeft, MapPin, Bug } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LockerSearch from '@/components/LockerSearch';
+import LockerApiDebug from '@/components/LockerApiDebug';
 import { LockerLocation } from '@/services/lockerService';
 
 const LockerSearchPage: React.FC = () => {
@@ -46,10 +48,29 @@ const LockerSearchPage: React.FC = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6">
-        <LockerSearch 
-          onLockerSelect={handleLockerSelect}
-          showSelectionMode={true}
-        />
+        <Tabs defaultValue="search" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="search" className="flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              Locker Search
+            </TabsTrigger>
+            <TabsTrigger value="debug" className="flex items-center gap-2">
+              <Bug className="w-4 h-4" />
+              API Debug
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="search" className="mt-6">
+            <LockerSearch
+              onLockerSelect={handleLockerSelect}
+              showSelectionMode={true}
+            />
+          </TabsContent>
+
+          <TabsContent value="debug" className="mt-6">
+            <LockerApiDebug />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
