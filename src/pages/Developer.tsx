@@ -1436,7 +1436,7 @@ const Developer = () => {
                       Set VITE_PUDO_API_KEY in .env or get from <a href="https://customer.pudo.co.za" target="_blank" className="text-blue-600 underline">customer.pudo.co.za</a>
                     </p>
                   </div>
-                  <div className="flex items-end">
+                  <div className="flex flex-col space-y-2">
                     <Button
                       onClick={async () => {
                         setIsLoading(true);
@@ -1482,6 +1482,49 @@ const Developer = () => {
                         <CheckCircle className="h-4 w-4 mr-2" />
                       )}
                       Test API Connection
+                    </Button>
+
+                    <Button
+                      onClick={async () => {
+                        setIsLoading(true);
+                        try {
+                          console.log('🔧 Testing edge function directly...');
+                          const { supabase } = await import('@/integrations/supabase/client');
+
+                          const response = await supabase.functions.invoke('courier-guy-lockers', {
+                            body: {
+                              test: true,
+                              apiKey: null
+                            }
+                          });
+
+                          console.log('🔧 Edge function test response:', response);
+
+                          if (response.error) {
+                            toast.error(`❌ Edge function error: ${response.error.message}`);
+                            console.error('❌ Edge function error:', response.error);
+                          } else {
+                            toast.success('✅ Edge function is working');
+                            console.log('✅ Edge function success:', response.data);
+                          }
+                        } catch (error) {
+                          console.error('💥 Edge function test failed:', error);
+                          toast.error(`💥 Edge function test failed: ${error}`);
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }}
+                      disabled={isLoading}
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Code className="h-4 w-4 mr-2" />
+                      )}
+                      Test Edge Function
                     </Button>
                   </div>
                 </div>
