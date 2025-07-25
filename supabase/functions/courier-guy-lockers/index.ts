@@ -56,36 +56,72 @@ serve(async (req) => {
           console.log('⚠️ No API key provided - may cause authentication errors')
         }
 
-        // First try a simple request without pagination to test connectivity
+        // First try a simple request without pagination to test connectivity and log full response
         console.log(`🧪 Testing basic connectivity to ${endpoint}`)
         try {
           const testResponse = await fetch(endpoint, {
             method: 'GET',
             headers,
-            signal: AbortSignal.timeout(10000)
+            signal: AbortSignal.timeout(15000)
           })
 
           console.log(`🧪 Test response: ${testResponse.status} ${testResponse.statusText}`)
 
           if (testResponse.ok) {
             const testData = await testResponse.json()
-            console.log(`🧪 Test data received:`, typeof testData, Array.isArray(testData) ? `Array[${testData.length}]` : 'Object')
 
-            // If we get data directly, return it
-            if (Array.isArray(testData) && testData.length > 0) {
-              console.log(`✅ Direct response success - ${testData.length} items`)
+            // LOG FULL RESPONSE STRUCTURE FOR DEBUGGING
+            console.log('🔍 FULL API RESPONSE STRUCTURE:')
+            console.log(JSON.stringify(testData, null, 2))
+
+            console.log(`📊 Response analysis:`, {
+              dataType: typeof testData,
+              isArray: Array.isArray(testData),
+              keys: typeof testData === 'object' ? Object.keys(testData) : 'N/A',
+              arrayLength: Array.isArray(testData) ? testData.length : 'N/A'
+            })
+
+            // Try to extract lockers from various possible structures
+            let lockers = []
+            if (Array.isArray(testData)) {
+              lockers = testData
+              console.log(`✅ Found ${lockers.length} lockers in direct array response`)
+            } else if (testData.lockers && Array.isArray(testData.lockers)) {
+              lockers = testData.lockers
+              console.log(`✅ Found ${lockers.length} lockers in data.lockers`)
+            } else if (testData.data && Array.isArray(testData.data)) {
+              lockers = testData.data
+              console.log(`✅ Found ${lockers.length} lockers in data.data`)
+            } else if (testData.results && Array.isArray(testData.results)) {
+              lockers = testData.results
+              console.log(`✅ Found ${lockers.length} lockers in data.results`)
+            } else if (testData.items && Array.isArray(testData.items)) {
+              lockers = testData.items
+              console.log(`✅ Found ${lockers.length} lockers in data.items`)
+            }
+
+            if (lockers.length > 0) {
+              console.log(`🎉 SUCCESS: Found ${lockers.length} lockers via direct request`)
+              console.log(`📋 Sample locker:`, lockers[0])
+
               return new Response(
                 JSON.stringify({
                   success: true,
-                  lockers: testData,
+                  lockers: lockers,
                   source: endpoint,
-                  method: 'direct'
+                  method: 'direct',
+                  totalCount: lockers.length,
+                  rawResponseStructure: typeof testData === 'object' ? Object.keys(testData) : 'array'
                 }),
                 {
                   headers: { ...corsHeaders, 'Content-Type': 'application/json' }
                 }
               )
+            } else {
+              console.log('⚠️ No lockers found in direct response, trying pagination...')
             }
+          } else {
+            console.log(`❌ Test response failed: ${testResponse.status} ${testResponse.statusText}`)
           }
         } catch (testError) {
           console.log(`🧪 Simple test failed: ${testError.message}`)
