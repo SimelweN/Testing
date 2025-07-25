@@ -179,6 +179,14 @@ class LockerService {
     this.lockers = workingLockers;
     this.lastFetched = new Date();
     console.log(`✅ LOADED: ${workingLockers.length} verified PUDO locker locations`);
+    console.log('📍 Locker distribution:', {
+      Gauteng: workingLockers.filter(l => l.province === 'Gauteng').length,
+      'Western Cape': workingLockers.filter(l => l.province === 'Western Cape').length,
+      'KwaZulu-Natal': workingLockers.filter(l => l.province === 'KwaZulu-Natal').length,
+      'Eastern Cape': workingLockers.filter(l => l.province === 'Eastern Cape').length,
+      'All active': workingLockers.filter(l => l.is_active).length,
+      Total: workingLockers.length
+    });
 
     // OPTIONAL: Try API call in background (non-blocking)
     this.tryApiCallInBackground();
@@ -213,7 +221,7 @@ class LockerService {
         const apiLockers = this.extractLockersFromResponse(response.data);
 
         if (apiLockers.length > 0) {
-          console.log(`🎉 Background: Successfully fetched ${apiLockers.length} real lockers from API!`);
+          console.log(`���� Background: Successfully fetched ${apiLockers.length} real lockers from API!`);
           // Update cached data for future use
           this.lockers = apiLockers;
           this.lastFetched = new Date();
