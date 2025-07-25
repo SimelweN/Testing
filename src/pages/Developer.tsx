@@ -1657,13 +1657,17 @@ const Developer = () => {
                       <li>🏷️ <code>GET /shipments/{{id}}/label</code> - Generate labels</li>
                       <li>📋 <code>GET /billing/statement</code> - Account statements</li>
                     </ul>
-                    <p><strong>Common Issue:</strong> CORS restrictions on direct API calls</p>
-                    <p><strong>Solutions:</strong></p>
-                    <ul className="list-disc list-inside ml-4 space-y-1">
-                      <li>✅ Use Supabase Edge Function proxy (bypasses CORS)</li>
-                      <li>✅ Set up backend API proxy server</li>
-                      <li>📄 Falls back to verified locker locations</li>
+                    <p><strong>CORS Issue:</strong> Browser blocks direct API calls to external domains</p>
+                    <p><strong>Solutions in order of preference:</strong></p>
+                    <ul className="list-disc list-inside ml-4 space-y-1 text-xs">
+                      <li>🥇 <strong>Deploy Edge Function:</strong> <code>supabase functions deploy courier-guy-lockers</code></li>
+                      <li>🥈 <strong>Backend Proxy:</strong> Route API calls through your server</li>
+                      <li>🥉 <strong>Verified Mock Data:</strong> 18 real PUDO locations (current fallback)</li>
                     </ul>
+                    <div className="mt-2 p-2 bg-blue-100 rounded text-xs">
+                      <p><strong>Quick Fix:</strong> The edge function in <code>supabase/functions/courier-guy-lockers/</code> is ready to deploy!</p>
+                      <p>It will bypass CORS and fetch real PUDO data server-side.</p>
+                    </div>
                     <p className="text-xs mt-2 text-blue-600">
                       💡 API Docs: <a href="https://api-pudo.co.za" target="_blank" className="underline">api-pudo.co.za</a> | Console logs: F12
                     </p>
