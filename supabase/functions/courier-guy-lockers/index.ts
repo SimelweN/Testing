@@ -57,7 +57,42 @@ serve(async (req) => {
           console.log('⚠️ No API key provided - may cause authentication errors')
         }
 
-        // Fetch with pagination
+        // First try a simple request without pagination to test connectivity
+        console.log(`🧪 Testing basic connectivity to ${endpoint}`)
+        try {
+          const testResponse = await fetch(endpoint, {
+            method: 'GET',
+            headers,
+            signal: AbortSignal.timeout(10000)
+          })
+
+          console.log(`🧪 Test response: ${testResponse.status} ${testResponse.statusText}`)
+
+          if (testResponse.ok) {
+            const testData = await testResponse.json()
+            console.log(`🧪 Test data received:`, typeof testData, Array.isArray(testData) ? `Array[${testData.length}]` : 'Object')
+
+            // If we get data directly, return it
+            if (Array.isArray(testData) && testData.length > 0) {
+              console.log(`✅ Direct response success - ${testData.length} items`)
+              return new Response(
+                JSON.stringify({
+                  success: true,
+                  lockers: testData,
+                  source: endpoint,
+                  method: 'direct'
+                }),
+                {
+                  headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+                }
+              )
+            }
+          }
+        } catch (testError) {
+          console.log(`🧪 Simple test failed: ${testError.message}`)
+        }
+
+        // If simple test didn't work, try with pagination
         const allLockers: any[] = []
         let page = 1
         let hasMorePages = true
