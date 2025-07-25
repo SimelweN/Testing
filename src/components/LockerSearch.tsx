@@ -321,7 +321,7 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
               </Button>
             </div>
             <p className="text-sm text-muted-foreground">
-              Found {filteredLockers.length} lockers
+              Showing {filteredLockers.length} of {lockers.length} lockers
             </p>
           </div>
         </CardContent>
