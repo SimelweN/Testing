@@ -91,7 +91,22 @@ class LockerService {
   async fetchAllLockers(): Promise<LockerLocation[]> {
     console.log('🚀 Attempting to fetch lockers from Courier Guy API...');
 
-    // Try each endpoint until one works
+    // First try using Supabase edge function proxy (bypasses CORS)
+    try {
+      console.log('🔄 Trying Supabase edge function proxy...');
+      const proxyLockers = await this.fetchLockersViaProxy();
+      if (proxyLockers.length > 0) {
+        this.lockers = proxyLockers;
+        this.lastFetched = new Date();
+        console.log(`✅ Successfully fetched ${this.lockers.length} lockers via proxy`);
+        return this.lockers;
+      }
+    } catch (error) {
+      console.warn('⚠️ Proxy method failed:', error);
+    }
+
+    // Try direct API calls (will likely fail due to CORS)
+    console.log('🔄 Trying direct API calls...');
     for (const endpoint of this.apiEndpoints) {
       try {
         const allLockers = await this.fetchAllLockersFromEndpoint(endpoint);
@@ -102,13 +117,13 @@ class LockerService {
           return this.lockers;
         }
       } catch (error) {
-        console.warn(`⚠️ Failed to fetch from ${endpoint}:`, error);
+        this.logDetailedError(`Direct API call to ${endpoint}`, error);
         continue;
       }
     }
 
     // If all API calls fail, fall back to cached data or mock data
-    console.error('❌ All API endpoints failed');
+    console.error('❌ All API endpoints failed - using fallback data');
 
     if (this.lockers.length > 0) {
       console.log('📦 Using cached locker data');
@@ -117,6 +132,62 @@ class LockerService {
 
     console.log('🎭 Using mock locker data as fallback');
     return this.getMockLockers();
+  }
+
+  /**
+   * Fetch lockers via Supabase edge function proxy (bypasses CORS)
+   */
+  private async fetchLockersViaProxy(): Promise<LockerLocation[]> {
+    const { supabase } = await import('@/integrations/supabase/client');
+
+    const response = await supabase.functions.invoke('courier-guy-lockers', {
+      body: {
+        apiKey: this.apiKey,
+        endpoints: this.apiEndpoints
+      }
+    });
+
+    if (response.error) {
+      throw new Error(`Proxy error: ${response.error.message}`);
+    }
+
+    if (response.data?.lockers && Array.isArray(response.data.lockers)) {
+      return this.processLockerData(response.data.lockers);
+    }
+
+    throw new Error('No lockers returned from proxy');
+  }
+
+  /**
+   * Log detailed error information for debugging
+   */
+  private logDetailedError(context: string, error: any): void {
+    console.group(`❌ ${context} Error Details`);
+
+    if (error.name === 'AxiosError') {
+      console.error('Type: Axios/Network Error');
+      console.error('Message:', error.message);
+      console.error('Code:', error.code);
+      console.error('Status:', error.response?.status);
+      console.error('Status Text:', error.response?.statusText);
+      console.error('Response Data:', error.response?.data);
+      console.error('Request URL:', error.config?.url);
+      console.error('Request Headers:', error.config?.headers);
+
+      // Check for common CORS error
+      if (error.message === 'Network Error' || error.code === 'ERR_NETWORK') {
+        console.error('🚨 LIKELY CAUSE: CORS (Cross-Origin Resource Sharing) restriction');
+        console.error('💡 SOLUTION: Use backend proxy or edge function');
+      }
+    } else if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.error('Type: Fetch/CORS Error');
+      console.error('🚨 LIKELY CAUSE: CORS restriction or network issue');
+    } else {
+      console.error('Type: Unknown Error');
+      console.error('Error:', error);
+    }
+
+    console.groupEnd();
   }
 
   /**
