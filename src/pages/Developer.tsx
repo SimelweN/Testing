@@ -1650,7 +1650,7 @@ const Developer = () => {
                     <p><strong>PUDO API Integration:</strong> Complete shipping and locker service</p>
                     <p><strong>Available Endpoints:</strong></p>
                     <ul className="list-disc list-inside ml-4 space-y-1 text-xs">
-                      <li>🏪 <code>GET /lockers</code> - Get all locker locations</li>
+                      <li>🏪 <code>GET /lockers-data</code> - Get all locker locations</li>
                       <li>💰 <code>POST /rates</code> - Calculate shipping rates (D2L, L2D, L2L, D2D)</li>
                       <li>📦 <code>POST /shipments</code> - Create shipments</li>
                       <li>🔍 <code>GET /shipments/{{id}}/tracking</code> - Track shipments</li>
