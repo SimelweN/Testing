@@ -129,6 +129,15 @@ const ActivityLog = () => {
 
   useEffect(() => {
     if (user) {
+      // Auto-clear all activity data on load
+      clearAllData().then(() => {
+        console.log("✅ Activity data cleared automatically");
+        // Reload activities after clearing
+        loadActivities();
+      }).catch((error) => {
+        console.warn("Could not clear activity data:", error);
+      });
+
       // Safely attempt to refresh pending commits
       refreshPendingCommits().catch((error) => {
         console.warn("Could not load pending commits:", error);
