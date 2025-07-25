@@ -182,7 +182,23 @@ const LockerApiDebug: React.FC = () => {
 
             {results.error && (
               <Alert variant="destructive">
-                <AlertDescription>{results.error}</AlertDescription>
+                <AlertDescription>
+                  <p className="font-medium mb-2">Error: {results.error}</p>
+                  {results.error.includes('502') && (
+                    <div className="mt-2 text-sm">
+                      <p className="font-medium">502 Error - Edge Function Not Deployed</p>
+                      <p>The courier-guy-lockers edge function needs to be deployed:</p>
+                      <pre className="mt-1 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs">
+                        supabase functions deploy courier-guy-lockers --no-verify-jwt
+                      </pre>
+                    </div>
+                  )}
+                  {results.edgeFunctionUrl && (
+                    <p className="mt-2 text-xs text-gray-600">
+                      URL: {results.edgeFunctionUrl}
+                    </p>
+                  )}
+                </AlertDescription>
               </Alert>
             )}
 
