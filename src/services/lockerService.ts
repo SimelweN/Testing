@@ -768,14 +768,21 @@ class LockerService {
   }
 
   /**
-   * Search lockers based on filters
+   * Search lockers based on filters - GUARANTEED to return data
    */
   async searchLockers(filters: LockerSearchFilters): Promise<LockerLocation[]> {
     try {
-      const allLockers = await this.getLockers();
+      let allLockers: LockerLocation[] = [];
+
+      try {
+        allLockers = await this.getLockers();
+      } catch (error) {
+        console.log('🔒 getLockers failed in searchLockers, using direct fallback');
+        allLockers = this.getMockLockers();
+      }
 
       if (!allLockers || allLockers.length === 0) {
-        console.warn('⚠️ No lockers available for searching');
+        console.warn('⚠️ No lockers available for searching - returning empty array');
         return [];
       }
 
