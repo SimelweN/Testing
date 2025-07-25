@@ -103,22 +103,50 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       console.log("📦 Raw Edge Function Response:", { data, error });
       console.log("📦 Request Body Sent:", JSON.stringify(requestBody, null, 2));
 
-      // Additional debugging for [object Object] issues
+      // IMMEDIATE ERROR ANALYSIS TO PREVENT [object Object]
       if (error) {
-        console.log("🚨 DEBUGGING [object Object] ERROR:");
-        console.log("  Raw error object:", error);
-        console.log("  Object.prototype.toString.call(error):", Object.prototype.toString.call(error));
-        console.log("  error.constructor:", error.constructor);
-        console.log("  typeof error:", typeof error);
-        console.log("  error instanceof Error:", error instanceof Error);
-        console.log("  Object.keys(error):", Object.keys(error || {}));
-        console.log("  JSON.stringify attempt:", (() => {
-          try {
-            return JSON.stringify(error);
-          } catch (e) {
-            return `JSON.stringify failed: ${e.message}`;
+        console.log("🚨 IMMEDIATE ERROR ANALYSIS:");
+        console.log("  Raw error:", error);
+        console.log("  Type:", typeof error);
+        console.log("  Constructor:", error?.constructor?.name);
+        console.log("  Is Error:", error instanceof Error);
+        console.log("  String(error):", String(error));
+
+        // IMMEDIATE ERROR MESSAGE EXTRACTION
+        let immediateErrorMessage = "Unknown edge function error";
+
+        try {
+          if (typeof error === 'string') {
+            immediateErrorMessage = error;
+          } else if (error?.context?.message) {
+            immediateErrorMessage = error.context.message;
+          } else if (error?.message) {
+            immediateErrorMessage = error.message;
+          } else if (error?.details) {
+            immediateErrorMessage = error.details;
+          } else if (error?.hint) {
+            immediateErrorMessage = error.hint;
+          } else {
+            // Last resort - try to get something readable
+            const errorStr = String(error);
+            if (errorStr !== '[object Object]') {
+              immediateErrorMessage = errorStr;
+            } else {
+              immediateErrorMessage = `Edge function error (${error?.constructor?.name || 'Unknown type'})`;
+            }
           }
-        })());
+        } catch (extractError) {
+          immediateErrorMessage = `Error extraction failed: ${extractError.message}`;
+        }
+
+        console.log("🎯 IMMEDIATE READABLE ERROR:", immediateErrorMessage);
+
+        // SHOW USER-FRIENDLY ERROR IMMEDIATELY
+        toast.error(`Edge Function Failed: ${immediateErrorMessage}`, { duration: 10000 });
+
+        // Also store for debugging
+        (window as any).lastEdgeFunctionError = immediateErrorMessage;
+        (window as any).lastRawError = error;
       }
 
                                     if (error) {
