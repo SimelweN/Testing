@@ -125,8 +125,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         // Import backup email service
         const { BackupEmailService } = await import("@/utils/backupEmailService");
 
-        // Create user account - try email confirmation first, fallback if it fails
-        console.log('🔧 Attempting registration with email confirmation...');
+        // Create user account with proper email confirmation
+        console.log('🔧 Creating user account with email verification...');
 
         const { data, error } = await supabase.auth.signUp({
           email,
