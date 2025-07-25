@@ -122,9 +122,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsLoading(true);
         console.log("🔄 AuthContext register called with:", { email, name });
 
-        // Import backup email service
-        const { BackupEmailService } = await import("@/utils/backupEmailService");
-
         // Create user account - Supabase handles email confirmation automatically
         console.log('🔧 Creating user account with email verification...');
 
