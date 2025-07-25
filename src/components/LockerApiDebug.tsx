@@ -66,29 +66,47 @@ const LockerApiDebug: React.FC = () => {
   const testDirectApi = async () => {
     setTesting(true);
     setResults(null);
-    
+
     try {
       console.log('🧪 Starting direct API test...');
       const result = await lockerService.testRealPudoApi();
-      
+
       setResults({
         type: 'direct-api',
         ...result
       });
-      
+
       if (result.success) {
         toast.success('✅ Direct API is working!');
       } else {
-        toast.error(`❌ Direct API failed: ${result.error}`);
+        // Don't show error toast for expected CORS failures
+        if (result.error?.includes('CORS') || result.error?.includes('blocked by browser')) {
+          toast.info('ℹ️ Direct API blocked by CORS (this is normal)', {
+            description: 'Browser security prevents direct API calls'
+          });
+        } else {
+          toast.error(`❌ Direct API failed: ${result.error}`);
+        }
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      setResults({
-        type: 'direct-api',
-        success: false,
-        error: errorMessage
-      });
-      toast.error(`❌ Test failed: ${errorMessage}`);
+
+      // Handle expected errors gracefully
+      if (errorMessage.includes('Failed to fetch') || errorMessage.includes('CORS')) {
+        setResults({
+          type: 'direct-api',
+          success: false,
+          error: 'CORS restriction - browser blocked the request (this is expected)'
+        });
+        toast.info('ℹ️ API blocked by browser security (normal behavior)');
+      } else {
+        setResults({
+          type: 'direct-api',
+          success: false,
+          error: errorMessage
+        });
+        toast.error(`❌ Test failed: ${errorMessage}`);
+      }
     } finally {
       setTesting(false);
     }
