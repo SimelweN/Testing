@@ -1228,6 +1228,15 @@ const Developer = () => {
             </div>
             <div className="flex items-center space-x-2">
               <Button
+                onClick={() => navigate("/lockers")}
+                variant="outline"
+                size="sm"
+                className="flex items-center space-x-2"
+              >
+                <MapPin className="h-4 w-4" />
+                <span>Locker Page</span>
+              </Button>
+              <Button
                 onClick={runAllTests}
                 disabled={isLoading}
                 className="bg-purple-600 hover:bg-purple-700"
