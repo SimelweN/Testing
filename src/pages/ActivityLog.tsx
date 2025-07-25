@@ -33,7 +33,7 @@ import {
 import OrderManagementView from "@/components/orders/OrderManagementView";
 import OrderNotificationSystem from "@/components/notifications/OrderNotificationSystem";
 import EnhancedOrderCommitButton from "@/components/orders/EnhancedOrderCommitButton";
-import { clearAllTestData, clearAllUserData } from "@/utils/clearTestData";
+import { clearAllTestData, clearAllUserData, clearAllData } from "@/utils/clearTestData";
 
 const ActivityLog = () => {
   const { user, profile } = useAuth();
