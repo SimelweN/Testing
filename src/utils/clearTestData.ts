@@ -8,10 +8,11 @@ export const clearAllData = async (): Promise<boolean> => {
   try {
     console.log("🗑️ CLEARING ALL DATA - This will remove everything...");
 
-    // Delete ALL orders
+    // Delete ALL orders (using WHERE clause to satisfy SQL requirements)
     const { error: allOrdersError, count: allOrdersCount } = await supabase
       .from("orders")
-      .delete({ count: "exact" });
+      .delete({ count: "exact" })
+      .neq("id", "impossible-id-that-does-not-exist"); // This will match all records
 
     if (allOrdersError) {
       console.error("Error deleting all orders:", allOrdersError.message || allOrdersError);
@@ -19,10 +20,11 @@ export const clearAllData = async (): Promise<boolean> => {
       console.log(`🗑️ Deleted ${allOrdersCount || 0} orders (ALL)`);
     }
 
-    // Delete ALL notifications
+    // Delete ALL notifications (using WHERE clause to satisfy SQL requirements)
     const { error: allNotifError, count: allNotifCount } = await supabase
       .from("notifications")
-      .delete({ count: "exact" });
+      .delete({ count: "exact" })
+      .neq("id", "impossible-id-that-does-not-exist"); // This will match all records
 
     if (allNotifError) {
       console.error("Error deleting all notifications:", allNotifError.message || allNotifError);
