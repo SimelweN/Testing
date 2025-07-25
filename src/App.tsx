@@ -44,10 +44,6 @@ import AuthCallback from "./pages/AuthCallback";
 // Admin Pages
 import Admin from "./pages/Admin";
 import AdminReports from "./pages/AdminReports";
-import Developer from "./pages/Developer";
-import DeveloperMinimal from "./pages/DeveloperMinimal";
-import DeveloperSimple from "./pages/DeveloperSimple";
-const EdgeFunctionDebug = lazy(() => import("./pages/EdgeFunctionDebug"));
 
 
 // Support Pages
