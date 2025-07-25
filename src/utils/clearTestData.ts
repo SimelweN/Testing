@@ -68,9 +68,12 @@ export const clearAllTestData = async (): Promise<boolean> => {
       .eq("total_amount", 0);
 
     if (amountError) {
-      console.error("Error deleting orders with zero amount:", amountError);
+      const errorMsg = amountError.message || amountError.details || 'Unknown error';
+      console.error("Error deleting orders with zero amount:", errorMsg);
+      console.error("Full amount error:", JSON.stringify(amountError, null, 2));
     } else {
       totalOrdersDeleted += amountCount || 0;
+      console.log(`✅ Deleted ${amountCount || 0} orders with zero amount`);
     }
 
     const count = totalOrdersDeleted;
