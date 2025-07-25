@@ -27,6 +27,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import EdgeFunctionTester from "@/components/admin/EdgeFunctionTester";
 
 interface PayoutResponse {
   success: boolean;
