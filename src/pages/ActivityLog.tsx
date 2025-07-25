@@ -32,6 +32,8 @@ import {
 } from "lucide-react";
 import OrderManagementView from "@/components/orders/OrderManagementView";
 import OrderNotificationSystem from "@/components/notifications/OrderNotificationSystem";
+import EnhancedOrderCommitButton from "@/components/orders/EnhancedOrderCommitButton";
+import { clearAllTestData, clearAllUserData, clearAllData } from "@/utils/clearTestData";
 
 const ActivityLog = () => {
   const { user, profile } = useAuth();
@@ -81,12 +83,61 @@ const ActivityLog = () => {
     }
   }, [user]);
 
+  const handleClearTestData = async () => {
+    const confirmClear = window.confirm(
+      "This will permanently delete all test/demo data including 'Unknown Book' orders. Are you sure?"
+    );
+
+    if (!confirmClear) return;
+
+    const success = await clearAllTestData();
+    if (success) {
+      // Reload activities after clearing
+      await loadActivities();
+      // Also refresh pending commits
+      refreshPendingCommits().catch(console.error);
+    }
+  };
+
+  const handleClearAllUserData = async () => {
+    if (!user) return;
+
+    const confirmClear = window.confirm(
+      "⚠️ WARNING: This will permanently delete ALL your orders and notifications. This cannot be undone. Are you absolutely sure?"
+    );
+
+    if (!confirmClear) return;
+
+    const doubleConfirm = window.confirm(
+      "This is your final warning. All your data will be permanently deleted. Continue?"
+    );
+
+    if (!doubleConfirm) return;
+
+    const success = await clearAllUserData(user.id);
+    if (success) {
+      // Reload activities after clearing
+      await loadActivities();
+      // Also refresh pending commits
+      refreshPendingCommits().catch(console.error);
+    }
+  };
+
   useEffect(() => {
     loadActivities();
   }, [user, loadActivities]);
 
   useEffect(() => {
     if (user) {
+      // Auto-clear all activity data on load
+      clearAllData().then(() => {
+        console.log("✅ Activity data cleared automatically");
+        // Reload activities after clearing
+        loadActivities();
+      }).catch((error) => {
+        console.warn("Could not clear activity data:", error);
+      });
+
       // Safely attempt to refresh pending commits
       refreshPendingCommits().catch((error) => {
         console.warn("Could not load pending commits:", error);
@@ -287,19 +338,39 @@ const ActivityLog = () => {
                 Track your commitments, sales, and marketplace activity
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={loadActivities}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <RefreshCw className="h-4 w-4 mr-2" />
-              )}
-              Refresh
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearTestData}
+                className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear Test Data
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearAllUserData}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Clear All Data
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadActivities}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                )}
+                Refresh
+              </Button>
+            </div>
           </div>
 
           {error && (
@@ -482,42 +553,25 @@ const ActivityLog = () => {
                               </div>
 
                               <div className="ml-6 flex flex-col gap-3">
-                                <Button
-                                  onClick={async (e) => {
-                                    e.preventDefault();
-                                    try {
-                                      await commitBook(commit.bookId);
-                                      // Scroll to top after successful commit
-                                      setTimeout(() => {
-                                        window.scrollTo({
-                                          top: 0,
-                                          behavior: "smooth",
-                                        });
-                                      }, 500);
-                                    } catch (error) {
-                                      // Error is already handled in commitBook
-                                    }
+                                <EnhancedOrderCommitButton
+                                  orderId={commit.id}
+                                  sellerId={user?.id || ""}
+                                  bookTitle={commit.bookTitle}
+                                  buyerName={commit.buyerName}
+                                  onCommitSuccess={() => {
+                                    // Refresh pending commits after successful commit
+                                    refreshPendingCommits().catch(console.error);
+                                    // Scroll to top
+                                    setTimeout(() => {
+                                      window.scrollTo({
+                                        top: 0,
+                                        behavior: "smooth",
+                                      });
+                                    }, 500);
                                   }}
                                   disabled={isCommitting || isDeclining}
-                                  size="lg"
-                                  className={`${
-                                    isUrgent
-                                      ? "bg-green-600 hover:bg-green-700"
-                                      : "bg-green-600 hover:bg-green-700"
-                                  } text-white font-bold px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all`}
-                                >
-                                  {isCommitting ? (
-                                    <>
-                                      <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
-                                      Processing...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Check className="h-5 w-5 mr-2" />
-                                      Commit to Sale
-                                    </>
-                                  )}
-                                </Button>
+                                  className="px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all"
+                                />
                                 <Button
                                   onClick={async (e) => {
                                     e.preventDefault();

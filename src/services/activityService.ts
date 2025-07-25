@@ -227,7 +227,7 @@ export class ActivityService {
             console.log(
               "📝 Notifications table not available, using sample activities",
             );
-            return this.createSampleActivities(userId);
+            return [];
           }
 
           // Only log errors that aren't table-not-found issues
@@ -235,18 +235,18 @@ export class ActivityService {
             "⚠️ Non-critical error fetching notifications, falling back to sample data:",
             notifError.message || notifError,
           );
-          // Return sample activities as fallback
-          return this.createSampleActivities(userId);
+          // Return empty array as fallback
+          return [];
         }
 
         console.log(
           `✅ Found ${notifications?.length || 0} activities in notifications table`,
         );
 
-        // If no notifications found, create sample activities
+        // If no notifications found, return empty array
         if (!notifications || notifications.length === 0) {
-          console.log("No activities found, creating sample activities");
-          return this.createSampleActivities(userId);
+          console.log("No activities found, returning empty array");
+          return [];
         }
 
         // Convert notifications to activities with safety checks
@@ -271,7 +271,7 @@ export class ActivityService {
           "Exception during notifications fallback",
           fallbackError,
         );
-        return this.createSampleActivities(userId);
+        return [];
       }
     } catch (error) {
       this.logDetailedError("Error fetching user activities", error);
@@ -295,51 +295,7 @@ export class ActivityService {
     return typeMap[activityType] || "info";
   }
 
-  /**
-   * Create sample activities for better user experience
-   */
-  private static createSampleActivities(userId: string): Activity[] {
-    const now = new Date();
-    const today = now.toISOString();
-    const yesterday = new Date(
-      now.getTime() - 24 * 60 * 60 * 1000,
-    ).toISOString();
-    const lastWeek = new Date(
-      now.getTime() - 7 * 24 * 60 * 60 * 1000,
-    ).toISOString();
 
-    return [
-      {
-        id: `sample_login_${userId}`,
-        user_id: userId,
-        type: "login",
-        title: "Account Login",
-        description: `You logged into your ReBooked Solutions account`,
-        metadata: { ip: "127.0.0.1", browser: "Chrome" },
-        created_at: today,
-      },
-      {
-        id: `sample_profile_${userId}`,
-        user_id: userId,
-        type: "profile_updated",
-        title: "Profile Created",
-        description:
-          "Your ReBooked Solutions profile was created and is ready to use",
-        metadata: { setup_completed: true },
-        created_at: yesterday,
-      },
-      {
-        id: `sample_welcome_${userId}`,
-        user_id: userId,
-        type: "profile_updated",
-        title: "Welcome to ReBooked Solutions",
-        description:
-          "Welcome to the platform! Start browsing books or create your first listing.",
-        metadata: { welcome_message: true },
-        created_at: lastWeek,
-      },
-    ];
-  }
 
   /**
    * Maps notification types to activity types

@@ -1,7 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { enhancedParseRequestBody } from "../_shared/enhanced-body-parser.ts";
-import { testFunction } from "../_mock-data/edge-function-tester.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,20 +25,26 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // 🧪 TEST MODE: Check if this is a test request with mock data
-  const testResult = await testFunction("process-book-purchase", req);
-  if (testResult.isTest) {
-    return testResult.response;
-  }
-
   try {
+    console.log('🚀 Processing book purchase request...');
+    
     // Parse request body
     let requestBody;
-    const bodyResult = await enhancedParseRequestBody(req, corsHeaders);
-    if (!bodyResult.success) {
-      return bodyResult.errorResponse!;
+    try {
+      const rawBody = await req.text();
+      console.log('📥 Raw request body:', rawBody);
+      requestBody = JSON.parse(rawBody);
+    } catch (error) {
+      console.error('❌ Error parsing request body:', error);
+      return jsonResponse({
+        success: false,
+        error: "INVALID_JSON",
+        details: {
+          error_message: "Request body must be valid JSON",
+          parsing_error: error.message
+        },
+      }, { status: 400 });
     }
-    const requestBody = bodyResult.data;
 
     const {
       book_id,
@@ -52,6 +56,16 @@ serve(async (req) => {
       shipping_address
     } = requestBody;
 
+    console.log('📊 Request parameters:', {
+      book_id,
+      buyer_id,
+      seller_id,
+      amount,
+      payment_reference,
+      buyer_email: buyer_email ? 'provided' : 'not provided',
+      shipping_address: shipping_address ? 'provided' : 'not provided'
+    });
+
     // Validate required fields
     const missingFields = [];
     if (!book_id) missingFields.push("book_id");
@@ -61,6 +75,7 @@ serve(async (req) => {
     if (!payment_reference) missingFields.push("payment_reference");
 
     if (missingFields.length > 0) {
+      console.error('❌ Missing required fields:', missingFields);
       return jsonResponse({
         success: false,
         error: "MISSING_REQUIRED_FIELDS",
@@ -74,6 +89,7 @@ serve(async (req) => {
 
     // Validate amount format
     if (typeof amount !== "number" || amount <= 0) {
+      console.error('❌ Invalid amount:', amount, typeof amount);
       return jsonResponse({
         success: false,
         error: "INVALID_AMOUNT_FORMAT",
@@ -85,9 +101,12 @@ serve(async (req) => {
       }, { status: 400 });
     }
 
+    console.log('✅ All validations passed, proceeding with database operations...');
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-    // Get book details
+    // Get book details and verify availability
+    console.log('📚 Fetching book details...');
     const { data: book, error: bookError } = await supabase
       .from("books")
       .select("*")
@@ -97,59 +116,106 @@ serve(async (req) => {
       .single();
 
     if (bookError || !book) {
+      console.error('❌ Book not available:', bookError?.message);
       return jsonResponse({
         success: false,
         error: "BOOK_NOT_AVAILABLE",
         details: {
           book_id,
           seller_id,
-          error_message: bookError?.message || "Book not found or already sold"
+          error_message: bookError?.message || "Book not found or already sold",
+          database_error: bookError
         },
       }, { status: 404 });
     }
 
+    console.log('✅ Book found:', book.title, 'by', book.author);
+
+    // Validate amount matches book price
+    if (Math.abs(amount - parseFloat(book.price)) > 0.01) {
+      console.error('❌ Amount mismatch:', { expected: book.price, provided: amount });
+      return jsonResponse({
+        success: false,
+        error: "AMOUNT_MISMATCH",
+        details: {
+          expected_amount: parseFloat(book.price),
+          provided_amount: amount,
+          message: "Amount does not match book price"
+        },
+      }, { status: 400 });
+    }
+
     // Get buyer and seller profiles
-    const [{ data: buyer }, { data: seller }] = await Promise.all([
+    console.log('👥 Fetching user profiles...');
+    const [{ data: buyer, error: buyerError }, { data: seller, error: sellerError }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", buyer_id).single(),
       supabase.from("profiles").select("*").eq("id", seller_id).single()
     ]);
 
-    if (!buyer || !seller) {
+    if (buyerError || !buyer) {
+      console.error('❌ Buyer profile not found:', buyerError?.message);
       return jsonResponse({
         success: false,
-        error: "USER_PROFILES_NOT_FOUND",
+        error: "BUYER_NOT_FOUND",
         details: {
-          buyer_found: !!buyer,
-          seller_found: !!seller,
-          message: "Required user profiles not found"
+          buyer_id,
+          error_message: buyerError?.message || "Buyer profile not found"
         },
       }, { status: 404 });
     }
 
-    // Mark book as sold
+    if (sellerError || !seller) {
+      console.error('❌ Seller profile not found:', sellerError?.message);
+      return jsonResponse({
+        success: false,
+        error: "SELLER_NOT_FOUND",
+        details: {
+          seller_id,
+          error_message: sellerError?.message || "Seller profile not found"
+        },
+      }, { status: 404 });
+    }
+
+    console.log('✅ Profiles found - Buyer:', buyer.name || buyer.email, 'Seller:', seller.name || seller.email);
+
+    // Prevent self-purchase
+    if (buyer_id === seller_id) {
+      console.error('❌ Self-purchase attempt');
+      return jsonResponse({
+        success: false,
+        error: "SELF_PURCHASE_NOT_ALLOWED",
+        details: {
+          message: "Cannot purchase your own book"
+        },
+      }, { status: 400 });
+    }
+
+    // Mark book as sold (with optimistic locking)
+    console.log('📝 Marking book as sold...');
     const { error: bookUpdateError } = await supabase
       .from("books")
       .update({
         sold: true,
-        sold_at: new Date().toISOString(),
-        buyer_id,
         updated_at: new Date().toISOString()
       })
       .eq("id", book_id)
-      .eq("sold", false);
+      .eq("sold", false); // Ensure it's still available
 
     if (bookUpdateError) {
+      console.error('❌ Failed to mark book as sold:', bookUpdateError.message);
       return jsonResponse({
         success: false,
         error: "BOOK_UPDATE_FAILED",
         details: {
           error_message: bookUpdateError.message,
-          book_id
+          book_id,
+          message: "Book may have been sold by another buyer"
         },
-      }, { status: 500 });
+      }, { status: 409 });
     }
 
     // Create order
+    console.log('📋 Creating order...');
     const commitDeadline = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
     const finalPaymentRef = payment_reference || `single_book_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -175,10 +241,6 @@ serve(async (req) => {
         shipping_address: shipping_address || {},
         commit_deadline: commitDeadline.toISOString(),
         paid_at: new Date().toISOString(),
-        buyer_name: buyer.name,
-        seller_name: seller.name,
-        seller_email: seller.email,
-        expires_at: commitDeadline.toISOString(),
         created_at: new Date().toISOString(),
         metadata: {
           created_from: "single_book_purchase",
@@ -190,23 +252,30 @@ serve(async (req) => {
       .single();
 
     if (orderError) {
+      console.error('❌ Order creation failed:', orderError.message);
+      
       // Rollback book sale if order creation fails
+      console.log('🔄 Rolling back book sale...');
       await supabase
         .from("books")
-        .update({ sold: false, buyer_id: null, sold_at: null })
+        .update({ sold: false, updated_at: new Date().toISOString() })
         .eq("id", book_id);
 
       return jsonResponse({
         success: false,
         error: "ORDER_CREATION_FAILED",
         details: {
-          error_message: orderError.message
+          error_message: orderError.message,
+          rollback_performed: true
         },
       }, { status: 500 });
     }
 
+    console.log('✅ Order created successfully:', order.id);
+
     // Create notifications
-    await Promise.all([
+    console.log('📬 Creating notifications...');
+    const notificationPromises = [
       supabase.from("order_notifications").insert({
         order_id: order.id,
         user_id: buyer_id,
@@ -221,9 +290,13 @@ serve(async (req) => {
         title: "New Sale!",
         message: `You have a new order for "${book.title}" worth R${amount.toFixed(2)}. Please commit within 48 hours.`
       })
-    ]);
+    ];
+
+    await Promise.all(notificationPromises);
+    console.log('✅ Notifications created');
 
     // Log activity
+    console.log('📊 Logging activity...');
     await supabase.from("order_activity_log").insert({
       order_id: order.id,
       user_id: buyer_id,
@@ -236,52 +309,7 @@ serve(async (req) => {
       }
     });
 
-    // Queue notification emails
-    const buyerEmailHtml = `
-      <div style="font-family: Arial, sans-serif;">
-        <h2>Purchase Confirmed!</h2>
-        <p>Hi ${buyer.name},</p>
-        <p>Your purchase has been confirmed!</p>
-        <p><strong>Book:</strong> "${book.title}" by ${book.author}</p>
-        <p><strong>Price:</strong> R${amount.toFixed(2)}</p>
-        <p><strong>Seller:</strong> ${seller.name}</p>
-        <p>The seller has 48 hours to commit to the sale. We'll notify you once they confirm!</p>
-        <p>Thank you for choosing ReBooked Solutions!</p>
-      </div>
-    `;
-
-    const sellerEmailHtml = `
-      <div style="font-family: Arial, sans-serif;">
-        <h2>New Sale - Action Required!</h2>
-        <p>Hi ${seller.name},</p>
-        <p>Great news! You have a new sale!</p>
-        <p><strong>Book:</strong> "${book.title}" by ${book.author}</p>
-        <p><strong>Price:</strong> R${amount.toFixed(2)}</p>
-        <p><strong>Buyer:</strong> ${buyer.name}</p>
-        <p><strong>Deadline:</strong> ${commitDeadline.toLocaleString()}</p>
-        <p><strong>⏰ Please commit to this sale within 48 hours or it will be automatically cancelled.</strong></p>
-        <p>Log in to your account to commit to the sale!</p>
-      </div>
-    `;
-
-    await Promise.all([
-      supabase.from("mail_queue").insert({
-        user_id: buyer_id,
-        email: buyer_email || buyer.email,
-        subject: "📚 Purchase Confirmed - ReBooked",
-        body: buyerEmailHtml,
-        status: "pending",
-        created_at: new Date().toISOString()
-      }),
-      supabase.from("mail_queue").insert({
-        user_id: seller_id,
-        email: seller.email,
-        subject: "💰 New Sale - Action Required (48 hours)",
-        body: sellerEmailHtml,
-        status: "pending",
-        created_at: new Date().toISOString()
-      })
-    ]);
+    console.log('🎉 Book purchase completed successfully!');
 
     return jsonResponse({
       success: true,
@@ -290,21 +318,45 @@ serve(async (req) => {
         id: order.id,
         book_id,
         book_title: book.title,
+        book_author: book.author,
         amount,
         status: order.status,
         commit_deadline: commitDeadline.toISOString(),
-        payment_reference: finalPaymentRef
+        payment_reference: finalPaymentRef,
+        seller_name: seller.name || seller.email,
+        buyer_name: buyer.name || buyer.email
       }
     });
 
   } catch (error) {
-    console.error('Error in process-book-purchase:', error);
+    console.error('❌ Error in process-book-purchase:', error);
+    console.error('❌ Error type:', typeof error);
+    console.error('❌ Error constructor:', error?.constructor?.name);
+    console.error('❌ Error message:', error?.message);
+    console.error('❌ Error stack:', error?.stack);
+
+    // Extract a meaningful error message
+    let errorMessage = "Unknown internal server error";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    } else if (error && typeof error === 'object') {
+      errorMessage = error.message || error.details || error.hint || String(error);
+    }
+
     return jsonResponse({
       success: false,
       error: "INTERNAL_SERVER_ERROR",
       details: {
-        error_message: error.message,
-        timestamp: new Date().toISOString()
+        error_message: errorMessage,
+        error_type: typeof error,
+        error_constructor: error?.constructor?.name,
+        timestamp: new Date().toISOString(),
+        debug_info: {
+          full_error: String(error),
+          request_processing_failed: true
+        }
       },
     }, { status: 500 });
   }

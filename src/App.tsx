@@ -1,4 +1,4 @@
-import React from "react";
+import React, { lazy } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Analytics } from "@vercel/analytics/react";
@@ -46,6 +46,7 @@ import Admin from "./pages/Admin";
 import AdminReports from "./pages/AdminReports";
 import Developer from "./pages/DeveloperMinimal";
 import DeveloperSimple from "./pages/DeveloperSimple";
+const EdgeFunctionDebug = lazy(() => import("./pages/EdgeFunctionDebug"));
 
 
 // Support Pages
@@ -252,6 +253,14 @@ function App() {
                         element={
                           <AdminProtectedRoute>
                             <DeveloperSimple />
+                          </AdminProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/debug-edge"
+                        element={
+                          <AdminProtectedRoute>
+                            <EdgeFunctionDebug />
                           </AdminProtectedRoute>
                         }
                       />

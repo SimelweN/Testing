@@ -18,7 +18,17 @@ import {
   CourierGuyTrackingInfo,
 } from "@/services/courierGuyService";
 
-const CourierGuyTracker = () => {
+interface CourierGuyTrackerProps {
+  placeholder?: string;
+  showBranding?: boolean;
+  compact?: boolean;
+}
+
+const CourierGuyTracker = ({
+  placeholder = "Enter your Courier Guy tracking number",
+  showBranding = true,
+  compact = false
+}: CourierGuyTrackerProps = {}) => {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [trackingInfo, setTrackingInfo] =
@@ -95,12 +105,14 @@ const CourierGuyTracker = () => {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Tracking Form */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Search className="mr-2 h-5 w-5" />
-            Track Your Shipment
-          </CardTitle>
-        </CardHeader>
+        {showBranding && (
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Search className="mr-2 h-5 w-5" />
+              Track Your Shipment
+            </CardTitle>
+          </CardHeader>
+        )}
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -110,7 +122,7 @@ const CourierGuyTracker = () => {
                   id="trackingNumber"
                   value={trackingNumber}
                   onChange={(e) => setTrackingNumber(e.target.value)}
-                  placeholder="Enter your Courier Guy tracking number"
+                  placeholder={placeholder}
                   className="flex-1"
                 />
                 <Button

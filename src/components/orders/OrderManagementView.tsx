@@ -43,14 +43,14 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
       return;
     }
 
-        console.log("🔍 Fetching orders for user:", {
+    console.log("🔍 Fetching orders for user:", {
       userId: user.id,
       userEmail: user.email
     });
 
     setLoading(true);
     try {
-                  let query = supabase
+      let query = supabase
         .from("orders")
         .select("*")
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
@@ -60,17 +60,8 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
       const { data, error } = await query;
       console.log("🔍 Orders query result:", { data, error, dataLength: data?.length });
 
-                                    if (error) {
-        // Direct error logging for debugging
-        console.log("🔍 ORDER FETCH ERROR - Type:", typeof error);
-        console.log("🔍 ORDER FETCH ERROR - Constructor:", error?.constructor?.name);
-        console.log("🔍 ORDER FETCH ERROR - Raw:", error);
-        console.log("🔍 ORDER FETCH ERROR - Message:", error?.message);
-        console.log("🔍 ORDER FETCH ERROR - Details:", error?.details);
-
-                logError("Error fetching orders (Supabase query)", error);
-
-                // Log the error for debugging
+      if (error) {
+        logError("Error fetching orders (Supabase query)", error);
         console.log("🔍 Error loading orders:", error);
 
         // Simple error message extraction
@@ -88,13 +79,8 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
       }
 
       setOrders(data || []);
-        } catch (error) {
-      // Direct error logging for debugging
-      console.log("🔍 ORDER FETCH CATCH ERROR - Type:", typeof error);
-      console.log("🔍 ORDER FETCH CATCH ERROR - Raw:", error);
-      console.log("🔍 ORDER FETCH CATCH ERROR - Message:", error?.message);
-
-            logError("Error fetching orders (catch block)", error);
+    } catch (error) {
+      logError("Error fetching orders (catch block)", error);
 
       // Simple error message extraction
       let errorMsg = 'Failed to load orders';
@@ -109,6 +95,8 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
       setLoading(false);
     }
   };
+
+
 
   const getUserRole = (order: Order): "buyer" | "seller" => {
     return order.buyer_id === user?.id ? "buyer" : "seller";
@@ -311,7 +299,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
         </Card>
       </div>
 
-            {/* Orders List */}
+      {/* Orders List */}
       <div className="mt-6">
         {orders.length === 0 ? (
           <Card>

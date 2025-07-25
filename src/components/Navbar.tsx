@@ -138,10 +138,11 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
             <Link
               to="/books"
-              className={`text-sm font-medium transition-colors hover:text-book-600 ${
+              className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-book-600 ${
                 isActive("/books") ? "text-book-600" : "text-gray-700"
               }`}
             >
+              <BookOpen className="w-4 h-4" />
               <span className="hidden lg:inline">Browse Books</span>
               <span className="lg:hidden">Books</span>
             </Link>
@@ -259,14 +260,15 @@ const Navbar = () => {
             <div className="space-y-1">
               <Link
                 to="/books"
-                className={`block px-4 py-3 text-base font-medium rounded-md transition-colors min-h-[44px] flex items-center ${
+                className={`flex items-center space-x-3 px-4 py-3 text-base font-medium rounded-md transition-colors min-h-[44px] ${
                   isActive("/books")
                     ? "bg-book-50 text-book-600"
                     : "text-gray-700 hover:bg-gray-50 hover:text-book-600"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
-                Browse Books
+                <BookOpen className="w-5 h-5" />
+                <span>Browse Books</span>
               </Link>
 
               <Link

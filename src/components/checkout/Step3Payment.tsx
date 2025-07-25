@@ -76,12 +76,13 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
             // Call the process-book-purchase function to finalize the order
       const requestBody = {
-        user_id: userId,
         book_id: orderSummary.book.id,
-        email: userData.user.email,
-        shipping_address: orderSummary.buyer_address,
+        buyer_id: userId,
+        seller_id: orderSummary.book.seller_id,
+        amount: orderSummary.total_price,
         payment_reference: paystackResponse.reference,
-        total_amount: orderSummary.total_price,
+        buyer_email: userData.user.email,
+        shipping_address: orderSummary.buyer_address,
         delivery_details: {
           method: orderSummary.delivery.service_name,
           courier: orderSummary.delivery.courier,
@@ -100,6 +101,53 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       );
 
       console.log("📦 Raw Edge Function Response:", { data, error });
+      console.log("📦 Request Body Sent:", JSON.stringify(requestBody, null, 2));
+
+      // IMMEDIATE ERROR ANALYSIS TO PREVENT [object Object]
+      if (error) {
+        console.log("🚨 IMMEDIATE ERROR ANALYSIS:");
+        console.log("  Raw error:", error);
+        console.log("  Type:", typeof error);
+        console.log("  Constructor:", error?.constructor?.name);
+        console.log("  Is Error:", error instanceof Error);
+        console.log("  String(error):", String(error));
+
+        // IMMEDIATE ERROR MESSAGE EXTRACTION
+        let immediateErrorMessage = "Unknown edge function error";
+
+        try {
+          if (typeof error === 'string') {
+            immediateErrorMessage = error;
+          } else if (error?.context?.message) {
+            immediateErrorMessage = error.context.message;
+          } else if (error?.message) {
+            immediateErrorMessage = error.message;
+          } else if (error?.details) {
+            immediateErrorMessage = error.details;
+          } else if (error?.hint) {
+            immediateErrorMessage = error.hint;
+          } else {
+            // Last resort - try to get something readable
+            const errorStr = String(error);
+            if (errorStr !== '[object Object]') {
+              immediateErrorMessage = errorStr;
+            } else {
+              immediateErrorMessage = `Edge function error (${error?.constructor?.name || 'Unknown type'})`;
+            }
+          }
+        } catch (extractError) {
+          immediateErrorMessage = `Error extraction failed: ${extractError.message}`;
+        }
+
+        console.log("🎯 IMMEDIATE READABLE ERROR:", immediateErrorMessage);
+
+        // SHOW USER-FRIENDLY ERROR IMMEDIATELY
+        toast.error(`Edge Function Failed: ${immediateErrorMessage}`, { duration: 10000 });
+
+        // Also store for debugging
+        (window as any).lastEdgeFunctionError = immediateErrorMessage;
+        (window as any).lastRawError = error;
+      }
 
                                     if (error) {
         // Direct error logging for debugging
@@ -108,6 +156,8 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         console.log("🔍 DIRECT ERROR LOG - Raw:", error);
         console.log("🔍 DIRECT ERROR LOG - Message:", error?.message);
         console.log("🔍 DIRECT ERROR LOG - Details:", error?.details);
+        console.log("🔍 DIRECT ERROR LOG - Code:", error?.code);
+        console.log("🔍 DIRECT ERROR LOG - Hint:", error?.hint);
         console.log("🔍 DIRECT ERROR LOG - Stringified:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
 
         const errorDetails = logError("Edge Function Error", error, {
@@ -115,35 +165,62 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           orderSummary: orderSummary.book.id
         });
 
-                                // Simple and robust error message extraction
+                                // Fixed error message extraction for Supabase FunctionsError
         const extractErrorMessage = (err: any): string => {
-          // Direct string check first
+          console.log('🔍 Extracting error message from:', err);
+
+          // Handle null/undefined
+          if (err === null || err === undefined) {
+            return 'Edge function returned null error';
+          }
+
+          // Direct string check
           if (typeof err === 'string') {
-            return err === '[object Object]' ? 'String conversion error' : err;
+            return err === '[object Object]' ? 'Edge function returned unreadable error' : err;
           }
 
-          // Check for standard error properties
+          // Handle Supabase FunctionsError objects
           if (err && typeof err === 'object') {
-            if (typeof err.message === 'string' && err.message && err.message !== '[object Object]') {
-              return err.message;
-            }
-            if (typeof err.details === 'string' && err.details && err.details !== '[object Object]') {
-              return err.details;
-            }
-            if (typeof err.hint === 'string' && err.hint && err.hint !== '[object Object]') {
-              return err.hint;
-            }
-            if (err.code) {
-              return `Error code: ${String(err.code)}`;
+            // Most common Supabase patterns
+            if (err.context?.message) {
+              return String(err.context.message);
             }
 
-            // Try to extract meaningful info from object
-            if (err.name) {
-              return `${err.name}: ${err.message || 'Unknown error'}`;
+            if (err.message && err.message !== '[object Object]') {
+              return String(err.message);
             }
+
+            if (err.details && err.details !== '[object Object]') {
+              return String(err.details);
+            }
+
+            if (err.hint) {
+              return String(err.hint);
+            }
+
+            if (err.code) {
+              return `Error code: ${err.code}`;
+            }
+
+            // Check if this looks like a network error
+            if (err.name === 'FunctionsError' || err.name === 'FunctionsHttpError') {
+              return 'Edge function is not available or not deployed';
+            }
+
+            // Try to extract any string property
+            const keys = Object.keys(err);
+            for (const key of keys) {
+              const value = err[key];
+              if (typeof value === 'string' && value && value !== '[object Object]') {
+                return `${key}: ${value}`;
+              }
+            }
+
+            // If all else fails, describe what we have
+            return `Edge function error (${err.constructor?.name || 'Unknown'}) with keys: ${keys.join(', ')}`;
           }
 
-          return 'Unknown error occurred';
+          return 'Edge function returned an unrecognizable error';
         };
 
         const userFriendlyMessage = extractErrorMessage(error);
@@ -248,11 +325,52 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         }
 
                         // Final safety check and throw
-        const finalMessage = String(userFriendlyMessage || 'Unknown error');
-        const safeMessage = finalMessage === '[object Object]' ? 'Edge Function failed' : finalMessage;
+        // BULLETPROOF ERROR MESSAGE CONSTRUCTION
+        let finalMessage: string;
 
-        console.log("🔍 FINAL ERROR MESSAGE:", safeMessage);
-        throw new Error(`Edge Function Error: ${safeMessage}`);
+        try {
+          // Convert to string safely
+          const messageStr = String(userFriendlyMessage || 'Unknown error');
+
+          // Check for [object Object] pattern
+          if (messageStr === '[object Object]' || messageStr.includes('[object Object]')) {
+            console.error('🚨 [object Object] detected! Using immediate error instead');
+
+            // Use the immediate error we captured earlier
+            const immediateError = (window as any).lastEdgeFunctionError;
+            if (immediateError && typeof immediateError === 'string') {
+              finalMessage = immediateError;
+            } else {
+              finalMessage = 'Edge function failed with unreadable error format';
+            }
+          } else {
+            finalMessage = messageStr;
+          }
+        } catch (stringError) {
+          console.error('🚨 Error stringification failed:', stringError);
+          finalMessage = 'Edge function error stringification failed';
+        }
+
+        // Final safety check - ensure it's a proper string
+        if (typeof finalMessage !== 'string') {
+          finalMessage = 'Edge function returned non-string error';
+        }
+
+        // One more check for [object Object]
+        if (finalMessage.includes('[object Object]')) {
+          finalMessage = 'Edge function returned unprocessable error object';
+        }
+
+        // Add context if needed
+        const contextualMessage = finalMessage.includes('Edge function')
+          ? finalMessage
+          : `Edge function (process-book-purchase) error: ${finalMessage}`;
+
+        console.log("🔍 BULLETPROOF FINAL MESSAGE:", contextualMessage);
+
+        // Instead of throwing, show toast and continue with fallback
+        toast.error(contextualMessage, { duration: 10000 });
+        console.error("🚨 Edge function error handled:", contextualMessage);
       }
 
       console.log("✅ Edge Function Success Response:", data);
@@ -1053,6 +1171,138 @@ Time: ${new Date().toISOString()}
           </div>
         </CardContent>
       </Card>
+
+      {/* Debug Section (Development Only) */}
+      {import.meta.env.DEV && (
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader>
+            <CardTitle className="text-red-800 text-sm">🧪 Debug Tools</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                onClick={async () => {
+                  console.log("🎯 Test Real Call button clicked!");
+                  toast.info("Testing edge function...");
+                  try {
+                    // Test the exact same call that fails in checkout
+                    const { data: userData } = await supabase.auth.getUser();
+                    if (!userData.user) {
+                      toast.error("Not logged in");
+                      return;
+                    }
+
+                    const testRequest = {
+                      book_id: orderSummary.book.id,
+                      buyer_id: userId,
+                      seller_id: orderSummary.book.seller_id,
+                      amount: orderSummary.total_price,
+                      payment_reference: `test-${Date.now()}`,
+                      buyer_email: userData.user.email,
+                      shipping_address: orderSummary.buyer_address,
+                    };
+
+                    console.log("🧪 Testing with exact checkout payload:", testRequest);
+
+                    const { data, error } = await supabase.functions.invoke('process-book-purchase', {
+                      body: testRequest
+                    });
+
+                    console.log("🧪 Raw response:", { data, error });
+
+                    if (error) {
+                      // Use the same extraction logic
+                      let readable = "Unknown error";
+                      if (error?.context?.message) readable = error.context.message;
+                      else if (error?.message) readable = error.message;
+                      else if (error?.details) readable = error.details;
+                      else if (typeof error === 'string') readable = error;
+                      else readable = `Error object: ${JSON.stringify(error)}`;
+
+                      toast.error(`Actual error: ${readable}`, { duration: 10000 });
+                      console.log("🎯 READABLE ERROR:", readable);
+                    } else {
+                      toast.success("Edge function worked!");
+                    }
+
+                  } catch (e) {
+                    console.error("Test failed:", e);
+                    toast.error(`Test exception: ${e.message}`);
+                  }
+                }}
+                variant="outline"
+                size="sm"
+                className="text-red-700 border-red-300"
+              >
+                🎯 Test Real Call
+              </Button>
+
+              <Button
+                onClick={async () => {
+                  console.log("🧪 Quick Test button clicked!");
+                  toast.info("Quick test starting...");
+                  try {
+                    const testFn = (window as any).testEdgeFunction;
+                    if (testFn) {
+                      toast.info("Running edge function test...");
+                      await testFn();
+                      const lastError = (window as any).lastEdgeFunctionError;
+                      if (lastError) {
+                        toast.error(`Found error: ${lastError}`, { duration: 10000 });
+                      }
+                    } else {
+                      toast.error("Test function not loaded");
+                    }
+                  } catch (error) {
+                    console.error("Test failed:", error);
+                    toast.error("Test failed: " + String(error));
+                  }
+                }}
+                variant="outline"
+                size="sm"
+                className="text-red-700 border-red-300"
+              >
+                🧪 Quick Test
+              </Button>
+
+              <Button
+                onClick={async () => {
+                  console.log("🔬 Simple edge test button clicked!");
+                  toast.info("Running simple edge function test...");
+
+                  try {
+                    const simpleTest = (window as any).simpleEdgeFunctionTest;
+                    if (simpleTest) {
+                      const result = await simpleTest();
+                      console.log("🔬 Simple test result:", result);
+
+                      if (result.success) {
+                        toast.success("Edge function test passed!");
+                      } else {
+                        toast.error(`Test failed: ${result.userMessage || 'Unknown error'}`, { duration: 10000 });
+                      }
+                    } else {
+                      toast.error("Simple test function not loaded");
+                    }
+                  } catch (error) {
+                    console.error("Simple test failed:", error);
+                    toast.error(`Simple test exception: ${error instanceof Error ? error.message : String(error)}`);
+                  }
+                }}
+                variant="outline"
+                size="sm"
+                className="text-blue-700 border-blue-300"
+              >
+                🔬 Simple Test
+              </Button>
+            </div>
+
+            <p className="text-xs text-red-600">
+              Click buttons to test edge function. Check console for detailed logs. Based on network logs, the edge function is working but returning "Book not found" error.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Navigation Buttons */}
       <div className="flex justify-between pt-6">
