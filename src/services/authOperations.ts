@@ -31,7 +31,20 @@ export const loginUser = async (email: string, password: string) => {
       code: error.name || error.code,
       details: error.details || error.hint,
     });
-    throw error;
+
+    // Create proper Error object with user-friendly message
+    let errorMessage = error.message || 'Login failed';
+
+    // Provide specific messages for common errors
+    if (errorMessage.includes('Invalid login credentials')) {
+      errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+    } else if (errorMessage.includes('Email not confirmed')) {
+      errorMessage = 'Please verify your email address before logging in. Check your inbox for the verification link.';
+    } else if (errorMessage.includes('Too many requests')) {
+      errorMessage = 'Too many login attempts. Please wait a few minutes and try again.';
+    }
+
+    throw new Error(errorMessage);
   }
 
   console.log("Login successful for:", email);
