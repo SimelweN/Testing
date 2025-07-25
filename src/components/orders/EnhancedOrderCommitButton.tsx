@@ -91,19 +91,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
       console.log('🔄 Loading real PUDO locker locations...');
       const realLockers = await lockerService.getLockers();
       setLockers(realLockers);
-      console.log(`✅ Loaded ${realLockers.length} real PUDO lockers for order commit`);
-      
-      // In production, this would be:
-      /*
-      const response = await fetch("https://api.pudo.co.za/lockers", {
-        headers: { 
-          "ApiKey": import.meta.env.VITE_COURIER_GUY_LOCKER_API_KEY 
-        },
-      });
-      const data = await response.json();
-      setLockers(data.lockers || []);
-      */
-      
+      console.log(`✅ Loaded ${realLockers.length} real PUDO lockers for order commit`);      
     } catch (error) {
       console.error("Error loading lockers:", error);
       toast.error("Failed to load lockers. Please try again.");
