@@ -208,7 +208,7 @@ const Developer = () => {
         setSelectedSeller(realSeller?.id || realUsers[1]?.id || realUsers[0].id);
 
         console.log('✅ REAL Users loaded:', realUsers.length, realUsers);
-        toast.success(`✅ Loaded ${realUsers.length} REAL users from database`);
+        toast.success(`�� Loaded ${realUsers.length} REAL users from database`);
       } else {
         console.error('❌ Users query failed:', usersError);
         const userErrorMsg = usersError?.message || usersError?.details || usersError?.hint || (usersError ? JSON.stringify(usersError, null, 2) : 'Unknown database error');
@@ -233,9 +233,27 @@ const Developer = () => {
           setSelectedSeller(simpleUsers[1]?.id || simpleUsers[0].id);
           toast.success(`✅ Loaded ${simpleUsers.length} users with basic info`);
         } else {
-          const simpleUserErrorMsg = simpleUsersError?.message || simpleUsersError?.details || JSON.stringify(simpleUsersError) || 'No users found';
+          const simpleUserErrorMsg = simpleUsersError?.message || simpleUsersError?.details || (simpleUsersError ? JSON.stringify(simpleUsersError, null, 2) : 'No users found');
           toast.error(`❌ Simple users query also failed: ${simpleUserErrorMsg}`);
-          return;
+          // Use mock data as final fallback
+          const mockUsers = [
+            {
+              id: 'mock-buyer-1',
+              name: 'Test Buyer',
+              email: 'buyer@test.com',
+              phone: '+27123456789'
+            },
+            {
+              id: 'mock-seller-1',
+              name: 'Test Seller',
+              email: 'seller@test.com',
+              phone: '+27987654321'
+            }
+          ];
+          setUsers(mockUsers);
+          setSelectedBuyer(mockUsers[0].id);
+          setSelectedSeller(mockUsers[1].id);
+          toast.warning('👥 Using mock users data');
         }
       }
 
