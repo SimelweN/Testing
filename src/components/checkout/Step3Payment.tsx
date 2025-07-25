@@ -103,6 +103,24 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       console.log("📦 Raw Edge Function Response:", { data, error });
       console.log("📦 Request Body Sent:", JSON.stringify(requestBody, null, 2));
 
+      // Additional debugging for [object Object] issues
+      if (error) {
+        console.log("🚨 DEBUGGING [object Object] ERROR:");
+        console.log("  Raw error object:", error);
+        console.log("  Object.prototype.toString.call(error):", Object.prototype.toString.call(error));
+        console.log("  error.constructor:", error.constructor);
+        console.log("  typeof error:", typeof error);
+        console.log("  error instanceof Error:", error instanceof Error);
+        console.log("  Object.keys(error):", Object.keys(error || {}));
+        console.log("  JSON.stringify attempt:", (() => {
+          try {
+            return JSON.stringify(error);
+          } catch (e) {
+            return `JSON.stringify failed: ${e.message}`;
+          }
+        })());
+      }
+
                                     if (error) {
         // Direct error logging for debugging
         console.log("🔍 DIRECT ERROR LOG - Type:", typeof error);
