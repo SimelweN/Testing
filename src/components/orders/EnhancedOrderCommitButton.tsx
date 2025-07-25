@@ -31,6 +31,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import FallbackCommitService from "@/services/fallbackCommitService";
 
 interface EnhancedOrderCommitButtonProps {
   orderId: string;
