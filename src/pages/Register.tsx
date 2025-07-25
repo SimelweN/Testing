@@ -139,10 +139,10 @@ const Register = () => {
         });
 
         toast.info(
-          "The email confirmation service is currently experiencing issues. " +
-          "Please try registering again in a few minutes, or contact support if the problem persists.",
+          "💡 Tip: This is usually temporary and resolves within 5-10 minutes. " +
+          "You can also try using a different email address or contact support for immediate help.",
           {
-            duration: 10000,
+            duration: 12000,
           }
         );
 
@@ -245,7 +245,7 @@ const Register = () => {
                     <Input
                       id="confirmPassword"
                       type="password"
-                      placeholder="•••���••••"
+                      placeholder="••••••••"
                       className="pl-10"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
