@@ -597,6 +597,9 @@ const Developer = () => {
       {/* Main Content */}
       <div className="px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-6xl mx-auto space-y-8">
+          {/* Edge Function Tester */}
+          <EdgeFunctionTester />
+
           {/* Test Payout Function Section */}
           <Card>
             <CardHeader>
