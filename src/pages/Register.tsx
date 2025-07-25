@@ -129,52 +129,29 @@ const Register = () => {
       // Check if it's an email-related error
       if (
         errorMessage.toLowerCase().includes("email") ||
-        errorMessage.toLowerCase().includes("confirmation")
+        errorMessage.toLowerCase().includes("confirmation") ||
+        errorMessage.toLowerCase().includes("smtp") ||
+        errorMessage.toLowerCase().includes("mail")
       ) {
-        // Try to send backup confirmation email
-        console.log("📧 Email issue detected, trying backup email service...");
-        setUserEmail(email);
+        // Show user-friendly message for email service issues
+        toast.error("📧 Email Service Temporarily Unavailable", {
+          duration: 6000,
+        });
 
-        try {
-          const backupResult = await BackupEmailService.sendConfirmationEmail({ to: email });
-
-          if (backupResult.success) {
-            setEmailSent(true);
-            toast.success("Account created! Confirmation email sent via backup service.", {
-              duration: 6000
-            });
-            toast.info("Please check your email (including spam folder) for the confirmation link.", {
-              duration: 8000
-            });
-
-            setTimeout(() => {
-              navigate("/login", {
-                state: {
-                  message: "Account created! Please check your email for the confirmation link.",
-                  email,
-                },
-              });
-            }, 3000);
-          } else {
-            toast.warning("Account created successfully! You can log in, but email confirmation may be delayed.", {
-              duration: 8000
-            });
-            setTimeout(() => {
-              navigate("/login", { state: { email } });
-            }, 3000);
+        toast.info(
+          "The email confirmation service is currently experiencing issues. " +
+          "Please try registering again in a few minutes, or contact support if the problem persists.",
+          {
+            duration: 10000,
           }
-        } catch (backupError) {
-          console.error("Backup email also failed:", backupError);
-          toast.warning("Account created! Email service is temporarily unavailable, but you can still log in.", {
-            duration: 8000
-          });
-          setTimeout(() => {
-            navigate("/login", { state: { email } });
-          }, 2000);
-        }
+        );
+
+        console.log("📧 Email service error - user advised to retry later");
       } else {
         // Show the error to the user
-        toast.error(errorMessage);
+        toast.error(errorMessage, {
+          duration: 6000,
+        });
       }
     } finally {
       setIsLoading(false);
@@ -268,7 +245,7 @@ const Register = () => {
                     <Input
                       id="confirmPassword"
                       type="password"
-                      placeholder="••••••••"
+                      placeholder="•••���••••"
                       className="pl-10"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
