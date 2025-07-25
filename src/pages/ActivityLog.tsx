@@ -564,42 +564,25 @@ const ActivityLog = () => {
                               </div>
 
                               <div className="ml-6 flex flex-col gap-3">
-                                <Button
-                                  onClick={async (e) => {
-                                    e.preventDefault();
-                                    try {
-                                      await commitBook(commit.bookId);
-                                      // Scroll to top after successful commit
-                                      setTimeout(() => {
-                                        window.scrollTo({
-                                          top: 0,
-                                          behavior: "smooth",
-                                        });
-                                      }, 500);
-                                    } catch (error) {
-                                      // Error is already handled in commitBook
-                                    }
+                                <EnhancedOrderCommitButton
+                                  orderId={commit.id}
+                                  sellerId={user?.id || ""}
+                                  bookTitle={commit.bookTitle}
+                                  buyerName={commit.buyerName}
+                                  onCommitSuccess={() => {
+                                    // Refresh pending commits after successful commit
+                                    refreshPendingCommits().catch(console.error);
+                                    // Scroll to top
+                                    setTimeout(() => {
+                                      window.scrollTo({
+                                        top: 0,
+                                        behavior: "smooth",
+                                      });
+                                    }, 500);
                                   }}
                                   disabled={isCommitting || isDeclining}
-                                  size="lg"
-                                  className={`${
-                                    isUrgent
-                                      ? "bg-green-600 hover:bg-green-700"
-                                      : "bg-green-600 hover:bg-green-700"
-                                  } text-white font-bold px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all`}
-                                >
-                                  {isCommitting ? (
-                                    <>
-                                      <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
-                                      Processing...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Check className="h-5 w-5 mr-2" />
-                                      Commit to Sale
-                                    </>
-                                  )}
-                                </Button>
+                                  className="px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all"
+                                />
                                 <Button
                                   onClick={async (e) => {
                                     e.preventDefault();
