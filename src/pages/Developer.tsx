@@ -294,6 +294,27 @@ const Developer = () => {
 
       const { data, error } = response;
 
+      // If there's an error, try to get the response body directly
+      if (error && error.context?.response) {
+        try {
+          const httpResponse = error.context.response;
+          console.log(`🔍 ${functionName} HTTP response object:`, httpResponse);
+
+          // Try to read the response body if it's not already available
+          if (!httpResponse.body && httpResponse.text) {
+            const responseText = await httpResponse.text();
+            console.log(`📝 ${functionName} response text:`, responseText);
+            httpResponse.body = responseText;
+          } else if (!httpResponse.body && httpResponse.json) {
+            const responseJson = await httpResponse.json();
+            console.log(`🔧 ${functionName} response JSON:`, responseJson);
+            httpResponse.body = JSON.stringify(responseJson);
+          }
+        } catch (e) {
+          console.error(`❌ Error reading ${functionName} response body:`, e);
+        }
+      }
+
       const duration = Date.now() - startTime;
 
       // Get detailed error information
