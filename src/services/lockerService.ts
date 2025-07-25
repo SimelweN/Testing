@@ -1061,6 +1061,20 @@ class LockerService {
   }
 
   /**
+   * Get lockers formatted for dropdown/select components
+   */
+  async getLockersForDropdown(): Promise<Array<{code: string, name: string, displayName: string, location: string}>> {
+    const lockers = await this.getLockers();
+
+    return lockers.map(locker => ({
+      code: locker.id, // This is the terminal_id needed for shipments
+      name: locker.name,
+      displayName: `${locker.name} (${locker.city})`,
+      location: `${locker.city}, ${locker.province}`
+    }));
+  }
+
+  /**
    * Get available service levels for a route
    */
   getServiceLevels(): Array<{code: string, name: string, description: string}> {
