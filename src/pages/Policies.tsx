@@ -134,9 +134,9 @@ const Policies = () => {
           {activeTab === "privacy" && (
             <div className="space-y-6 sm:space-y-8">
               <Card className="shadow-md border-gray-200">
-                <CardHeader className="pb-4 sm:pb-6">
-                  <CardTitle className="text-xl sm:text-2xl lg:text-3xl flex items-center gap-2 mb-2 sm:mb-3">
-                    <Shield className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 flex-shrink-0" />
+                <CardHeader className="pb-6 sm:pb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+                  <CardTitle className="text-2xl sm:text-3xl lg:text-4xl flex items-center gap-3 mb-3 sm:mb-4 text-gray-800">
+                    <Shield className="h-7 w-7 sm:h-8 sm:w-8 lg:h-9 lg:w-9 flex-shrink-0 text-blue-600" />
                     <span>Privacy Policy</span>
                   </CardTitle>
                   <div className="text-gray-600 text-xs sm:text-sm space-y-1">
