@@ -289,7 +289,7 @@ class LockerService {
         }
       });
 
-      console.log('���� Proxy response:', {
+      console.log('📡 Proxy response:', {
         hasError: !!response.error,
         hasData: !!response.data,
         dataKeys: response.data ? Object.keys(response.data) : []
@@ -889,10 +889,10 @@ class LockerService {
   }
 
   /**
-   * Track a shipment by parcel ID
+   * Track a shipment by shipment ID
    */
-  async trackShipment(parcelId: string): Promise<any> {
-    const endpoint = `${this.getBaseUrl()}${this.endpoints.trackingByParcel}?parcel_id=${parcelId}`;
+  async trackShipment(shipmentId: string): Promise<any> {
+    const endpoint = `${this.getBaseUrl()}${this.endpoints.shipmentTracking.replace('{shipment_id}', shipmentId)}`;
 
     try {
       const response = await axios.get(endpoint, {
@@ -913,10 +913,15 @@ class LockerService {
    * Generate waybill (shipping label) for a shipment
    */
   async generateWaybill(shipmentId: string): Promise<string> {
-    const endpoint = `${this.devUrl}${this.endpoints.waybill}/${shipmentId}?api_key=${this.apiKey}`;
+    const endpoint = `${this.getBaseUrl()}${this.endpoints.shipmentLabel.replace('{shipment_id}', shipmentId)}`;
 
     try {
-      const response = await axios.get(endpoint);
+      const response = await axios.get(endpoint, {
+        headers: {
+          'Accept': 'application/json',
+          ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+        }
+      });
 
       // Returns a signed URL to the PDF
       return response.data.url || response.data;
@@ -930,15 +935,94 @@ class LockerService {
    * Generate sticker label for a shipment
    */
   async generateSticker(shipmentId: string): Promise<string> {
-    const endpoint = `${this.devUrl}${this.endpoints.sticker}/${shipmentId}?api_key=${this.apiKey}`;
+    const endpoint = `${this.getBaseUrl()}${this.endpoints.shipmentSticker.replace('{shipment_id}', shipmentId)}`;
 
     try {
-      const response = await axios.get(endpoint);
+      const response = await axios.get(endpoint, {
+        headers: {
+          'Accept': 'application/json',
+          ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+        }
+      });
 
       // Returns a signed URL to the PDF
       return response.data.url || response.data;
     } catch (error) {
       console.error('❌ Sticker generation failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get proof of delivery images for a shipment
+   */
+  async getProofOfDelivery(shipmentId: string): Promise<any> {
+    const endpoint = `${this.getBaseUrl()}${this.endpoints.shipmentPOD.replace('{shipment_id}', shipmentId)}`;
+
+    try {
+      const response = await axios.get(endpoint, {
+        headers: {
+          'Accept': 'application/json',
+          ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+        }
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('❌ POD retrieval failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cancel a shipment
+   */
+  async cancelShipment(shipmentId: string): Promise<any> {
+    const endpoint = `${this.getBaseUrl()}${this.endpoints.shipmentCancel}`;
+
+    try {
+      const response = await axios.put(endpoint,
+        { shipment_id: shipmentId },
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+          }
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('❌ Shipment cancellation failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Return a shipment
+   */
+  async returnShipment(shipmentId: string, returnAddress: any): Promise<any> {
+    const endpoint = `${this.getBaseUrl()}${this.endpoints.shipmentReturn}`;
+
+    try {
+      const response = await axios.post(endpoint,
+        {
+          shipment_id: shipmentId,
+          return_address: returnAddress
+        },
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+          }
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('❌ Shipment return failed:', error);
       throw error;
     }
   }
