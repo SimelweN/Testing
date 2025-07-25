@@ -3,7 +3,7 @@ import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Scale, Shield, Mail } from "lucide-react";
+import { FileText, Scale, Shield, Mail, RefreshCw, Package, Undo2, Gavel } from "lucide-react";
 
 const Policies = () => {
   const [activeTab, setActiveTab] = useState("privacy");
@@ -25,23 +25,22 @@ const Policies = () => {
             Complete policy documentation for ReBooked Solutions
           </p>
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6 mt-6 max-w-5xl mx-auto shadow-sm">
-            <div className="text-blue-800 text-xs sm:text-sm space-y-1 sm:space-y-0">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-center flex-wrap gap-1 sm:gap-2">
+            <div className="text-blue-800 text-xs sm:text-sm space-y-2">
+              <div className="text-center">
                 <span>
                   <strong>Effective Date:</strong> 10 June 2025
                 </span>
-                <span className="hidden sm:inline">•</span>
+                <span className="mx-2">•</span>
                 <span>
                   <strong>Platform:</strong>{" "}
                   <span className="break-all">www.rebookedsolutions.co.za</span>
                 </span>
               </div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-center flex-wrap gap-1 sm:gap-2 mt-2 sm:mt-1">
+              <div className="text-center">
                 <span>
-                  <strong>Platform Operator:</strong> ReBooked Solutions (Pty)
-                  Ltd
+                  <strong>Platform Operator:</strong> ReBooked Solutions (Pty) Ltd
                 </span>
-                <span className="hidden sm:inline">•</span>
+                <span className="mx-2">•</span>
                 <span>
                   <strong>Support:</strong>{" "}
                   <span className="break-all">
@@ -49,12 +48,12 @@ const Policies = () => {
                   </span>
                 </span>
               </div>
-              <div className="mt-2 sm:mt-1">
+              <div className="text-center">
                 <span>
                   <strong>Jurisdiction:</strong> Republic of South Africa
                 </span>
               </div>
-              <div className="mt-2 sm:mt-1">
+              <div className="text-center">
                 <span>
                   <strong>Regulatory Compliance:</strong> Consumer Protection
                   Act (Act 68 of 2008), Electronic Communications and
@@ -93,6 +92,7 @@ const Policies = () => {
                 size="lg"
                 className="text-sm sm:text-base flex-shrink-0 font-medium px-4 py-2 transition-all duration-200 hover:shadow-md"
               >
+                <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
                 <span>Refund Policy</span>
               </Button>
               <Button
@@ -101,6 +101,7 @@ const Policies = () => {
                 size="lg"
                 className="text-sm sm:text-base flex-shrink-0 font-medium px-4 py-2 transition-all duration-200 hover:shadow-md"
               >
+                <Gavel className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
                 <span>Cancellation Policy</span>
               </Button>
               <Button
@@ -109,6 +110,7 @@ const Policies = () => {
                 size="lg"
                 className="text-sm sm:text-base flex-shrink-0 font-medium px-4 py-2 transition-all duration-200 hover:shadow-md"
               >
+                <Package className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
                 <span>Shipping & Delivery</span>
               </Button>
               <Button
@@ -117,6 +119,7 @@ const Policies = () => {
                 size="lg"
                 className="text-sm sm:text-base flex-shrink-0 font-medium px-4 py-2 transition-all duration-200 hover:shadow-md"
               >
+                <Undo2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
                 <span>Return Policy</span>
               </Button>
               <Button
@@ -125,6 +128,7 @@ const Policies = () => {
                 size="lg"
                 className="text-sm sm:text-base flex-shrink-0 font-medium px-4 py-2 transition-all duration-200 hover:shadow-md"
               >
+                <FileText className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
                 <span>Dispute Resolution</span>
               </Button>
             </div>
@@ -550,34 +554,49 @@ const Policies = () => {
           {/* Terms & Conditions Tab */}
           {activeTab === "terms" && (
             <div className="space-y-4 sm:space-y-6">
-              <Card>
-                <CardHeader className="pb-4 sm:pb-6">
-                  <CardTitle className="text-xl sm:text-2xl lg:text-3xl flex items-center gap-2 mb-2 sm:mb-3">
-                    <Scale className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 flex-shrink-0" />
+              <Card className="shadow-md border-gray-200">
+                <CardHeader className="pb-6 sm:pb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+                  <CardTitle className="text-2xl sm:text-3xl lg:text-4xl flex items-center gap-3 mb-3 sm:mb-4 text-gray-800">
+                    <Scale className="h-7 w-7 sm:h-8 sm:w-8 lg:h-9 lg:w-9 flex-shrink-0 text-blue-600" />
                     <span>Terms and Conditions of Use</span>
                   </CardTitle>
-                  <div className="text-gray-600 text-xs sm:text-sm space-y-1">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                      <span>
-                        <strong>Effective Date:</strong> 10 June 2025
-                      </span>
-                      <span className="hidden sm:inline">•</span>
-                      <span>
-                        <strong>Platform Operator:</strong> ReBooked Solutions
-                        (Pty) Ltd
-                      </span>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                      <span>
-                        <strong>Email:</strong>{" "}
-                        <span className="break-all">
-                          support@rebookedsolutions.co.za
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm">
+                    <div className="text-blue-800 text-xs sm:text-sm space-y-2">
+                      <div className="text-center">
+                        <span>
+                          <strong>Effective Date:</strong> 10 June 2025
                         </span>
-                      </span>
-                      <span className="hidden sm:inline">•</span>
-                      <span>
-                        <strong>Jurisdiction:</strong> Republic of South Africa
-                      </span>
+                        <span className="mx-2">•</span>
+                        <span>
+                          <strong>Platform:</strong>{" "}
+                          <span className="break-all">www.rebookedsolutions.co.za</span>
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Platform Operator:</strong> ReBooked Solutions (Pty) Ltd
+                        </span>
+                        <span className="mx-2">•</span>
+                        <span>
+                          <strong>Support:</strong>{" "}
+                          <span className="break-all">
+                            support@rebookedsolutions.co.za
+                          </span>
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Jurisdiction:</strong> Republic of South Africa
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Regulatory Compliance:</strong> Consumer Protection
+                          Act (Act 68 of 2008), Electronic Communications and
+                          Transactions Act (Act 25 of 2002), Protection of Personal
+                          Information Act (Act 4 of 2013)
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 sm:p-4 mt-3">
@@ -1054,12 +1073,51 @@ const Policies = () => {
           {/* Refund Policy Tab */}
           {activeTab === "refunds" && (
             <div className="space-y-4 sm:space-y-6">
-              <Card>
-                <CardHeader className="pb-4 sm:pb-6">
-                  <CardTitle className="text-xl sm:text-2xl lg:text-3xl flex items-center gap-2 mb-2 sm:mb-3">
-                    <FileText className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 flex-shrink-0" />
+              <Card className="shadow-md border-gray-200">
+                <CardHeader className="pb-6 sm:pb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+                  <CardTitle className="text-2xl sm:text-3xl lg:text-4xl flex items-center gap-3 mb-3 sm:mb-4 text-gray-800">
+                    <RefreshCw className="h-7 w-7 sm:h-8 sm:w-8 lg:h-9 lg:w-9 flex-shrink-0 text-blue-600" />
                     <span>Refund Policy</span>
                   </CardTitle>
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm">
+                    <div className="text-blue-800 text-xs sm:text-sm space-y-2">
+                      <div className="text-center">
+                        <span>
+                          <strong>Effective Date:</strong> 10 June 2025
+                        </span>
+                        <span className="mx-2">•</span>
+                        <span>
+                          <strong>Platform:</strong>{" "}
+                          <span className="break-all">www.rebookedsolutions.co.za</span>
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Platform Operator:</strong> ReBooked Solutions (Pty) Ltd
+                        </span>
+                        <span className="mx-2">•</span>
+                        <span>
+                          <strong>Support:</strong>{" "}
+                          <span className="break-all">
+                            support@rebookedsolutions.co.za
+                          </span>
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Jurisdiction:</strong> Republic of South Africa
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Regulatory Compliance:</strong> Consumer Protection
+                          Act (Act 68 of 2008), Electronic Communications and
+                          Transactions Act (Act 25 of 2002), Protection of Personal
+                          Information Act (Act 4 of 2013)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent className="px-4 sm:px-6">
                   <div className="prose max-w-none space-y-4 sm:space-y-6">
@@ -1165,12 +1223,51 @@ const Policies = () => {
           {/* Cancellation Policy Tab */}
           {activeTab === "cancellation" && (
             <div className="space-y-4 sm:space-y-6">
-              <Card>
-                <CardHeader className="pb-4 sm:pb-6">
-                  <CardTitle className="text-xl sm:text-2xl lg:text-3xl flex items-center gap-2 mb-2 sm:mb-3">
-                    <FileText className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 flex-shrink-0" />
+              <Card className="shadow-md border-gray-200">
+                <CardHeader className="pb-6 sm:pb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+                  <CardTitle className="text-2xl sm:text-3xl lg:text-4xl flex items-center gap-3 mb-3 sm:mb-4 text-gray-800">
+                    <Gavel className="h-7 w-7 sm:h-8 sm:w-8 lg:h-9 lg:w-9 flex-shrink-0 text-blue-600" />
                     <span>Cancellation Policy</span>
                   </CardTitle>
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm">
+                    <div className="text-blue-800 text-xs sm:text-sm space-y-2">
+                      <div className="text-center">
+                        <span>
+                          <strong>Effective Date:</strong> 10 June 2025
+                        </span>
+                        <span className="mx-2">•</span>
+                        <span>
+                          <strong>Platform:</strong>{" "}
+                          <span className="break-all">www.rebookedsolutions.co.za</span>
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Platform Operator:</strong> ReBooked Solutions (Pty) Ltd
+                        </span>
+                        <span className="mx-2">•</span>
+                        <span>
+                          <strong>Support:</strong>{" "}
+                          <span className="break-all">
+                            support@rebookedsolutions.co.za
+                          </span>
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Jurisdiction:</strong> Republic of South Africa
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Regulatory Compliance:</strong> Consumer Protection
+                          Act (Act 68 of 2008), Electronic Communications and
+                          Transactions Act (Act 25 of 2002), Protection of Personal
+                          Information Act (Act 4 of 2013)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent className="px-4 sm:px-6">
                   <div className="prose max-w-none space-y-4 sm:space-y-6">
@@ -1238,12 +1335,51 @@ const Policies = () => {
           {/* Shipping & Delivery Policy Tab */}
           {activeTab === "shipping" && (
             <div className="space-y-4 sm:space-y-6">
-              <Card>
-                <CardHeader className="pb-4 sm:pb-6">
-                  <CardTitle className="text-xl sm:text-2xl lg:text-3xl flex items-center gap-2 mb-2 sm:mb-3">
-                    <FileText className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 flex-shrink-0" />
+              <Card className="shadow-md border-gray-200">
+                <CardHeader className="pb-6 sm:pb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+                  <CardTitle className="text-2xl sm:text-3xl lg:text-4xl flex items-center gap-3 mb-3 sm:mb-4 text-gray-800">
+                    <Package className="h-7 w-7 sm:h-8 sm:w-8 lg:h-9 lg:w-9 flex-shrink-0 text-blue-600" />
                     <span>Shipping & Delivery Policy</span>
                   </CardTitle>
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm">
+                    <div className="text-blue-800 text-xs sm:text-sm space-y-2">
+                      <div className="text-center">
+                        <span>
+                          <strong>Effective Date:</strong> 10 June 2025
+                        </span>
+                        <span className="mx-2">•</span>
+                        <span>
+                          <strong>Platform:</strong>{" "}
+                          <span className="break-all">www.rebookedsolutions.co.za</span>
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Platform Operator:</strong> ReBooked Solutions (Pty) Ltd
+                        </span>
+                        <span className="mx-2">•</span>
+                        <span>
+                          <strong>Support:</strong>{" "}
+                          <span className="break-all">
+                            support@rebookedsolutions.co.za
+                          </span>
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Jurisdiction:</strong> Republic of South Africa
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Regulatory Compliance:</strong> Consumer Protection
+                          Act (Act 68 of 2008), Electronic Communications and
+                          Transactions Act (Act 25 of 2002), Protection of Personal
+                          Information Act (Act 4 of 2013)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent className="px-4 sm:px-6">
                   <div className="prose max-w-none space-y-4 sm:space-y-6">
@@ -1323,12 +1459,51 @@ const Policies = () => {
           {/* Return Policy Tab */}
           {activeTab === "returns" && (
             <div className="space-y-4 sm:space-y-6">
-              <Card>
-                <CardHeader className="pb-4 sm:pb-6">
-                  <CardTitle className="text-xl sm:text-2xl lg:text-3xl flex items-center gap-2 mb-2 sm:mb-3">
-                    <FileText className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 flex-shrink-0" />
+              <Card className="shadow-md border-gray-200">
+                <CardHeader className="pb-6 sm:pb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+                  <CardTitle className="text-2xl sm:text-3xl lg:text-4xl flex items-center gap-3 mb-3 sm:mb-4 text-gray-800">
+                    <Undo2 className="h-7 w-7 sm:h-8 sm:w-8 lg:h-9 lg:w-9 flex-shrink-0 text-blue-600" />
                     <span>Return Policy</span>
                   </CardTitle>
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm">
+                    <div className="text-blue-800 text-xs sm:text-sm space-y-2">
+                      <div className="text-center">
+                        <span>
+                          <strong>Effective Date:</strong> 10 June 2025
+                        </span>
+                        <span className="mx-2">•</span>
+                        <span>
+                          <strong>Platform:</strong>{" "}
+                          <span className="break-all">www.rebookedsolutions.co.za</span>
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Platform Operator:</strong> ReBooked Solutions (Pty) Ltd
+                        </span>
+                        <span className="mx-2">•</span>
+                        <span>
+                          <strong>Support:</strong>{" "}
+                          <span className="break-all">
+                            support@rebookedsolutions.co.za
+                          </span>
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Jurisdiction:</strong> Republic of South Africa
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Regulatory Compliance:</strong> Consumer Protection
+                          Act (Act 68 of 2008), Electronic Communications and
+                          Transactions Act (Act 25 of 2002), Protection of Personal
+                          Information Act (Act 4 of 2013)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent className="px-4 sm:px-6">
                   <div className="prose max-w-none space-y-4 sm:space-y-6">
@@ -1390,12 +1565,51 @@ const Policies = () => {
           {/* Dispute Resolution Policy Tab */}
           {activeTab === "disputes" && (
             <div className="space-y-4 sm:space-y-6">
-              <Card>
-                <CardHeader className="pb-4 sm:pb-6">
-                  <CardTitle className="text-xl sm:text-2xl lg:text-3xl flex items-center gap-2 mb-2 sm:mb-3">
-                    <FileText className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 flex-shrink-0" />
+              <Card className="shadow-md border-gray-200">
+                <CardHeader className="pb-6 sm:pb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+                  <CardTitle className="text-2xl sm:text-3xl lg:text-4xl flex items-center gap-3 mb-3 sm:mb-4 text-gray-800">
+                    <FileText className="h-7 w-7 sm:h-8 sm:w-8 lg:h-9 lg:w-9 flex-shrink-0 text-blue-600" />
                     <span>Dispute Resolution Policy</span>
                   </CardTitle>
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm">
+                    <div className="text-blue-800 text-xs sm:text-sm space-y-2">
+                      <div className="text-center">
+                        <span>
+                          <strong>Effective Date:</strong> 10 June 2025
+                        </span>
+                        <span className="mx-2">•</span>
+                        <span>
+                          <strong>Platform:</strong>{" "}
+                          <span className="break-all">www.rebookedsolutions.co.za</span>
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Platform Operator:</strong> ReBooked Solutions (Pty) Ltd
+                        </span>
+                        <span className="mx-2">•</span>
+                        <span>
+                          <strong>Support:</strong>{" "}
+                          <span className="break-all">
+                            support@rebookedsolutions.co.za
+                          </span>
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Jurisdiction:</strong> Republic of South Africa
+                        </span>
+                      </div>
+                      <div className="text-center">
+                        <span>
+                          <strong>Regulatory Compliance:</strong> Consumer Protection
+                          Act (Act 68 of 2008), Electronic Communications and
+                          Transactions Act (Act 25 of 2002), Protection of Personal
+                          Information Act (Act 4 of 2013)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent className="px-4 sm:px-6">
                   <div className="prose max-w-none space-y-4 sm:space-y-6">
