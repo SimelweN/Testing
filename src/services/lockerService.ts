@@ -785,6 +785,8 @@ class LockerService {
   async testRealPudoApi(): Promise<{ success: boolean; lockers?: LockerLocation[]; error?: string }> {
     try {
       console.log('🧪 Testing real PUDO API integration...');
+
+      // Try the API call but handle all errors gracefully
       const lockers = await this.tryRealPudoApi();
 
       if (lockers && lockers.length > 0) {
@@ -802,8 +804,18 @@ class LockerService {
         return { success: false, error: 'No lockers returned from API' };
       }
     } catch (error) {
-      console.log('❌ Real PUDO API test failed:', error.message);
-      return { success: false, error: error.message };
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.log('🔒 PUDO API test failed (expected due to CORS/network restrictions)');
+
+      // Provide helpful error message for debug purposes
+      if (errorMessage.includes('Failed to fetch') || errorMessage.includes('CORS')) {
+        return {
+          success: false,
+          error: 'CORS restriction - direct API calls blocked by browser security. This is expected and normal.'
+        };
+      }
+
+      return { success: false, error: `API test failed: ${errorMessage}` };
     }
   }
 
