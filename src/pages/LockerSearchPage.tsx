@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin } from 'lucide-react';
+import { ArrowLeft, MapPin, Bug } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LockerSearch from '@/components/LockerSearch';
+import LockerApiDebug from '@/components/LockerApiDebug';
 import { LockerLocation } from '@/services/lockerService';
 
 const LockerSearchPage: React.FC = () => {
