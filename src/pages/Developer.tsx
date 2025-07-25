@@ -1489,28 +1489,23 @@ const Developer = () => {
                       onClick={async () => {
                         setIsLoading(true);
                         try {
-                          console.log('🔧 Testing edge function directly...');
-                          const { supabase } = await import('@/integrations/supabase/client');
+                          console.log('🔧 Checking locker data availability...');
+                          const { lockerService } = await import('@/services/lockerService');
 
-                          const response = await supabase.functions.invoke('courier-guy-lockers', {
-                            body: {
-                              test: true,
-                              apiKey: null
-                            }
-                          });
+                          const lockers = await lockerService.fetchAllLockers();
 
-                          console.log('🔧 Edge function test response:', response);
-
-                          if (response.error) {
-                            toast.error(`❌ Edge function error: ${response.error.message}`);
-                            console.error('❌ Edge function error:', response.error);
+                          if (lockers.length > 0) {
+                            toast.success(`✅ Locker system working - ${lockers.length} locations available`);
+                            console.log('✅ Locker system operational:', {
+                              count: lockers.length,
+                              sample: lockers[0]?.name
+                            });
                           } else {
-                            toast.success('✅ Edge function is working');
-                            console.log('✅ Edge function success:', response.data);
+                            toast.error('❌ No locker data available');
                           }
                         } catch (error) {
-                          console.error('💥 Edge function test failed:', error);
-                          toast.error(`💥 Edge function test failed: ${error}`);
+                          console.error('💥 Locker system test failed:', error);
+                          toast.error(`💥 System test failed: ${error}`);
                         } finally {
                           setIsLoading(false);
                         }
@@ -1523,9 +1518,9 @@ const Developer = () => {
                       {isLoading ? (
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       ) : (
-                        <Code className="h-4 w-4 mr-2" />
+                        <CheckCircle className="h-4 w-4 mr-2" />
                       )}
-                      Test Edge Function
+                      Test Locker System
                     </Button>
                   </div>
                 </div>
