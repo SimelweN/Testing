@@ -184,33 +184,35 @@ class LockerService {
   async fetchAllLockers(): Promise<LockerLocation[]> {
     console.log('🚀 Attempting to fetch lockers from PUDO API...');
 
-    // First try using Supabase edge function proxy (bypasses CORS)
+    // Strategy 1: Try Supabase edge function proxy (best option - bypasses CORS)
     try {
-      console.log('🔄 Trying Supabase edge function proxy...');
+      console.log('🎯 Strategy 1: Supabase edge function proxy...');
       const proxyLockers = await this.fetchLockersViaProxy();
       if (proxyLockers.length > 0) {
         this.lockers = proxyLockers;
         this.lastFetched = new Date();
-        console.log(`✅ Successfully fetched ${this.lockers.length} lockers via proxy`);
+        console.log(`✅ SUCCESS: Fetched ${this.lockers.length} lockers via edge function proxy`);
         return this.lockers;
       }
     } catch (error) {
-      console.warn('⚠️ Proxy method failed:', error);
+      console.warn('⚠️ Strategy 1 failed (proxy):', error instanceof Error ? error.message : error);
     }
 
-    // Try direct PUDO API calls
-    console.log('🔄 Trying direct PUDO API calls...');
+    // Strategy 2: Try direct PUDO API calls (will likely fail due to CORS)
+    console.log('🎯 Strategy 2: Direct PUDO API calls (likely to fail due to CORS)...');
     const endpoints = [
       `${this.getBaseUrl()}${this.endpoints.lockers}`,
       `${this.getBaseUrl()}${this.endpoints.legacyLockers}`,
     ];
 
+    let corsDetected = false;
+
     for (const endpoint of endpoints) {
       try {
-        console.log(`🔄 Fetching from: ${endpoint}`);
+        console.log(`🔄 Trying: ${endpoint}`);
 
         const response = await axios.get(endpoint, {
-          timeout: 15000,
+          timeout: 10000,
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -218,7 +220,7 @@ class LockerService {
           }
         });
 
-        console.log(`📡 PUDO API Response:`, {
+        console.log(`📡 Direct API Response:`, {
           status: response.status,
           dataType: typeof response.data,
           isArray: Array.isArray(response.data),
@@ -231,26 +233,35 @@ class LockerService {
           if (lockers.length > 0) {
             this.lockers = lockers;
             this.lastFetched = new Date();
-            console.log(`✅ Successfully fetched ${this.lockers.length} lockers from PUDO API`);
+            console.log(`✅ SUCCESS: Fetched ${this.lockers.length} lockers from direct API call`);
             return this.lockers;
           }
         }
       } catch (error) {
+        if (error instanceof Error && (error.message === 'Network Error' || error.message.includes('CORS'))) {
+          corsDetected = true;
+        }
         this.logDetailedError(`Direct PUDO API call to ${endpoint}`, error);
-        continue;
       }
     }
 
-    // If all API calls fail, fall back to cached data or mock data
-    console.error('❌ All PUDO API endpoints failed - using fallback data');
-
+    // Strategy 3: Use cached data if available
     if (this.lockers.length > 0) {
-      console.log('📦 Using cached locker data');
+      console.log('🎯 Strategy 3: Using cached locker data');
       return this.lockers;
     }
 
-    console.log('🎭 Using mock locker data as fallback');
-    return this.getMockLockers();
+    // Strategy 4: Final fallback to verified mock data
+    console.log('🎯 Strategy 4: Using verified mock locker data as final fallback');
+
+    if (corsDetected) {
+      console.warn('🔒 CORS restrictions detected - consider deploying the edge function proxy');
+    }
+
+    const mockLockers = this.getMockLockers();
+    console.log(`📄 Loaded ${mockLockers.length} verified mock locker locations`);
+
+    return mockLockers;
   }
 
   /**
@@ -422,7 +433,7 @@ class LockerService {
 
             const lockers = this.extractLockersFromResponse(response.data);
             allLockers.push(...lockers);
-            console.log(`✅ Fetched ${lockers.length} lockers without pagination`);
+            console.log(`��� Fetched ${lockers.length} lockers without pagination`);
             break;
           } catch (retryError) {
             throw retryError;
