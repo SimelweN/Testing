@@ -108,6 +108,7 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
       } else {
         toast.success(`✅ Found ${lockersData.length} PUDO lockers across South Africa`);
         console.log('🎯 All lockers loaded successfully - ready for search and filtering');
+        console.log('📋 Full locker list:', lockersData.map(l => `${l.name} (${l.city})`));
       }
     } catch (err) {
       console.error('❌ Error loading lockers:', err);
