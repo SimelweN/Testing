@@ -83,9 +83,9 @@ const Developer = () => {
 
   const loadTestData = async () => {
     try {
-      console.log('Loading test data...');
-      
-      // Load books with proper error handling
+      console.log('Loading REAL data from database...');
+
+      // Load REAL books with better query structure
       const { data: booksData, error: booksError } = await supabase
         .from('books')
         .select(`
@@ -95,158 +95,120 @@ const Developer = () => {
           seller_id,
           isbn,
           book_condition,
-          profiles!books_seller_id_fkey (name, email)
+          status,
+          profiles (
+            name,
+            email,
+            phone
+          )
         `)
         .eq('status', 'available')
-        .limit(20);
+        .not('title', 'is', null)
+        .not('price', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(50);
 
-      console.log('Books query result:', { booksData, booksError });
+      console.log('Real books query result:', { booksData, booksError });
 
-      if (booksError) {
-        console.error('Books error:', booksError);
-        // Create mock books if query fails
-        const mockBooks = [
-          {
-            id: 'mock-book-1',
-            title: 'Introduction to Computer Science',
-            price: 299.99,
-            seller_id: 'mock-seller-1',
-            seller_name: 'Mock Seller 1',
-            isbn: '9781234567890',
-            condition: 'good'
-          },
-          {
-            id: 'mock-book-2', 
-            title: 'Advanced Mathematics',
-            price: 199.99,
-            seller_id: 'mock-seller-2',
-            seller_name: 'Mock Seller 2',
-            isbn: '9780987654321',
-            condition: 'excellent'
-          }
-        ];
-        setBooks(mockBooks);
-        setSelectedBook(mockBooks[0].id);
-        toast.warning('Using mock book data - database query failed');
-      } else if (booksData && booksData.length > 0) {
-        const formattedBooks = booksData.map(book => ({
+      if (!booksError && booksData && booksData.length > 0) {
+        const realBooks = booksData.map(book => ({
           id: book.id,
           title: book.title,
           price: book.price,
           seller_id: book.seller_id,
           seller_name: book.profiles?.name || 'Unknown Seller',
-          isbn: book.isbn,
-          condition: book.book_condition
+          isbn: book.isbn || 'No ISBN',
+          condition: book.book_condition || 'good'
         }));
-        setBooks(formattedBooks);
-        setSelectedBook(formattedBooks[0].id);
-        console.log('Books loaded:', formattedBooks);
+        setBooks(realBooks);
+        setSelectedBook(realBooks[0].id);
+        console.log('✅ REAL Books loaded:', realBooks.length, realBooks);
+        toast.success(`✅ Loaded ${realBooks.length} REAL books from database`);
       } else {
-        // Create mock books if no data
-        const mockBooks = [
-          {
-            id: 'mock-book-1',
-            title: 'Test Book 1',
-            price: 150.00,
-            seller_id: 'mock-seller-1',
-            seller_name: 'Test Seller',
-            isbn: '9781234567890',
-            condition: 'good'
-          }
-        ];
-        setBooks(mockBooks);
-        setSelectedBook(mockBooks[0].id);
-        toast.info('Using mock book data - no books found');
+        console.error('❌ Books query failed:', booksError);
+        toast.error(`❌ Failed to load books: ${booksError?.message || 'No books found'}`);
+        return; // Don't continue if we can't load real data
       }
 
-      // Load users
+      // Load REAL users (both buyers and sellers)
       const { data: usersData, error: usersError } = await supabase
         .from('profiles')
-        .select('id, name, email, phone')
+        .select('id, name, email, phone, created_at')
         .not('name', 'is', null)
-        .limit(20);
+        .not('email', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(100);
 
-      console.log('Users query result:', { usersData, usersError });
+      console.log('Real users query result:', { usersData, usersError });
 
-      if (usersError) {
-        console.error('Users error:', usersError);
-        // Create mock users
-        const mockUsers = [
-          {
-            id: 'mock-buyer-1',
-            name: 'Test Buyer',
-            email: 'buyer@test.com',
-            phone: '+27123456789'
-          },
-          {
-            id: 'mock-seller-1', 
-            name: 'Test Seller',
-            email: 'seller@test.com',
-            phone: '+27987654321'
-          }
-        ];
-        setUsers(mockUsers);
-        setSelectedBuyer(mockUsers[0].id);
-        setSelectedSeller(mockUsers[1].id);
-        toast.warning('Using mock user data - database query failed');
-      } else if (usersData && usersData.length > 0) {
-        setUsers(usersData);
-        setSelectedBuyer(usersData[0].id);
-        setSelectedSeller(usersData[1]?.id || usersData[0].id);
-        console.log('Users loaded:', usersData);
+      if (!usersError && usersData && usersData.length > 0) {
+        const realUsers = usersData.map(user => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone || '+27123456789'
+        }));
+
+        setUsers(realUsers);
+        setSelectedBuyer(realUsers[0].id);
+
+        // Try to find a seller (someone who has books)
+        const sellerIds = [...new Set(booksData?.map(book => book.seller_id) || [])];
+        const realSeller = realUsers.find(user => sellerIds.includes(user.id));
+        setSelectedSeller(realSeller?.id || realUsers[1]?.id || realUsers[0].id);
+
+        console.log('✅ REAL Users loaded:', realUsers.length, realUsers);
+        toast.success(`✅ Loaded ${realUsers.length} REAL users from database`);
       } else {
-        // Create mock users if no data
-        const mockUsers = [
-          {
-            id: 'mock-buyer-1',
-            name: 'Test Buyer',
-            email: 'buyer@test.com',
-            phone: '+27123456789'
-          }
-        ];
-        setUsers(mockUsers);
-        setSelectedBuyer(mockUsers[0].id);
-        setSelectedSeller(mockUsers[0].id);
-        toast.info('Using mock user data - no users found');
+        console.error('❌ Users query failed:', usersError);
+        toast.error(`❌ Failed to load users: ${usersError?.message || 'No users found'}`);
+        return; // Don't continue if we can't load real data
       }
 
-      toast.success(`Loaded ${books.length || 1} books and ${users.length || 1} users for testing`);
+      // Load REAL sellers (users who have books)
+      const { data: sellersData, error: sellersError } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          name,
+          email,
+          phone,
+          books (
+            id,
+            title,
+            status
+          )
+        `)
+        .not('name', 'is', null)
+        .not('email', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (!sellersError && sellersData) {
+        // Filter to only users who actually have books
+        const realSellers = sellersData.filter(seller =>
+          seller.books && seller.books.length > 0
+        );
+
+        if (realSellers.length > 0) {
+          console.log('✅ REAL Sellers found:', realSellers.length, realSellers);
+          // Set the first real seller as default
+          setSelectedSeller(realSellers[0].id);
+          toast.success(`✅ Found ${realSellers.length} REAL sellers with books`);
+        }
+      }
+
+      const finalBookCount = books.length || booksData?.length || 0;
+      const finalUserCount = users.length || usersData?.length || 0;
+
+      toast.success(`🎯 Successfully loaded REAL data: ${finalBookCount} books, ${finalUserCount} users`);
+
     } catch (error) {
-      console.error('Error loading test data:', error);
-      toast.error(`Failed to load test data: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      
-      // Fallback to mock data
-      const mockBooks = [
-        {
-          id: 'mock-book-1',
-          title: 'Test Book',
-          price: 100.00,
-          seller_id: 'mock-seller-1',
-          seller_name: 'Test Seller',
-          isbn: '9781234567890',
-          condition: 'good'
-        }
-      ];
-      const mockUsers = [
-        {
-          id: 'mock-buyer-1',
-          name: 'Test Buyer',
-          email: 'buyer@test.com',
-          phone: '+27123456789'
-        },
-        {
-          id: 'mock-seller-1',
-          name: 'Test Seller', 
-          email: 'seller@test.com',
-          phone: '+27987654321'
-        }
-      ];
-      
-      setBooks(mockBooks);
-      setUsers(mockUsers);
-      setSelectedBook(mockBooks[0].id);
-      setSelectedBuyer(mockUsers[0].id);
-      setSelectedSeller(mockUsers[1].id);
+      console.error('❌ Critical error loading real data:', error);
+      toast.error(`❌ Critical error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+
+      // Only show warning, don't fall back to mock data
+      toast.warning('🚨 Using database connection - please check your Supabase configuration');
     }
   };
 
