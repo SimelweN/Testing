@@ -610,6 +610,7 @@ class LockerService {
 
   /**
    * Process PUDO locker data from /lockers-data endpoint
+   * Handles the actual PUDO API response format
    */
   private processPudoLockers(rawData: any[]): LockerLocation[] {
     console.log(`🔄 Processing ${rawData.length} PUDO lockers from /lockers-data...`);
@@ -617,19 +618,19 @@ class LockerService {
     const processedLockers = rawData
       .map((locker, index) => {
         try {
-          // Handle PUDO /lockers-data format: code, name, latitude, longitude, place
+          // Handle actual PUDO /lockers-data format
           const lockerData: LockerLocation = {
-            id: locker.code || locker.terminal_id || `locker_${index}`,
+            id: locker.code || `locker_${index}`,
             name: locker.name || 'PUDO Locker',
-            address: locker.address || locker.place?.address || '',
-            city: locker.place?.town || locker.city || locker.place?.city || '',
-            province: locker.place?.province || locker.province || locker.place?.zone || '',
-            postal_code: locker.place?.postal_code || locker.postal_code || '',
+            address: locker.address || '',
+            city: locker.place?.town || '',
+            province: this.inferProvinceFromCity(locker.place?.town || ''),
+            postal_code: locker.place?.postalCode || '',
             latitude: this.parseCoordinate(locker.latitude),
             longitude: this.parseCoordinate(locker.longitude),
-            opening_hours: locker.opening_hours || locker.hours || 'Mon-Sun: 24/7',
+            opening_hours: this.formatOpeningHours(locker.openinghours),
             contact_number: locker.contact_number || locker.phone || '',
-            is_active: locker.status !== 'inactive' && locker.active !== false
+            is_active: locker.type?.name === 'Locker' && locker.latitude && locker.longitude
           };
 
           return lockerData;
