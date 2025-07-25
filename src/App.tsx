@@ -258,6 +258,14 @@ function App() {
                         }
                       />
                       <Route
+                        path="/developer-minimal"
+                        element={
+                          <AdminProtectedRoute>
+                            <DeveloperMinimal />
+                          </AdminProtectedRoute>
+                        }
+                      />
+                      <Route
                         path="/debug-edge"
                         element={
                           <AdminProtectedRoute>
