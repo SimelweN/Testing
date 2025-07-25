@@ -251,7 +251,7 @@ class LockerService {
 
     // Strategy 3: Use cached data if available
     if (this.lockers.length > 0) {
-      console.log('🎯 Strategy 3: Using cached locker data');
+      console.log('��� Strategy 3: Using cached locker data');
       return this.lockers;
     }
 
@@ -277,8 +277,7 @@ class LockerService {
       const { supabase } = await import('@/integrations/supabase/client');
 
       const endpoints = [
-        `${this.getBaseUrl()}${this.endpoints.lockers}`,
-        `${this.getBaseUrl()}${this.endpoints.legacyLockers}`,
+        `${this.getBaseUrl()}${this.endpoints.lockers}`
       ];
 
       const response = await supabase.functions.invoke('courier-guy-lockers', {
