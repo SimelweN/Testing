@@ -223,7 +223,7 @@ const InformativeShippingDashboard = () => {
                 <CardContent>
                   <div className="space-y-3">
                     <div className="bg-green-100 border border-green-300 rounded p-2">
-                      <p className="text-sm font-semibold text-green-800">💰 Get Paid 3 Days Earlier!</p>
+                      <p className="text-sm font-semibold text-green-800">💰 Get Paid Earlier!</p>
                     </div>
                     <ul className="space-y-2">
                       <li className="flex items-center space-x-2">
