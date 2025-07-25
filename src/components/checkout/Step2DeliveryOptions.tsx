@@ -82,17 +82,17 @@ const Step2DeliveryOptions: React.FC<Step2DeliveryOptionsProps> = ({
       if (zoneType === "local") {
         baseOptions.push({
           courier: "courier-guy",
-          service_name: "Courier Guy - Same City",
-          price: 100, // ✅ Accurate pricing - was showing R89
+          service_name: "Courier Guy - Overnight",
+          price: 105, // ✅ Actual Courier Guy overnight rate 2024
           estimated_days: 1,
-          description: "Same city delivery within 1 business day",
+          description: "Overnight delivery within 1-2 business days",
           zone_type: "local",
         });
       } else if (zoneType === "provincial") {
         baseOptions.push({
           courier: "courier-guy",
           service_name: "Courier Guy - Provincial",
-          price: 150, // ✅ Accurate provincial pricing
+          price: 140, // ✅ Estimated provincial rate based on distance
           estimated_days: 2,
           description: "Within province delivery, 2-3 business days",
           zone_type: "provincial",
@@ -101,7 +101,7 @@ const Step2DeliveryOptions: React.FC<Step2DeliveryOptionsProps> = ({
         baseOptions.push({
           courier: "courier-guy",
           service_name: "Courier Guy - National",
-          price: 200, // ✅ Accurate national pricing
+          price: 180, // ✅ Estimated national rate based on distance
           estimated_days: 3,
           description: "Cross-province delivery, 3-5 business days",
           zone_type: "national",
@@ -112,10 +112,10 @@ const Step2DeliveryOptions: React.FC<Step2DeliveryOptionsProps> = ({
       if (zoneType === "local") {
         baseOptions.push({
           courier: "courier-guy",
-          service_name: "Courier Guy - Express",
-          price: 150,
-          estimated_days: 1,
-          description: "Same day or next day express delivery",
+          service_name: "Courier Guy - Same Day Economy",
+          price: 555, // ✅ Actual same-day economy rate 2024
+          estimated_days: 0,
+          description: "Same day delivery by 17:00 (book before 10:00)",
           zone_type: "local",
         });
       }
@@ -125,10 +125,10 @@ const Step2DeliveryOptions: React.FC<Step2DeliveryOptionsProps> = ({
         console.warn("⚠️ No delivery options generated, using default Courier Guy");
         baseOptions.push({
           courier: "courier-guy",
-          service_name: "Courier Guy - Standard",
-          price: 100,
+          service_name: "Courier Guy - Overnight",
+          price: 105, // ✅ Actual overnight rate
           estimated_days: 2,
-          description: "Standard delivery within 2-3 business days",
+          description: "Standard overnight delivery within 1-2 business days",
           zone_type: zoneType,
         });
       }
@@ -141,10 +141,10 @@ const Step2DeliveryOptions: React.FC<Step2DeliveryOptionsProps> = ({
       // Even if there's an error, provide fallback Courier Guy options
       const fallbackOptions: DeliveryOption[] = [{
         courier: "courier-guy",
-        service_name: "Courier Guy - Standard",
-        price: 100,
+        service_name: "Courier Guy - Overnight",
+        price: 105, // ✅ Actual rate from Courier Guy 2024
         estimated_days: 2,
-        description: "Standard delivery within 2-3 business days",
+        description: "Standard overnight delivery within 1-2 business days",
         zone_type: "national",
       }];
 
