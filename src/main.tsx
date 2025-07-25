@@ -30,6 +30,9 @@ import "./utils/suppressResizeObserverError";
 // Database cleanup disabled to prevent refresh loops
 // import "./utils/runCleanupNow";
 
+// Debug edge function utility
+import "./debug-edge-function";
+
 // Enhanced environment validation with deployment safety
 const validateEnvironment = () => {
   try {
