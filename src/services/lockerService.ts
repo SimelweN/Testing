@@ -32,12 +32,21 @@ class LockerService {
   private cacheExpiry = 1000 * 60 * 30; // 30 minutes cache
 
   /**
-   * Fetch all lockers from Courier Guy API
+   * Fetch all lockers from Courier Guy API (currently using mock data due to CORS issues)
    */
   async fetchAllLockers(): Promise<LockerLocation[]> {
     try {
+      // Use mock data directly due to CORS issues with external API
+      console.log('🎭 Using mock locker data (external API blocked by CORS)');
+      this.lockers = this.getMockLockers();
+      this.lastFetched = new Date();
+      console.log(`✅ Loaded ${this.lockers.length} mock lockers`);
+      return this.lockers;
+
+      /*
+      // TODO: Enable when API access is configured through backend proxy
       console.log('🔄 Fetching lockers from Courier Guy API...');
-      
+
       const response = await axios.get(`${this.baseURL}/pudo-lockers`, {
         timeout: 10000,
         headers: {
@@ -60,15 +69,16 @@ class LockerService {
         console.error('❌ Unexpected API response format:', response.data);
         throw new Error('Unexpected API response format');
       }
+      */
     } catch (error) {
       console.error('❌ Error fetching lockers:', error);
-      
+
       // Return cached data if available
       if (this.lockers.length > 0) {
         console.log('📦 Using cached locker data');
         return this.lockers;
       }
-      
+
       // Return mock data as fallback
       console.log('🎭 Using mock locker data as fallback');
       return this.getMockLockers();
