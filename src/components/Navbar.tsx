@@ -12,6 +12,7 @@ import {
   UserPlus,
   Truck,
   GraduationCap,
+  MapPin,
 } from "lucide-react";
 import AdminAccess from "./AdminAccess";
 import CartButton from "./CartButton";
@@ -168,6 +169,16 @@ const Navbar = () => {
               <Truck className="w-4 h-4" />
               <span>Shipping</span>
             </Link>
+
+            <Link
+              to="/lockers"
+              className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-book-600 ${
+                isActive("/lockers") ? "text-book-600" : "text-gray-700"
+              }`}
+            >
+              <MapPin className="w-4 h-4" />
+              <span>Lockers</span>
+            </Link>
           </div>
 
           {/* Right Side Actions */}
@@ -295,6 +306,19 @@ const Navbar = () => {
               >
                 <Truck className="w-5 h-5" />
                 <span>Shipping</span>
+              </Link>
+
+              <Link
+                to="/lockers"
+                className={`flex items-center space-x-3 px-4 py-3 text-base font-medium rounded-md transition-colors min-h-[44px] ${
+                  isActive("/lockers")
+                    ? "bg-book-50 text-book-600"
+                    : "text-gray-700 hover:bg-gray-50 hover:text-book-600"
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <MapPin className="w-5 h-5" />
+                <span>Find Lockers</span>
               </Link>
 
               {isAuthenticated ? (

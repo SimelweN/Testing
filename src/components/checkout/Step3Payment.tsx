@@ -79,7 +79,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         book_id: orderSummary.book.id,
         buyer_id: userId,
         seller_id: orderSummary.book.seller_id,
-        amount: orderSummary.total_price,
+        amount: orderSummary.book.price, // Send only book price, not total
         payment_reference: paystackResponse.reference,
         buyer_email: userData.user.email,
         shipping_address: orderSummary.buyer_address,
@@ -278,15 +278,27 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
           console.log("✅ Fallback order created successfully:", fallbackOrder);
 
-          // Mark book as sold
-          await supabase
-            .from("books")
-            .update({
-              sold: true,
-              sold_at: new Date().toISOString(),
-              availability: "sold",
-            })
-            .eq("id", orderSummary.book.id);
+          // Mark book as sold (non-blocking - order is already created)
+          try {
+            const { error: bookUpdateError } = await supabase
+              .from("books")
+              .update({
+                sold: true,
+                sold_at: new Date().toISOString(),
+                availability: "sold",
+              })
+              .eq("id", orderSummary.book.id);
+
+            if (bookUpdateError) {
+              console.warn("⚠️ Book update failed (non-critical):", bookUpdateError.message);
+              // Don't throw - order is already created successfully
+            } else {
+              console.log("✅ Book marked as sold");
+            }
+          } catch (bookError) {
+            console.warn("⚠️ Book update error (non-critical):", bookError);
+            // Don't throw - order is already created successfully
+          }
 
           // Use fallback order data for success handler
           const fallbackData = {

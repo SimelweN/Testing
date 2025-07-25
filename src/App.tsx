@@ -62,6 +62,7 @@ import NotificationsNew from "./pages/NotificationsNew";
 import ActivityLog from "./pages/ActivityLog";
 import BankingSetup from "./pages/BankingSetup";
 import UserProfile from "./pages/UserProfile";
+import LockerSearchPage from "./pages/LockerSearchPage";
 
 
 import "./App.css";
@@ -219,6 +220,10 @@ function App() {
                             <Profile />
                           </ProtectedRoute>
                         }
+                      />
+                      <Route
+                        path="/lockers"
+                        element={<LockerSearchPage />}
                       />
 
                                             {/* Admin Routes */}

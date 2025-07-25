@@ -131,19 +131,22 @@ serve(async (req) => {
 
     console.log('✅ Book found:', book.title, 'by', book.author);
 
-    // Validate amount matches book price
-    if (Math.abs(amount - parseFloat(book.price)) > 0.01) {
-      console.error('❌ Amount mismatch:', { expected: book.price, provided: amount });
+    // Validate amount exactly matches book price
+    const bookPrice = parseFloat(book.price);
+    if (amount !== bookPrice) {
+      console.error('❌ Amount mismatch:', { expected: bookPrice, provided: amount });
       return jsonResponse({
         success: false,
         error: "AMOUNT_MISMATCH",
         details: {
-          expected_amount: parseFloat(book.price),
+          expected: bookPrice,
           provided_amount: amount,
-          message: "Amount does not match book price"
+          message: "Amount must exactly match book price"
         },
       }, { status: 400 });
     }
+
+    console.log('✅ Amount validation passed:', { book_price: bookPrice, provided_amount: amount });
 
     // Get buyer and seller profiles
     console.log('👥 Fetching user profiles...');
@@ -229,12 +232,12 @@ serve(async (req) => {
           book_id,
           title: book.title,
           author: book.author,
-          price: amount,
+          price: parseFloat(book.price), // Keep original book price
           condition: book.condition,
           seller_id
         }],
-        amount: Math.round(amount * 100), // Convert to cents
-        total_amount: amount,
+        amount: Math.round(amount * 100), // Total amount in cents (book + delivery)
+        total_amount: amount, // Total amount including delivery
         status: "pending_commit",
         payment_status: "paid",
         payment_reference: finalPaymentRef,
