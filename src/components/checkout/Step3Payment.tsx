@@ -1140,52 +1140,79 @@ Time: ${new Date().toISOString()}
             <CardTitle className="text-red-800 text-sm">🧪 Debug Tools</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button
                 onClick={async () => {
                   try {
-                    const diagnosticFn = (window as any).diagnosticEdgeFunction;
-                    if (diagnosticFn) {
-                      toast.info("Running comprehensive diagnostic...");
-                      const result = await diagnosticFn();
-                      console.log("🧪 Diagnostic result:", result);
-
-                      if (result.functionCall === false) {
-                        toast.error("Edge function failed - check console for details");
-                      } else if (result.connectivity === false) {
-                        toast.error("Edge functions not deployed or accessible");
-                      } else {
-                        toast.success("Edge function working - check console for details");
-                      }
-                    } else {
-                      toast.error("Diagnostic function not loaded");
+                    // Test the exact same call that fails in checkout
+                    const { data: userData } = await supabase.auth.getUser();
+                    if (!userData.user) {
+                      toast.error("Not logged in");
+                      return;
                     }
-                  } catch (error) {
-                    console.error("Diagnostic failed:", error);
-                    toast.error("Diagnostic failed: " + String(error));
+
+                    const testRequest = {
+                      book_id: orderSummary.book.id,
+                      buyer_id: userId,
+                      seller_id: orderSummary.book.seller_id,
+                      amount: orderSummary.total_price,
+                      payment_reference: `test-${Date.now()}`,
+                      buyer_email: userData.user.email,
+                      shipping_address: orderSummary.buyer_address,
+                    };
+
+                    console.log("🧪 Testing with exact checkout payload:", testRequest);
+
+                    const { data, error } = await supabase.functions.invoke('process-book-purchase', {
+                      body: testRequest
+                    });
+
+                    console.log("🧪 Raw response:", { data, error });
+
+                    if (error) {
+                      // Use the same extraction logic
+                      let readable = "Unknown error";
+                      if (error?.context?.message) readable = error.context.message;
+                      else if (error?.message) readable = error.message;
+                      else if (error?.details) readable = error.details;
+                      else if (typeof error === 'string') readable = error;
+                      else readable = `Error object: ${JSON.stringify(error)}`;
+
+                      toast.error(`Actual error: ${readable}`, { duration: 10000 });
+                      console.log("🎯 READABLE ERROR:", readable);
+                    } else {
+                      toast.success("Edge function worked!");
+                    }
+
+                  } catch (e) {
+                    console.error("Test failed:", e);
+                    toast.error(`Test exception: ${e.message}`);
                   }
                 }}
                 variant="outline"
                 size="sm"
                 className="text-red-700 border-red-300"
               >
-                🔍 Full Diagnostic
+                🎯 Test Real Call
               </Button>
 
               <Button
                 onClick={async () => {
                   try {
-                    const debugFn = (window as any).debugEdgeFunction;
-                    if (debugFn) {
-                      const result = await debugFn();
-                      console.log("🧪 Debug result:", result);
-                      toast.info("Debug completed - check console for details");
+                    const testFn = (window as any).testEdgeFunction;
+                    if (testFn) {
+                      toast.info("Running edge function test...");
+                      await testFn();
+                      const lastError = (window as any).lastEdgeFunctionError;
+                      if (lastError) {
+                        toast.error(`Found error: ${lastError}`, { duration: 10000 });
+                      }
                     } else {
-                      toast.error("Debug function not loaded");
+                      toast.error("Test function not loaded");
                     }
                   } catch (error) {
-                    console.error("Debug failed:", error);
-                    toast.error("Debug failed: " + String(error));
+                    console.error("Test failed:", error);
+                    toast.error("Test failed: " + String(error));
                   }
                 }}
                 variant="outline"
