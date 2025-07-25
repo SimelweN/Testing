@@ -132,8 +132,8 @@ const Policies = () => {
 
           {/* Privacy Policy Tab */}
           {activeTab === "privacy" && (
-            <div className="space-y-4 sm:space-y-6">
-              <Card>
+            <div className="space-y-6 sm:space-y-8">
+              <Card className="shadow-md border-gray-200">
                 <CardHeader className="pb-4 sm:pb-6">
                   <CardTitle className="text-xl sm:text-2xl lg:text-3xl flex items-center gap-2 mb-2 sm:mb-3">
                     <Shield className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 flex-shrink-0" />
