@@ -44,9 +44,7 @@ import AuthCallback from "./pages/AuthCallback";
 // Admin Pages
 import Admin from "./pages/Admin";
 import AdminReports from "./pages/AdminReports";
-import Developer from "./pages/DeveloperMinimal";
-import DeveloperSimple from "./pages/DeveloperSimple";
-const EdgeFunctionDebug = lazy(() => import("./pages/EdgeFunctionDebug"));
+import Developer from "./pages/Developer";
 
 
 // Support Pages
@@ -245,22 +243,6 @@ function App() {
                         element={
                           <AdminProtectedRoute>
                             <Developer />
-                          </AdminProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/developer-simple"
-                        element={
-                          <AdminProtectedRoute>
-                            <DeveloperSimple />
-                          </AdminProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/debug-edge"
-                        element={
-                          <AdminProtectedRoute>
-                            <EdgeFunctionDebug />
                           </AdminProtectedRoute>
                         }
                       />
