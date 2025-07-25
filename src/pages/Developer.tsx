@@ -32,7 +32,8 @@ import {
   ShoppingCart,
   FileText,
   DollarSign,
-  Settings
+  Settings,
+  MapPin
 } from "lucide-react";
 
 interface TestResult {
@@ -126,7 +127,7 @@ const Developer = () => {
         toast.success(`✅ Loaded ${realBooks.length} REAL books from database`);
       } else {
         console.error('❌ Books query failed:', booksError);
-        const errorMsg = booksError?.message || booksError?.details || booksError?.hint || JSON.stringify(booksError) || 'Unknown database error';
+        const errorMsg = booksError?.message || booksError?.details || booksError?.hint || (booksError ? JSON.stringify(booksError, null, 2) : 'Unknown database error');
         toast.error(`❌ Failed to load books: ${errorMsg}`);
 
         // Try a simpler query as fallback
@@ -150,9 +151,32 @@ const Developer = () => {
           setSelectedBook(simpleBooks[0].id);
           toast.success(`✅ Loaded ${simpleBooks.length} books with basic info`);
         } else {
-          const simpleErrorMsg = simpleBooksError?.message || simpleBooksError?.details || JSON.stringify(simpleBooksError) || 'No books found';
+          const simpleErrorMsg = simpleBooksError?.message || simpleBooksError?.details || (simpleBooksError ? JSON.stringify(simpleBooksError, null, 2) : 'No books found');
           toast.error(`❌ Simple query also failed: ${simpleErrorMsg}`);
-          return;
+          // Use mock data as final fallback
+          const mockBooks = [
+            {
+              id: 'mock-book-1',
+              title: 'Introduction to Computer Science',
+              price: 250,
+              seller_id: 'mock-seller-1',
+              seller_name: 'Test Seller',
+              isbn: '978-0123456789',
+              condition: 'good'
+            },
+            {
+              id: 'mock-book-2',
+              title: 'Mathematics for Engineers',
+              price: 180,
+              seller_id: 'mock-seller-2',
+              seller_name: 'Another Seller',
+              isbn: '978-0987654321',
+              condition: 'excellent'
+            }
+          ];
+          setBooks(mockBooks);
+          setSelectedBook(mockBooks[0].id);
+          toast.warning('📚 Using mock books data');
         }
       }
 
@@ -184,10 +208,10 @@ const Developer = () => {
         setSelectedSeller(realSeller?.id || realUsers[1]?.id || realUsers[0].id);
 
         console.log('✅ REAL Users loaded:', realUsers.length, realUsers);
-        toast.success(`✅ Loaded ${realUsers.length} REAL users from database`);
+        toast.success(`�� Loaded ${realUsers.length} REAL users from database`);
       } else {
         console.error('❌ Users query failed:', usersError);
-        const userErrorMsg = usersError?.message || usersError?.details || usersError?.hint || JSON.stringify(usersError) || 'Unknown database error';
+        const userErrorMsg = usersError?.message || usersError?.details || usersError?.hint || (usersError ? JSON.stringify(usersError, null, 2) : 'Unknown database error');
         toast.error(`❌ Failed to load users: ${userErrorMsg}`);
 
         // Try a simpler users query as fallback
@@ -209,9 +233,27 @@ const Developer = () => {
           setSelectedSeller(simpleUsers[1]?.id || simpleUsers[0].id);
           toast.success(`✅ Loaded ${simpleUsers.length} users with basic info`);
         } else {
-          const simpleUserErrorMsg = simpleUsersError?.message || simpleUsersError?.details || JSON.stringify(simpleUsersError) || 'No users found';
+          const simpleUserErrorMsg = simpleUsersError?.message || simpleUsersError?.details || (simpleUsersError ? JSON.stringify(simpleUsersError, null, 2) : 'No users found');
           toast.error(`❌ Simple users query also failed: ${simpleUserErrorMsg}`);
-          return;
+          // Use mock data as final fallback
+          const mockUsers = [
+            {
+              id: 'mock-buyer-1',
+              name: 'Test Buyer',
+              email: 'buyer@test.com',
+              phone: '+27123456789'
+            },
+            {
+              id: 'mock-seller-1',
+              name: 'Test Seller',
+              email: 'seller@test.com',
+              phone: '+27987654321'
+            }
+          ];
+          setUsers(mockUsers);
+          setSelectedBuyer(mockUsers[0].id);
+          setSelectedSeller(mockUsers[1].id);
+          toast.warning('👥 Using mock users data');
         }
       }
 
@@ -275,7 +317,7 @@ const Developer = () => {
       }
 
       toast.error(`❌ Critical database error: ${errorMessage}`);
-      toast.warning('🚨 Please check your Supabase configuration and database permissions');
+      toast.warning('��� Please check your Supabase configuration and database permissions');
     }
   };
 
@@ -1228,6 +1270,15 @@ const Developer = () => {
             </div>
             <div className="flex items-center space-x-2">
               <Button
+                onClick={() => navigate("/lockers")}
+                variant="outline"
+                size="sm"
+                className="flex items-center space-x-2"
+              >
+                <MapPin className="h-4 w-4" />
+                <span>Locker Page</span>
+              </Button>
+              <Button
                 onClick={runAllTests}
                 disabled={isLoading}
                 className="bg-purple-600 hover:bg-purple-700"
@@ -1301,7 +1352,7 @@ const Developer = () => {
                         <SelectValue placeholder="Select a book" />
                       </SelectTrigger>
                       <SelectContent>
-                        {books.map(book => (
+                        {books.filter(book => book && book.id).map(book => (
                           <SelectItem key={book.id} value={book.id}>
                             {book.title} - R{book.price} ({book.seller_name})
                           </SelectItem>
@@ -1316,7 +1367,7 @@ const Developer = () => {
                         <SelectValue placeholder="Select a buyer" />
                       </SelectTrigger>
                       <SelectContent>
-                        {users.map(user => (
+                        {users.filter(user => user && user.id).map(user => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.name} ({user.email})
                           </SelectItem>
@@ -1331,7 +1382,7 @@ const Developer = () => {
                         <SelectValue placeholder="Select a seller" />
                       </SelectTrigger>
                       <SelectContent>
-                        {users.map(user => (
+                        {users.filter(user => user && user.id).map(user => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.name} ({user.email})
                           </SelectItem>
@@ -1352,6 +1403,270 @@ const Developer = () => {
                   >
                     Refresh Data
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* API Testing Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Code className="h-5 w-5" />
+                  <span>Courier Guy API Testing</span>
+                  <Badge variant="outline">Live API</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">PUDO API Key (Optional)</label>
+                    <Input
+                      type="password"
+                      placeholder="Bearer token for PUDO API"
+                      defaultValue="37102346|dpTTHKfhJYBQh79UfHmOj8P0IPtt8ImFz0VeHXWr65621bae"
+                      onChange={(e) => {
+                        if (e.target.value.trim()) {
+                          // Import and set API key
+                          import('@/services/lockerService').then(({ lockerService }) => {
+                            lockerService.setApiKey(e.target.value.trim());
+                          });
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Set VITE_PUDO_API_KEY in .env or get from <a href="https://customer.pudo.co.za" target="_blank" className="text-blue-600 underline">customer.pudo.co.za</a>
+                    </p>
+                  </div>
+                  <div className="flex flex-col space-y-2">
+                    <Button
+                      onClick={async () => {
+                        setIsLoading(true);
+                        try {
+                          const { lockerService } = await import('@/services/lockerService');
+                          console.log('🧪 Starting API connectivity test...');
+                          const result = await lockerService.testApiConnectivity();
+
+                          if (result.success) {
+                            toast.success(`✅ API connected via: ${result.endpoint}`);
+                            console.log('✅ API Test Result:', result);
+                          } else {
+                            toast.error(`❌ API test failed: ${result.error}`);
+                            console.error('❌ API Test Failed:', result);
+
+                            // Show detailed error info
+                            if (result.details?.corsDetected) {
+                              toast.warning('🔒 CORS detected - using backend proxy recommended');
+                            }
+
+                            // Log error details for debugging
+                            if (result.details?.errors) {
+                              console.group('🔍 Detailed Error Analysis');
+                              result.details.errors.forEach((err: any, index: number) => {
+                                console.log(`Error ${index + 1}:`, err);
+                              });
+                              console.groupEnd();
+                            }
+                          }
+                        } catch (error) {
+                          console.error('💥 API test crashed:', error);
+                          toast.error(`💥 API test crashed: ${error}`);
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }}
+                      disabled={isLoading}
+                      className="w-full"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                      )}
+                      Test API Connection
+                    </Button>
+
+                    <Button
+                      onClick={async () => {
+                        setIsLoading(true);
+                        try {
+                          console.log('🔧 Checking locker data availability...');
+                          const { lockerService } = await import('@/services/lockerService');
+
+                          const lockers = await lockerService.fetchAllLockers();
+
+                          if (lockers.length > 0) {
+                            toast.success(`✅ Locker system working - ${lockers.length} locations available`);
+                            console.log('✅ Locker system operational:', {
+                              count: lockers.length,
+                              sample: lockers[0]?.name
+                            });
+                          } else {
+                            toast.error('❌ No locker data available');
+                          }
+                        } catch (error) {
+                          console.error('💥 Locker system test failed:', error);
+                          toast.error(`💥 System test failed: ${error}`);
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }}
+                      disabled={isLoading}
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                      )}
+                      Test Locker System
+                    </Button>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <Button
+                      onClick={async () => {
+                        setIsLoading(true);
+                        try {
+                          const { lockerService } = await import('@/services/lockerService');
+                          console.log('🔑 Testing with provided API key...');
+
+                          // Set the API key
+                          lockerService.setApiKey('37102346|dpTTHKfhJYBQh79UfHmOj8P0IPtt8ImFz0VeHXWr65621bae');
+
+                          toast.info('🔄 Testing API key: 37102346|dp...21bae');
+
+                          const result = await lockerService.testApiConnectivity();
+
+                          if (result.success) {
+                            toast.success(`✅ API key works! Connected via: ${result.endpoint}`);
+                            console.log('✅ API Key Test Result:', result);
+
+                            // Immediately try to fetch lockers
+                            const lockers = await lockerService.fetchAllLockers();
+                            toast.success(`🎉 Fetched ${lockers.length} real lockers!`);
+                          } else {
+                            toast.error(`❌ API key test failed: ${result.error}`);
+                            console.error('❌ API Key Test Failed:', result);
+                          }
+                        } catch (error) {
+                          console.error('💥 API key test crashed:', error);
+                          toast.error(`💥 API key test failed: ${error}`);
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }}
+                      disabled={isLoading}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                      )}
+                      Test API Key
+                    </Button>
+
+                    <Button
+                      onClick={async () => {
+                        setIsLoading(true);
+                        try {
+                          const { lockerService } = await import('@/services/lockerService');
+                          console.log('🚀 Starting locker fetch...');
+                          toast.info('🔄 Fetching real lockers from PUDO API...');
+
+                          const lockers = await lockerService.fetchAllLockers();
+
+                          if (lockers.length > 0) {
+                            toast.success(`✅ Fetched ${lockers.length} lockers`);
+                            console.log(`✅ Successfully loaded ${lockers.length} lockers`);
+
+                            // Check if these are mock lockers vs real API data
+                          const mockLockerIds = lockers.filter(l => l.id.startsWith('gauteng_') || l.id.startsWith('western_cape_'));
+                          const hasMockFlag = lockers.some(l => (l as any).isMockData);
+
+                          if (mockLockerIds.length === lockers.length || hasMockFlag) {
+                            toast.warning('📄 Using verified mock data - CORS blocking real API');
+                            console.warn('⚠️ All lockers appear to be mock data due to CORS restrictions');
+                            console.info('💡 Mock data includes 18 verified real PUDO locker locations');
+
+                            // Show CORS solution info
+                            setTimeout(() => {
+                              toast.info('🔧 To get real-time data: Deploy edge function proxy or use backend API');
+                            }, 2000);
+                          } else {
+                            toast.success('🌐 Real PUDO API data loaded successfully!');
+
+                            // Show some sample locker info
+                            const sampleLocker = lockers[0];
+                            console.log('📍 Sample real locker:', {
+                              id: sampleLocker.id,
+                              name: sampleLocker.name,
+                              city: sampleLocker.city,
+                              province: sampleLocker.province,
+                              coordinates: `${sampleLocker.latitude}, ${sampleLocker.longitude}`
+                            });
+
+                            toast.success('🎉 CORS bypass successful - real locker data active!');
+                          }
+                          } else {
+                            toast.error('❌ No lockers returned');
+                            console.error('❌ Fetch returned 0 lockers');
+                          }
+                        } catch (error) {
+                          console.error('💥 Locker fetch failed:', error);
+                          toast.error(`💥 Failed to fetch lockers: ${error}`);
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }}
+                      disabled={isLoading}
+                      variant="outline"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <MapPin className="h-4 w-4 mr-2" />
+                      )}
+                      Fetch Lockers
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Troubleshooting Info */}
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="font-semibold text-blue-900 flex items-center mb-2">
+                    <AlertCircle className="h-4 w-4 mr-2" />
+                    API Troubleshooting Guide
+                  </h4>
+                  <div className="text-sm text-blue-800 space-y-2">
+                    <p><strong>PUDO API Integration:</strong> Complete shipping and locker service</p>
+                    <p><strong>Available Endpoints:</strong></p>
+                    <ul className="list-disc list-inside ml-4 space-y-1 text-xs">
+                      <li>🏪 <code>GET /lockers-data</code> - Get all locker locations</li>
+                      <li>💰 <code>POST /rates</code> - Calculate shipping rates (D2L, L2D, L2L, D2D)</li>
+                      <li>📦 <code>POST /shipments</code> - Create shipments</li>
+                      <li>🔍 <code>GET /shipments/{{id}}/tracking</code> - Track shipments</li>
+                      <li>🏷️ <code>GET /shipments/{{id}}/label</code> - Generate labels</li>
+                      <li>📋 <code>GET /billing/statement</code> - Account statements</li>
+                    </ul>
+                    <p><strong>CORS Issue:</strong> Browser blocks direct API calls to external domains</p>
+                    <p><strong>Solutions in order of preference:</strong></p>
+                    <ul className="list-disc list-inside ml-4 space-y-1 text-xs">
+                      <li>🥇 <strong>Deploy Edge Function:</strong> <code>supabase functions deploy courier-guy-lockers</code></li>
+                      <li>🥈 <strong>Backend Proxy:</strong> Route API calls through your server</li>
+                      <li>🥉 <strong>Verified Mock Data:</strong> 18 real PUDO locations (current fallback)</li>
+                    </ul>
+                    <div className="mt-2 p-2 bg-blue-100 rounded text-xs">
+                      <p><strong>Quick Fix:</strong> The edge function in <code>supabase/functions/courier-guy-lockers/</code> is ready to deploy!</p>
+                      <p>It will bypass CORS and fetch real PUDO data server-side.</p>
+                    </div>
+                    <p className="text-xs mt-2 text-blue-600">
+                      💡 API Docs: <a href="https://api-pudo.co.za" target="_blank" className="underline">api-pudo.co.za</a> | Console logs: F12
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
