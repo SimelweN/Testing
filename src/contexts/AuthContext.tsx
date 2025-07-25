@@ -125,14 +125,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         // Import backup email service
         const { BackupEmailService } = await import("@/utils/backupEmailService");
 
-        // Create user account without email confirmation to avoid Supabase email issues
+        // Create user account - try without email confirmation first if in development
+        const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost';
+
+        console.log(`🔧 Registration mode: ${isDevelopment ? 'Development (email-free)' : 'Production (with email)'}`);
+
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: { name },
-            emailRedirectTo: `${window.location.origin}/verify`,
-            // Try to disable email confirmation to prevent errors
+            // Only require email confirmation in production
+            ...(isDevelopment ? {} : { emailRedirectTo: `${window.location.origin}/verify` }),
           },
         });
 
