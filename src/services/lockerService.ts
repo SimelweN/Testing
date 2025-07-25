@@ -90,7 +90,7 @@ class LockerService {
    */
   setApiKey(apiKey: string): void {
     this.apiKey = apiKey;
-    console.log('�� Courier Guy API key updated');
+    console.log('🔑 Courier Guy API key updated');
   }
 
   /**
@@ -682,6 +682,169 @@ class LockerService {
 
   private toRadians(degrees: number): number {
     return degrees * (Math.PI / 180);
+  }
+
+  /**
+   * Calculate shipping rates for different service types
+   */
+  async calculateRates(params: {
+    collectionAddress?: any;
+    deliveryAddress?: any;
+    terminalId?: string;
+    serviceType: 'D2L' | 'L2D' | 'L2L' | 'D2D';
+  }): Promise<any> {
+    const endpoint = `${this.getBaseUrl()}${this.endpoints.rates}`;
+
+    let requestBody: any = {
+      opt_in_rates: [],
+      opt_in_time_based_rates: []
+    };
+
+    // Configure addresses based on service type
+    switch (params.serviceType) {
+      case 'D2L': // Door to Locker
+        requestBody.collection_address = params.collectionAddress;
+        requestBody.delivery_address = { terminal_id: params.terminalId };
+        break;
+      case 'L2D': // Locker to Door
+        requestBody.collection_address = { terminal_id: params.terminalId };
+        requestBody.delivery_address = params.deliveryAddress;
+        break;
+      case 'L2L': // Locker to Locker
+        requestBody.collection_address = { terminal_id: params.terminalId };
+        requestBody.delivery_address = { terminal_id: params.deliveryAddress?.terminal_id };
+        break;
+      case 'D2D': // Door to Door
+        requestBody.collection_address = params.collectionAddress;
+        requestBody.delivery_address = params.deliveryAddress;
+        break;
+    }
+
+    try {
+      const response = await axios.post(endpoint, requestBody, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+        }
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('❌ Rate calculation failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a new shipment
+   */
+  async createShipment(shipmentData: {
+    collectionAddress: any;
+    deliveryAddress: any;
+    collectionContact: any;
+    deliveryContact: any;
+    serviceLevelCode: string;
+    collectionMinDate: string;
+    deliveryMinDate?: string;
+    specialInstructions?: string;
+  }): Promise<any> {
+    const endpoint = `${this.getBaseUrl()}${this.endpoints.shipments}`;
+
+    try {
+      const response = await axios.post(endpoint, shipmentData, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+        }
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('❌ Shipment creation failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Track a shipment by parcel ID
+   */
+  async trackShipment(parcelId: string): Promise<any> {
+    const endpoint = `${this.getBaseUrl()}${this.endpoints.trackingByParcel}?parcel_id=${parcelId}`;
+
+    try {
+      const response = await axios.get(endpoint, {
+        headers: {
+          'Accept': 'application/json',
+          ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+        }
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('❌ Shipment tracking failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate waybill (shipping label) for a shipment
+   */
+  async generateWaybill(shipmentId: string): Promise<string> {
+    const endpoint = `${this.devUrl}${this.endpoints.waybill}/${shipmentId}?api_key=${this.apiKey}`;
+
+    try {
+      const response = await axios.get(endpoint);
+
+      // Returns a signed URL to the PDF
+      return response.data.url || response.data;
+    } catch (error) {
+      console.error('❌ Waybill generation failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate sticker label for a shipment
+   */
+  async generateSticker(shipmentId: string): Promise<string> {
+    const endpoint = `${this.devUrl}${this.endpoints.sticker}/${shipmentId}?api_key=${this.apiKey}`;
+
+    try {
+      const response = await axios.get(endpoint);
+
+      // Returns a signed URL to the PDF
+      return response.data.url || response.data;
+    } catch (error) {
+      console.error('❌ Sticker generation failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get available service levels for a route
+   */
+  getServiceLevels(): Array<{code: string, name: string, description: string}> {
+    return [
+      { code: 'D2LXS - ECO', name: 'Door to Locker Extra Small', description: 'Door to Locker Extra Small (60x17x8cm, up to 2kg)' },
+      { code: 'D2LS - ECO', name: 'Door to Locker Small', description: 'Door to Locker Small (60x41x8cm, up to 2kg)' },
+      { code: 'D2LM - ECO', name: 'Door to Locker Medium', description: 'Door to Locker Medium (60x41x19cm, up to 5kg)' },
+      { code: 'D2LL - ECO', name: 'Door to Locker Large', description: 'Door to Locker Large (60x41x41cm, up to 10kg)' },
+      { code: 'D2LXL - ECO', name: 'Door to Locker Extra Large', description: 'Door to Locker Extra Large (60x41x69cm, up to 20kg)' },
+
+      { code: 'L2DXS - ECO', name: 'Locker to Door Extra Small', description: 'Locker to Door Extra Small (60x17x8cm, up to 2kg)' },
+      { code: 'L2DS - ECO', name: 'Locker to Door Small', description: 'Locker to Door Small (60x41x8cm, up to 2kg)' },
+      { code: 'L2DM - ECO', name: 'Locker to Door Medium', description: 'Locker to Door Medium (60x41x19cm, up to 5kg)' },
+      { code: 'L2DL - ECO', name: 'Locker to Door Large', description: 'Locker to Door Large (60x41x41cm, up to 10kg)' },
+      { code: 'L2DXL - ECO', name: 'Locker to Door Extra Large', description: 'Locker to Door Extra Large (60x41x69cm, up to 20kg)' },
+
+      { code: 'L2LXS - ECO', name: 'Locker to Locker Extra Small', description: 'Locker to Locker Extra Small (60x17x8cm, up to 2kg)' },
+      { code: 'L2LS - ECO', name: 'Locker to Locker Small', description: 'Locker to Locker Small (60x41x8cm, up to 2kg)' },
+      { code: 'L2LM - ECO', name: 'Locker to Locker Medium', description: 'Locker to Locker Medium (60x41x19cm, up to 5kg)' },
+      { code: 'L2LL - ECO', name: 'Locker to Locker Large', description: 'Locker to Locker Large (60x41x41cm, up to 10kg)' },
+      { code: 'L2LXL - ECO', name: 'Locker to Locker Extra Large', description: 'Locker to Locker Extra Large (60x41x69cm, up to 20kg)' },
+    ];
   }
 
   /**
