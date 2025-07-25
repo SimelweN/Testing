@@ -229,7 +229,7 @@ const DeveloperMinimal = () => {
 
       if (error) {
         console.error('Error fetching sellers:', error);
-        toast.error('Failed to load sellers');
+        toast.error(`Failed to load sellers: ${error.message || error.details || 'Unknown error'}`);
         return;
       }
 
