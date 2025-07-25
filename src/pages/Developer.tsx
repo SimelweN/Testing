@@ -33,7 +33,8 @@ import {
   FileText,
   DollarSign,
   Settings,
-  MapPin
+  MapPin,
+  TestTube
 } from "lucide-react";
 
 interface TestResult {
