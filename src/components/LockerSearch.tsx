@@ -127,9 +127,19 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
 
     try {
       const filtered = await lockerService.searchLockers(filters);
+      console.log('🔍 Filter results:', {
+        totalLockers: lockers.length,
+        filteredCount: filtered.length,
+        appliedFilters: {
+          searchQuery: searchQuery || 'none',
+          selectedCity: selectedCity || 'all',
+          selectedProvince: selectedProvince || 'all'
+        }
+      });
       setFilteredLockers(filtered);
     } catch (err) {
       console.error('❌ Error filtering lockers:', err);
+      console.log('🔄 Fallback: Using all lockers without filtering');
       setFilteredLockers(lockers);
     }
   };
