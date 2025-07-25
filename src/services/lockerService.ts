@@ -410,7 +410,7 @@ class LockerService {
 
       clearTimeout(timeoutId);
 
-      console.log(`📡 Edge function response status: ${response.status} ${response.statusText}`);
+      console.log(`�� Edge function response status: ${response.status} ${response.statusText}`);
 
       if (!response.ok) {
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -780,6 +780,75 @@ class LockerService {
   }
 
   /**
+   * Test the full PUDO API integration safely without affecting main app
+   */
+  async testFullPudoApiIntegration(): Promise<{ success: boolean; lockers?: LockerLocation[]; error?: string; details?: any }> {
+    try {
+      console.log('🧪 Testing full PUDO API integration...');
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) {
+        return { success: false, error: 'Supabase URL not configured' };
+      }
+
+      const edgeFunctionUrl = `${supabaseUrl}/functions/v1/courier-guy-lockers`;
+
+      // Test the full API integration
+      const response = await fetch(edgeFunctionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({
+          apiKey: this.apiKey,
+          endpoints: [`${this.getBaseUrl()}/lockers-data`],
+          useSandbox: this.useSandbox
+        }),
+        signal: AbortSignal.timeout(30000) // 30 second timeout for testing
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Could not read error response');
+        return {
+          success: false,
+          error: `HTTP ${response.status}: ${response.statusText}`,
+          details: { errorText, url: edgeFunctionUrl }
+        };
+      }
+
+      const data = await response.json();
+      console.log('📡 Full API test response:', data);
+
+      if (data.success && data.lockers) {
+        const processedLockers = this.extractLockersFromResponse(data.lockers);
+        return {
+          success: true,
+          lockers: processedLockers,
+          details: {
+            totalCount: data.totalCount || processedLockers.length,
+            method: data.method,
+            strategy: data.strategy,
+            source: data.source
+          }
+        };
+      } else {
+        return {
+          success: false,
+          error: data.error || 'No lockers in response',
+          details: data
+        };
+      }
+    } catch (error) {
+      console.error('❌ Full PUDO API test failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
    * Test real PUDO API integration
    */
   async testRealPudoApi(): Promise<{ success: boolean; lockers?: LockerLocation[]; error?: string }> {
@@ -1078,7 +1147,7 @@ class LockerService {
         }
 
         if (!hasValidId || !hasValidName) {
-          console.debug(`🚫 Skipping locker: Missing ID or name`);
+          console.debug(`�� Skipping locker: Missing ID or name`);
           return false;
         }
 
