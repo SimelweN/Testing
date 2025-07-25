@@ -151,8 +151,8 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
 
   const clearFilters = () => {
     setSearchQuery('');
-    setSelectedCity('');
-    setSelectedProvince('');
+    setSelectedCity('all');
+    setSelectedProvince('all');
     setActiveTab('all');
   };
 
