@@ -12,8 +12,6 @@ export interface LockerLocation {
   opening_hours?: string;
   contact_number?: string;
   is_active: boolean;
-  locker_capacity?: number;
-  available_slots?: number;
 }
 
 export interface LockerSearchFilters {
