@@ -212,6 +212,51 @@ class LockerService {
   }
 
   /**
+   * Try the real PUDO API directly
+   */
+  private async tryRealPudoApi(): Promise<LockerLocation[] | null> {
+    const endpoint = `${this.getBaseUrl()}${this.endpoints.lockers}`;
+    console.log(`🌐 Attempting real PUDO API call: ${endpoint}`);
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+        },
+        // Add timeout and CORS handling
+        signal: AbortSignal.timeout(10000)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log(`📡 Real API response:`, {
+        dataType: typeof data,
+        isArray: Array.isArray(data),
+        length: Array.isArray(data) ? data.length : 'N/A',
+        firstItem: Array.isArray(data) && data.length > 0 ? Object.keys(data[0]) : 'N/A'
+      });
+
+      const processedLockers = this.extractLockersFromResponse(data);
+      return processedLockers;
+
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout');
+      }
+      if (error.message === 'Failed to fetch' || error.message.includes('CORS')) {
+        throw new Error('CORS restriction - API blocked by browser');
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Try API call in background without blocking the main flow
    */
   private async tryApiCallInBackground(): Promise<void> {
