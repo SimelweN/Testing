@@ -1530,7 +1530,10 @@ const Developer = () => {
 
                         {result.error && (
                           <div className="text-sm text-red-700 mb-2">
-                            <strong>Error:</strong> {result.error}
+                            <strong>Error ({result.statusCode || 'Unknown'}):</strong>
+                            <div className="mt-1 p-2 bg-red-100 rounded text-xs font-mono whitespace-pre-wrap">
+                              {result.error}
+                            </div>
                           </div>
                         )}
 
