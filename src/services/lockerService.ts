@@ -50,13 +50,45 @@ class LockerService {
   }
 
   /**
-   * Test API connectivity
+   * Test API connectivity with detailed diagnostics
    */
-  async testApiConnectivity(): Promise<{ success: boolean; endpoint?: string; error?: string }> {
+  async testApiConnectivity(): Promise<{ success: boolean; endpoint?: string; error?: string; details?: any }> {
     console.log('🧪 Testing Courier Guy API connectivity...');
 
+    const errors: any[] = [];
+
+    // First test proxy method
+    try {
+      console.log('🧪 Testing proxy method...');
+      const { supabase } = await import('@/integrations/supabase/client');
+
+      const response = await supabase.functions.invoke('courier-guy-lockers', {
+        body: {
+          test: true,
+          apiKey: this.apiKey
+        }
+      });
+
+      if (!response.error) {
+        console.log('✅ Proxy connectivity test successful');
+        return {
+          success: true,
+          endpoint: 'Supabase Edge Function Proxy',
+          details: { method: 'proxy', response: response.data }
+        };
+      } else {
+        errors.push({ method: 'proxy', error: response.error });
+      }
+    } catch (error) {
+      console.warn('⚠️ Proxy test failed:', error);
+      errors.push({ method: 'proxy', error });
+    }
+
+    // Test direct API calls
     for (const endpoint of this.apiEndpoints) {
       try {
+        console.log(`🧪 Testing direct call to: ${endpoint}`);
+
         const response = await axios.get(endpoint, {
           timeout: 10000,
           headers: {
@@ -70,18 +102,35 @@ class LockerService {
         });
 
         if (response.status === 200) {
-          console.log(`✅ API connectivity test successful: ${endpoint}`);
-          return { success: true, endpoint };
+          console.log(`✅ Direct API connectivity test successful: ${endpoint}`);
+          return {
+            success: true,
+            endpoint,
+            details: { method: 'direct', status: response.status, data: response.data }
+          };
         }
       } catch (error) {
-        console.warn(`⚠️ API test failed for ${endpoint}:`, error);
-        continue;
+        this.logDetailedError(`Direct API test for ${endpoint}`, error);
+        errors.push({ method: 'direct', endpoint, error });
       }
+    }
+
+    // Provide detailed error summary
+    const corsErrors = errors.filter(e =>
+      e.error?.message === 'Network Error' ||
+      e.error?.code === 'ERR_NETWORK' ||
+      (e.error instanceof TypeError && e.error.message.includes('fetch'))
+    );
+
+    let errorMessage = 'All API endpoints failed';
+    if (corsErrors.length > 0) {
+      errorMessage += '. CORS restrictions detected - need backend proxy.';
     }
 
     return {
       success: false,
-      error: 'All API endpoints failed connectivity test'
+      error: errorMessage,
+      details: { errors, corsDetected: corsErrors.length > 0 }
     };
   }
 
