@@ -297,13 +297,35 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Error in process-book-purchase:', error);
+    console.error('❌ Error in process-book-purchase:', error);
+    console.error('❌ Error type:', typeof error);
+    console.error('❌ Error constructor:', error?.constructor?.name);
+    console.error('❌ Error message:', error?.message);
+    console.error('❌ Error stack:', error?.stack);
+    console.error('❌ Error stringified:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+
+    // Extract a meaningful error message
+    let errorMessage = "Unknown internal server error";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    } else if (error && typeof error === 'object') {
+      errorMessage = error.message || error.details || error.hint || String(error);
+    }
+
     return jsonResponse({
       success: false,
       error: "INTERNAL_SERVER_ERROR",
       details: {
-        error_message: error.message,
-        timestamp: new Date().toISOString()
+        error_message: errorMessage,
+        error_type: typeof error,
+        error_constructor: error?.constructor?.name,
+        timestamp: new Date().toISOString(),
+        debug_info: {
+          full_error: String(error),
+          request_processing_failed: true
+        }
       },
     }, { status: 500 });
   }
