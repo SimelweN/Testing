@@ -131,19 +131,27 @@ serve(async (req) => {
 
     console.log('✅ Book found:', book.title, 'by', book.author);
 
-    // Validate amount matches book price
-    if (Math.abs(amount - parseFloat(book.price)) > 0.01) {
-      console.error('❌ Amount mismatch:', { expected: book.price, provided: amount });
+    // Validate amount is at least the book price (can include delivery costs)
+    const bookPrice = parseFloat(book.price);
+    if (amount < bookPrice) {
+      console.error('❌ Amount too low:', { minimum_expected: bookPrice, provided: amount });
       return jsonResponse({
         success: false,
-        error: "AMOUNT_MISMATCH",
+        error: "AMOUNT_TOO_LOW",
         details: {
-          expected_amount: parseFloat(book.price),
+          minimum_expected: bookPrice,
           provided_amount: amount,
-          message: "Amount does not match book price"
+          message: "Amount cannot be less than book price"
         },
       }, { status: 400 });
     }
+
+    // Log the amount breakdown for debugging
+    console.log('💰 Amount validation passed:', {
+      book_price: bookPrice,
+      total_amount: amount,
+      likely_delivery_cost: amount - bookPrice
+    });
 
     // Get buyer and seller profiles
     console.log('👥 Fetching user profiles...');
