@@ -138,10 +138,11 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
             <Link
               to="/books"
-              className={`text-sm font-medium transition-colors hover:text-book-600 ${
+              className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-book-600 ${
                 isActive("/books") ? "text-book-600" : "text-gray-700"
               }`}
             >
+              <BookOpen className="w-4 h-4" />
               <span className="hidden lg:inline">Browse Books</span>
               <span className="lg:hidden">Books</span>
             </Link>
