@@ -1143,6 +1143,8 @@ Time: ${new Date().toISOString()}
             <div className="flex gap-2 flex-wrap">
               <Button
                 onClick={async () => {
+                  console.log("🎯 Test Real Call button clicked!");
+                  toast.info("Testing edge function...");
                   try {
                     // Test the exact same call that fails in checkout
                     const { data: userData } = await supabase.auth.getUser();
@@ -1198,6 +1200,8 @@ Time: ${new Date().toISOString()}
 
               <Button
                 onClick={async () => {
+                  console.log("🧪 Quick Test button clicked!");
+                  toast.info("Quick test starting...");
                   try {
                     const testFn = (window as any).testEdgeFunction;
                     if (testFn) {
