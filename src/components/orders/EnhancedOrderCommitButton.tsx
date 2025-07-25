@@ -88,43 +88,10 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
   const loadLockers = async () => {
     setLoadingLockers(true);
     try {
-      // Mock lockers for now - in production this would call the Courier Guy API
-      const mockLockers: Locker[] = [
-        {
-          id: "L001",
-          name: "Sandton City Mall",
-          address: "83 Rivonia Rd, Sandhurst",
-          city: "Sandton",
-          postalCode: "2196",
-          operatingHours: "9:00 AM - 9:00 PM"
-        },
-        {
-          id: "L002", 
-          name: "Canal Walk Shopping Centre",
-          address: "Century City Dr, Century City",
-          city: "Cape Town",
-          postalCode: "7441",
-          operatingHours: "9:00 AM - 9:00 PM"
-        },
-        {
-          id: "L003",
-          name: "Gateway Theatre of Shopping",
-          address: "1 Palm Blvd, Umhlanga Ridge",
-          city: "Durban", 
-          postalCode: "4319",
-          operatingHours: "9:00 AM - 9:00 PM"
-        },
-        {
-          id: "L004",
-          name: "Menlyn Park Shopping Centre",
-          address: "Atterbury Rd & Lois Ave, Menlyn",
-          city: "Pretoria",
-          postalCode: "0181",
-          operatingHours: "9:00 AM - 9:00 PM"
-        }
-      ];
-      
-      setLockers(mockLockers);
+      console.log('🔄 Loading real PUDO locker locations...');
+      const realLockers = await lockerService.getLockers();
+      setLockers(realLockers);
+      console.log(`✅ Loaded ${realLockers.length} real PUDO lockers for order commit`);
       
       // In production, this would be:
       /*
