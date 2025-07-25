@@ -310,35 +310,122 @@ class LockerService {
    * Process raw locker data from API
    */
   private processLockerData(rawData: any[]): LockerLocation[] {
-    return rawData
-      .map(item => {
+    console.log(`🔄 Processing ${rawData.length} raw locker records...`);
+
+    const processedLockers = rawData
+      .map((item, index) => {
         try {
-          return {
-            id: item.id || item.locker_id || `locker_${Date.now()}_${Math.random()}`,
-            name: item.name || item.location_name || 'Unknown Locker',
-            address: item.address || item.street_address || '',
-            city: item.city || item.town || '',
-            province: item.province || item.state || '',
-            postal_code: item.postal_code || item.zip_code || '',
-            latitude: parseFloat(item.latitude || item.lat || 0),
-            longitude: parseFloat(item.longitude || item.lng || 0),
-            opening_hours: item.opening_hours || item.hours || '',
-            contact_number: item.contact_number || item.phone || '',
-            is_active: item.is_active !== false && item.status !== 'inactive',
-            locker_capacity: item.locker_capacity || item.capacity || 0,
-            available_slots: item.available_slots || item.capacity || 0,
+          // Handle multiple possible field names from different API versions
+          const locker: LockerLocation = {
+            id: this.extractField(item, ['id', 'locker_id', 'location_id', 'pudo_id']) || `generated_${Date.now()}_${index}`,
+            name: this.extractField(item, ['name', 'location_name', 'store_name', 'branch_name']) || 'Unknown Locker',
+            address: this.extractField(item, ['address', 'street_address', 'full_address', 'physical_address']) || '',
+            city: this.extractField(item, ['city', 'town', 'locality']) || '',
+            province: this.extractField(item, ['province', 'state', 'region']) || '',
+            postal_code: this.extractField(item, ['postal_code', 'zip_code', 'postcode']) || '',
+            latitude: this.parseCoordinate(this.extractField(item, ['latitude', 'lat', 'coords_lat'])),
+            longitude: this.parseCoordinate(this.extractField(item, ['longitude', 'lng', 'lon', 'coords_lng'])),
+            opening_hours: this.extractField(item, ['opening_hours', 'hours', 'operating_hours', 'business_hours']) || '',
+            contact_number: this.extractField(item, ['contact_number', 'phone', 'telephone', 'contact_phone']) || '',
+            is_active: this.determineActiveStatus(item)
           };
+
+          return locker;
         } catch (error) {
-          console.warn('⚠️ Error processing locker item:', item, error);
+          console.warn('⚠️ Error processing locker item at index', index, ':', item, error);
           return null;
         }
       })
-      .filter((locker): locker is LockerLocation => 
-        locker !== null && 
-        locker.latitude !== 0 && 
-        locker.longitude !== 0 &&
-        locker.is_active
-      );
+      .filter((locker): locker is LockerLocation => {
+        if (!locker) return false;
+
+        // Validate essential fields
+        const hasValidCoords = locker.latitude !== 0 && locker.longitude !== 0;
+        const hasValidLocation = locker.city && locker.province;
+        const isActive = locker.is_active;
+
+        if (!hasValidCoords) {
+          console.debug(`🚫 Skipping locker ${locker.id}: Invalid coordinates`);
+          return false;
+        }
+
+        if (!hasValidLocation) {
+          console.debug(`🚫 Skipping locker ${locker.id}: Missing city/province`);
+          return false;
+        }
+
+        if (!isActive) {
+          console.debug(`🚫 Skipping locker ${locker.id}: Not active`);
+          return false;
+        }
+
+        return true;
+      });
+
+    console.log(`✅ Successfully processed ${processedLockers.length} valid lockers from ${rawData.length} raw records`);
+    return processedLockers;
+  }
+
+  /**
+   * Extract field value from item using multiple possible field names
+   */
+  private extractField(item: any, fieldNames: string[]): any {
+    for (const fieldName of fieldNames) {
+      if (item[fieldName] !== undefined && item[fieldName] !== null && item[fieldName] !== '') {
+        return item[fieldName];
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Parse coordinate value safely
+   */
+  private parseCoordinate(value: any): number {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      const parsed = parseFloat(value);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+    return 0;
+  }
+
+  /**
+   * Determine if locker is active based on various status fields
+   */
+  private determineActiveStatus(item: any): boolean {
+    // Check various status fields that might indicate active status
+    const statusFields = ['is_active', 'active', 'status', 'state', 'enabled'];
+
+    for (const field of statusFields) {
+      if (item[field] !== undefined) {
+        const value = item[field];
+
+        // Handle boolean values
+        if (typeof value === 'boolean') {
+          return value;
+        }
+
+        // Handle string values
+        if (typeof value === 'string') {
+          const lowerValue = value.toLowerCase();
+          if (['active', 'enabled', 'open', 'available', 'true', '1', 'yes'].includes(lowerValue)) {
+            return true;
+          }
+          if (['inactive', 'disabled', 'closed', 'unavailable', 'false', '0', 'no'].includes(lowerValue)) {
+            return false;
+          }
+        }
+
+        // Handle numeric values
+        if (typeof value === 'number') {
+          return value > 0;
+        }
+      }
+    }
+
+    // Default to true if no status field found (assume active)
+    return true;
   }
 
   /**
