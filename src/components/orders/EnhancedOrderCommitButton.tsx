@@ -417,7 +417,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
                       <Package className="w-4 h-4" />
                       Locker Drop-Off 
                       <Badge className="bg-green-100 text-green-800 text-xs">
-                        💰 3 Days Earlier Payment
+                        💰 Earlier Payment
                       </Badge>
                     </Label>
                     <p className="text-sm text-gray-600 mt-1">
