@@ -1167,29 +1167,66 @@ Time: ${new Date().toISOString()}
           <CardHeader>
             <CardTitle className="text-red-800 text-sm">🧪 Debug Tools</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Button
-              onClick={async () => {
-                try {
-                  const debugFn = (window as any).debugEdgeFunction;
-                  if (debugFn) {
-                    const result = await debugFn();
-                    console.log("🧪 Debug result:", result);
-                    toast.info("Debug completed - check console for details");
-                  } else {
-                    toast.error("Debug function not loaded");
+          <CardContent className="space-y-2">
+            <div className="flex gap-2">
+              <Button
+                onClick={async () => {
+                  try {
+                    const diagnosticFn = (window as any).diagnosticEdgeFunction;
+                    if (diagnosticFn) {
+                      toast.info("Running comprehensive diagnostic...");
+                      const result = await diagnosticFn();
+                      console.log("🧪 Diagnostic result:", result);
+
+                      if (result.functionCall === false) {
+                        toast.error("Edge function failed - check console for details");
+                      } else if (result.connectivity === false) {
+                        toast.error("Edge functions not deployed or accessible");
+                      } else {
+                        toast.success("Edge function working - check console for details");
+                      }
+                    } else {
+                      toast.error("Diagnostic function not loaded");
+                    }
+                  } catch (error) {
+                    console.error("Diagnostic failed:", error);
+                    toast.error("Diagnostic failed: " + String(error));
                   }
-                } catch (error) {
-                  console.error("Debug failed:", error);
-                  toast.error("Debug failed: " + String(error));
-                }
-              }}
-              variant="outline"
-              size="sm"
-              className="text-red-700 border-red-300"
-            >
-              🧪 Test Edge Function
-            </Button>
+                }}
+                variant="outline"
+                size="sm"
+                className="text-red-700 border-red-300"
+              >
+                🔍 Full Diagnostic
+              </Button>
+
+              <Button
+                onClick={async () => {
+                  try {
+                    const debugFn = (window as any).debugEdgeFunction;
+                    if (debugFn) {
+                      const result = await debugFn();
+                      console.log("🧪 Debug result:", result);
+                      toast.info("Debug completed - check console for details");
+                    } else {
+                      toast.error("Debug function not loaded");
+                    }
+                  } catch (error) {
+                    console.error("Debug failed:", error);
+                    toast.error("Debug failed: " + String(error));
+                  }
+                }}
+                variant="outline"
+                size="sm"
+                className="text-red-700 border-red-300"
+              >
+                🧪 Quick Test
+              </Button>
+            </div>
+
+            <p className="text-xs text-red-600">
+              Click "Full Diagnostic" to identify the root cause of the [object Object] error
+            </p>
           </CardContent>
         </Card>
       )}
