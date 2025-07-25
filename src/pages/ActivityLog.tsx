@@ -83,19 +83,9 @@ const ActivityLog = () => {
     }
   }, [user]);
 
-  const handleDebugTestData = async () => {
-    console.log("🔍 Starting test data debug...");
-    await debugTestData();
-    const count = await countTestData();
-    alert(`Found ${count} test data items. Check console for details.`);
-  };
-
   const handleClearTestData = async () => {
-    // First show what we'll delete
-    const count = await countTestData();
-
     const confirmClear = window.confirm(
-      `This will permanently delete ${count} test/demo data items including 'Unknown Book' orders. Are you sure?`
+      "This will permanently delete all test/demo data including 'Unknown Book' orders. Are you sure?"
     );
 
     if (!confirmClear) return;
