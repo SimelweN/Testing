@@ -182,8 +182,8 @@ export const BookTypeSection = ({
               University Year <span className="text-gray-400">(Optional)</span>
             </Label>
             <Select
-              value={formData.universityYear || ""}
-              onValueChange={(value) => onSelectChange("universityYear", value)}
+              value={formData.universityYear || "not-specified"}
+              onValueChange={(value) => onSelectChange("universityYear", value === "not-specified" ? "" : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select university year (optional)" />
