@@ -243,6 +243,9 @@ class LockerService {
     console.log(`🌐 Attempting real PUDO API call: ${endpoint}`);
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+
       const response = await fetch(endpoint, {
         method: 'GET',
         headers: {
@@ -250,9 +253,12 @@ class LockerService {
           'Content-Type': 'application/json',
           ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
         },
-        // Add timeout and CORS handling
-        signal: AbortSignal.timeout(10000)
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
+
+      console.log(`📡 Direct API response status: ${response.status} ${response.statusText}`);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -271,12 +277,17 @@ class LockerService {
 
     } catch (error) {
       if (error.name === 'AbortError') {
-        throw new Error('Request timeout');
+        throw new Error('Direct API request timed out after 8 seconds');
       }
-      if (error.message === 'Failed to fetch' || error.message.includes('CORS')) {
-        throw new Error('CORS restriction - API blocked by browser');
+      if (error.message === 'Failed to fetch') {
+        throw new Error('CORS restriction - direct API blocked by browser (this is expected)');
       }
-      throw error;
+      if (error.message.includes('CORS') || error.message.includes('cross-origin')) {
+        throw new Error('CORS restriction - API blocked by browser security');
+      }
+
+      console.error('Direct API error details:', error);
+      throw error instanceof Error ? error : new Error('Unknown direct API error');
     }
   }
 
