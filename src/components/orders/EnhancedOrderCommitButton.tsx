@@ -162,23 +162,65 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
         order_id: orderId,
         seller_id: sellerId,
         delivery_method: deliveryMethod,
-        ...(deliveryMethod === "locker" && { 
+        ...(deliveryMethod === "locker" && {
           locker_id: selectedLockerId,
-          use_locker_api: true 
+          use_locker_api: true
         })
       };
 
-      // Call the enhanced-commit-to-sale function with enhanced data
-      const { data, error } = await supabase.functions.invoke(
-        "enhanced-commit-to-sale",
-        {
-          body: commitData,
-        },
-      );
+      let data, error;
+
+      // Try enhanced function first, fallback to original if it doesn't exist
+      try {
+        console.log("📞 Attempting enhanced-commit-to-sale function...");
+        const result = await supabase.functions.invoke(
+          "enhanced-commit-to-sale",
+          {
+            body: commitData,
+          },
+        );
+        data = result.data;
+        error = result.error;
+      } catch (enhancedError) {
+        console.warn("⚠️ Enhanced function not available, falling back to original:", enhancedError);
+
+        // Fallback to original commit function with basic data
+        const basicCommitData = {
+          order_id: orderId,
+          seller_id: sellerId,
+        };
+
+        const result = await supabase.functions.invoke(
+          "commit-to-sale",
+          {
+            body: basicCommitData,
+          },
+        );
+        data = result.data;
+        error = result.error;
+
+        // Show a note about fallback mode
+        if (deliveryMethod === "locker") {
+          toast.info("🔄 Using standard commit process - enhanced locker features temporarily unavailable", {
+            duration: 5000,
+          });
+        }
+      }
 
       if (error) {
         console.error("Supabase function error:", error);
-        throw new Error(error.message || "Failed to call commit function");
+
+        // More specific error handling for edge functions
+        let errorMessage = "Failed to call commit function";
+        if (error.message?.includes('FunctionsFetchError')) {
+          errorMessage = "Edge Function service is temporarily unavailable. Please try again.";
+        } else if (error.message?.includes('CORS')) {
+          errorMessage = "CORS error - Edge Function configuration issue";
+        } else {
+          errorMessage = error.message || errorMessage;
+        }
+
+        throw new Error(errorMessage);
       }
 
       if (!data?.success) {
