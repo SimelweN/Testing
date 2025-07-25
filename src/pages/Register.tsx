@@ -135,22 +135,23 @@ const Register = () => {
         errorMessage.toLowerCase().includes("email") ||
         errorMessage.toLowerCase().includes("confirmation") ||
         errorMessage.toLowerCase().includes("smtp") ||
-        errorMessage.toLowerCase().includes("mail")
+        errorMessage.toLowerCase().includes("mail") ||
+        errorMessage.toLowerCase().includes("supabase")
       ) {
         // Show user-friendly message for email service issues
-        toast.error("📧 Email Service Temporarily Unavailable", {
-          duration: 6000,
+        toast.error("📧 Email Service Configuration Required", {
+          duration: 8000,
         });
 
         toast.info(
-          "💡 Tip: This is usually temporary and resolves within 5-10 minutes. " +
-          "You can also try using a different email address or contact support for immediate help.",
+          "The email confirmation system needs to be set up by an administrator. " +
+          "Please contact support or try again later once the email service is configured.",
           {
-            duration: 12000,
+            duration: 10000,
           }
         );
 
-        console.log("📧 Email service error - user advised to retry later");
+        console.log("📧 Email service configuration needed - user informed");
       } else {
         // Show the error to the user
         toast.error(errorMessage, {
@@ -231,7 +232,7 @@ const Register = () => {
                     <Input
                       id="password"
                       type="password"
-                      placeholder="••••••••"
+                      placeholder="��•••••••"
                       className="pl-10"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
