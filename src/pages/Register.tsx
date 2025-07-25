@@ -90,10 +90,10 @@ const Register = () => {
         toast.success("Account created successfully! You can now log in.", {
           duration: 4000,
         });
-        toast.warning(
-          "Note: Email confirmation service is temporarily unavailable.",
+        toast.info(
+          "📧 Note: Email confirmation service is temporarily unavailable, but your account is fully functional!",
           {
-            duration: 6000,
+            duration: 8000,
           },
         );
 
