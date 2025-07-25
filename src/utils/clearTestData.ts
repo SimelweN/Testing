@@ -23,9 +23,12 @@ export const clearAllTestData = async (): Promise<boolean> => {
       .is("book_id", null);
 
     if (bookIdError) {
-      console.error("Error deleting orders with null book_id:", bookIdError);
+      const errorMsg = bookIdError.message || bookIdError.details || 'Unknown error';
+      console.error("Error deleting orders with null book_id:", errorMsg);
+      console.error("Full bookId error:", JSON.stringify(bookIdError, null, 2));
     } else {
       totalOrdersDeleted += bookIdCount || 0;
+      console.log(`✅ Deleted ${bookIdCount || 0} orders with null book_id`);
     }
 
     // Delete orders with null buyer_id
