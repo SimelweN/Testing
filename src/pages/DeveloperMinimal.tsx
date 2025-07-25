@@ -542,10 +542,17 @@ const DeveloperMinimal = () => {
                 <div className="space-y-3">
                   <h4 className="font-medium text-gray-900">Quick Actions</h4>
                   <div className="space-y-2">
-                    <Button 
-                      onClick={() => navigate("/developer-simple")} 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      onClick={() => navigate("/developer")}
+                      className="w-full justify-start bg-purple-600 hover:bg-purple-700"
+                    >
+                      <Zap className="h-4 w-4 mr-2" />
+                      Go to Full Testing Suite
+                    </Button>
+                    <Button
+                      onClick={() => navigate("/developer-simple")}
+                      variant="outline"
+                      size="sm"
                       className="w-full justify-start"
                     >
                       <Code className="h-4 w-4 mr-2" />
