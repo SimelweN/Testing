@@ -286,9 +286,13 @@ const Developer = () => {
     try {
       console.log(`🚀 Calling ${functionName} with payload:`, payload);
 
-      const { data, error } = await supabase.functions.invoke(functionName, {
+      const response = await supabase.functions.invoke(functionName, {
         body: payload
       });
+
+      console.log(`📡 ${functionName} raw response:`, response);
+
+      const { data, error } = response;
 
       const duration = Date.now() - startTime;
 
