@@ -32,7 +32,8 @@ import {
   ShoppingCart,
   FileText,
   DollarSign,
-  Settings
+  Settings,
+  MapPin
 } from "lucide-react";
 
 interface TestResult {
