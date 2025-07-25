@@ -127,7 +127,7 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
       console.error('❌ Error loading lockers:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(`Failed to load lockers: ${errorMessage}`);
-      toast.error('��� Failed to load lockers', {
+      toast.error('❌ Failed to load lockers', {
         description: 'Please check your connection and try again'
       });
     } finally {
@@ -156,9 +156,34 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
       setFilteredLockers(filtered);
       console.log('📋 Filtered lockers for display:', filtered.map(l => `${l.name} (${l.city})`));
     } catch (err) {
-      console.error('❌ Error filtering lockers:', err);
-      console.log('🔄 Fallback: Using all lockers without filtering');
-      setFilteredLockers(lockers);
+      console.warn('❌ Error filtering lockers:', err);
+      console.log('🔄 Fallback: Using simple client-side filtering');
+
+      // Fallback to simple client-side filtering
+      let filtered = [...lockers];
+
+      if (filters.search_query) {
+        const query = filters.search_query.toLowerCase();
+        filtered = filtered.filter(locker =>
+          locker.name.toLowerCase().includes(query) ||
+          locker.address.toLowerCase().includes(query) ||
+          locker.city.toLowerCase().includes(query)
+        );
+      }
+
+      if (filters.city) {
+        filtered = filtered.filter(locker =>
+          locker.city.toLowerCase().includes(filters.city!.toLowerCase())
+        );
+      }
+
+      if (filters.province) {
+        filtered = filtered.filter(locker =>
+          locker.province.toLowerCase().includes(filters.province!.toLowerCase())
+        );
+      }
+
+      setFilteredLockers(filtered);
     }
   };
 
