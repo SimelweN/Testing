@@ -105,64 +105,227 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-    // Since this is a test environment, let's simulate the book purchase process
-    // without requiring actual database records
-    console.log('🎭 Running in test mode - simulating book purchase...');
+    // Get book details and verify availability
+    console.log('📚 Fetching book details...');
+    const { data: book, error: bookError } = await supabase
+      .from("books")
+      .select("*")
+      .eq("id", book_id)
+      .eq("seller_id", seller_id)
+      .eq("sold", false)
+      .single();
 
-    // Simulate order creation
+    if (bookError || !book) {
+      console.error('❌ Book not available:', bookError?.message);
+      return jsonResponse({
+        success: false,
+        error: "BOOK_NOT_AVAILABLE",
+        details: {
+          book_id,
+          seller_id,
+          error_message: bookError?.message || "Book not found or already sold",
+          database_error: bookError
+        },
+      }, { status: 404 });
+    }
+
+    console.log('✅ Book found:', book.title, 'by', book.author);
+
+    // Validate amount matches book price
+    if (Math.abs(amount - parseFloat(book.price)) > 0.01) {
+      console.error('❌ Amount mismatch:', { expected: book.price, provided: amount });
+      return jsonResponse({
+        success: false,
+        error: "AMOUNT_MISMATCH",
+        details: {
+          expected_amount: parseFloat(book.price),
+          provided_amount: amount,
+          message: "Amount does not match book price"
+        },
+      }, { status: 400 });
+    }
+
+    // Get buyer and seller profiles
+    console.log('👥 Fetching user profiles...');
+    const [{ data: buyer, error: buyerError }, { data: seller, error: sellerError }] = await Promise.all([
+      supabase.from("profiles").select("*").eq("id", buyer_id).single(),
+      supabase.from("profiles").select("*").eq("id", seller_id).single()
+    ]);
+
+    if (buyerError || !buyer) {
+      console.error('❌ Buyer profile not found:', buyerError?.message);
+      return jsonResponse({
+        success: false,
+        error: "BUYER_NOT_FOUND",
+        details: {
+          buyer_id,
+          error_message: buyerError?.message || "Buyer profile not found"
+        },
+      }, { status: 404 });
+    }
+
+    if (sellerError || !seller) {
+      console.error('❌ Seller profile not found:', sellerError?.message);
+      return jsonResponse({
+        success: false,
+        error: "SELLER_NOT_FOUND",
+        details: {
+          seller_id,
+          error_message: sellerError?.message || "Seller profile not found"
+        },
+      }, { status: 404 });
+    }
+
+    console.log('✅ Profiles found - Buyer:', buyer.name || buyer.email, 'Seller:', seller.name || seller.email);
+
+    // Prevent self-purchase
+    if (buyer_id === seller_id) {
+      console.error('❌ Self-purchase attempt');
+      return jsonResponse({
+        success: false,
+        error: "SELF_PURCHASE_NOT_ALLOWED",
+        details: {
+          message: "Cannot purchase your own book"
+        },
+      }, { status: 400 });
+    }
+
+    // Mark book as sold (with optimistic locking)
+    console.log('📝 Marking book as sold...');
+    const { error: bookUpdateError } = await supabase
+      .from("books")
+      .update({
+        sold: true,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", book_id)
+      .eq("sold", false); // Ensure it's still available
+
+    if (bookUpdateError) {
+      console.error('❌ Failed to mark book as sold:', bookUpdateError.message);
+      return jsonResponse({
+        success: false,
+        error: "BOOK_UPDATE_FAILED",
+        details: {
+          error_message: bookUpdateError.message,
+          book_id,
+          message: "Book may have been sold by another buyer"
+        },
+      }, { status: 409 });
+    }
+
+    // Create order
+    console.log('📋 Creating order...');
     const commitDeadline = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
     const finalPaymentRef = payment_reference || `single_book_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    const mockOrder = {
-      id: `test-order-${Date.now()}`,
-      book_id,
-      buyer_id,
-      seller_id,
-      items: [{
-        book_id,
-        title: "Test Book Title",
-        author: "Test Author",
-        price: amount,
-        condition: "Good",
-        seller_id
-      }],
-      amount: Math.round(amount * 100), // Convert to cents
-      total_amount: amount,
-      status: "pending_commit",
-      payment_status: "paid",
-      payment_reference: finalPaymentRef,
-      shipping_address: shipping_address || {},
-      commit_deadline: commitDeadline.toISOString(),
-      paid_at: new Date().toISOString(),
-      expires_at: commitDeadline.toISOString(),
-      created_at: new Date().toISOString(),
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .insert({
+        buyer_id,
+        buyer_email: buyer_email || buyer.email,
+        seller_id,
+        items: [{
+          book_id,
+          title: book.title,
+          author: book.author,
+          price: amount,
+          condition: book.condition,
+          seller_id
+        }],
+        amount: Math.round(amount * 100), // Convert to cents
+        total_amount: amount,
+        status: "pending_commit",
+        payment_status: "paid",
+        payment_reference: finalPaymentRef,
+        shipping_address: shipping_address || {},
+        commit_deadline: commitDeadline.toISOString(),
+        paid_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        metadata: {
+          created_from: "single_book_purchase",
+          item_count: 1,
+          book_id
+        }
+      })
+      .select()
+      .single();
+
+    if (orderError) {
+      console.error('❌ Order creation failed:', orderError.message);
+      
+      // Rollback book sale if order creation fails
+      console.log('🔄 Rolling back book sale...');
+      await supabase
+        .from("books")
+        .update({ sold: false, updated_at: new Date().toISOString() })
+        .eq("id", book_id);
+
+      return jsonResponse({
+        success: false,
+        error: "ORDER_CREATION_FAILED",
+        details: {
+          error_message: orderError.message,
+          rollback_performed: true
+        },
+      }, { status: 500 });
+    }
+
+    console.log('✅ Order created successfully:', order.id);
+
+    // Create notifications
+    console.log('📬 Creating notifications...');
+    const notificationPromises = [
+      supabase.from("order_notifications").insert({
+        order_id: order.id,
+        user_id: buyer_id,
+        type: "order_confirmed",
+        title: "Purchase Confirmed!",
+        message: `Your purchase of "${book.title}" has been confirmed. Total: R${amount.toFixed(2)}`
+      }),
+      supabase.from("order_notifications").insert({
+        order_id: order.id,
+        user_id: seller_id,
+        type: "new_order",
+        title: "New Sale!",
+        message: `You have a new order for "${book.title}" worth R${amount.toFixed(2)}. Please commit within 48 hours.`
+      })
+    ];
+
+    await Promise.all(notificationPromises);
+    console.log('✅ Notifications created');
+
+    // Log activity
+    console.log('📊 Logging activity...');
+    await supabase.from("order_activity_log").insert({
+      order_id: order.id,
+      user_id: buyer_id,
+      action: "single_book_purchase",
+      new_status: "pending_commit",
       metadata: {
-        created_from: "single_book_purchase",
-        item_count: 1,
         book_id,
-        test_mode: true
+        amount,
+        payment_reference: finalPaymentRef
       }
-    };
+    });
 
-    console.log('✅ Mock order created:', mockOrder.id);
-
-    // Log the successful test
-    console.log('📈 Test completed successfully');
+    console.log('🎉 Book purchase completed successfully!');
 
     return jsonResponse({
       success: true,
-      message: "Book purchase processed successfully (TEST MODE)",
-      test_mode: true,
+      message: "Book purchase processed successfully",
       order: {
-        id: mockOrder.id,
+        id: order.id,
         book_id,
-        book_title: "Test Book Title",
+        book_title: book.title,
+        book_author: book.author,
         amount,
-        status: mockOrder.status,
+        status: order.status,
         commit_deadline: commitDeadline.toISOString(),
-        payment_reference: finalPaymentRef
-      },
-      note: "This is a test response. In production, this would create actual database records."
+        payment_reference: finalPaymentRef,
+        seller_name: seller.name || seller.email,
+        buyer_name: buyer.name || buyer.email
+      }
     });
 
   } catch (error) {
