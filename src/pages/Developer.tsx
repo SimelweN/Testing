@@ -1407,6 +1407,95 @@ const Developer = () => {
               </CardContent>
             </Card>
 
+            {/* API Testing Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Code className="h-5 w-5" />
+                  <span>Courier Guy API Testing</span>
+                  <Badge variant="outline">Live API</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">API Key (Optional)</label>
+                    <Input
+                      type="password"
+                      placeholder="Bearer token for Courier Guy API"
+                      onChange={(e) => {
+                        if (e.target.value.trim()) {
+                          // Import and set API key
+                          import('@/services/lockerService').then(({ lockerService }) => {
+                            lockerService.setApiKey(e.target.value.trim());
+                          });
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Set VITE_COURIER_GUY_API_KEY in .env or enter manually
+                    </p>
+                  </div>
+                  <div className="flex items-end">
+                    <Button
+                      onClick={async () => {
+                        setIsLoading(true);
+                        try {
+                          const { lockerService } = await import('@/services/lockerService');
+                          const result = await lockerService.testApiConnectivity();
+                          if (result.success) {
+                            toast.success(`✅ API connected: ${result.endpoint}`);
+                          } else {
+                            toast.error(`❌ API test failed: ${result.error}`);
+                          }
+                        } catch (error) {
+                          toast.error(`❌ API test error: ${error}`);
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }}
+                      disabled={isLoading}
+                      className="w-full"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                      )}
+                      Test API Connection
+                    </Button>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <Button
+                    onClick={async () => {
+                      setIsLoading(true);
+                      try {
+                        const { lockerService } = await import('@/services/lockerService');
+                        toast.info('🔄 Fetching real lockers from Courier Guy API...');
+                        const lockers = await lockerService.fetchAllLockers();
+                        toast.success(`✅ Fetched ${lockers.length} lockers from API`);
+                      } catch (error) {
+                        toast.error(`❌ Failed to fetch lockers: ${error}`);
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                    disabled={isLoading}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <MapPin className="h-4 w-4 mr-2" />
+                    )}
+                    Fetch Real Lockers from API
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Tab Contents */}
             <TabsContent value="overview">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
