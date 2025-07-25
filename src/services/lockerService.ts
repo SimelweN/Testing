@@ -57,10 +57,32 @@ class LockerService {
 
   constructor() {
     // Try to get API key from environment variables
-    this.apiKey = import.meta.env.VITE_COURIER_GUY_API_KEY || null;
+    this.apiKey = import.meta.env.VITE_PUDO_API_KEY || import.meta.env.VITE_COURIER_GUY_API_KEY || null;
+    this.useSandbox = import.meta.env.VITE_PUDO_SANDBOX === 'true' || false;
+
     if (!this.apiKey) {
-      console.warn('⚠️ No Courier Guy API key found. Set VITE_COURIER_GUY_API_KEY environment variable for real API access.');
+      console.warn('⚠️ No PUDO API key found. Set VITE_PUDO_API_KEY environment variable for real API access.');
+      console.info('💡 Get your API key from: https://customer.pudo.co.za (Settings → API Keys)');
     }
+
+    if (this.useSandbox) {
+      console.info('🧪 Using PUDO Sandbox environment');
+    }
+  }
+
+  /**
+   * Get the appropriate base URL based on environment
+   */
+  private getBaseUrl(): string {
+    return this.useSandbox ? this.sandboxUrl : this.baseUrl;
+  }
+
+  /**
+   * Toggle between sandbox and production environments
+   */
+  setSandboxMode(enabled: boolean): void {
+    this.useSandbox = enabled;
+    console.log(`🔄 Switched to ${enabled ? 'Sandbox' : 'Production'} environment`);
   }
 
   /**
