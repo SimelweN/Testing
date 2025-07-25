@@ -2,6 +2,56 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 /**
+ * Aggressively clears ALL data from orders and notifications tables
+ */
+export const clearAllData = async (): Promise<boolean> => {
+  try {
+    console.log("🗑️ CLEARING ALL DATA - This will remove everything...");
+
+    // Delete ALL orders
+    const { error: allOrdersError, count: allOrdersCount } = await supabase
+      .from("orders")
+      .delete({ count: "exact" });
+
+    if (allOrdersError) {
+      console.error("Error deleting all orders:", allOrdersError.message || allOrdersError);
+    } else {
+      console.log(`🗑️ Deleted ${allOrdersCount || 0} orders (ALL)`);
+    }
+
+    // Delete ALL notifications
+    const { error: allNotifError, count: allNotifCount } = await supabase
+      .from("notifications")
+      .delete({ count: "exact" });
+
+    if (allNotifError) {
+      console.error("Error deleting all notifications:", allNotifError.message || allNotifError);
+    } else {
+      console.log(`🗑️ Deleted ${allNotifCount || 0} notifications (ALL)`);
+    }
+
+    const totalDeleted = (allOrdersCount || 0) + (allNotifCount || 0);
+
+    if (totalDeleted > 0 || !allOrdersError) {
+      toast.success(`Successfully cleared ALL data: ${allOrdersCount || 0} orders and ${allNotifCount || 0} notifications`);
+    } else {
+      toast.error("Failed to clear data");
+    }
+
+    console.log("✅ ALL data clearing completed");
+    return !allOrdersError;
+
+  } catch (error) {
+    console.error("Fatal error clearing ALL data:", error);
+    const errorMessage = error instanceof Error ? error.message :
+                        typeof error === 'string' ? error :
+                        'Unknown error occurred';
+    toast.error("Failed to clear all data: " + errorMessage);
+    return false;
+  }
+};
+
+/**
  * Clears all test/demo data from the orders table
  * This includes orders with:
  * - No book title (showing as "Unknown Book")
