@@ -172,8 +172,6 @@ const Register = () => {
                 Create an Account
               </h1>
 
-              <RegistrationStatusBanner />
-
               {emailSent && (
                 <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
                   <div className="flex items-center gap-2 text-green-800">
