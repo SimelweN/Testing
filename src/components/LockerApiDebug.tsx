@@ -14,20 +14,41 @@ const LockerApiDebug: React.FC = () => {
   const testEdgeFunction = async () => {
     setTesting(true);
     setResults(null);
-    
+
     try {
       console.log('🧪 Starting edge function test...');
+
+      // First check if edge function URL is configured
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) {
+        setResults({
+          type: 'edge-function',
+          success: false,
+          error: 'VITE_SUPABASE_URL not configured'
+        });
+        toast.error('❌ Supabase URL not configured');
+        return;
+      }
+
       const result = await lockerService.testEdgeFunction();
-      
+
       setResults({
         type: 'edge-function',
-        ...result
+        ...result,
+        supabaseUrl,
+        edgeFunctionUrl: `${supabaseUrl}/functions/v1/courier-guy-lockers`
       });
-      
+
       if (result.success) {
         toast.success('✅ Edge function is working!');
       } else {
-        toast.error(`❌ Edge function failed: ${result.error}`);
+        if (result.error?.includes('502')) {
+          toast.error('❌ Edge function deployment issue (502)', {
+            description: 'Function may not be deployed or has runtime errors'
+          });
+        } else {
+          toast.error(`❌ Edge function failed: ${result.error}`);
+        }
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
