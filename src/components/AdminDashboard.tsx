@@ -435,12 +435,12 @@ const AdminDashboard = () => {
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* Developer Dashboard Access */}
+              {/* Developer Tools - Disabled */}
               <Button
-                onClick={() => navigate("/developer-simple")}
+                disabled
                 variant="outline"
                 size="sm"
-                className="hidden sm:flex items-center space-x-2 bg-slate-900 text-white border-slate-900 hover:bg-slate-800"
+                className="hidden sm:flex items-center space-x-2 opacity-50 cursor-not-allowed"
               >
                 <Terminal className="h-4 w-4" />
                 <span>Developer Tools</span>
