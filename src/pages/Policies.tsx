@@ -90,40 +90,40 @@ const Policies = () => {
               <Button
                 onClick={() => setActiveTab("refunds")}
                 variant={activeTab === "refunds" ? "default" : "outline"}
-                size="sm"
-                className="text-xs sm:text-sm flex-shrink-0"
+                size="lg"
+                className="text-sm sm:text-base flex-shrink-0 font-medium px-4 py-2 transition-all duration-200 hover:shadow-md"
               >
                 <span>Refund Policy</span>
               </Button>
               <Button
                 onClick={() => setActiveTab("cancellation")}
                 variant={activeTab === "cancellation" ? "default" : "outline"}
-                size="sm"
-                className="text-xs sm:text-sm flex-shrink-0"
+                size="lg"
+                className="text-sm sm:text-base flex-shrink-0 font-medium px-4 py-2 transition-all duration-200 hover:shadow-md"
               >
                 <span>Cancellation Policy</span>
               </Button>
               <Button
                 onClick={() => setActiveTab("shipping")}
                 variant={activeTab === "shipping" ? "default" : "outline"}
-                size="sm"
-                className="text-xs sm:text-sm flex-shrink-0"
+                size="lg"
+                className="text-sm sm:text-base flex-shrink-0 font-medium px-4 py-2 transition-all duration-200 hover:shadow-md"
               >
                 <span>Shipping & Delivery</span>
               </Button>
               <Button
                 onClick={() => setActiveTab("returns")}
                 variant={activeTab === "returns" ? "default" : "outline"}
-                size="sm"
-                className="text-xs sm:text-sm flex-shrink-0"
+                size="lg"
+                className="text-sm sm:text-base flex-shrink-0 font-medium px-4 py-2 transition-all duration-200 hover:shadow-md"
               >
                 <span>Return Policy</span>
               </Button>
               <Button
                 onClick={() => setActiveTab("disputes")}
                 variant={activeTab === "disputes" ? "default" : "outline"}
-                size="sm"
-                className="text-xs sm:text-sm flex-shrink-0"
+                size="lg"
+                className="text-sm sm:text-base flex-shrink-0 font-medium px-4 py-2 transition-all duration-200 hover:shadow-md"
               >
                 <span>Dispute Resolution</span>
               </Button>
