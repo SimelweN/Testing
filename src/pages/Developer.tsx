@@ -1423,6 +1423,7 @@ const Developer = () => {
                     <Input
                       type="password"
                       placeholder="Bearer token for PUDO API"
+                      defaultValue="37102346|dpTTHKfhJYBQh79UfHmOj8P0IPtt8ImFz0VeHXWr65621bae"
                       onChange={(e) => {
                         if (e.target.value.trim()) {
                           // Import and set API key
