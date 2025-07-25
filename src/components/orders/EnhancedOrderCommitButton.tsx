@@ -232,7 +232,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
       // Show success messages based on delivery method
       if (deliveryMethod === "locker") {
         toast.success("✅ Order committed with Locker Drop-Off!", {
-          description: "🚀 Get paid 3 days earlier with locker delivery!",
+          description: "🚀 Get paid earlier with locker delivery!",
           duration: 5000,
         });
 
