@@ -264,10 +264,18 @@ const Developer = () => {
 
     } catch (error) {
       console.error('❌ Critical error loading real data:', error);
-      toast.error(`❌ Critical error: ${error instanceof Error ? error.message : 'Unknown error'}`);
 
-      // Only show warning, don't fall back to mock data
-      toast.warning('🚨 Using database connection - please check your Supabase configuration');
+      let errorMessage = 'Unknown error';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        errorMessage = JSON.stringify(error);
+      } else {
+        errorMessage = String(error);
+      }
+
+      toast.error(`❌ Critical database error: ${errorMessage}`);
+      toast.warning('🚨 Please check your Supabase configuration and database permissions');
     }
   };
 
