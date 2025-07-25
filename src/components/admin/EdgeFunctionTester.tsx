@@ -34,6 +34,27 @@ const EdgeFunctionTester: React.FC = () => {
 
   const edgeFunctions: EdgeFunctionTest[] = [
     {
+      name: "process-book-purchase",
+      displayName: "🚨 Process Book Purchase (DEBUG)",
+      description: "Test the process-book-purchase function that's failing in checkout",
+      testData: {
+        book_id: "test-book-123",
+        buyer_id: "test-buyer-456",
+        seller_id: "test-seller-789",
+        amount: 100,
+        payment_reference: "PAY_TEST_123",
+        buyer_email: "test@example.com",
+        shipping_address: {
+          street: "123 Test Street",
+          city: "Cape Town",
+          province: "Western Cape",
+          postal_code: "8000",
+          country: "South Africa"
+        }
+      },
+      expectedResult: "Order created with book marked as sold"
+    },
+    {
       name: "enhanced-commit-to-sale",
       displayName: "🆕 Enhanced Commit (Locker-to-Door)",
       description: "Test the new locker-to-door commit functionality",
