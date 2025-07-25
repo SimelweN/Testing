@@ -139,26 +139,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (error) {
           console.error("❌ Supabase signup failed:", error);
 
-          // If it's an email-related error, try without confirmation
-          if (error.message.toLowerCase().includes('email')) {
-            console.log("📧 Email error detected, trying manual account creation...");
+          // Handle specific email confirmation errors gracefully
+          if (error.message.toLowerCase().includes('email') ||
+              error.message.includes('confirmation') ||
+              error.message.includes('SMTP') ||
+              error.message.includes('mail')) {
 
-            // Try backup email service instead
-            const emailResult = await BackupEmailService.sendConfirmationEmail({
-              to: email,
-              name,
-              type: 'confirmation'
-            });
+            console.log("📧 Email service error detected - providing user-friendly fallback");
 
-            if (emailResult.success) {
-              console.log("✅ Account created via backup service");
-              return { needsVerification: true };
-            } else {
-              console.log("⚠️ Both signup and backup failed, but user can continue");
-              return { needsVerification: false, emailWarning: true };
-            }
+            // Instead of trying complex workarounds, provide clear guidance
+            throw new Error(
+              "Account creation is temporarily affected by email service issues. " +
+              "This is a known issue with the email provider. Please try again in a few minutes, " +
+              "or contact support for immediate assistance."
+            );
           }
 
+          // For other errors, throw the original message
           throw new Error(error.message);
         }
 
