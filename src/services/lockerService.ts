@@ -185,12 +185,12 @@ class LockerService {
   }
 
   /**
-   * Fetch all lockers/terminals from PUDO API
+   * Fetch all lockers/terminals from PUDO API with comprehensive fallback strategy
    */
   async fetchAllLockers(): Promise<LockerLocation[]> {
     console.log('🚀 Attempting to fetch lockers from PUDO API...');
 
-    // Strategy 1: Try Supabase edge function proxy (best option - bypasses CORS)
+    // Strategy 1: Try Supabase edge function proxy (bypasses CORS)
     try {
       console.log('🎯 Strategy 1: Supabase edge function proxy...');
       const proxyLockers = await this.fetchLockersViaProxy();
@@ -201,72 +201,142 @@ class LockerService {
         return this.lockers;
       }
     } catch (error) {
-      console.warn('⚠️ Strategy 1 failed (proxy):', error instanceof Error ? error.message : error);
-    }
+      console.warn('⚠️ Strategy 1 failed (edge function proxy):', error instanceof Error ? error.message : error);
 
-    // Strategy 2: Try direct PUDO API calls (will likely fail due to CORS)
-    console.log('🎯 Strategy 2: Direct PUDO API calls (likely to fail due to CORS)...');
-    const endpoints = [
-      `${this.getBaseUrl()}${this.endpoints.lockers}`
-    ];
-
-    let corsDetected = false;
-
-    for (const endpoint of endpoints) {
-      try {
-        console.log(`🔄 Trying: ${endpoint}`);
-
-        const response = await axios.get(endpoint, {
-          timeout: 10000,
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
-          }
-        });
-
-        console.log(`📡 Direct API Response:`, {
-          status: response.status,
-          dataType: typeof response.data,
-          isArray: Array.isArray(response.data),
-          count: Array.isArray(response.data) ? response.data.length : 'N/A'
-        });
-
-        if (response.status === 200 && response.data) {
-          const lockers = this.extractLockersFromResponse(response.data);
-
-          if (lockers.length > 0) {
-            this.lockers = lockers;
-            this.lastFetched = new Date();
-            console.log(`✅ SUCCESS: Fetched ${this.lockers.length} lockers from direct API call`);
-            return this.lockers;
-          }
-        }
-      } catch (error) {
-        if (error instanceof Error && (error.message === 'Network Error' || error.message.includes('CORS'))) {
-          corsDetected = true;
-        }
-        this.logDetailedError(`Direct PUDO API call to ${endpoint}`, error);
+      // Check if edge function is deployed
+      if (error instanceof Error && error.message.includes('Function not found')) {
+        console.error('🚫 Edge function not deployed - run: supabase functions deploy courier-guy-lockers');
       }
     }
 
-    // Strategy 3: Use cached data if available
+    // Strategy 2: Try alternative JSONP approach (sometimes bypasses CORS)
+    try {
+      console.log('🎯 Strategy 2: JSONP approach...');
+      const jsonpLockers = await this.fetchLockersViaJSONP();
+      if (jsonpLockers.length > 0) {
+        this.lockers = jsonpLockers;
+        this.lastFetched = new Date();
+        console.log(`✅ SUCCESS: Fetched ${this.lockers.length} lockers via JSONP`);
+        return this.lockers;
+      }
+    } catch (error) {
+      console.warn('⚠️ Strategy 2 failed (JSONP):', error instanceof Error ? error.message : error);
+    }
+
+    // Strategy 3: Try direct PUDO API calls (will likely fail due to CORS but worth trying)
+    console.log('🎯 Strategy 3: Direct PUDO API calls (expected to fail due to CORS)...');
+    const endpoint = `${this.getBaseUrl()}${this.endpoints.lockers}`;
+
+    let corsDetected = false;
+
+    try {
+      console.log(`🔄 Trying: ${endpoint}`);
+
+      const response = await axios.get(endpoint, {
+        timeout: 8000,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          ...(this.apiKey && { 'Authorization': `Bearer ${this.apiKey}` })
+        }
+      });
+
+      console.log(`📡 Direct API Response:`, {
+        status: response.status,
+        dataType: typeof response.data,
+        isArray: Array.isArray(response.data),
+        count: Array.isArray(response.data) ? response.data.length : 'N/A'
+      });
+
+      if (response.status === 200 && response.data) {
+        const lockers = this.extractLockersFromResponse(response.data);
+
+        if (lockers.length > 0) {
+          this.lockers = lockers;
+          this.lastFetched = new Date();
+          console.log(`✅ SUCCESS: Fetched ${this.lockers.length} lockers from direct API call`);
+          return this.lockers;
+        }
+      }
+    } catch (error) {
+      if (error instanceof Error && (
+        error.message === 'Network Error' ||
+        error.message.includes('CORS') ||
+        error.message.includes('ERR_NETWORK')
+      )) {
+        corsDetected = true;
+        console.warn('🔒 CORS restriction confirmed - browser blocked the request');
+      }
+      this.logDetailedError(`Direct PUDO API call to ${endpoint}`, error);
+    }
+
+    // Strategy 4: Use cached data if available
     if (this.lockers.length > 0) {
-      console.log('🎯 Strategy 3: Using cached locker data');
+      console.log('🎯 Strategy 4: Using cached locker data from previous successful fetch');
       return this.lockers;
     }
 
-    // Strategy 4: Final fallback to verified mock data
-    console.log('🎯 Strategy 4: Using verified mock locker data as final fallback');
+    // Strategy 5: Final fallback to verified mock data
+    console.log('🎯 Strategy 5: Using verified mock locker data as final fallback');
 
     if (corsDetected) {
-      console.warn('🔒 CORS restrictions detected - consider deploying the edge function proxy');
+      console.warn('🔒 All strategies failed due to CORS restrictions');
+      console.info('💡 Solutions: Deploy edge function proxy or set up backend API proxy');
     }
 
     const mockLockers = this.getMockLockers();
     console.log(`📄 Loaded ${mockLockers.length} verified mock locker locations`);
 
+    // Mark these as mock data for UI feedback
+    mockLockers.forEach(locker => {
+      (locker as any).isMockData = true;
+    });
+
     return mockLockers;
+  }
+
+  /**
+   * Alternative JSONP approach to bypass CORS (may work with some APIs)
+   */
+  private async fetchLockersViaJSONP(): Promise<LockerLocation[]> {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      const callbackName = `pudoCallback_${Date.now()}`;
+
+      // Set up callback
+      (window as any)[callbackName] = (data: any) => {
+        try {
+          const lockers = this.extractLockersFromResponse(data);
+          resolve(lockers);
+        } catch (error) {
+          reject(error);
+        } finally {
+          // Cleanup
+          document.head.removeChild(script);
+          delete (window as any)[callbackName];
+        }
+      };
+
+      // Set up error handling
+      script.onerror = () => {
+        document.head.removeChild(script);
+        delete (window as any)[callbackName];
+        reject(new Error('JSONP request failed'));
+      };
+
+      // Try JSONP request (will fail if API doesn't support JSONP)
+      script.src = `${this.getBaseUrl()}${this.endpoints.lockers}?callback=${callbackName}`;
+      document.head.appendChild(script);
+
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        if (document.head.contains(script)) {
+          document.head.removeChild(script);
+          delete (window as any)[callbackName];
+          reject(new Error('JSONP request timed out'));
+        }
+      }, 10000);
+    });
   }
 
   /**
