@@ -34,7 +34,6 @@ import OrderManagementView from "@/components/orders/OrderManagementView";
 import OrderNotificationSystem from "@/components/notifications/OrderNotificationSystem";
 import EnhancedOrderCommitButton from "@/components/orders/EnhancedOrderCommitButton";
 import { clearAllTestData, clearAllUserData } from "@/utils/clearTestData";
-import { debugTestData, countTestData } from "@/utils/testDataDebug";
 
 const ActivityLog = () => {
   const { user, profile } = useAuth();
