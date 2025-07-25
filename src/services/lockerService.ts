@@ -388,7 +388,7 @@ class LockerService {
     }
 
     // Check if this looks like PUDO locker data from /lockers-data
-    if (rawLockers.length > 0 && (rawLockers[0]?.code || rawLockers[0]?.terminal_id)) {
+    if (rawLockers.length > 0 && (rawLockers[0]?.code && rawLockers[0]?.name && rawLockers[0]?.latitude)) {
       console.log('🔍 Detected PUDO locker format from /lockers-data endpoint');
       return this.processPudoLockers(rawLockers);
     }
