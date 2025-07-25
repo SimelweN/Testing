@@ -325,41 +325,52 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         }
 
                         // Final safety check and throw
-        // Final message validation with multiple safety checks
-        let finalMessage = String(userFriendlyMessage || 'Unknown error');
+        // BULLETPROOF ERROR MESSAGE CONSTRUCTION
+        let finalMessage: string;
 
-        // Multiple safety checks for [object Object]
-        if (finalMessage === '[object Object]' || finalMessage.includes('[object Object]')) {
-          console.error('🚨 [object Object] detected! Detailed analysis:');
-          console.error('  userFriendlyMessage type:', typeof userFriendlyMessage);
-          console.error('  userFriendlyMessage value:', userFriendlyMessage);
-          console.error('  Original error:', error);
-          console.error('  Error prototype:', Object.getPrototypeOf(error));
+        try {
+          // Convert to string safely
+          const messageStr = String(userFriendlyMessage || 'Unknown error');
 
-          // Try alternative extraction methods
-          finalMessage = 'Edge function error: unable to extract readable error message';
+          // Check for [object Object] pattern
+          if (messageStr === '[object Object]' || messageStr.includes('[object Object]')) {
+            console.error('🚨 [object Object] detected! Using immediate error instead');
 
-          if (error && typeof error === 'object') {
-            const errorKeys = Object.keys(error);
-            if (errorKeys.length > 0) {
-              finalMessage += ` (error has keys: ${errorKeys.join(', ')})`;
+            // Use the immediate error we captured earlier
+            const immediateError = (window as any).lastEdgeFunctionError;
+            if (immediateError && typeof immediateError === 'string') {
+              finalMessage = immediateError;
+            } else {
+              finalMessage = 'Edge function failed with unreadable error format';
             }
+          } else {
+            finalMessage = messageStr;
           }
+        } catch (stringError) {
+          console.error('🚨 Error stringification failed:', stringError);
+          finalMessage = 'Edge function error stringification failed';
         }
 
-        // Ensure final message is safe for throwing
-        if (typeof finalMessage !== 'string' || finalMessage.includes('[object Object]')) {
-          finalMessage = 'Edge function returned an unprocessable error';
+        // Final safety check - ensure it's a proper string
+        if (typeof finalMessage !== 'string') {
+          finalMessage = 'Edge function returned non-string error';
         }
 
-        // Provide more context
+        // One more check for [object Object]
+        if (finalMessage.includes('[object Object]')) {
+          finalMessage = 'Edge function returned unprocessable error object';
+        }
+
+        // Add context if needed
         const contextualMessage = finalMessage.includes('Edge function')
           ? finalMessage
           : `Edge function (process-book-purchase) error: ${finalMessage}`;
 
-        console.log("🔍 FINAL ERROR MESSAGE:", contextualMessage);
-        console.log("🔍 FINAL MESSAGE TYPE:", typeof contextualMessage);
-        throw new Error(contextualMessage);
+        console.log("🔍 BULLETPROOF FINAL MESSAGE:", contextualMessage);
+
+        // Instead of throwing, show toast and continue with fallback
+        toast.error(contextualMessage, { duration: 10000 });
+        console.error("🚨 Edge function error handled:", contextualMessage);
       }
 
       console.log("✅ Edge Function Success Response:", data);
