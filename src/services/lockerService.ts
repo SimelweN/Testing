@@ -174,6 +174,7 @@ class LockerService {
 
     // FIRST: Try edge function proxy (handles CORS and gets real API data)
     try {
+      console.log('🌐 Attempting edge function proxy...');
       const proxyLockers = await this.fetchLockersViaProxy();
       if (proxyLockers && proxyLockers.length > 0) {
         console.log(`🎉 SUCCESS: Loaded ${proxyLockers.length} lockers from edge function proxy!`);
@@ -183,11 +184,13 @@ class LockerService {
         return proxyLockers;
       }
     } catch (error) {
-      console.log('🔒 Edge function proxy failed:', error.message);
+      console.warn('🔒 Edge function proxy failed:', error instanceof Error ? error.message : 'Unknown error');
+      // Continue to next method - don't throw
     }
 
     // SECOND: Try real PUDO API directly (will likely fail due to CORS)
     try {
+      console.log('🌐 Attempting direct PUDO API...');
       const realApiLockers = await this.tryRealPudoApi();
       if (realApiLockers && realApiLockers.length > 0) {
         console.log(`🎉 SUCCESS: Loaded ${realApiLockers.length} lockers from direct PUDO API!`);
@@ -197,18 +200,28 @@ class LockerService {
         return realApiLockers;
       }
     } catch (error) {
-      console.log('🔒 Direct PUDO API failed (likely CORS):', error.message);
+      console.warn('🔒 Direct PUDO API failed (expected due to CORS):', error instanceof Error ? error.message : 'Unknown error');
+      // Continue to fallback - don't throw
     }
 
-    // FALLBACK: Use verified mock data
-    console.log('🎯 Falling back to verified real PUDO locker locations');
-    const workingLockers = this.getMockLockers();
-    this.lockers = workingLockers;
-    this.lastFetched = new Date();
-    console.log(`✅ LOADED: ${workingLockers.length} verified PUDO locker locations`);
-    this.logLockerDistribution(workingLockers);
+    // FALLBACK: Use verified mock data (this should always work)
+    console.log('🎯 Using verified PUDO locker locations (fallback)');
+    try {
+      const workingLockers = this.getMockLockers();
+      if (!workingLockers || workingLockers.length === 0) {
+        throw new Error('Mock locker data is empty');
+      }
 
-    return workingLockers;
+      this.lockers = workingLockers;
+      this.lastFetched = new Date();
+      console.log(`✅ LOADED: ${workingLockers.length} verified PUDO locker locations`);
+      this.logLockerDistribution(workingLockers);
+      return workingLockers;
+    } catch (error) {
+      console.error('🚨 CRITICAL: Even fallback mock data failed:', error);
+      // Return empty array as last resort
+      return [];
+    }
   }
 
   private logLockerDistribution(lockers: LockerLocation[]): void {
@@ -682,7 +695,7 @@ class LockerService {
       });
     }
 
-    console.log(`�� Search returned ${filteredLockers.length} lockers`);
+    console.log(`🔍 Search returned ${filteredLockers.length} lockers`);
     return filteredLockers;
   }
 
