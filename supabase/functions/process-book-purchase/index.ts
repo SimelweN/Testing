@@ -237,12 +237,12 @@ serve(async (req) => {
           book_id,
           title: book.title,
           author: book.author,
-          price: amount,
+          price: parseFloat(book.price), // Keep original book price
           condition: book.condition,
           seller_id
         }],
-        amount: Math.round(amount * 100), // Convert to cents
-        total_amount: amount,
+        amount: Math.round(amount * 100), // Total amount in cents (book + delivery)
+        total_amount: amount, // Total amount including delivery
         status: "pending_commit",
         payment_status: "paid",
         payment_reference: finalPaymentRef,
