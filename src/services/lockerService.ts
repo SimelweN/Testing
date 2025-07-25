@@ -328,18 +328,29 @@ class LockerService {
     console.log('🌐 Attempting to fetch lockers via edge function proxy...');
 
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
     if (!supabaseUrl) {
-      throw new Error('Supabase URL not configured');
+      throw new Error('VITE_SUPABASE_URL not configured');
+    }
+
+    if (!supabaseKey) {
+      throw new Error('VITE_SUPABASE_ANON_KEY not configured');
     }
 
     const edgeFunctionUrl = `${supabaseUrl}/functions/v1/courier-guy-lockers`;
+    console.log(`🔗 Edge function URL: ${edgeFunctionUrl}`);
 
     try {
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
       const response = await fetch(edgeFunctionUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+          'Authorization': `Bearer ${supabaseKey}`
         },
         body: JSON.stringify({
           apiKey: this.apiKey,
@@ -349,26 +360,49 @@ class LockerService {
             `${this.getBaseUrl()}/locations`
           ],
           useSandbox: this.useSandbox
-        })
+        }),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
+      console.log(`📡 Edge function response status: ${response.status} ${response.statusText}`);
+
       if (!response.ok) {
-        throw new Error(`Edge function error: ${response.status} ${response.statusText}`);
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+
+        try {
+          const errorText = await response.text();
+          if (errorText) {
+            console.log('📄 Edge function error details:', errorText);
+            errorMessage += ` - ${errorText}`;
+          }
+        } catch (e) {
+          console.log('⚠️ Could not read error response body');
+        }
+
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
-      console.log('📡 Edge function response:', data);
+      console.log('📡 Edge function response data:', data);
 
       if (data.success && data.lockers && Array.isArray(data.lockers)) {
         const processedLockers = this.extractLockersFromResponse(data.lockers);
         console.log(`✅ Edge function returned ${processedLockers.length} lockers`);
         return processedLockers;
       } else {
-        throw new Error(data.error || 'No lockers in edge function response');
+        const errorMsg = data.error || 'No lockers in edge function response';
+        console.log('⚠️ Edge function returned no usable data:', errorMsg);
+        throw new Error(errorMsg);
       }
     } catch (error) {
+      if (error.name === 'AbortError') {
+        throw new Error('Edge function request timed out after 15 seconds');
+      }
+
       console.error('❌ Edge function proxy failed:', error);
-      throw error;
+      throw error instanceof Error ? error : new Error('Unknown edge function error');
     }
   }
 
