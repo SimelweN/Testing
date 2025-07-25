@@ -997,9 +997,11 @@ class LockerService {
    * These are actual confirmed locker locations at major retail chains
    * Used as reliable fallback when API is blocked by CORS restrictions
    */
-  private getMockLockers(): LockerLocation[] {
+  getMockLockers(): LockerLocation[] {
+    console.log('🏪 Generating verified PUDO locker locations...');
+
     // Real verified locker locations - major retail chains that actually have Courier Guy lockers
-    return [
+    const lockers: LockerLocation[] = [
       // GAUTENG - Major verified locations
       {
         id: 'gauteng_sandton_city',
