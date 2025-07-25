@@ -32,6 +32,7 @@ import "./utils/suppressResizeObserverError";
 
 // Debug edge function utility
 import "./debug-edge-function";
+import "./utils/debugEdgeFunction";
 
 // Enhanced environment validation with deployment safety
 const validateEnvironment = () => {
