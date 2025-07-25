@@ -1491,11 +1491,30 @@ const Developer = () => {
                       setIsLoading(true);
                       try {
                         const { lockerService } = await import('@/services/lockerService');
+                        console.log('🚀 Starting locker fetch...');
                         toast.info('🔄 Fetching real lockers from Courier Guy API...');
+
                         const lockers = await lockerService.fetchAllLockers();
-                        toast.success(`✅ Fetched ${lockers.length} lockers from API`);
+
+                        if (lockers.length > 0) {
+                          toast.success(`✅ Fetched ${lockers.length} lockers`);
+                          console.log(`✅ Successfully loaded ${lockers.length} lockers`);
+
+                          // Check if these are mock lockers vs real API data
+                          const mockLockerIds = lockers.filter(l => l.id.startsWith('gauteng_') || l.id.startsWith('western_cape_'));
+                          if (mockLockerIds.length === lockers.length) {
+                            toast.warning('📄 Using mock data - API may be unavailable');
+                            console.warn('⚠️ All lockers appear to be mock data');
+                          } else {
+                            toast.success('🌐 Real API data loaded successfully!');
+                          }
+                        } else {
+                          toast.error('❌ No lockers returned');
+                          console.error('❌ Fetch returned 0 lockers');
+                        }
                       } catch (error) {
-                        toast.error(`❌ Failed to fetch lockers: ${error}`);
+                        console.error('💥 Locker fetch failed:', error);
+                        toast.error(`💥 Failed to fetch lockers: ${error}`);
                       } finally {
                         setIsLoading(false);
                       }
