@@ -317,7 +317,7 @@ const Developer = () => {
       }
 
       toast.error(`❌ Critical database error: ${errorMessage}`);
-      toast.warning('🚨 Please check your Supabase configuration and database permissions');
+      toast.warning('��� Please check your Supabase configuration and database permissions');
     }
   };
 
@@ -1419,10 +1419,10 @@ const Developer = () => {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">API Key (Optional)</label>
+                    <label className="block text-sm font-medium mb-2">PUDO API Key (Optional)</label>
                     <Input
                       type="password"
-                      placeholder="Bearer token for Courier Guy API"
+                      placeholder="Bearer token for PUDO API"
                       onChange={(e) => {
                         if (e.target.value.trim()) {
                           // Import and set API key
@@ -1433,7 +1433,7 @@ const Developer = () => {
                       }}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Set VITE_COURIER_GUY_API_KEY in .env or enter manually
+                      Set VITE_PUDO_API_KEY in .env or get from <a href="https://customer.pudo.co.za" target="_blank" className="text-blue-600 underline">customer.pudo.co.za</a>
                     </p>
                   </div>
                   <div className="flex items-end">
