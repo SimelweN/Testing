@@ -221,7 +221,7 @@ class LockerService {
         const apiLockers = this.extractLockersFromResponse(response.data);
 
         if (apiLockers.length > 0) {
-          console.log(`���� Background: Successfully fetched ${apiLockers.length} real lockers from API!`);
+          console.log(`🎉 Background: Successfully fetched ${apiLockers.length} real lockers from API!`);
           // Update cached data for future use
           this.lockers = apiLockers;
           this.lastFetched = new Date();
@@ -402,16 +402,33 @@ class LockerService {
    */
   async getLockers(forceRefresh = false): Promise<LockerLocation[]> {
     const now = new Date();
-    const shouldRefresh = forceRefresh || 
-      !this.lastFetched || 
+    const shouldRefresh = forceRefresh ||
+      !this.lastFetched ||
       (now.getTime() - this.lastFetched.getTime()) > this.cacheExpiry;
 
     if (shouldRefresh || this.lockers.length === 0) {
+      console.log('🔄 Fetching fresh locker data...');
       return await this.fetchAllLockers();
     }
 
-    console.log('📦 Using cached locker data');
+    console.log(`📦 Using cached locker data - ${this.lockers.length} locations available`);
     return this.lockers;
+  }
+
+  /**
+   * Debug method to check locker data integrity
+   */
+  debugLockerData(): void {
+    const mockLockers = this.getMockLockers();
+    console.log('🔍 LOCKER DATA DEBUG:', {
+      mockLockersCount: mockLockers.length,
+      cachedLockersCount: this.lockers.length,
+      lastFetched: this.lastFetched,
+      sampleLocker: mockLockers[0]?.name,
+      provinces: [...new Set(mockLockers.map(l => l.province))],
+      cities: [...new Set(mockLockers.map(l => l.city))].slice(0, 5),
+      allActive: mockLockers.every(l => l.is_active)
+    });
   }
 
   /**
