@@ -204,28 +204,7 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
               <span>{locker.contact_number}</span>
             </div>
           )}
-          {locker.available_slots !== undefined && locker.locker_capacity && (
-            <div className="flex items-center gap-2">
-              <Package className="w-4 h-4 text-muted-foreground" />
-              <span>
-                {locker.available_slots}/{locker.locker_capacity} slots available
-              </span>
-              <div className="flex-1 bg-gray-200 rounded-full h-2 ml-2">
-                <div 
-                  className={`h-2 rounded-full ${
-                    (locker.available_slots / locker.locker_capacity) > 0.5 
-                      ? 'bg-green-500' 
-                      : (locker.available_slots / locker.locker_capacity) > 0.2 
-                        ? 'bg-yellow-500' 
-                        : 'bg-red-500'
-                  }`}
-                  style={{ 
-                    width: `${(locker.available_slots / locker.locker_capacity) * 100}%` 
-                  }}
-                />
-              </div>
-            </div>
-          )}
+
         </div>
         {showSelectionMode && (
           <Button 
