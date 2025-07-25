@@ -427,7 +427,7 @@ class LockerService {
           }
         });
 
-        console.log(`��� API Response for page ${page}:`, {
+        console.log(`📡 API Response for page ${page}:`, {
           status: response.status,
           dataType: typeof response.data,
           hasData: !!response.data,
@@ -682,7 +682,7 @@ class LockerService {
         const isActive = locker.is_active;
 
         if (!hasValidCoords) {
-          console.debug(`🚫 Skipping locker ${locker.id}: Invalid coordinates`);
+          console.debug(`�� Skipping locker ${locker.id}: Invalid coordinates`);
           return false;
         }
 
@@ -716,31 +716,32 @@ class LockerService {
   }
 
   /**
-   * Process PUDO terminal data specifically
+   * Process PUDO locker data from /lockers-data endpoint
    */
-  private processPudoTerminals(rawData: any[]): LockerLocation[] {
-    console.log(`🔄 Processing ${rawData.length} PUDO terminals...`);
+  private processPudoLockers(rawData: any[]): LockerLocation[] {
+    console.log(`🔄 Processing ${rawData.length} PUDO lockers from /lockers-data...`);
 
     const processedLockers = rawData
-      .map((terminal, index) => {
+      .map((locker, index) => {
         try {
-          const locker: LockerLocation = {
-            id: terminal.terminal_id || `terminal_${index}`,
-            name: terminal.name || terminal.location_name || 'PUDO Locker',
-            address: terminal.address || terminal.full_address || '',
-            city: terminal.city || terminal.locality || '',
-            province: terminal.province || terminal.zone || terminal.state || '',
-            postal_code: terminal.postal_code || terminal.code || '',
-            latitude: this.parseCoordinate(terminal.latitude || terminal.lat),
-            longitude: this.parseCoordinate(terminal.longitude || terminal.lng),
-            opening_hours: terminal.opening_hours || terminal.hours || 'Mon-Sun: 24/7',
-            contact_number: terminal.contact_number || terminal.phone || '',
-            is_active: terminal.status !== 'inactive' && terminal.active !== false
+          // Handle PUDO /lockers-data format: code, name, latitude, longitude, place
+          const lockerData: LockerLocation = {
+            id: locker.code || locker.terminal_id || `locker_${index}`,
+            name: locker.name || 'PUDO Locker',
+            address: locker.address || locker.place?.address || '',
+            city: locker.place?.town || locker.city || locker.place?.city || '',
+            province: locker.place?.province || locker.province || locker.place?.zone || '',
+            postal_code: locker.place?.postal_code || locker.postal_code || '',
+            latitude: this.parseCoordinate(locker.latitude),
+            longitude: this.parseCoordinate(locker.longitude),
+            opening_hours: locker.opening_hours || locker.hours || 'Mon-Sun: 24/7',
+            contact_number: locker.contact_number || locker.phone || '',
+            is_active: locker.status !== 'inactive' && locker.active !== false
           };
 
-          return locker;
+          return lockerData;
         } catch (error) {
-          console.warn('⚠️ Error processing PUDO terminal at index', index, ':', terminal, error);
+          console.warn('⚠️ Error processing PUDO locker at index', index, ':', locker, error);
           return null;
         }
       })
@@ -748,28 +749,23 @@ class LockerService {
         if (!locker) return false;
 
         const hasValidCoords = locker.latitude !== 0 && locker.longitude !== 0;
-        const hasValidLocation = locker.city && locker.province;
-        const isActive = locker.is_active;
+        const hasValidId = locker.id && locker.id !== '';
+        const hasValidName = locker.name && locker.name !== '';
 
         if (!hasValidCoords) {
-          console.debug(`🚫 Skipping terminal ${locker.id}: Invalid coordinates`);
+          console.debug(`🚫 Skipping locker ${locker.id}: Invalid coordinates`);
           return false;
         }
 
-        if (!hasValidLocation) {
-          console.debug(`🚫 Skipping terminal ${locker.id}: Missing city/province`);
-          return false;
-        }
-
-        if (!isActive) {
-          console.debug(`🚫 Skipping terminal ${locker.id}: Not active`);
+        if (!hasValidId || !hasValidName) {
+          console.debug(`🚫 Skipping locker: Missing ID or name`);
           return false;
         }
 
         return true;
       });
 
-    console.log(`✅ Successfully processed ${processedLockers.length} valid terminals from ${rawData.length} raw records`);
+    console.log(`✅ Successfully processed ${processedLockers.length} valid lockers from ${rawData.length} raw records`);
     return processedLockers;
   }
 
