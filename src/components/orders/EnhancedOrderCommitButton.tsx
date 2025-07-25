@@ -183,28 +183,51 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
         data = result.data;
         error = result.error;
       } catch (enhancedError) {
-        console.warn("⚠️ Enhanced function not available, falling back to original:", enhancedError);
+        console.warn("⚠️ Enhanced function not available, trying original function:", enhancedError);
 
-        // Fallback to original commit function with basic data
-        const basicCommitData = {
-          order_id: orderId,
-          seller_id: sellerId,
-        };
+        try {
+          // Fallback to original commit function with basic data
+          const basicCommitData = {
+            order_id: orderId,
+            seller_id: sellerId,
+          };
 
-        const result = await supabase.functions.invoke(
-          "commit-to-sale",
-          {
-            body: basicCommitData,
-          },
-        );
-        data = result.data;
-        error = result.error;
+          const result = await supabase.functions.invoke(
+            "commit-to-sale",
+            {
+              body: basicCommitData,
+            },
+          );
+          data = result.data;
+          error = result.error;
 
-        // Show a note about fallback mode
-        if (deliveryMethod === "locker") {
-          toast.info("🔄 Using standard commit process - enhanced locker features temporarily unavailable", {
-            duration: 5000,
+          // Show a note about fallback mode
+          if (deliveryMethod === "locker") {
+            toast.info("🔄 Using standard commit process - enhanced locker features temporarily unavailable", {
+              duration: 5000,
+            });
+          }
+        } catch (originalError) {
+          console.warn("⚠️ Original function also failed, using fallback service:", originalError);
+
+          // Final fallback to direct database service
+          const fallbackResult = await FallbackCommitService.commitToSale({
+            order_id: orderId,
+            seller_id: sellerId,
+            delivery_method: deliveryMethod,
+            locker_id: deliveryMethod === "locker" ? selectedLockerId : undefined,
           });
+
+          if (fallbackResult.success) {
+            data = fallbackResult.data;
+            error = null;
+
+            toast.info("🔄 Using offline commit mode - some features may be limited", {
+              duration: 5000,
+            });
+          } else {
+            throw new Error(fallbackResult.error || "All commit methods failed");
+          }
         }
       }
 
