@@ -79,7 +79,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         book_id: orderSummary.book.id,
         buyer_id: userId,
         seller_id: orderSummary.book.seller_id,
-        amount: orderSummary.total_price,
+        amount: orderSummary.book.price, // Send only book price, not total
         payment_reference: paystackResponse.reference,
         buyer_email: userData.user.email,
         shipping_address: orderSummary.buyer_address,
