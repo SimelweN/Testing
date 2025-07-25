@@ -295,7 +295,7 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
                 <SelectValue placeholder="Select City" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Cities</SelectItem>
+                <SelectItem value="all">All Cities</SelectItem>
                 {cities.map(city => (
                   <SelectItem key={city} value={city}>{city}</SelectItem>
                 ))}
@@ -306,7 +306,7 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
                 <SelectValue placeholder="Select Province" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Provinces</SelectItem>
+                <SelectItem value="all">All Provinces</SelectItem>
                 {provinces.map(province => (
                   <SelectItem key={province} value={province}>{province}</SelectItem>
                 ))}
