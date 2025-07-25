@@ -1225,6 +1225,19 @@ Time: ${new Date().toISOString()}
               >
                 🧪 Quick Test
               </Button>
+
+              <Button
+                onClick={() => {
+                  console.log("🔔 Simple test button clicked!");
+                  alert("Button is working!");
+                  toast.success("Button click detected!");
+                }}
+                variant="outline"
+                size="sm"
+                className="text-green-700 border-green-300"
+              >
+                🔔 Test Click
+              </Button>
             </div>
 
             <p className="text-xs text-red-600">
