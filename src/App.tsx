@@ -237,38 +237,6 @@ function App() {
                           </AdminProtectedRoute>
                         }
                       />
-                      <Route
-                        path="/developer"
-                        element={
-                          <AdminProtectedRoute>
-                            <Developer />
-                          </AdminProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/developer-simple"
-                        element={
-                          <AdminProtectedRoute>
-                            <DeveloperSimple />
-                          </AdminProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/developer-minimal"
-                        element={
-                          <AdminProtectedRoute>
-                            <DeveloperMinimal />
-                          </AdminProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/debug-edge"
-                        element={
-                          <AdminProtectedRoute>
-                            <EdgeFunctionDebug />
-                          </AdminProtectedRoute>
-                        }
-                      />
 
                       {/* Support Routes */}
                       <Route path="/contact" element={<ContactUs />} />
