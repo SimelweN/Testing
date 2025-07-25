@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Mail, Lock, User, Loader2 } from "lucide-react";
 import { BackupEmailService } from "@/utils/backupEmailService";
-import RegistrationStatusBanner from "@/components/RegistrationStatusBanner";
+
 
 const Register = () => {
   const [name, setName] = useState("");
