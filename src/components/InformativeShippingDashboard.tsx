@@ -183,7 +183,7 @@ const InformativeShippingDashboard = () => {
             </Card>
 
             {/* Service Features */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center space-x-2">
@@ -210,6 +210,40 @@ const InformativeShippingDashboard = () => {
                       <span className="text-sm">Delivery notifications</span>
                     </li>
                   </ul>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-blue-200 bg-blue-50">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center space-x-2">
+                    <Package className="h-5 w-5 text-blue-600" />
+                    <span>🆕 Locker-to-Door</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="bg-green-100 border border-green-300 rounded p-2">
+                      <p className="text-sm font-semibold text-green-800">💰 Get Paid 3 Days Earlier!</p>
+                    </div>
+                    <ul className="space-y-2">
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm">Drop off at secure lockers</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm">QR code access system</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm">Faster processing</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm">Available at major malls</span>
+                      </li>
+                    </ul>
+                  </div>
                 </CardContent>
               </Card>
 
