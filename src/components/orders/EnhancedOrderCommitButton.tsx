@@ -278,6 +278,18 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
         toast.error(errorMessage, {
           description: "Please check if you have permission to commit this order.",
         });
+      } else if (errorObj.message?.includes("FunctionsFetchError") || errorObj.message?.includes("Edge Function")) {
+        errorMessage = "Service temporarily unavailable";
+        toast.error(errorMessage, {
+          description: "The commit service is temporarily down. Please try again in a few minutes.",
+          duration: 10000,
+        });
+      } else if (errorObj.message?.includes("Failed to send a request")) {
+        errorMessage = "Network connection issue";
+        toast.error(errorMessage, {
+          description: "Please check your internet connection and try again.",
+          duration: 8000,
+        });
       } else {
         toast.error(errorMessage, {
           description: errorObj.message || "Please try again or contact support.",
