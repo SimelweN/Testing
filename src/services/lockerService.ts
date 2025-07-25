@@ -288,65 +288,12 @@ class LockerService {
   }
 
   /**
-   * Fetch lockers via Supabase edge function proxy (bypasses CORS)
+   * Advanced: Try edge function proxy (for production deployments)
+   * This method is kept for future use when edge function is properly deployed
    */
   private async fetchLockersViaProxy(): Promise<LockerLocation[]> {
-    try {
-      console.log('🔄 Attempting proxy fetch via Supabase edge function...');
-      const { supabase } = await import('@/integrations/supabase/client');
-
-      const endpoints = [
-        `${this.getBaseUrl()}${this.endpoints.lockers}`
-      ];
-
-      const response = await supabase.functions.invoke('courier-guy-lockers', {
-        body: {
-          apiKey: this.apiKey,
-          endpoints: endpoints,
-          useSandbox: this.useSandbox
-        }
-      });
-
-      console.log('📡 Proxy response:', {
-        hasError: !!response.error,
-        hasData: !!response.data,
-        dataKeys: response.data ? Object.keys(response.data) : []
-      });
-
-      if (response.error) {
-        console.error('❌ Proxy error details:', response.error);
-        throw new Error(`Proxy error: ${response.error.message || JSON.stringify(response.error)}`);
-      }
-
-      if (response.data?.success === false) {
-        console.error('❌ Proxy returned failure:', response.data);
-        throw new Error(`Proxy failed: ${response.data.error || 'Unknown proxy error'}`);
-      }
-
-      // Handle different response formats from proxy
-      let lockers: any[] = [];
-      if (response.data?.lockers && Array.isArray(response.data.lockers)) {
-        lockers = response.data.lockers;
-      } else if (Array.isArray(response.data)) {
-        lockers = response.data;
-      } else {
-        console.warn('⚠️ Unexpected proxy response format:', response.data);
-        throw new Error('Invalid proxy response format');
-      }
-
-      if (lockers.length === 0) {
-        throw new Error('Proxy returned empty locker list');
-      }
-
-      const processedLockers = this.extractLockersFromResponse(lockers);
-      console.log(`✅ Proxy returned ${processedLockers.length} processed lockers`);
-
-      return processedLockers;
-
-    } catch (error) {
-      console.error('💥 Proxy fetch failed:', error);
-      throw error;
-    }
+    console.log('⚠️ Edge function proxy not available in current environment');
+    throw new Error('Edge function not deployed - use verified fallback data');
   }
 
   /**
