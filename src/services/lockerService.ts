@@ -298,12 +298,54 @@ class LockerService {
 
 
   /**
-   * Advanced: Try edge function proxy (for production deployments)
-   * This method is kept for future use when edge function is properly deployed
+   * Try edge function proxy to get real PUDO locker data
    */
   private async fetchLockersViaProxy(): Promise<LockerLocation[]> {
-    console.log('⚠️ Edge function proxy not available in current environment');
-    throw new Error('Edge function not deployed - use verified fallback data');
+    console.log('🌐 Attempting to fetch lockers via edge function proxy...');
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (!supabaseUrl) {
+      throw new Error('Supabase URL not configured');
+    }
+
+    const edgeFunctionUrl = `${supabaseUrl}/functions/v1/courier-guy-lockers`;
+
+    try {
+      const response = await fetch(edgeFunctionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({
+          apiKey: this.apiKey,
+          endpoints: [
+            `${this.getBaseUrl()}/lockers-data`,
+            `${this.getBaseUrl()}/terminals`,
+            `${this.getBaseUrl()}/locations`
+          ],
+          useSandbox: this.useSandbox
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Edge function error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('📡 Edge function response:', data);
+
+      if (data.success && data.lockers && Array.isArray(data.lockers)) {
+        const processedLockers = this.extractLockersFromResponse(data.lockers);
+        console.log(`✅ Edge function returned ${processedLockers.length} lockers`);
+        return processedLockers;
+      } else {
+        throw new Error(data.error || 'No lockers in edge function response');
+      }
+    } catch (error) {
+      console.error('❌ Edge function proxy failed:', error);
+      throw error;
+    }
   }
 
   /**
