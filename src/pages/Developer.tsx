@@ -1531,6 +1531,28 @@ const Developer = () => {
                     Fetch Real Lockers from API
                   </Button>
                 </div>
+
+                {/* Troubleshooting Info */}
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="font-semibold text-blue-900 flex items-center mb-2">
+                    <AlertCircle className="h-4 w-4 mr-2" />
+                    API Troubleshooting Guide
+                  </h4>
+                  <div className="text-sm text-blue-800 space-y-2">
+                    <p><strong>Common Issue:</strong> CORS (Cross-Origin Resource Sharing) restrictions</p>
+                    <p><strong>Why it happens:</strong> Browsers block direct API calls to external domains for security</p>
+                    <p><strong>Solutions:</strong></p>
+                    <ul className="list-disc list-inside ml-4 space-y-1">
+                      <li>✅ Use Supabase Edge Function proxy (recommended)</li>
+                      <li>✅ Set up backend API proxy</li>
+                      <li>✅ Enable CORS on Courier Guy API (if you control it)</li>
+                      <li>📄 Falls back to comprehensive mock data</li>
+                    </ul>
+                    <p className="text-xs mt-2 text-blue-600">
+                      💡 Check browser console (F12) for detailed error logs
+                    </p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
