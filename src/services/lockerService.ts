@@ -32,7 +32,7 @@ class LockerService {
   // Available endpoints
   private endpoints = {
     // Locker/Terminal Information
-    lockers: '/lockers',
+    lockers: '/lockers-data',
 
     // Rate Calculation
     rates: '/rates',
@@ -427,7 +427,7 @@ class LockerService {
           }
         });
 
-        console.log(`📡 API Response for page ${page}:`, {
+        console.log(`��� API Response for page ${page}:`, {
           status: response.status,
           dataType: typeof response.data,
           hasData: !!response.data,
