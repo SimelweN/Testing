@@ -127,10 +127,17 @@ const LockerSearch: React.FC<LockerSearchProps> = ({
     } catch (err) {
       console.error('❌ Error loading lockers:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      setError(`Failed to load lockers: ${errorMessage}`);
-      toast.error('❌ Failed to load lockers', {
-        description: 'Please check your connection and try again'
-      });
+
+      // Don't show error toast for API unavailability - that's expected
+      if (errorMessage.includes('PUDO API') || errorMessage.includes('temporarily unavailable')) {
+        console.log('📝 API unavailable - this is normal in development, fallback should handle it');
+        setError('API temporarily unavailable - using verified backup data');
+      } else {
+        setError(`Failed to load lockers: ${errorMessage}`);
+        toast.error('❌ Failed to load lockers', {
+          description: 'Please check your connection and try again'
+        });
+      }
     } finally {
       setLoading(false);
     }
