@@ -1530,50 +1530,103 @@ const Developer = () => {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <Button
-                    onClick={async () => {
-                      setIsLoading(true);
-                      try {
-                        const { lockerService } = await import('@/services/lockerService');
-                        console.log('🚀 Starting locker fetch...');
-                        toast.info('🔄 Fetching real lockers from Courier Guy API...');
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <Button
+                      onClick={async () => {
+                        setIsLoading(true);
+                        try {
+                          const { lockerService } = await import('@/services/lockerService');
+                          console.log('🔑 Testing with provided API key...');
 
-                        const lockers = await lockerService.fetchAllLockers();
+                          // Set the API key
+                          lockerService.setApiKey('37102346|dpTTHKfhJYBQh79UfHmOj8P0IPtt8ImFz0VeHXWr65621bae');
 
-                        if (lockers.length > 0) {
-                          toast.success(`✅ Fetched ${lockers.length} lockers`);
-                          console.log(`✅ Successfully loaded ${lockers.length} lockers`);
+                          toast.info('🔄 Testing API key: 37102346|dp...21bae');
 
-                          // Check if these are mock lockers vs real API data
-                          const mockLockerIds = lockers.filter(l => l.id.startsWith('gauteng_') || l.id.startsWith('western_cape_'));
-                          if (mockLockerIds.length === lockers.length) {
-                            toast.warning('📄 Using mock data - API may be unavailable');
-                            console.warn('⚠️ All lockers appear to be mock data');
+                          const result = await lockerService.testApiConnectivity();
+
+                          if (result.success) {
+                            toast.success(`✅ API key works! Connected via: ${result.endpoint}`);
+                            console.log('✅ API Key Test Result:', result);
+
+                            // Immediately try to fetch lockers
+                            const lockers = await lockerService.fetchAllLockers();
+                            toast.success(`🎉 Fetched ${lockers.length} real lockers!`);
                           } else {
-                            toast.success('🌐 Real API data loaded successfully!');
+                            toast.error(`❌ API key test failed: ${result.error}`);
+                            console.error('❌ API Key Test Failed:', result);
                           }
-                        } else {
-                          toast.error('❌ No lockers returned');
-                          console.error('❌ Fetch returned 0 lockers');
+                        } catch (error) {
+                          console.error('💥 API key test crashed:', error);
+                          toast.error(`💥 API key test failed: ${error}`);
+                        } finally {
+                          setIsLoading(false);
                         }
-                      } catch (error) {
-                        console.error('💥 Locker fetch failed:', error);
-                        toast.error(`💥 Failed to fetch lockers: ${error}`);
-                      } finally {
-                        setIsLoading(false);
-                      }
-                    }}
-                    disabled={isLoading}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <MapPin className="h-4 w-4 mr-2" />
-                    )}
-                    Fetch Real Lockers from API
-                  </Button>
+                      }}
+                      disabled={isLoading}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                      )}
+                      Test API Key
+                    </Button>
+
+                    <Button
+                      onClick={async () => {
+                        setIsLoading(true);
+                        try {
+                          const { lockerService } = await import('@/services/lockerService');
+                          console.log('🚀 Starting locker fetch...');
+                          toast.info('🔄 Fetching real lockers from PUDO API...');
+
+                          const lockers = await lockerService.fetchAllLockers();
+
+                          if (lockers.length > 0) {
+                            toast.success(`✅ Fetched ${lockers.length} lockers`);
+                            console.log(`✅ Successfully loaded ${lockers.length} lockers`);
+
+                            // Check if these are mock lockers vs real API data
+                            const mockLockerIds = lockers.filter(l => l.id.startsWith('gauteng_') || l.id.startsWith('western_cape_'));
+                            if (mockLockerIds.length === lockers.length) {
+                              toast.warning('📄 Using mock data - API may be unavailable');
+                              console.warn('⚠️ All lockers appear to be mock data');
+                            } else {
+                              toast.success('🌐 Real API data loaded successfully!');
+
+                              // Show some sample locker info
+                              const sampleLocker = lockers[0];
+                              console.log('📍 Sample locker:', {
+                                id: sampleLocker.id,
+                                name: sampleLocker.name,
+                                city: sampleLocker.city,
+                                province: sampleLocker.province
+                              });
+                            }
+                          } else {
+                            toast.error('❌ No lockers returned');
+                            console.error('❌ Fetch returned 0 lockers');
+                          }
+                        } catch (error) {
+                          console.error('💥 Locker fetch failed:', error);
+                          toast.error(`💥 Failed to fetch lockers: ${error}`);
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }}
+                      disabled={isLoading}
+                      variant="outline"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <MapPin className="h-4 w-4 mr-2" />
+                      )}
+                      Fetch Lockers
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Troubleshooting Info */}
