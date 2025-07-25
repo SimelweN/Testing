@@ -111,7 +111,11 @@ export const clearAllTestData = async (): Promise<boolean> => {
           totalPatternCount += patternCount;
         }
       } catch (err) {
-        console.error(`Exception deleting order ${orderId}:`, err);
+        const errorMessage = err instanceof Error ? err.message :
+                            typeof err === 'string' ? err :
+                            'Unknown exception';
+        console.error(`Exception deleting order ${orderId}:`, errorMessage);
+        console.error(`Full exception for ${orderId}:`, JSON.stringify(err, null, 2));
       }
     }
 
