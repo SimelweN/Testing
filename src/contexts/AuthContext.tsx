@@ -125,7 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         // Import backup email service
         const { BackupEmailService } = await import("@/utils/backupEmailService");
 
-        // Create user account with proper email confirmation
+        // Create user account - Supabase handles email confirmation automatically
         console.log('🔧 Creating user account with email verification...');
 
         const { data, error } = await supabase.auth.signUp({
@@ -133,45 +133,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           password,
           options: {
             data: { name },
-            emailRedirectTo: `${window.location.origin}/verify`,
+            emailRedirectTo: `${window.location.origin}/verify` // Supabase uses this in the email link
           },
         });
 
         if (error) {
           console.error("❌ Supabase signup failed:", error);
-
-          // Import email error handler
-          const { EmailErrorHandler } = await import("@/utils/emailErrorHandler");
-
-          // Handle specific email confirmation errors gracefully
-          if (error.message.toLowerCase().includes('email') ||
-              error.message.includes('confirmation') ||
-              error.message.includes('SMTP') ||
-              error.message.includes('mail')) {
-
-            console.log("📧 Supabase email service error - configuration needed");
-            EmailErrorHandler.logError(error, 'Supabase Signup');
-
-            // Log configuration check for admins
-            console.group("🔧 Supabase Email Configuration Required");
-            console.log("📋 To fix this issue, configure SMTP in Supabase Dashboard:");
-            console.log("1. Go to Supabase Dashboard → Authentication → Settings");
-            console.log("2. Scroll to 'SMTP Settings' section");
-            console.log("3. Enable 'Enable custom SMTP'");
-            console.log("4. Configure your email provider (Gmail, SendGrid, etc.)");
-            console.log("5. Test the configuration");
-            console.log("6. Ensure 'Confirm email' is enabled in Auth settings");
-            console.groupEnd();
-
-            // User-friendly error message
-            throw new Error(
-              "Email confirmation is not set up yet. Please try again in a few minutes " +
-              "or contact support if the issue persists. The administrator needs to " +
-              "configure email settings in the Supabase dashboard."
-            );
-          }
-
-          // For other errors, throw the original message
           throw new Error(error.message);
         }
 
