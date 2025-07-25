@@ -16,24 +16,45 @@ const VerifyEmail = () => {
     const handleEmailConfirmation = async () => {
       try {
         console.log('🔐 Handling email confirmation...');
-        
-        // Get the current URL hash and search params
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const urlParams = new URLSearchParams(window.location.search);
-        
+
+        // Get the full URL for debugging
+        const fullUrl = window.location.href;
+        console.log('📧 Full URL:', fullUrl);
         console.log('📧 URL Hash:', window.location.hash);
         console.log('📧 URL Search:', window.location.search);
+        console.log('📧 URL Pathname:', window.location.pathname);
 
-        // Check for access_token and refresh_token in hash (email confirmation)
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
-        const tokenType = hashParams.get('token_type');
-        const type = hashParams.get('type') || urlParams.get('type');
+        // Parse URL parameters from both hash and search
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const urlParams = new URLSearchParams(window.location.search);
 
-        if (accessToken && refreshToken && type === 'signup') {
-          console.log('✅ Email confirmation tokens found');
-          
-          // Set the session with the tokens from the email link
+        // Log all parameters for debugging
+        console.log('📧 Hash Params:', Object.fromEntries(hashParams.entries()));
+        console.log('📧 URL Params:', Object.fromEntries(urlParams.entries()));
+
+        // Try to get tokens from different locations
+        let accessToken = hashParams.get('access_token') || urlParams.get('access_token');
+        let refreshToken = hashParams.get('refresh_token') || urlParams.get('refresh_token');
+        let tokenType = hashParams.get('token_type') || urlParams.get('token_type');
+        let type = hashParams.get('type') || urlParams.get('type');
+
+        // Also check for other common Supabase params
+        const token = hashParams.get('token') || urlParams.get('token');
+        const confirmationUrl = hashParams.get('confirmation_url') || urlParams.get('confirmation_url');
+
+        console.log('🔍 Found tokens:', {
+          accessToken: accessToken ? 'present' : 'missing',
+          refreshToken: refreshToken ? 'present' : 'missing',
+          tokenType,
+          type,
+          token: token ? 'present' : 'missing',
+          confirmationUrl: confirmationUrl ? 'present' : 'missing'
+        });
+
+        // Method 1: Use access_token and refresh_token (modern Supabase)
+        if (accessToken && refreshToken) {
+          console.log('✅ Using access_token and refresh_token method');
+
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
@@ -42,7 +63,7 @@ const VerifyEmail = () => {
           if (error) {
             console.error('❌ Error setting session:', error);
             setStatus('error');
-            setMessage('Email verification failed. Please try again or contact support.');
+            setMessage(`Email verification failed: ${error.message}`);
             return;
           }
 
@@ -50,15 +71,14 @@ const VerifyEmail = () => {
             console.log('✅ Email verified successfully for user:', data.user.email);
             setStatus('success');
             setMessage('Email verified successfully! You can now log in.');
-            
+
             toast.success('✅ Email verified successfully!');
-            
-            // Redirect to login page after a short delay
+
             setTimeout(() => {
-              navigate('/login', { 
-                state: { 
+              navigate('/login', {
+                state: {
                   message: 'Email verified! You can now log in with your credentials.',
-                  email: data.user?.email 
+                  email: data.user?.email
                 }
               });
             }, 2000);
@@ -66,19 +86,60 @@ const VerifyEmail = () => {
           }
         }
 
-        // If no tokens found, show instructions
-        console.log('ℹ️ No verification tokens found in URL');
+        // Method 2: Let Supabase handle the hash parameters automatically
+        console.log('🔄 Trying automatic Supabase session handling...');
+
+        // Check if Supabase has automatically processed the auth state
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error('��� Error getting session:', sessionError);
+        }
+
+        if (session?.user) {
+          console.log('✅ Found existing session after email verification');
+          setStatus('success');
+          setMessage('Email verified successfully! You are now logged in.');
+
+          toast.success('✅ Email verified and logged in!');
+
+          setTimeout(() => {
+            navigate('/', { replace: true });
+          }, 2000);
+          return;
+        }
+
+        // Method 3: Check if this is a password reset or other type
+        if (type === 'recovery') {
+          console.log('🔄 This is a password recovery link');
+          setStatus('success');
+          setMessage('Password reset link verified! You can now set a new password.');
+
+          setTimeout(() => {
+            navigate('/reset-password');
+          }, 2000);
+          return;
+        }
+
+        // Method 4: Show detailed debug info if nothing worked
+        console.log('ℹ️ No verification tokens found - providing debug info');
         setStatus('error');
-        setMessage('No verification link detected. Please click the link in your email.');
-        
+        setMessage(
+          `No verification tokens found in URL. Please ensure you clicked the correct link from your email. ` +
+          `If you continue to have issues, please contact support.`
+        );
+
       } catch (error) {
         console.error('❌ Email verification error:', error);
         setStatus('error');
-        setMessage('Email verification failed. Please try again.');
+        setMessage(`Email verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     };
 
-    handleEmailConfirmation();
+    // Add a small delay to let any URL processing happen
+    const timeoutId = setTimeout(handleEmailConfirmation, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [navigate]);
 
   return (
