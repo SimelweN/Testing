@@ -211,7 +211,7 @@ const Developer = () => {
         toast.success(`✅ Loaded ${realUsers.length} REAL users from database`);
       } else {
         console.error('❌ Users query failed:', usersError);
-        const userErrorMsg = usersError?.message || usersError?.details || usersError?.hint || JSON.stringify(usersError) || 'Unknown database error';
+        const userErrorMsg = usersError?.message || usersError?.details || usersError?.hint || (usersError ? JSON.stringify(usersError, null, 2) : 'Unknown database error');
         toast.error(`❌ Failed to load users: ${userErrorMsg}`);
 
         // Try a simpler users query as fallback
@@ -346,7 +346,7 @@ const Developer = () => {
       let statusCode = 200;
 
       if (error) {
-        console.error(`�� ${functionName} error object:`, error);
+        console.error(`❌ ${functionName} error object:`, error);
         console.error(`❌ ${functionName} error keys:`, Object.keys(error));
         console.error(`❌ ${functionName} error.context:`, error.context);
         console.error(`❌ ${functionName} data object:`, data);
