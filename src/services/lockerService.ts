@@ -167,31 +167,48 @@ class LockerService {
   }
 
   /**
-   * Fetch all lockers/terminals - reliable working solution
+   * Fetch all lockers/terminals - try real API first, fallback to verified data
    */
   async fetchAllLockers(): Promise<LockerLocation[]> {
     console.log('🚀 Loading PUDO locker locations...');
 
-    // RELIABLE SOLUTION: Use verified real locker data immediately
-    // This provides instant functionality without any dependencies
-    console.log('🎯 Loading verified real PUDO locker locations (instant solution)');
+    // FIRST: Try real PUDO API
+    try {
+      const realApiLockers = await this.tryRealPudoApi();
+      if (realApiLockers && realApiLockers.length > 0) {
+        console.log(`🎉 SUCCESS: Loaded ${realApiLockers.length} lockers from real PUDO API!`);
+        this.lockers = realApiLockers;
+        this.lastFetched = new Date();
+        this.logLockerDistribution(realApiLockers);
+        return realApiLockers;
+      }
+    } catch (error) {
+      console.log('🔒 Real PUDO API failed (likely CORS):', error.message);
+    }
+
+    // FALLBACK: Use verified mock data
+    console.log('🎯 Falling back to verified real PUDO locker locations');
     const workingLockers = this.getMockLockers();
     this.lockers = workingLockers;
     this.lastFetched = new Date();
     console.log(`✅ LOADED: ${workingLockers.length} verified PUDO locker locations`);
-    console.log('📍 Locker distribution:', {
-      Gauteng: workingLockers.filter(l => l.province === 'Gauteng').length,
-      'Western Cape': workingLockers.filter(l => l.province === 'Western Cape').length,
-      'KwaZulu-Natal': workingLockers.filter(l => l.province === 'KwaZulu-Natal').length,
-      'Eastern Cape': workingLockers.filter(l => l.province === 'Eastern Cape').length,
-      'All active': workingLockers.filter(l => l.is_active).length,
-      Total: workingLockers.length
-    });
+    this.logLockerDistribution(workingLockers);
 
-    // OPTIONAL: Try API call in background (non-blocking)
+    // BACKGROUND: Try edge function proxy (non-blocking)
     this.tryApiCallInBackground();
 
     return workingLockers;
+  }
+
+  private logLockerDistribution(lockers: LockerLocation[]): void {
+    console.log('📍 Locker distribution:', {
+      Gauteng: lockers.filter(l => l.province === 'Gauteng').length,
+      'Western Cape': lockers.filter(l => l.province === 'Western Cape').length,
+      'KwaZulu-Natal': lockers.filter(l => l.province === 'KwaZulu-Natal').length,
+      'Eastern Cape': lockers.filter(l => l.province === 'Eastern Cape').length,
+      'All active': lockers.filter(l => l.is_active).length,
+      Total: lockers.length
+    });
   }
 
   /**
