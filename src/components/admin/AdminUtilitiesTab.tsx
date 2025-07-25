@@ -282,7 +282,22 @@ const AdminUtilitiesTab = ({ className }: AdminUtilitiesTabProps) => {
       </div>
 
       {/* Database Diagnostics */}
-      <DatabaseDiagnosticsPanel />
+      <Card className="border-blue-200 bg-blue-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-700">
+            <Database className="h-5 w-5" />
+            Database Diagnostics
+          </CardTitle>
+          <CardDescription>
+            System health and connectivity status
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-blue-700">
+            <p>Database diagnostics available through system utilities</p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Database Status */}
       <Card
