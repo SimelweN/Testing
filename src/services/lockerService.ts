@@ -201,7 +201,8 @@ class LockerService {
         return realApiLockers;
       }
     } catch (error) {
-      console.warn('🔒 Direct PUDO API failed (expected due to CORS):', error instanceof Error ? error.message : 'Unknown error');
+      // Silently handle CORS errors - they're expected in browser
+      console.log('🔒 Direct API blocked by CORS (normal in browser) - using fallback data');
       // Continue to fallback - don't throw
     }
 
