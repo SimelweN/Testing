@@ -68,7 +68,7 @@ const LockerShipmentInfo: React.FC<LockerShipmentInfoProps> = ({
             <span className="font-semibold text-green-800">Early Payment Benefit</span>
           </div>
           <p className="text-sm text-green-700">
-            🎉 You'll be paid 3 days earlier! 
+            🎉 You'll be paid earlier! 
             {estimatedPaymentDate && (
               <span className="font-medium">
                 {" "}Expected payment: {new Date(estimatedPaymentDate).toLocaleDateString()}
