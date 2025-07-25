@@ -262,176 +262,293 @@ class LockerService {
   }
 
   /**
-   * Comprehensive mock data representing Courier Guy's extensive locker network across South Africa
+   * Generate comprehensive mock data representing Courier Guy's extensive locker network of thousands of locations across South Africa
    */
   private getMockLockers(): LockerLocation[] {
     const mockLockers: LockerLocation[] = [];
 
-    // Helper function to generate random capacity and availability
+    // Helper functions
     const generateCapacity = () => {
       const capacity = Math.floor(Math.random() * 50) + 20; // 20-70 capacity
       const available = Math.floor(Math.random() * capacity);
       return { capacity, available };
     };
 
-    // Gauteng Province (Major economic hub - most lockers)
-    const gautengLockers = [
-      // Johannesburg
-      { name: 'Pick n Pay Sandton City', address: '83 Rivonia Road, Sandton', city: 'Sandton', lat: -26.1076, lng: 28.0567 },
-      { name: 'Checkers Rosebank', address: 'Rosebank Mall, 50 Bath Avenue', city: 'Johannesburg', lat: -26.1440, lng: 28.0407 },
-      { name: 'Woolworths Hyde Park', address: 'Hyde Park Shopping Centre', city: 'Johannesburg', lat: -26.1175, lng: 28.0238 },
-      { name: 'Pick n Pay Melrose Arch', address: 'Melrose Arch Shopping Centre', city: 'Johannesburg', lat: -26.1352, lng: 28.0677 },
-      { name: 'Checkers Eastgate', address: 'Eastgate Shopping Centre', city: 'Johannesburg', lat: -26.1877, lng: 28.1349 },
-      { name: 'Woolworths Fourways', address: 'Fourways Mall', city: 'Johannesburg', lat: -25.9889, lng: 28.0103 },
-      { name: 'Pick n Pay Cresta', address: 'Cresta Shopping Centre', city: 'Johannesburg', lat: -26.1089, lng: 27.9616 },
-      { name: 'Checkers Northgate', address: 'Northgate Shopping Centre', city: 'Johannesburg', lat: -26.0461, lng: 28.0227 },
-      { name: 'Woolworths Southgate', address: 'Southgate Shopping Centre', city: 'Johannesburg', lat: -26.2686, lng: 27.9786 },
-      { name: 'Pick n Pay Clearwater', address: 'Clearwater Mall', city: 'Johannesburg', lat: -26.0378, lng: 27.8893 },
+    const generatePhone = () => `0${Math.floor(Math.random() * 90000000 + 10000000)}`;
+    const generatePostalCode = () => Math.floor(Math.random() * 9000 + 1000).toString();
 
-      // Pretoria
-      { name: 'Woolworths Menlyn', address: 'Menlyn Park Shopping Centre', city: 'Pretoria', lat: -25.7852, lng: 28.2761 },
-      { name: 'Pick n Pay Brooklyn', address: 'Brooklyn Mall', city: 'Pretoria', lat: -25.7648, lng: 28.2364 },
-      { name: 'Checkers Centurion', address: 'Centurion Mall', city: 'Centurion', lat: -25.8547, lng: 28.1883 },
-      { name: 'Woolworths Wonderpark', address: 'Wonderpark Shopping Centre', city: 'Pretoria', lat: -25.7129, lng: 28.2233 },
-      { name: 'Pick n Pay The Grove', address: 'The Grove Mall', city: 'Pretoria', lat: -25.7129, lng: 28.2233 },
-      { name: 'Checkers Hatfield', address: 'Hatfield Plaza', city: 'Pretoria', lat: -25.7479, lng: 28.2293 },
-
-      // East Rand
-      { name: 'Pick n Pay Eastrand Mall', address: 'Eastrand Mall', city: 'Boksburg', lat: -26.2056, lng: 28.2608 },
-      { name: 'Checkers Benoni', address: 'Lakeside Mall', city: 'Benoni', lat: -26.1784, lng: 28.3207 },
-      { name: 'Woolworths Springs', address: 'Springs Mall', city: 'Springs', lat: -26.2500, lng: 28.4500 },
-
-      // West Rand
-      { name: 'Pick n Pay Westgate', address: 'Westgate Shopping Centre', city: 'Roodepoort', lat: -26.1089, lng: 27.9616 },
-      { name: 'Checkers Krugersdorp', address: 'Cradlestone Mall', city: 'Krugersdorp', lat: -26.1018, lng: 27.7718 },
+    // Locker types and store names
+    const storeTypes = [
+      'Pick n Pay', 'Checkers', 'Woolworths', 'Spar', 'Shoprite', 'Clicks',
+      'Dis-Chem', 'CNA', 'PEP', 'Ackermans', 'Mr Price', 'Jet', 'Edgars',
+      'Game', 'Makro', 'Build It', 'Cashbuild', 'Lewis', 'Foschini', 'Truworths'
     ];
 
-    // Western Cape Province (Second largest economic center)
-    const westernCapeLockers = [
-      // Cape Town Metro
-      { name: 'Woolworths Canal Walk', address: 'Canal Walk Shopping Centre', city: 'Cape Town', lat: -33.8876, lng: 18.5104 },
-      { name: 'Pick n Pay V&A Waterfront', address: 'Victoria & Alfred Waterfront', city: 'Cape Town', lat: -33.9022, lng: 18.4186 },
-      { name: 'Checkers Cavendish', address: 'Cavendish Square', city: 'Cape Town', lat: -33.9648, lng: 18.4641 },
-      { name: 'Woolworths Tyger Valley', address: 'Tyger Valley Shopping Centre', city: 'Cape Town', lat: -33.9144, lng: 18.6276 },
-      { name: 'Pick n Pay Blue Route', address: 'Blue Route Mall', city: 'Cape Town', lat: -34.0522, lng: 18.4556 },
-      { name: 'Checkers Bayside', address: 'Bayside Shopping Centre', city: 'Cape Town', lat: -33.8625, lng: 18.5083 },
-      { name: 'Woolworths Claremont', address: 'Cavendish Square', city: 'Cape Town', lat: -33.9648, lng: 18.4641 },
-      { name: 'Pick n Pay Kenilworth', address: 'Kenilworth Centre', city: 'Cape Town', lat: -33.9709, lng: 18.4697 },
-      { name: 'Checkers Goodwood', address: 'Goodwood Centre', city: 'Cape Town', lat: -33.8959, lng: 18.5398 },
-      { name: 'Woolworths Somerset West', address: 'Somerset Mall', city: 'Somerset West', lat: -34.0781, lng: 18.8419 },
+    const pharmacies = ['Clicks', 'Dis-Chem', 'Alpha Pharm', 'Medicare', 'Link Pharmacy'];
+    const postOffices = ['Post Office', 'PostNet'];
+    const petrolStations = ['Shell', 'BP', 'Caltex', 'Engen', 'Sasol', 'Total'];
 
-      // Other Western Cape Cities
-      { name: 'Checkers Stellenbosch', address: 'Eikestad Mall', city: 'Stellenbosch', lat: -33.9321, lng: 18.8602 },
-      { name: 'Pick n Pay Paarl', address: 'Paarl Mall', city: 'Paarl', lat: -33.7369, lng: 18.9584 },
-      { name: 'Woolworths George', address: 'Garden Route Mall', city: 'George', lat: -33.9631, lng: 22.4619 },
-      { name: 'Checkers Mossel Bay', address: 'Langeberg Mall', city: 'Mossel Bay', lat: -34.1820, lng: 22.1460 },
-      { name: 'Pick n Pay Worcester', address: 'Golden Grove Centre', city: 'Worcester', lat: -33.6467, lng: 19.4481 },
-    ];
+    // Comprehensive city and town data by province
+    const provinces = {
+      'Gauteng': {
+        cities: [
+          // Major metros
+          { name: 'Johannesburg', lat: -26.2041, lng: 28.0473, suburbs: [
+            'Sandton', 'Rosebank', 'Hyde Park', 'Melrose', 'Randburg', 'Roodepoort',
+            'Fourways', 'Northgate', 'Eastgate', 'Southgate', 'Cresta', 'Clearwater',
+            'Sunninghill', 'Midrand', 'Alexandra', 'Soweto', 'Houghton', 'Parktown',
+            'Braamfontein', 'Newtown', 'Hillbrow', 'Yeoville', 'Observatory', 'Doornfontein'
+          ]},
+          { name: 'Pretoria', lat: -25.7479, lng: 28.2293, suburbs: [
+            'Menlyn', 'Brooklyn', 'Hatfield', 'Centurion', 'Wonderpark', 'The Grove',
+            'Arcadia', 'Sunnyside', 'Waterkloof', 'Lynnwood', 'Garsfontein', 'Faerie Glen'
+          ]},
+          { name: 'Boksburg', lat: -26.2056, lng: 28.2608, suburbs: ['Eastrand', 'Benoni', 'Springs', 'Kempton Park'] },
+          { name: 'Krugersdorp', lat: -26.0910, lng: 27.7718, suburbs: ['Cradlestone', 'Westgate'] },
+          { name: 'Germiston', lat: -26.2309, lng: 28.1640, suburbs: ['Alberton', 'Edenvale'] },
+          { name: 'Vanderbijlpark', lat: -26.7131, lng: 27.8378, suburbs: ['Vereeniging', 'Sasolburg'] }
+        ]
+      },
+      'Western Cape': {
+        cities: [
+          { name: 'Cape Town', lat: -33.9249, lng: 18.4241, suburbs: [
+            'Canal Walk', 'V&A Waterfront', 'Cavendish', 'Tyger Valley', 'Blue Route',
+            'Bayside', 'Claremont', 'Kenilworth', 'Goodwood', 'Bellville', 'Parow',
+            'Durbanville', 'Brackenfell', 'Kraaifontein', 'Kuils River', 'Strand',
+            'Milnerton', 'Table View', 'Blouberg', 'Century City', 'Gardens', 'Sea Point',
+            'Camps Bay', 'Hout Bay', 'Constantia', 'Wynberg', 'Rondebosch', 'Observatory'
+          ]},
+          { name: 'Stellenbosch', lat: -33.9321, lng: 18.8602, suburbs: ['Eikestad', 'Die Boord'] },
+          { name: 'Paarl', lat: -33.7369, lng: 18.9584, suburbs: ['Paarl Mall', 'Wellington'] },
+          { name: 'George', lat: -33.9631, lng: 22.4619, suburbs: ['Garden Route', 'Mossel Bay', 'Knysna'] },
+          { name: 'Worcester', lat: -33.6467, lng: 19.4481, suburbs: ['Golden Grove'] },
+          { name: 'Somerset West', lat: -34.0781, lng: 18.8419, suburbs: ['Somerset Mall', 'Strand'] },
+          { name: 'Hermanus', lat: -34.4187, lng: 19.2345, suburbs: ['Onrus', 'Sandbaai'] },
+          { name: 'Swellendam', lat: -34.0228, lng: 20.4411, suburbs: [] },
+          { name: 'Oudtshoorn', lat: -33.5970, lng: 22.2046, suburbs: [] }
+        ]
+      },
+      'KwaZulu-Natal': {
+        cities: [
+          { name: 'Durban', lat: -29.8587, lng: 31.0218, suburbs: [
+            'Gateway', 'Pavilion', 'La Lucia', 'Musgrave', 'Westville', 'Chatsworth',
+            'Pinetown', 'Hillcrest', 'Kloof', 'Amanzimtoti', 'Umlazi', 'Phoenix'
+          ]},
+          { name: 'Pietermaritzburg', lat: -29.6046, lng: 30.3794, suburbs: ['Liberty Midlands'] },
+          { name: 'Newcastle', lat: -27.7574, lng: 29.9317, suburbs: ['Newcastle Mall'] },
+          { name: 'Richards Bay', lat: -28.7830, lng: 32.0378, suburbs: ['Boardwalk'] },
+          { name: 'Ballito', lat: -29.5392, lng: 31.2136, suburbs: ['Ballito Junction'] },
+          { name: 'Empangeni', lat: -28.7624, lng: 31.8951, suburbs: [] },
+          { name: 'Ladysmith', lat: -28.5574, lng: 29.7812, suburbs: [] },
+          { name: 'Ulundi', lat: -28.3357, lng: 31.4158, suburbs: [] }
+        ]
+      },
+      'Eastern Cape': {
+        cities: [
+          { name: 'Port Elizabeth', lat: -33.9608, lng: 25.6022, suburbs: ['Greenacres', 'Walmer Park', 'Baywest'] },
+          { name: 'East London', lat: -32.9833, lng: 27.8711, suburbs: ['Hemingways', 'Vincent Park'] },
+          { name: 'Grahamstown', lat: -33.3047, lng: 26.5328, suburbs: ['Pepper Grove'] },
+          { name: 'King Williams Town', lat: -32.8833, lng: 27.4000, suburbs: ['Bhisho'] },
+          { name: 'Uitenhage', lat: -33.7581, lng: 25.3970, suburbs: [] },
+          { name: 'Queenstown', lat: -31.8977, lng: 26.8753, suburbs: [] },
+          { name: 'Cradock', lat: -32.1641, lng: 25.6133, suburbs: [] }
+        ]
+      },
+      'Mpumalanga': {
+        cities: [
+          { name: 'Nelspruit', lat: -25.4753, lng: 30.9699, suburbs: ['Riverside', 'Ilanga Mall'] },
+          { name: 'Witbank', lat: -25.8738, lng: 29.2350, suburbs: ['Highveld Mall', 'Emalahleni'] },
+          { name: 'Secunda', lat: -26.5504, lng: 29.1781, suburbs: [] },
+          { name: 'Standerton', lat: -26.9333, lng: 29.2500, suburbs: [] },
+          { name: 'Middelburg', lat: -25.7756, lng: 29.4644, suburbs: [] },
+          { name: 'Ermelo', lat: -26.5278, lng: 29.9797, suburbs: [] }
+        ]
+      },
+      'Limpopo': {
+        cities: [
+          { name: 'Polokwane', lat: -23.9045, lng: 29.4688, suburbs: ['Mall of the North', 'Savannah'] },
+          { name: 'Tzaneen', lat: -23.8326, lng: 30.1640, suburbs: ['Lifestyle Centre'] },
+          { name: 'Thohoyandou', lat: -22.9489, lng: 30.4844, suburbs: ['Thavhani Mall'] },
+          { name: 'Makhado', lat: -23.0444, lng: 29.9053, suburbs: ['Louis Trichardt'] },
+          { name: 'Musina', lat: -22.3448, lng: 30.0446, suburbs: [] },
+          { name: 'Giyani', lat: -23.3026, lng: 30.7187, suburbs: [] }
+        ]
+      },
+      'North West': {
+        cities: [
+          { name: 'Rustenburg', lat: -25.6670, lng: 27.2417, suburbs: ['Waterfall Mall', 'Rustenburg Mall'] },
+          { name: 'Klerksdorp', lat: -26.8520, lng: 26.6624, suburbs: ['City Mall'] },
+          { name: 'Potchefstroom', lat: -26.7136, lng: 27.0957, suburbs: ['Mooirivier Mall'] },
+          { name: 'Mahikeng', lat: -25.8478, lng: 25.6402, suburbs: ['Mega City'] },
+          { name: 'Brits', lat: -25.6344, lng: 27.7781, suburbs: [] },
+          { name: 'Vryburg', lat: -26.9563, lng: 24.7284, suburbs: [] }
+        ]
+      },
+      'Free State': {
+        cities: [
+          { name: 'Bloemfontein', lat: -29.0852, lng: 26.1596, suburbs: ['Mimosa Mall', 'Waterfront', 'Loch Logan'] },
+          { name: 'Welkom', lat: -27.9770, lng: 26.7290, suburbs: ['Goldfields Mall'] },
+          { name: 'Kroonstad', lat: -27.6506, lng: 27.2342, suburbs: [] },
+          { name: 'Bethlehem', lat: -28.2333, lng: 28.3000, suburbs: [] },
+          { name: 'Sasolburg', lat: -26.8129, lng: 27.8197, suburbs: [] },
+          { name: 'Phuthaditjhaba', lat: -28.5226, lng: 28.8186, suburbs: [] }
+        ]
+      },
+      'Northern Cape': {
+        cities: [
+          { name: 'Kimberley', lat: -28.7320, lng: 24.7620, suburbs: ['Diamond Pavilion'] },
+          { name: 'Upington', lat: -28.4478, lng: 21.2561, suburbs: ['Kalahari Mall'] },
+          { name: 'Springbok', lat: -29.6640, lng: 17.8856, suburbs: [] },
+          { name: 'De Aar', lat: -30.6507, lng: 24.0123, suburbs: [] },
+          { name: 'Kuruman', lat: -27.4598, lng: 23.4325, suburbs: [] }
+        ]
+      }
+    };
 
-    // KwaZulu-Natal Province
-    const kznLockers = [
-      // Durban Metro
-      { name: 'Gateway Theatre of Shopping', address: '1 Palm Boulevard', city: 'Durban', lat: -29.7294, lng: 31.0785 },
-      { name: 'Woolworths Pavilion', address: 'Pavilion Shopping Centre', city: 'Durban', lat: -29.8258, lng: 30.9186 },
-      { name: 'Pick n Pay La Lucia', address: 'La Lucia Mall', city: 'Durban', lat: -29.7647, lng: 31.0892 },
-      { name: 'Checkers Musgrave', address: 'Musgrave Centre', city: 'Durban', lat: -29.8471, lng: 30.9970 },
-      { name: 'Woolworths Westville', address: 'Westville Mall', city: 'Durban', lat: -29.8258, lng: 30.9186 },
-      { name: 'Pick n Pay Chatsworth', address: 'Chatsworth Centre', city: 'Durban', lat: -29.9594, lng: 30.8577 },
+    // Generate thousands of lockers
+    Object.entries(provinces).forEach(([provinceName, provinceData]) => {
+      provinceData.cities.forEach(city => {
+        // Generate main city lockers
+        const cityLockers = this.generateCityLockers(city.name, city.lat, city.lng, provinceName);
+        mockLockers.push(...cityLockers);
 
-      // Other KZN Cities
-      { name: 'Pick n Pay Pietermaritzburg', address: 'Liberty Midlands Mall', city: 'Pietermaritzburg', lat: -29.6046, lng: 30.3794 },
-      { name: 'Checkers Newcastle', address: 'Newcastle Mall', city: 'Newcastle', lat: -27.7574, lng: 29.9317 },
-      { name: 'Woolworths Richards Bay', address: 'Boardwalk Mall', city: 'Richards Bay', lat: -28.7830, lng: 32.0378 },
-      { name: 'Pick n Pay Ballito', address: 'Ballito Junction', city: 'Ballito', lat: -29.5392, lng: 31.2136 },
-    ];
-
-    // Eastern Cape Province
-    const easternCapeLockers = [
-      { name: 'Pick n Pay Port Elizabeth', address: 'Greenacres Shopping Centre', city: 'Port Elizabeth', lat: -33.9648, lng: 25.5999 },
-      { name: 'Woolworths East London', address: 'Hemingways Mall', city: 'East London', lat: -32.9833, lng: 27.8711 },
-      { name: 'Checkers Grahamstown', address: 'Pepper Grove Mall', city: 'Grahamstown', lat: -33.3047, lng: 26.5328 },
-      { name: 'Pick n Pay King Williams Town', address: 'Bhisho Centre', city: 'King Williams Town', lat: -32.8833, lng: 27.4000 },
-      { name: 'Woolworths Uitenhage', address: 'Caledon Square', city: 'Uitenhage', lat: -33.7581, lng: 25.3970 },
-    ];
-
-    // Mpumalanga Province
-    const mpumalangaLockers = [
-      { name: 'Pick n Pay Nelspruit', address: 'Riverside Mall', city: 'Nelspruit', lat: -25.4753, lng: 30.9699 },
-      { name: 'Checkers Witbank', address: 'Highveld Mall', city: 'Witbank', lat: -25.8738, lng: 29.2350 },
-      { name: 'Woolworths Secunda', address: 'Secunda Mall', city: 'Secunda', lat: -26.5504, lng: 29.1781 },
-      { name: 'Pick n Pay Standerton', address: 'Standerton Plaza', city: 'Standerton', lat: -26.9333, lng: 29.2500 },
-    ];
-
-    // Limpopo Province
-    const limpopoLockers = [
-      { name: 'Pick n Pay Polokwane', address: 'Mall of the North', city: 'Polokwane', lat: -23.9045, lng: 29.4688 },
-      { name: 'Checkers Tzaneen', address: 'Tzaneen Lifestyle Centre', city: 'Tzaneen', lat: -23.8326, lng: 30.1640 },
-      { name: 'Woolworths Thohoyandou', address: 'Thavhani Mall', city: 'Thohoyandou', lat: -22.9489, lng: 30.4844 },
-      { name: 'Pick n Pay Makhado', address: 'Makhado Crossing', city: 'Makhado', lat: -23.0444, lng: 29.9053 },
-    ];
-
-    // North West Province
-    const northWestLockers = [
-      { name: 'Pick n Pay Rustenburg', address: 'Waterfall Mall', city: 'Rustenburg', lat: -25.6670, lng: 27.2417 },
-      { name: 'Checkers Klerksdorp', address: 'City Mall', city: 'Klerksdorp', lat: -26.8520, lng: 26.6624 },
-      { name: 'Woolworths Potchefstroom', address: 'Mooirivier Mall', city: 'Potchefstroom', lat: -26.7136, lng: 27.0957 },
-      { name: 'Pick n Pay Mahikeng', address: 'Mega City', city: 'Mahikeng', lat: -25.8478, lng: 25.6402 },
-    ];
-
-    // Free State Province
-    const freeStateLockers = [
-      { name: 'Pick n Pay Bloemfontein', address: 'Mimosa Mall', city: 'Bloemfontein', lat: -29.0852, lng: 26.1596 },
-      { name: 'Checkers Welkom', address: 'Goldfields Mall', city: 'Welkom', lat: -27.9770, lng: 26.7290 },
-      { name: 'Woolworths Kroonstad', address: 'Kroonstad Mall', city: 'Kroonstad', lat: -27.6506, lng: 27.2342 },
-      { name: 'Pick n Pay Bethlehem', address: 'Bethlehem Plaza', city: 'Bethlehem', lat: -28.2333, lng: 28.3000 },
-    ];
-
-    // Northern Cape Province
-    const northernCapeLockers = [
-      { name: 'Pick n Pay Kimberley', address: 'Diamond Pavilion', city: 'Kimberley', lat: -28.7320, lng: 24.7620 },
-      { name: 'Checkers Upington', address: 'Kalahari Mall', city: 'Upington', lat: -28.4478, lng: 21.2561 },
-      { name: 'Woolworths Springbok', address: 'Namaqualand Mall', city: 'Springbok', lat: -29.6640, lng: 17.8856 },
-    ];
-
-    // Combine all provinces
-    const allProvinceData = [
-      { lockers: gautengLockers, province: 'Gauteng' },
-      { lockers: westernCapeLockers, province: 'Western Cape' },
-      { lockers: kznLockers, province: 'KwaZulu-Natal' },
-      { lockers: easternCapeLockers, province: 'Eastern Cape' },
-      { lockers: mpumalangaLockers, province: 'Mpumalanga' },
-      { lockers: limpopoLockers, province: 'Limpopo' },
-      { lockers: northWestLockers, province: 'North West' },
-      { lockers: freeStateLockers, province: 'Free State' },
-      { lockers: northernCapeLockers, province: 'Northern Cape' },
-    ];
-
-    // Generate mock locker data for all provinces
-    allProvinceData.forEach(({ lockers, province }) => {
-      lockers.forEach((locker, index) => {
-        const { capacity, available } = generateCapacity();
-        const id = `locker_${province.toLowerCase().replace(' ', '_')}_${index + 1}`;
-
-        mockLockers.push({
-          id,
-          name: locker.name,
-          address: locker.address,
-          city: locker.city,
-          province,
-          postal_code: Math.floor(Math.random() * 9000 + 1000).toString(),
-          latitude: locker.lat,
-          longitude: locker.lng,
-          opening_hours: 'Mon-Sun: 8:00-20:00',
-          contact_number: `0${Math.floor(Math.random() * 90000000 + 10000000)}`,
-          is_active: Math.random() > 0.05, // 95% active
-          locker_capacity: capacity,
-          available_slots: available,
-        });
+        // Generate suburb lockers
+        if (city.suburbs && city.suburbs.length > 0) {
+          city.suburbs.forEach(suburb => {
+            const suburbLockers = this.generateSuburbLockers(suburb, city.name, city.lat, city.lng, provinceName);
+            mockLockers.push(...suburbLockers);
+          });
+        }
       });
     });
 
-    console.log(`🎭 Generated ${mockLockers.length} mock lockers across all 9 provinces`);
+    console.log(`🎭 Generated ${mockLockers.length} comprehensive mock lockers across South Africa`);
     return mockLockers;
+  }
+
+  /**
+   * Generate lockers for a specific city
+   */
+  private generateCityLockers(cityName: string, baseLat: number, baseLng: number, province: string): LockerLocation[] {
+    const lockers: LockerLocation[] = [];
+    const storeTypes = ['Pick n Pay', 'Checkers', 'Woolworths', 'Spar', 'Shoprite', 'Clicks', 'Dis-Chem'];
+    const locations = ['Mall', 'Centre', 'Plaza', 'Square', 'Park', 'Junction', 'Corner', 'Shopping Centre'];
+
+    // Generate 15-30 lockers per major city, 5-15 for smaller cities
+    const numLockers = cityName === 'Johannesburg' || cityName === 'Cape Town' || cityName === 'Durban' ?
+      Math.floor(Math.random() * 15) + 20 : Math.floor(Math.random() * 10) + 5;
+
+    for (let i = 0; i < numLockers; i++) {
+      const store = storeTypes[Math.floor(Math.random() * storeTypes.length)];
+      const location = locations[Math.floor(Math.random() * locations.length)];
+      const { capacity, available } = this.generateCapacityAndAvailability();
+
+      // Add some randomness to coordinates within city bounds
+      const latOffset = (Math.random() - 0.5) * 0.1; // ~10km radius
+      const lngOffset = (Math.random() - 0.5) * 0.1;
+
+      lockers.push({
+        id: `${province.toLowerCase().replace(' ', '_')}_${cityName.toLowerCase()}_${i + 1}`,
+        name: `${store} ${cityName} ${location}`,
+        address: `${Math.floor(Math.random() * 999) + 1} ${this.getRandomStreetName()}, ${cityName}`,
+        city: cityName,
+        province,
+        postal_code: this.generatePostalCode(),
+        latitude: baseLat + latOffset,
+        longitude: baseLng + lngOffset,
+        opening_hours: this.getRandomOpeningHours(),
+        contact_number: this.generatePhone(),
+        is_active: Math.random() > 0.05, // 95% active
+        locker_capacity: capacity,
+        available_slots: available,
+      });
+    }
+
+    return lockers;
+  }
+
+  /**
+   * Generate lockers for suburbs/areas within cities
+   */
+  private generateSuburbLockers(suburbName: string, cityName: string, baseLat: number, baseLng: number, province: string): LockerLocation[] {
+    const lockers: LockerLocation[] = [];
+    const storeTypes = ['Pick n Pay', 'Checkers', 'Woolworths', 'Spar', 'Clicks', 'PEP', 'Ackermans'];
+
+    // Generate 3-8 lockers per suburb
+    const numLockers = Math.floor(Math.random() * 5) + 3;
+
+    for (let i = 0; i < numLockers; i++) {
+      const store = storeTypes[Math.floor(Math.random() * storeTypes.length)];
+      const { capacity, available } = this.generateCapacityAndAvailability();
+
+      // Suburb coordinates within city bounds
+      const latOffset = (Math.random() - 0.5) * 0.05;
+      const lngOffset = (Math.random() - 0.5) * 0.05;
+
+      lockers.push({
+        id: `${province.toLowerCase().replace(' ', '_')}_${cityName.toLowerCase()}_${suburbName.toLowerCase().replace(/\s+/g, '_')}_${i + 1}`,
+        name: `${store} ${suburbName}`,
+        address: `${suburbName} ${this.getRandomLocationName()}, ${cityName}`,
+        city: cityName,
+        province,
+        postal_code: this.generatePostalCode(),
+        latitude: baseLat + latOffset,
+        longitude: baseLng + lngOffset,
+        opening_hours: this.getRandomOpeningHours(),
+        contact_number: this.generatePhone(),
+        is_active: Math.random() > 0.03, // 97% active for suburbs
+        locker_capacity: capacity,
+        available_slots: available,
+      });
+    }
+
+    return lockers;
+  }
+
+  /**
+   * Helper methods
+   */
+  private generateCapacityAndAvailability() {
+    const capacity = Math.floor(Math.random() * 50) + 20; // 20-70 capacity
+    const available = Math.floor(Math.random() * capacity);
+    return { capacity, available };
+  }
+
+  private generatePhone(): string {
+    return `0${Math.floor(Math.random() * 90000000 + 10000000)}`;
+  }
+
+  private generatePostalCode(): string {
+    return Math.floor(Math.random() * 9000 + 1000).toString();
+  }
+
+  private getRandomStreetName(): string {
+    const streetNames = [
+      'Main Road', 'Church Street', 'Market Street', 'High Street', 'Park Avenue',
+      'Oak Street', 'Pine Road', 'Maple Drive', 'Cedar Lane', 'Elm Street',
+      'Victoria Street', 'Queen Street', 'King Street', 'Prince Road', 'Duke Avenue',
+      'Nelson Mandela Drive', 'OR Tambo Street', 'Jan Smuts Avenue', 'Hendrik Verwoerd Drive'
+    ];
+    return streetNames[Math.floor(Math.random() * streetNames.length)];
+  }
+
+  private getRandomLocationName(): string {
+    const locations = [
+      'Shopping Centre', 'Mall', 'Plaza', 'Square', 'Centre', 'Market', 'Corner Shop',
+      'Pharmacy', 'Supermarket', 'Hypermarket', 'Store', 'Outlet'
+    ];
+    return locations[Math.floor(Math.random() * locations.length)];
+  }
+
+  private getRandomOpeningHours(): string {
+    const hours = [
+      'Mon-Sun: 8:00-20:00',
+      'Mon-Fri: 8:00-18:00, Sat: 8:00-17:00, Sun: 9:00-16:00',
+      'Mon-Sun: 7:00-21:00',
+      'Mon-Fri: 9:00-17:00, Sat: 9:00-14:00, Sun: Closed',
+      'Mon-Sun: 24 hours'
+    ];
+    return hours[Math.floor(Math.random() * hours.length)];
   }
 }
 
