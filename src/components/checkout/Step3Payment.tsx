@@ -1266,16 +1266,34 @@ Time: ${new Date().toISOString()}
               </Button>
 
               <Button
-                onClick={() => {
-                  console.log("🔔 Simple test button clicked!");
-                  alert("Button is working!");
-                  toast.success("Button click detected!");
+                onClick={async () => {
+                  console.log("🔬 Simple edge test button clicked!");
+                  toast.info("Running simple edge function test...");
+
+                  try {
+                    const simpleTest = (window as any).simpleEdgeFunctionTest;
+                    if (simpleTest) {
+                      const result = await simpleTest();
+                      console.log("🔬 Simple test result:", result);
+
+                      if (result.success) {
+                        toast.success("Edge function test passed!");
+                      } else {
+                        toast.error(`Test failed: ${result.userMessage || 'Unknown error'}`, { duration: 10000 });
+                      }
+                    } else {
+                      toast.error("Simple test function not loaded");
+                    }
+                  } catch (error) {
+                    console.error("Simple test failed:", error);
+                    toast.error(`Simple test exception: ${error instanceof Error ? error.message : String(error)}`);
+                  }
                 }}
                 variant="outline"
                 size="sm"
-                className="text-green-700 border-green-300"
+                className="text-blue-700 border-blue-300"
               >
-                🔔 Test Click
+                🔬 Simple Test
               </Button>
             </div>
 
