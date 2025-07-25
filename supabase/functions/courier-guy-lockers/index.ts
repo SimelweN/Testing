@@ -273,22 +273,24 @@ serve(async (req) => {
           }
         }
 
-        if (allLockers.length > 0) {
-          console.log(`✅ Successfully fetched ${allLockers.length} lockers from ${endpoint}`)
-          
-          return new Response(
-            JSON.stringify({ 
-              success: true,
-              lockers: allLockers,
-              source: endpoint,
-              method: 'paginated',
-              totalPages: page - 1
-            }),
-            { 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-            }
-          )
-        }
+          if (allLockers.length > 0) {
+            console.log(`🎉 SUCCESS with strategy ${strategy.page}/${strategy.limit}: ${allLockers.length} lockers`)
+
+            return new Response(
+              JSON.stringify({
+                success: true,
+                lockers: allLockers,
+                source: endpoint,
+                method: 'paginated',
+                strategy: strategy,
+                totalPages: pageNum - 1,
+                totalCount: allLockers.length
+              }),
+              {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              }
+            )
+          }
 
       } catch (error) {
         console.error(`❌ Error with endpoint ${endpoint}:`, error)
