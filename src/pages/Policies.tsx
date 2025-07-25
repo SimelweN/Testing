@@ -72,10 +72,10 @@ const Policies = () => {
               <Button
                 onClick={() => setActiveTab("privacy")}
                 variant={activeTab === "privacy" ? "default" : "outline"}
-                size="sm"
-                className="text-xs sm:text-sm flex-shrink-0"
+                size="lg"
+                className="text-sm sm:text-base flex-shrink-0 font-medium px-4 py-2 transition-all duration-200 hover:shadow-md"
               >
-                <Shield className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <Shield className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
                 <span>Privacy Policy</span>
               </Button>
               <Button
