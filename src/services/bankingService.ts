@@ -470,6 +470,7 @@ export class BankingService {
       console.error("Error checking banking requirements:", error);
       return {
         hasBankingInfo: false,
+        hasPickupAddress: false,
         isVerified: false,
         canListBooks: false,
         missingRequirements: ["Unable to verify requirements"],
