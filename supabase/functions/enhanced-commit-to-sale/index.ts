@@ -97,15 +97,35 @@ serve(async (req) => {
       .maybeSingle();
 
     if (orderError || !order) {
-      console.error('❌ Order not found or access denied:', orderError);
+      console.error('❌ Order lookup failed:', {
+        orderError,
+        order,
+        order_id,
+        seller_id,
+        errorDetails: orderError?.details,
+        errorMessage: orderError?.message,
+        errorCode: orderError?.code
+      });
+
+      let errorMsg = 'Order not found or access denied';
+      if (orderError?.message) {
+        errorMsg += ` (${orderError.message})`;
+      }
+
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Order not found or access denied' 
+        JSON.stringify({
+          success: false,
+          error: errorMsg,
+          debug: {
+            order_id,
+            seller_id,
+            orderError: orderError?.message,
+            hasOrder: !!order
+          }
         }),
-        { 
-          status: 404, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
     }
