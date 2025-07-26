@@ -124,8 +124,9 @@ export function loadAPSProfile(): UserAPSProfile | null {
 
     // ✅ Validate profile structure
     if (!isValidAPSProfile(profile)) {
-      console.warn("❌ Invalid APS profile structure, clearing corrupted data");
-      localStorage.removeItem(APS_STORAGE_KEY);
+      console.warn("❌ Invalid APS profile structure detected, but preserving data for manual review");
+      // Don't automatically clear - let user decide through "Clear APS Profile" button
+      // Return null but keep data for potential recovery
       return null;
     }
 
