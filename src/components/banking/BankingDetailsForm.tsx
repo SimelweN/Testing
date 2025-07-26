@@ -335,6 +335,15 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
           errorMessage =
             "Your session has expired. Please log in again and try again.";
         } else if (
+          msg.includes("edge function") ||
+          msg.includes("non-2xx") ||
+          msg.includes("failed to send a request") ||
+          msg.includes("functionshttp") ||
+          msg.includes("functionsfetch")
+        ) {
+          errorMessage =
+            "Banking services are temporarily unavailable. Please try again in a few minutes, or contact support if the issue persists.";
+        } else if (
           msg.includes("network") ||
           msg.includes("fetch") ||
           msg.includes("connection")
