@@ -57,7 +57,7 @@ const GoogleMapsTest: React.FC = () => {
         
         {loadError && (
           <div className="text-xs text-red-600 bg-red-50 p-2 rounded border">
-            {loadError}
+            {loadError.message || String(loadError)}
           </div>
         )}
         
