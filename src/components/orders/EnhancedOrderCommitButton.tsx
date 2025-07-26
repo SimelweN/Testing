@@ -106,13 +106,14 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
 
       // Try enhanced function first, fallback to original if it doesn't exist
       try {
-        console.log("📞 Attempting enhanced-commit-to-sale function...");
+        console.log("📞 Attempting enhanced-commit-to-sale function with data:", commitData);
         const result = await supabase.functions.invoke(
           "enhanced-commit-to-sale",
           {
             body: commitData,
           },
         );
+        console.log("📄 Enhanced function response:", { data: result.data, error: result.error });
         data = result.data;
         error = result.error;
       } catch (enhancedError) {
