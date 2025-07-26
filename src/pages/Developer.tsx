@@ -1922,6 +1922,10 @@ const Developer = () => {
               </div>
             </TabsContent>
 
+            <TabsContent value="email-templates">
+              <EmailTemplateDashboard />
+            </TabsContent>
+
             {/* Test Results */}
             {testResults.length > 0 && (
               <Card>
