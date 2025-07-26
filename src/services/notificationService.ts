@@ -57,47 +57,50 @@ export const getNotifications = async (
   currentFetchController = new AbortController();
 
   try {
-    // Optimized timeout for better UX - 4 seconds
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => {
-        if (currentFetchController) {
-          currentFetchController.abort();
-        }
-        reject(new Error("Request timeout"));
-      }, 4000),
+    // Use enhanced error handling for the API call
+    const result = await safeApiCall(
+      async () => {
+        // Create timeout promise
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => {
+            if (currentFetchController) {
+              currentFetchController.abort();
+            }
+            reject(new Error("Request timeout"));
+          }, 4000),
+        );
+
+        const queryPromise = supabase
+          .from("notifications")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(50) // Limit to 50 notifications for performance
+          .abortSignal(currentFetchController.signal);
+
+        return await Promise.race([queryPromise, timeoutPromise]);
+      },
+      {
+        context: "fetch notifications",
+        showUserError: false, // Don't show toast for notification errors
+        maxRetries: 2,
+        requireAuth: true
+      }
     );
 
-    const queryPromise = supabase
-      .from("notifications")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(50) // Limit to 50 notifications for performance
-      .abortSignal(currentFetchController.signal);
-
-    const { data, error } = (await Promise.race([
-      queryPromise,
-      timeoutPromise,
-    ])) as any;
-
-    if (error) {
+    if (result.error) {
       // Handle specific error types gracefully
-      if (error.message?.includes("aborted")) {
-        console.warn("Notification request was cancelled");
-        return []; // Return cached data if available
+      if (result.error.message?.includes("aborted") || result.error.message?.includes("timeout")) {
+        console.warn("Notification request was cancelled or timed out");
+        return cached ? cached.data : []; // Return cached data if available
       }
 
-      if (
-        error.message?.includes("Failed to fetch") ||
-        error.message?.includes("network")
-      ) {
-        console.warn(
-          "Network issue while fetching notifications - returning cached or empty array",
-        );
-        return cached ? cached.data : [];
+      if (result.shouldLogout) {
+        console.warn("Authentication error fetching notifications");
+        return [];
       }
 
-      console.warn("Database error fetching notifications:", error.message);
+      console.warn("Error fetching notifications:", result.error.message);
       return cached ? cached.data : [];
     }
 
