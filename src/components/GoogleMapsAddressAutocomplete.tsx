@@ -99,30 +99,32 @@ const GoogleMapsAddressAutocomplete: React.FC<
 
         console.log("Full address:", place.formatted_address);
 
-        // Extract address components
+        // Extract address components (like the example)
         let street = "";
         let city = "";
         let province = "";
         let postalCode = "";
 
-        place.address_components.forEach((component: any) => {
-          const types = component.types;
+        const addressComponents = place.address_components;
+        for (let component of addressComponents) {
+          const type = component.types[0];
+          console.log(type + ": " + component.long_name);
 
-          if (types.includes("street_number")) {
+          if (component.types.includes("street_number")) {
             street = component.long_name + " ";
-          } else if (types.includes("route")) {
+          } else if (component.types.includes("route")) {
             street += component.long_name;
           } else if (
-            types.includes("sublocality") ||
-            types.includes("locality")
+            component.types.includes("sublocality") ||
+            component.types.includes("locality")
           ) {
             city = component.long_name;
-          } else if (types.includes("administrative_area_level_1")) {
+          } else if (component.types.includes("administrative_area_level_1")) {
             province = component.long_name;
-          } else if (types.includes("postal_code")) {
+          } else if (component.types.includes("postal_code")) {
             postalCode = component.long_name;
           }
-        });
+        }
 
         // Validate province is in South Africa
         const normalizedProvince =
