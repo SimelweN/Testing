@@ -82,7 +82,15 @@ export class BankingService {
           details: error.details,
           hint: error.hint,
           userId,
+          fullError: JSON.stringify(error, null, 2),
         });
+
+        // Handle network/connection errors more gracefully
+        if (error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError")) {
+          console.log("Network error detected, user may be offline or database unreachable");
+          throw new Error("Connection error - please check your internet and try again");
+        }
+
         throw new Error(
           `Database error: ${error.message || "Failed to fetch banking details"}`,
         );
