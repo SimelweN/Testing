@@ -90,7 +90,7 @@ serve(async (req) => {
     const isTestWebhook = event.includes('test') || data.reference?.includes('test') || data.reference?.includes('mock');
     
     if (!isTestWebhook && PAYSTACK_SECRET_KEY) {
-      if (!signature || !verifyPaystackSignature(rawBody, signature, PAYSTACK_SECRET_KEY)) {
+      if (!signature || !await verifyPaystackSignature(rawBody, signature, PAYSTACK_SECRET_KEY)) {
         return jsonResponse({
           success: false,
           error: "INVALID_WEBHOOK_SIGNATURE",
