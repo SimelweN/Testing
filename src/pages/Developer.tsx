@@ -1358,11 +1358,13 @@ const Developer = () => {
                         <SelectValue placeholder="Select a book" />
                       </SelectTrigger>
                       <SelectContent>
-                        {books.filter(book => book && book.id).map(book => (
+                        {books && books.length > 0 ? books.filter(book => book && book.id).map(book => (
                           <SelectItem key={book.id} value={book.id}>
                             {book.title} - R{book.price} ({book.seller_name})
                           </SelectItem>
-                        ))}
+                        )) : (
+                          <SelectItem value="loading" disabled>Loading books...</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
