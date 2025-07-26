@@ -680,33 +680,57 @@ const ActivityLog = () => {
             <TabsContent value="listings">
               <Card className="bg-white/60 backdrop-blur-sm">
                 <CardContent className="p-6">
-                  {isLoading ? (
+                  {isLoadingBooks ? (
                     <div className="flex justify-center py-12">
                       <RefreshCw className="h-8 w-8 animate-spin text-slate-400" />
                     </div>
-                  ) : filteredActivities.length > 0 ? (
+                  ) : userBooks.length > 0 ? (
                     <div className="space-y-4">
-                      {filteredActivities.map((activity) => (
+                      {userBooks.map((book) => (
                         <div
-                          key={activity.id}
-                          className="flex items-start gap-4 p-4 rounded-lg bg-white/60 hover:bg-white/80 transition-colors border border-slate-100"
+                          key={book.id}
+                          className="flex items-start gap-4 p-4 rounded-lg bg-white/60 hover:bg-white/80 transition-colors border border-slate-100 cursor-pointer"
+                          onClick={() => navigate(`/books/${book.id}`)}
                         >
                           <div className="flex-shrink-0">
-                            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
-                              {getActivityIcon(activity.type)}
-                            </div>
+                            {book.imageUrl ? (
+                              <img
+                                src={book.imageUrl}
+                                alt={book.title}
+                                className="w-16 h-20 object-cover rounded-lg"
+                              />
+                            ) : (
+                              <div className="w-16 h-20 bg-slate-200 rounded-lg flex items-center justify-center">
+                                <BookIcon className="h-8 w-8 text-slate-400" />
+                              </div>
+                            )}
                           </div>
                           <div className="flex-grow min-w-0">
                             <div className="flex justify-between items-start mb-2">
-                              <h3 className="font-medium text-slate-800">{activity.title}</h3>
+                              <h3 className="font-semibold text-slate-800 line-clamp-1">{book.title}</h3>
                               <div className="text-right flex-shrink-0 ml-4">
-                                <div className="text-sm text-slate-500">
-                                  {formatDate(activity.created_at)}
+                                <div className="text-lg font-bold text-emerald-600">
+                                  R{book.price}
                                 </div>
-                                {getStatusBadge(activity)}
+                                <div className="text-xs text-slate-500">
+                                  {formatDate(book.createdAt)}
+                                </div>
                               </div>
                             </div>
-                            <p className="text-sm text-slate-600 mb-2">{activity.description}</p>
+                            <p className="text-sm text-slate-600 mb-2">by {book.author}</p>
+                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                              <span className="px-2 py-1 bg-slate-100 rounded-full">
+                                {book.condition}
+                              </span>
+                              <span className="px-2 py-1 bg-slate-100 rounded-full">
+                                {book.category}
+                              </span>
+                              {book.sold && (
+                                <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full">
+                                  Sold
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
