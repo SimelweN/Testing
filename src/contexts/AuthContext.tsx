@@ -371,9 +371,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         console.log("✅ [AuthContext] Auth initialized");
       } catch (error) {
         console.error("Auth initialization failed:", error);
-        setInitError(
-          getErrorMessage(error, "Failed to initialize authentication"),
-        );
+        const errorMessage = getErrorMessage(error, "Failed to initialize authentication");
+
+        // For network errors, provide a more user-friendly message
+        if (errorMessage.includes('Failed to fetch') ||
+            errorMessage.includes('NetworkError') ||
+            errorMessage.includes('fetch')) {
+          setInitError("Network connectivity issues - some features may be limited");
+          setUser(null);
+          setSession(null);
+          setProfile(null);
+        } else {
+          setInitError(errorMessage);
+        }
+
+        setAuthInitialized(true);
         setIsLoading(false);
       }
     };
