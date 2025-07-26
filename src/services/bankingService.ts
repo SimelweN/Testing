@@ -333,6 +333,19 @@ export class BankingService {
           pickupAddr.province &&
           pickupAddr.postalCode
         );
+
+        console.log("📍 [Address Debug] Pickup address validation:", {
+          userId,
+          hasAddress: !!profile?.pickup_address,
+          hasStreetField: !!streetField,
+          hasCity: !!pickupAddr.city,
+          hasProvince: !!pickupAddr.province,
+          hasPostalCode: !!pickupAddr.postalCode,
+          isValid: hasPickupAddress,
+          address: pickupAddr
+        });
+      } else {
+        console.log("📍 [Address Debug] No pickup address found for user:", userId);
       }
 
       // Check active books
