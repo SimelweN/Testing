@@ -381,7 +381,7 @@ const Login = () => {
 
                 <Button
                   type="submit"
-                  className="w-full h-12 bg-book-600 hover:bg-book-700 text-white font-medium rounded-lg transition-colors"
+                  className="w-full bg-book-600 hover:bg-book-700 text-white font-medium rounded-lg transition-colors btn-mobile"
                   disabled={isLoading}
                 >
                   {isLoading ? (
