@@ -22,19 +22,25 @@ const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// Helper function to verify Paystack webhook signature
-function verifyPaystackSignature(payload: string, signature: string, secret: string): boolean {
+// Helper function to verify Paystack webhook signature using HMAC-SHA512
+async function verifyPaystackSignature(payload: string, signature: string, secret: string): Promise<boolean> {
   if (!secret || !signature) return false;
-  
+
   try {
-    const crypto = globalThis.crypto;
-    const encoder = new TextEncoder();
-    const keyData = encoder.encode(secret);
-    const payloadData = encoder.encode(payload);
-    
-    // For now, we'll skip signature verification in development
-    // In production, you'd want to implement proper HMAC verification
-    return true;
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secret),
+      { name: "HMAC", hash: "SHA-512" },
+      false,
+      ["sign"]
+    );
+
+    const sigBuffer = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
+    const sigHex = Array.from(new Uint8Array(sigBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    return sigHex === signature;
   } catch (error) {
     console.error('Signature verification error:', error);
     return false;
