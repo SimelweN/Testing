@@ -26,7 +26,7 @@ const BankingSetup: React.FC = () => {
   const [existingBanking, setExistingBanking] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [showDebug, setShowDebug] = useState(false);
+
 
   useEffect(() => {
     const checkExistingBanking = async () => {
