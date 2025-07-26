@@ -288,35 +288,35 @@ const ActivityLog = () => {
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="flex w-full overflow-x-auto mb-8 bg-white/60 backdrop-blur-sm scrollbar-hide pb-1">
-              <TabsTrigger value="overview" className="text-xs sm:text-sm">
+              <TabsTrigger value="overview" className="flex-shrink-0 text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
                 <TrendingUp className="h-4 w-4 mr-1" />
                 Overview
               </TabsTrigger>
-              <TabsTrigger value="orders" className="text-xs sm:text-sm">
+              <TabsTrigger value="orders" className="flex-shrink-0 text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
                 <Package className="h-4 w-4 mr-1" />
                 Orders
               </TabsTrigger>
-              <TabsTrigger value="commits" className="text-xs sm:text-sm">
+              <TabsTrigger value="commits" className="flex-shrink-0 text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
                 <Clock className="h-4 w-4 mr-1" />
                 Commits
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="text-xs sm:text-sm">
+              <TabsTrigger value="notifications" className="flex-shrink-0 text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
                 <Bell className="h-4 w-4 mr-1" />
                 Alerts
               </TabsTrigger>
-              <TabsTrigger value="sales" className="text-xs sm:text-sm">
+              <TabsTrigger value="sales" className="flex-shrink-0 text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
                 <Check className="h-4 w-4 mr-1" />
                 Sales
               </TabsTrigger>
-              <TabsTrigger value="listings" className="text-xs sm:text-sm">
+              <TabsTrigger value="listings" className="flex-shrink-0 text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
                 <BookIcon className="h-4 w-4 mr-1" />
                 Listings
               </TabsTrigger>
-              <TabsTrigger value="purchases" className="text-xs sm:text-sm">
+              <TabsTrigger value="purchases" className="flex-shrink-0 text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
                 <ShoppingCart className="h-4 w-4 mr-1" />
                 Purchases
               </TabsTrigger>
-              <TabsTrigger value="all" className="text-xs sm:text-sm">
+              <TabsTrigger value="all" className="flex-shrink-0 text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
                 <ActivityIcon className="h-4 w-4 mr-1" />
                 All
               </TabsTrigger>
