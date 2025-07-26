@@ -130,6 +130,7 @@ function App() {
                         path="/reset-password"
                         element={<ResetPassword />}
                       />
+                      <Route path="/verify" element={<Verify />} />
                       <Route path="/verify/*" element={<VerifyEmail />} />
                       <Route path="/auth/callback" element={<AuthCallback />} />
 
