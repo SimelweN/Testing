@@ -16,28 +16,38 @@ export class BankingService {
    */
   static async getUserBankingDetails(
     userId: string,
+    retryCount = 0,
   ): Promise<BankingSubaccount | null> {
     try {
-      console.log("Fetching banking details for user:", userId);
+      console.log("Fetching banking details for user:", userId, "attempt:", retryCount + 1);
 
-      // First check if user has ANY banking records (regardless of status)
-      const { data: allRecords, error: allError } = await supabase
-        .from("banking_subaccounts")
-        .select("*")
-        .eq("user_id", userId);
+      // Add timeout to prevent hanging requests
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
+      );
 
-      console.log("🔍 [Banking Debug] All banking records for user:", {
-        userId,
-        records: allRecords,
-        count: allRecords?.length || 0
-      });
+      const fetchQuery = async () => {
+        // First check if user has ANY banking records (regardless of status)
+        const { data: allRecords, error: allError } = await supabase
+          .from("banking_subaccounts")
+          .select("*")
+          .eq("user_id", userId);
 
-      const { data, error } = await supabase
-        .from("banking_subaccounts")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("status", "active")
-        .single();
+        console.log("🔍 [Banking Debug] All banking records for user:", {
+          userId,
+          records: allRecords,
+          count: allRecords?.length || 0
+        });
+
+        return await supabase
+          .from("banking_subaccounts")
+          .select("*")
+          .eq("user_id", userId)
+          .eq("status", "active")
+          .single();
+      };
+
+      const { data, error } = await Promise.race([fetchQuery(), timeout]) as any;
 
       if (error) {
         // No active record found - let's check for any record
