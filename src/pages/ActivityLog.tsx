@@ -542,7 +542,7 @@ const ActivityLog = () => {
                               </div>
                             </div>
 
-                            <div className="flex flex-row lg:flex-col gap-2 lg:ml-6">
+                            <div className="btn-group-mobile lg:flex-col lg:ml-6">
                               <EnhancedOrderCommitButton
                                 orderId={commit.id}
                                 sellerId={user?.id || ""}
