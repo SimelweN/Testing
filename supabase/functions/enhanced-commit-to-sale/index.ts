@@ -251,15 +251,17 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('💥 Enhanced commit error:', error);
+    const { getErrorMessage, logError } = await import('../_shared/error-utils.ts');
+    logError('enhanced-commit-to-sale', error, { context: 'main handler' });
+
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message || 'Internal server error' 
+      JSON.stringify({
+        success: false,
+        error: getErrorMessage(error)
       }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }
