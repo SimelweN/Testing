@@ -172,8 +172,27 @@ serve(async (req) => {
 
 async function handleSuccessfulPayment(supabase: any, data: any) {
   const { reference, amount, customer, status } = data;
-  
+
   try {
+    // Check if this payment was already processed to handle duplicate webhooks
+    const { data: existingTransaction } = await supabase
+      .from('payment_transactions')
+      .select('status, webhook_processed_at')
+      .eq('reference', reference)
+      .single();
+
+    if (existingTransaction?.status === 'success' && existingTransaction?.webhook_processed_at) {
+      console.log(`Duplicate webhook detected for reference: ${reference}, skipping processing`);
+      await supabase.from('webhook_logs').insert({
+        event: 'duplicate_webhook_detected',
+        reference,
+        status: 'skipped',
+        webhook_data: { message: 'Duplicate successful payment webhook', original_data: data },
+        processed_at: new Date().toISOString()
+      });
+      return;
+    }
+
     // Update payment transaction
     const { error: updateError } = await supabase
       .from('payment_transactions')
@@ -186,6 +205,7 @@ async function handleSuccessfulPayment(supabase: any, data: any) {
 
     if (updateError) {
       console.error('Failed to update payment transaction:', updateError);
+      throw new Error(`Database update failed: ${updateError.message}`);
     }
 
     // Get transaction details to create order
