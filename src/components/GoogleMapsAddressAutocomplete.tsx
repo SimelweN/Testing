@@ -134,6 +134,11 @@ const GoogleMapsAddressAutocomplete: React.FC<
               province.toLowerCase().includes(p.toLowerCase()),
           ) || province;
 
+        // Optional: Store lat/lng (like the example)
+        const location = place.geometry.location;
+        console.log("Latitude:", location.lat());
+        console.log("Longitude:", location.lng());
+
         const addressData: AddressData = {
           formattedAddress: place.formatted_address || "",
           street: street.trim(),
@@ -141,8 +146,8 @@ const GoogleMapsAddressAutocomplete: React.FC<
           province: normalizedProvince,
           postalCode: postalCode || "",
           country: "South Africa",
-          latitude: place.geometry.location.lat(),
-          longitude: place.geometry.location.lng(),
+          latitude: location.lat(),
+          longitude: location.lng(),
         };
 
         setSelectedAddress(addressData);
