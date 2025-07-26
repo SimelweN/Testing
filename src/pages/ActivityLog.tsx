@@ -314,37 +314,41 @@ const ActivityLog = () => {
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-4 lg:grid-cols-8 w-full mb-8 bg-white/60 backdrop-blur-sm h-auto">
-              <TabsTrigger value="overview" className="flex-shrink-0 text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
-                <TrendingUp className="h-4 w-4 mr-1" />
-                Overview
+              <TabsTrigger value="overview" className="text-xs px-1 py-2 flex flex-col items-center gap-1">
+                <TrendingUp className="h-3 w-3" />
+                <span className="hidden sm:block">Overview</span>
+                <span className="sm:hidden">Over</span>
               </TabsTrigger>
-              <TabsTrigger value="orders" className="flex-shrink-0 text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
-                <Package className="h-4 w-4 mr-1" />
-                Orders
+              <TabsTrigger value="orders" className="text-xs px-1 py-2 flex flex-col items-center gap-1">
+                <Package className="h-3 w-3" />
+                <span className="hidden sm:block">Orders</span>
+                <span className="sm:hidden">Ord</span>
               </TabsTrigger>
-              <TabsTrigger value="commits" className="flex-shrink-0 text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
-                <Clock className="h-4 w-4 mr-1" />
-                Commits
+              <TabsTrigger value="commits" className="text-xs px-1 py-2 flex flex-col items-center gap-1">
+                <Clock className="h-3 w-3" />
+                <span className="hidden sm:block">Commits</span>
+                <span className="sm:hidden">Com</span>
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="flex-shrink-0 text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
-                <Bell className="h-4 w-4 mr-1" />
-                Alerts
+              <TabsTrigger value="notifications" className="text-xs px-1 py-2 flex flex-col items-center gap-1">
+                <Bell className="h-3 w-3" />
+                <span className="hidden sm:block">Alerts</span>
+                <span className="sm:hidden">Not</span>
               </TabsTrigger>
-              <TabsTrigger value="sales" className="flex-shrink-0 text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
-                <Check className="h-4 w-4 mr-1" />
-                Sales
+              <TabsTrigger value="sales" className="text-xs px-1 py-2 flex flex-col items-center gap-1 hidden lg:flex">
+                <Check className="h-3 w-3" />
+                <span>Sales</span>
               </TabsTrigger>
-              <TabsTrigger value="listings" className="flex-shrink-0 text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
-                <BookIcon className="h-4 w-4 mr-1" />
-                Listings
+              <TabsTrigger value="listings" className="text-xs px-1 py-2 flex flex-col items-center gap-1 hidden lg:flex">
+                <BookIcon className="h-3 w-3" />
+                <span>Listings</span>
               </TabsTrigger>
-              <TabsTrigger value="purchases" className="flex-shrink-0 text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
-                <ShoppingCart className="h-4 w-4 mr-1" />
-                Purchases
+              <TabsTrigger value="purchases" className="text-xs px-1 py-2 flex flex-col items-center gap-1 hidden lg:flex">
+                <ShoppingCart className="h-3 w-3" />
+                <span>Purchases</span>
               </TabsTrigger>
-              <TabsTrigger value="all" className="flex-shrink-0 text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
-                <ActivityIcon className="h-4 w-4 mr-1" />
-                All
+              <TabsTrigger value="all" className="text-xs px-1 py-2 flex flex-col items-center gap-1 hidden lg:flex">
+                <ActivityIcon className="h-3 w-3" />
+                <span>All</span>
               </TabsTrigger>
             </TabsList>
 
