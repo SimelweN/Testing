@@ -122,7 +122,7 @@ export const getUserAddresses = async (userId: string) => {
       console.error("Database error fetching addresses:", {
         message: errorMsg,
         code: error.code,
-        details: error.details,
+        details: typeof error.details === 'object' ? JSON.stringify(error.details) : error.details,
         hint: error.hint,
       });
 
