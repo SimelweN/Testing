@@ -386,6 +386,15 @@ const ActivityLog = () => {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={handleClearNotifications}
+                className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Clear Notifications
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleClearAllUserData}
                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
               >
