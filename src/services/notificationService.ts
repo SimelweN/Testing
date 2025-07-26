@@ -104,12 +104,12 @@ export const getNotifications = async (
       return cached ? cached.data : [];
     }
 
-    if (!data || !Array.isArray(data)) {
-      console.warn("Invalid notification data received:", data);
+    if (!result.data || !Array.isArray(result.data)) {
+      console.warn("Invalid notification data received:", result.data);
       return cached ? cached.data : [];
     }
 
-    const notifications = data.map((notification) => ({
+    const notifications = result.data.map((notification) => ({
       id: notification.id,
       userId: notification.user_id,
       title: notification.title,
