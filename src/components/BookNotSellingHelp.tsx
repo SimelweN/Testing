@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +9,7 @@ const BookNotSellingHelp = () => {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   const handleShareTips = () => {
-    const tips = `💡 Book selling tips from ReBooked:
+    const tips = `💡 Book selling tips from ReBooked Marketplace:
 1. Take clear, well-lit photos
 2. Price competitively 
 3. Write detailed descriptions
@@ -21,7 +20,7 @@ Visit ReBooked Solutions for great deals on textbooks! 📚`;
 
     if (navigator.share) {
       navigator.share({
-        title: 'Book Selling Tips - ReBooked',
+        title: 'Book Selling Tips - ReBooked Marketplace',
         text: tips
       });
     } else {

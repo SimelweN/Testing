@@ -138,7 +138,7 @@ const DeleteProfileDialog = ({ isOpen, onClose }: DeleteProfileDialogProps) => {
           <div className="space-y-4">
             <div>
               <Label className="text-sm font-medium mb-2 block">
-                Rate your experience with ReBooked (1-5 stars)
+                Rate your experience with ReBooked Marketplace (1-5 stars)
               </Label>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
