@@ -134,19 +134,24 @@ class NotificationManager {
           this.reconnectAttempts = 0; // Reset retry counter on success
           console.log("[NotificationManager] ✅ Successfully connected to realtime");
         } else if (status === "CHANNEL_ERROR") {
-          // Only log channel errors occasionally to reduce spam
-          if (this.reconnectAttempts === 0 || this.reconnectAttempts % 5 === 0) {
+          const now = Date.now();
+          // Only log and attempt reconnection if we're not in cooldown period
+          if (now - this.lastErrorTime > this.errorCooldownMs) {
             console.warn("[NotificationManager] ⚠️ Channel connection issue (notifications may be delayed)");
+            this.lastErrorTime = now;
           }
           this.connectionStatus = 'error';
           this.subscriptionRef = null;
           this.subscribingRef = false;
-          // Don't immediately reconnect on channel errors - they often resolve themselves
-          setTimeout(() => {
-            if (this.currentUserId === userId && this.connectionStatus === 'error') {
-              this.scheduleReconnect(userId, refreshCallback);
-            }
-          }, 5000);
+
+          // Only schedule reconnect if not in cooldown
+          if (now - this.lastErrorTime <= this.errorCooldownMs && this.reconnectAttempts < this.maxReconnectAttempts) {
+            setTimeout(() => {
+              if (this.currentUserId === userId && this.connectionStatus === 'error') {
+                this.scheduleReconnect(userId, refreshCallback);
+              }
+            }, 5000);
+          }
         } else if (status === "CLOSED") {
           console.warn("[NotificationManager] 🔌 Connection closed");
           this.connectionStatus = 'disconnected';
