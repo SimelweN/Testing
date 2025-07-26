@@ -75,7 +75,8 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
     orderStatus === "shipped";
 
   // Check if form is valid - SIMPLIFIED: Only home delivery available
-  const isFormValid = isPackagedSecurely && canFulfillOrder;
+  const isValidOrderStatus = !orderStatus || orderStatus === 'pending_commit';
+  const isFormValid = isPackagedSecurely && canFulfillOrder && isValidOrderStatus;
 
   // DISABLED - Locker loading functionality removed
   // useEffect(() => {
