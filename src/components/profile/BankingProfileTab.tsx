@@ -312,7 +312,7 @@ const BankingProfileTab = () => {
               </h4>
               <ul className="text-sm text-green-800 space-y-1">
                 <li>• You receive 90% of each book sale</li>
-                <li>• ReBooked keeps 10% as platform fee</li>
+                <li>• ReBooked Marketplace keeps 10% as platform fee</li>
                 <li>
                   • Payments are held in escrow until delivery confirmation
                 </li>
