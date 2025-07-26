@@ -37,6 +37,7 @@ import {
 import { BankingService } from "@/services/bankingService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { diagnoseBankingIssues } from "@/utils/bankingDiagnostics";
 import type { BankingFormData, BankingValidationErrors } from "@/types/banking";
 
 interface BankingSetupFormProps {
