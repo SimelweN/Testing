@@ -827,6 +827,9 @@ const ActivityLog: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
