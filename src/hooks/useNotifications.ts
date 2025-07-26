@@ -21,6 +21,8 @@ class NotificationManager {
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number = 5;
   private reconnectTimeoutId: NodeJS.Timeout | null = null;
+  private lastErrorTime: number = 0;
+  private errorCooldownMs: number = 30000; // 30 seconds cooldown between error batches
 
   static getInstance(): NotificationManager {
     if (!NotificationManager.instance) {
