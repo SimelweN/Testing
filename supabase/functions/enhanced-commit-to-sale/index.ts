@@ -133,16 +133,24 @@ serve(async (req) => {
       );
     }
 
+    console.log('✅ Order found successfully:', {
+      orderId: order.id,
+      status: order.status,
+      sellerId: order.seller_id,
+      buyerId: order.buyer_id
+    });
+
     // Check if already committed
     if (order.status === 'committed' || order.status === 'shipped') {
+      console.log('⚠️ Order already committed:', order.status);
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Order is already committed' 
+        JSON.stringify({
+          success: false,
+          error: `Order is already ${order.status}`
         }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
     }
