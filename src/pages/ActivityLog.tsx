@@ -113,7 +113,7 @@ const ActivityLog = () => {
       case "login":
         return <LogIn className="h-4 w-4 text-teal-600" />;
       default:
-        return <Activity className="h-4 w-4 text-slate-500" />;
+        return <ActivityIcon className="h-4 w-4 text-slate-500" />;
     }
   };
 
