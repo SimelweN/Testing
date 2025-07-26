@@ -102,7 +102,8 @@ const ActivityLog = () => {
 
   useEffect(() => {
     loadActivities();
-  }, [user, loadActivities]);
+    loadUserBooks();
+  }, [user, loadActivities, loadUserBooks]);
 
   useEffect(() => {
     if (user) {
