@@ -156,7 +156,7 @@ const BankingSetup: React.FC = () => {
             </div>
           </div>
 
-          {/* Debug Tools */}
+
 
 
           {/* Existing Banking Details */}
