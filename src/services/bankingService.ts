@@ -294,8 +294,18 @@ export class BankingService {
     try {
       // Check banking setup - must have banking details AND subaccount code
       const bankingDetails = await this.getUserBankingDetails(userId);
+      console.log("🏦 [Banking Debug] Banking details:", {
+        userId,
+        hasBankingDetails: !!bankingDetails,
+        hasSubaccountCode: !!bankingDetails?.subaccount_code,
+        bankingStatus: bankingDetails?.status,
+        details: bankingDetails
+      });
+
       const hasBankingSetup = !!(
-        bankingDetails && bankingDetails.subaccount_code
+        bankingDetails &&
+        bankingDetails.subaccount_code &&
+        bankingDetails.status === "active"
       );
 
       // Check pickup address (from user profile)
