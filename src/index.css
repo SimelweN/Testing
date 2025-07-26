@@ -437,6 +437,24 @@ body {
     @apply w-full sm:w-auto;
   }
 
+  /* Small button mobile fixes */
+  .btn-sm-mobile {
+    @apply min-h-[40px] px-2 sm:px-3 py-1 text-xs sm:text-sm;
+    @apply flex items-center justify-center gap-1;
+  }
+
+  /* Form button mobile optimization */
+  .btn-form-mobile {
+    @apply w-full min-h-[48px] px-4 py-3 text-base;
+    @apply font-medium rounded-lg transition-colors;
+  }
+
+  /* Icon-only button mobile optimization */
+  .btn-icon-mobile {
+    @apply min-w-[44px] min-h-[44px] p-2;
+    @apply flex items-center justify-center;
+  }
+
   /* Safe area for mobile devices */
   .safe-area-top {
     padding-top: env(safe-area-inset-top);
