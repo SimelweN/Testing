@@ -17,6 +17,10 @@ class NotificationManager {
   private currentUserId: string | null = null;
   private listeners: Set<(notifications: Notification[]) => void> = new Set();
   private notifications: Notification[] = [];
+  private connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error' = 'disconnected';
+  private reconnectAttempts: number = 0;
+  private maxReconnectAttempts: number = 5;
+  private reconnectTimeoutId: NodeJS.Timeout | null = null;
 
   static getInstance(): NotificationManager {
     if (!NotificationManager.instance) {
