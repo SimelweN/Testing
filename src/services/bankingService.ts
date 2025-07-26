@@ -109,6 +109,20 @@ export class BankingService {
       return data;
     } catch (error) {
       if (error instanceof Error) {
+        // Handle timeout errors with retry
+        if (error.message === 'Request timeout' && retryCount < 2) {
+          console.log(`Request timeout, retrying... (${retryCount + 1}/3)`);
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+          return this.getUserBankingDetails(userId, retryCount + 1);
+        }
+
+        // Handle network errors with retry
+        if ((error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError")) && retryCount < 2) {
+          console.log(`Network error, retrying... (${retryCount + 1}/3)`);
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+          return this.getUserBankingDetails(userId, retryCount + 1);
+        }
+
         // Check for table doesn't exist error
         if (
           error.message?.includes("does not exist") ||
@@ -119,7 +133,14 @@ export class BankingService {
             "Banking system not properly configured. Please contact support.",
           );
         }
+
         console.error("Error fetching banking details:", error.message);
+
+        // If it's a network error after retries, give user-friendly message
+        if (error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError") || error.message === 'Request timeout') {
+          throw new Error("Connection error - please check your internet and try again");
+        }
+
         throw error;
       } else {
         console.error("Unknown error fetching banking details:", JSON.stringify(error, null, 2));
@@ -127,6 +148,11 @@ export class BankingService {
         // Handle network errors
         if (typeof error === 'object' && error !== null && 'message' in error) {
           const errorMessage = (error as any).message;
+          if ((errorMessage?.includes("Failed to fetch") || errorMessage?.includes("NetworkError")) && retryCount < 2) {
+            console.log(`Network error, retrying... (${retryCount + 1}/3)`);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+            return this.getUserBankingDetails(userId, retryCount + 1);
+          }
           if (errorMessage?.includes("Failed to fetch") || errorMessage?.includes("NetworkError")) {
             throw new Error("Connection error - please check your internet and try again");
           }
