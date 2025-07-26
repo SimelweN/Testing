@@ -592,10 +592,10 @@ const ActivityLog = () => {
                     </p>
                     <Button
                       onClick={() => navigate("/sell")}
-                      className="bg-emerald-600 hover:bg-emerald-700"
+                      className="bg-emerald-600 hover:bg-emerald-700 btn-mobile"
                     >
-                      <Plus className="h-4 w-4 mr-2" />
-                      List a Book
+                      <Plus className="btn-mobile-icon" />
+                      <span className="btn-mobile-text">List a Book</span>
                     </Button>
                   </CardContent>
                 </Card>
