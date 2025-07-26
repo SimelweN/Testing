@@ -62,6 +62,8 @@ const GoogleMapsAddressAutocomplete: React.FC<
     null,
   );
   const [inputValue, setInputValue] = useState("");
+  const [isLoading, setIsLoading] = useState(!mapsLoaded);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Check if Google Maps is already loaded
   const checkGoogleMapsLoaded = () => {
