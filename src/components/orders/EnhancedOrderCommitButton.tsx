@@ -288,13 +288,19 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
       <AlertDialogTrigger asChild>
         <Button
           variant="default"
-          disabled={disabled || isCommitting}
-          className={`${className} bg-green-600 hover:bg-green-700 text-white`}
+          disabled={disabled || isCommitting || !isValidOrderStatus}
+          className={`${className} ${isValidOrderStatus ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400'} text-white`}
+          title={!isValidOrderStatus ? `Cannot commit: Order status is "${orderStatus}" (expected "pending_commit")` : undefined}
         >
           {isCommitting ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               Committing...
+            </>
+          ) : !isValidOrderStatus ? (
+            <>
+              <AlertCircle className="w-4 h-4 mr-2" />
+              Invalid Status ({orderStatus})
             </>
           ) : (
             <>
