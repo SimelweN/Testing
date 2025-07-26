@@ -1309,7 +1309,7 @@ const Developer = () => {
         <div className="max-w-6xl mx-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             {/* Navigation Tabs */}
-            <TabsList className="grid grid-cols-3 lg:grid-cols-6 gap-2 h-auto p-1">
+            <TabsList className="grid grid-cols-3 lg:grid-cols-7 gap-2 h-auto p-1">
               <TabsTrigger value="overview" className="flex flex-col items-center p-3">
                 <Bug className="h-4 w-4 mb-1" />
                 <span className="text-xs">Overview</span>
@@ -1333,6 +1333,10 @@ const Developer = () => {
               <TabsTrigger value="communication" className="flex flex-col items-center p-3">
                 <Mail className="h-4 w-4 mb-1" />
                 <span className="text-xs">Email (2)</span>
+              </TabsTrigger>
+              <TabsTrigger value="email-templates" className="flex flex-col items-center p-3">
+                <Send className="h-4 w-4 mb-1" />
+                <span className="text-xs">Templates</span>
               </TabsTrigger>
             </TabsList>
 
