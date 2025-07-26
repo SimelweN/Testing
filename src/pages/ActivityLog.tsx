@@ -284,14 +284,14 @@ const ActivityLog = () => {
                   size="sm"
                   onClick={loadActivities}
                   disabled={isLoading}
-                  className="border-slate-200"
+                  className="border-slate-200 btn-mobile"
                 >
                   {isLoading ? (
-                    <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                    <RefreshCw className="btn-mobile-icon animate-spin" />
                   ) : (
-                    <RefreshCw className="h-4 w-4 mr-2" />
+                    <RefreshCw className="btn-mobile-icon" />
                   )}
-                  Refresh
+                  <span className="btn-mobile-text">Refresh</span>
                 </Button>
               </div>
             </div>
