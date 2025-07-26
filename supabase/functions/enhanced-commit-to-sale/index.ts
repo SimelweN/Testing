@@ -155,15 +155,17 @@ serve(async (req) => {
 
         console.log('✅ Locker shipment created:', shipmentResult);
       } catch (error) {
-        console.error('❌ Locker shipment creation failed:', error);
+        const { getErrorMessage, logError } = await import('../_shared/error-utils.ts');
+        logError('enhanced-commit-to-sale', error, { context: 'locker shipment creation' });
+
         return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: `Failed to create locker shipment: ${error.message}` 
+          JSON.stringify({
+            success: false,
+            error: `Failed to create locker shipment: ${getErrorMessage(error)}`
           }),
-          { 
-            status: 500, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           }
         );
       }
@@ -233,7 +235,7 @@ serve(async (req) => {
         }
       });
 
-    console.log('✅ Enhanced commit completed successfully');
+    console.log('�� Enhanced commit completed successfully');
 
     return new Response(
       JSON.stringify({ 
