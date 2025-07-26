@@ -541,7 +541,7 @@ const getUserBooksWithFallback = async (userId: string): Promise<Book[]> => {
     console.error(`[BookQueries] Error in getUserBooksWithFallback:`, {
       message: errorMessage,
       userId,
-      error: error instanceof Error ? error.stack : error,
+      error: error instanceof Error ? error.stack : String(error),
     });
 
     // If it's a network error, throw it so retry can handle it
