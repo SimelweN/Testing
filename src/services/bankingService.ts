@@ -112,7 +112,16 @@ export class BankingService {
         console.error("Error fetching banking details:", error.message);
         throw error;
       } else {
-        console.error("Unknown error fetching banking details:", error);
+        console.error("Unknown error fetching banking details:", JSON.stringify(error, null, 2));
+
+        // Handle network errors
+        if (typeof error === 'object' && error !== null && 'message' in error) {
+          const errorMessage = (error as any).message;
+          if (errorMessage?.includes("Failed to fetch") || errorMessage?.includes("NetworkError")) {
+            throw new Error("Connection error - please check your internet and try again");
+          }
+        }
+
         throw new Error(
           "An unknown error occurred while fetching banking details",
         );
