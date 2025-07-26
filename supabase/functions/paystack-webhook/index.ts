@@ -256,9 +256,21 @@ async function handleSuccessfulPayment(supabase: any, data: any) {
 
 async function handleFailedPayment(supabase: any, data: any) {
   const { reference } = data;
-  
+
   try {
-    await supabase
+    // Check for duplicate webhook processing
+    const { data: existingTransaction } = await supabase
+      .from('payment_transactions')
+      .select('status, webhook_processed_at')
+      .eq('reference', reference)
+      .single();
+
+    if (existingTransaction?.status === 'failed' && existingTransaction?.webhook_processed_at) {
+      console.log(`Duplicate failed payment webhook for reference: ${reference}, skipping`);
+      return;
+    }
+
+    const { error: updateError } = await supabase
       .from('payment_transactions')
       .update({
         status: 'failed',
@@ -266,8 +278,14 @@ async function handleFailedPayment(supabase: any, data: any) {
         paystack_webhook_data: data
       })
       .eq('reference', reference);
+
+    if (updateError) {
+      console.error('Failed to update payment transaction:', updateError);
+      throw new Error(`Database update failed: ${updateError.message}`);
+    }
   } catch (error) {
     console.error('Error handling failed payment:', error);
+    throw error;
   }
 }
 
