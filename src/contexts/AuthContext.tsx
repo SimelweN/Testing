@@ -353,8 +353,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const { data: { session }, error } = sessionResult;
 
         if (error && !error.message.includes("code verifier")) {
-          console.error("Auth initialization error:", error);
-          setInitError(error.message);
+          // Handle specific network-related errors gracefully
+          if (error.message?.includes('Failed to fetch') ||
+              error.message?.includes('NetworkError') ||
+              error.message?.includes('fetch')) {
+            console.warn("Network error during auth initialization, continuing without session");
+            setInitError("Network connectivity issues - some features may be limited");
+          } else {
+            console.error("Auth initialization error:", error);
+            setInitError(error.message);
+          }
         }
 
         await handleAuthStateChange(session);
