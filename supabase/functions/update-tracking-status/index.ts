@@ -362,7 +362,7 @@ async function createRecipientForPayout(supabase: any, order: OrderToTrack) {
       const recipientResult = await recipientResponse.json();
       console.log(`✅ Recipient created successfully for order ${order.order_id}:`)
       console.log(`📊 PAYOUT DETAILS:`)
-      console.log(`┌────────────────────────────────────────────────��────────────┐`)
+      console.log(`┌─────────────────────────────────────────────────────────────┐`)
       console.log(`│                     SELLER PAYOUT SUMMARY                  │`)
       console.log(`├─────────────────────────────────────────────────────────────┤`)
       console.log(`│ Seller ID: ${order.seller_id}`)
@@ -376,7 +376,7 @@ async function createRecipientForPayout(supabase: any, order: OrderToTrack) {
         console.log(`│ • Total Orders: ${breakdown.total_orders}`)
         console.log(`│ • Total Book Sales: R${(breakdown.total_book_sales / 100).toFixed(2)}`)
         console.log(`│ • Total Delivery Fees: R${(breakdown.total_delivery_fees / 100).toFixed(2)}`)
-        console.log(`├────────────────────���────────────────────────────────────────┤`)
+        console.log(`├─────────────────────────────────────────────────────────────┤`)
         console.log(`│ PLATFORM EARNINGS:`)
         console.log(`│ • Book Commission (10%): R${(breakdown.platform_earnings.book_commission / 100).toFixed(2)}`)
         console.log(`│ • Delivery Fees (100%): R${(breakdown.platform_earnings.delivery_fees / 100).toFixed(2)}`)
@@ -384,7 +384,7 @@ async function createRecipientForPayout(supabase: any, order: OrderToTrack) {
         console.log(`├─────────────────────────────────────────────────────────────┤`)
         console.log(`│ SELLER EARNINGS:`)
         console.log(`│ • Net Amount (90% of books): R${(breakdown.seller_amount / 100).toFixed(2)}`)
-        console.log(`├─────────────────────────────────────────────────────────────┤`)
+        console.log(`├─────────────────────────────────────────���───────────────────┤`)
       }
 
       if (recipientResult.seller_info) {
@@ -394,7 +394,7 @@ async function createRecipientForPayout(supabase: any, order: OrderToTrack) {
         console.log(`│ • Email: ${seller.email}`)
         console.log(`│ • Account: ${seller.account_number}`)
         console.log(`│ • Bank: ${seller.bank_name}`)
-        console.log(`├────────────��────────────────────────────────────────────────┤`)
+        console.log(`├─────────────────────────────────────────────────────────────┤`)
       }
 
       console.log(`│ STATUS: ✅ Ready for manual payout processing`)
@@ -535,11 +535,20 @@ async function sendStatusChangeEmails(supabase: any, order: OrderToTrack, newSta
           "🎉",
           `<h2>Hello ${sellerName}!</h2>
           <p>Great news! Your order #${order.order_id} has been successfully delivered to the buyer.</p>
-          <p>The order is now complete and your payment will be processed according to our standard payment schedule.</p>
+          <p>The order is now complete and your recipient information has been automatically created for payout processing.</p>
           <div class="info-box">
-            <h3>💰 Payment Processing</h3>
-            <p>Your earnings from this sale will be processed and transferred to your registered bank account within our standard payment cycle.</p>
-            <p>You can track your earnings in your seller dashboard.</p>
+            <h3>💰 Payment Processing Status</h3>
+            <p><strong>✅ Payout Recipient Created:</strong> Your banking details have been verified and you're now ready to receive payment.</p>
+            <p><strong>📊 Earnings Calculation:</strong> Your earnings (90% of book price) have been calculated and are awaiting manual payout approval.</p>
+            <p><strong>⏰ Processing Time:</strong> Payouts are processed manually by our admin team and will be transferred to your registered bank account.</p>
+            <p><strong>📧 Notification:</strong> You'll receive an email confirmation once the payment has been sent.</p>
+          </div>
+          <div class="info-box">
+            <h3>📋 What Happens Next?</h3>
+            <p>• Your recipient profile is now active in our payment system</p>
+            <p>• Admin will review and approve your payout manually</p>
+            <p>• Payment will be sent to your registered bank account</p>
+            <p>• You'll receive email confirmation of payment</p>
           </div>`,
           order.tracking_number
         );
