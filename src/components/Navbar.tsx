@@ -170,7 +170,8 @@ const Navbar = () => {
               <span>Shipping</span>
             </Link>
 
-            <Link
+            {/* DISABLED - Locker functionality removed */}
+            {/* <Link
               to="/lockers"
               className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-book-600 ${
                 isActive("/lockers") ? "text-book-600" : "text-gray-700"
@@ -178,7 +179,7 @@ const Navbar = () => {
             >
               <MapPin className="w-4 h-4" />
               <span>Lockers</span>
-            </Link>
+            </Link> */}
           </div>
 
           {/* Right Side Actions */}
@@ -308,7 +309,8 @@ const Navbar = () => {
                 <span>Shipping</span>
               </Link>
 
-              <Link
+              {/* DISABLED - Locker functionality removed */}
+              {/* <Link
                 to="/lockers"
                 className={`flex items-center space-x-3 px-4 py-3 text-base font-medium rounded-md transition-colors min-h-[44px] ${
                   isActive("/lockers")
@@ -319,7 +321,7 @@ const Navbar = () => {
               >
                 <MapPin className="w-5 h-5" />
                 <span>Find Lockers</span>
-              </Link>
+              </Link> */}
 
               {isAuthenticated ? (
                 <>

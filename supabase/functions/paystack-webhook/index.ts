@@ -22,19 +22,25 @@ const PAYSTACK_SECRET_KEY = Deno.env.get("PAYSTACK_SECRET_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// Helper function to verify Paystack webhook signature
-function verifyPaystackSignature(payload: string, signature: string, secret: string): boolean {
+// Helper function to verify Paystack webhook signature using HMAC-SHA512
+async function verifyPaystackSignature(payload: string, signature: string, secret: string): Promise<boolean> {
   if (!secret || !signature) return false;
-  
+
   try {
-    const crypto = globalThis.crypto;
-    const encoder = new TextEncoder();
-    const keyData = encoder.encode(secret);
-    const payloadData = encoder.encode(payload);
-    
-    // For now, we'll skip signature verification in development
-    // In production, you'd want to implement proper HMAC verification
-    return true;
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secret),
+      { name: "HMAC", hash: "SHA-512" },
+      false,
+      ["sign"]
+    );
+
+    const sigBuffer = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
+    const sigHex = Array.from(new Uint8Array(sigBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    return sigHex === signature;
   } catch (error) {
     console.error('Signature verification error:', error);
     return false;
@@ -84,7 +90,7 @@ serve(async (req) => {
     const isTestWebhook = event.includes('test') || data.reference?.includes('test') || data.reference?.includes('mock');
     
     if (!isTestWebhook && PAYSTACK_SECRET_KEY) {
-      if (!signature || !verifyPaystackSignature(rawBody, signature, PAYSTACK_SECRET_KEY)) {
+      if (!signature || !await verifyPaystackSignature(rawBody, signature, PAYSTACK_SECRET_KEY)) {
         return jsonResponse({
           success: false,
           error: "INVALID_WEBHOOK_SIGNATURE",
@@ -130,6 +136,12 @@ serve(async (req) => {
         
       default:
         console.log(`Unhandled webhook event: ${event}`);
+        return jsonResponse({
+          success: false,
+          error: "UNHANDLED_EVENT",
+          event,
+          message: `Event type '${event}' is not supported by this webhook handler`
+        }, { status: 400 });
     }
 
     return jsonResponse({
@@ -160,8 +172,27 @@ serve(async (req) => {
 
 async function handleSuccessfulPayment(supabase: any, data: any) {
   const { reference, amount, customer, status } = data;
-  
+
   try {
+    // Check if this payment was already processed to handle duplicate webhooks
+    const { data: existingTransaction } = await supabase
+      .from('payment_transactions')
+      .select('status, webhook_processed_at')
+      .eq('reference', reference)
+      .single();
+
+    if (existingTransaction?.status === 'success' && existingTransaction?.webhook_processed_at) {
+      console.log(`Duplicate webhook detected for reference: ${reference}, skipping processing`);
+      await supabase.from('webhook_logs').insert({
+        event: 'duplicate_webhook_detected',
+        reference,
+        status: 'skipped',
+        webhook_data: { message: 'Duplicate successful payment webhook', original_data: data },
+        processed_at: new Date().toISOString()
+      });
+      return;
+    }
+
     // Update payment transaction
     const { error: updateError } = await supabase
       .from('payment_transactions')
@@ -174,6 +205,7 @@ async function handleSuccessfulPayment(supabase: any, data: any) {
 
     if (updateError) {
       console.error('Failed to update payment transaction:', updateError);
+      throw new Error(`Database update failed: ${updateError.message}`);
     }
 
     // Get transaction details to create order
@@ -202,9 +234,19 @@ async function handleSuccessfulPayment(supabase: any, data: any) {
       });
 
       if (orderResponse.ok) {
-        console.log('Order created successfully from webhook');
+        const orderResult = await orderResponse.json();
+        console.log('Order created successfully from webhook:', {
+          status: orderResponse.status,
+          order_data: orderResult
+        });
       } else {
-        console.error('Failed to create order from webhook');
+        const errorText = await orderResponse.text();
+        console.error('Failed to create order from webhook:', {
+          status: orderResponse.status,
+          statusText: orderResponse.statusText,
+          error_response: errorText
+        });
+        throw new Error(`Order creation failed: ${orderResponse.status} - ${errorText}`);
       }
     }
   } catch (error) {
@@ -214,9 +256,21 @@ async function handleSuccessfulPayment(supabase: any, data: any) {
 
 async function handleFailedPayment(supabase: any, data: any) {
   const { reference } = data;
-  
+
   try {
-    await supabase
+    // Check for duplicate webhook processing
+    const { data: existingTransaction } = await supabase
+      .from('payment_transactions')
+      .select('status, webhook_processed_at')
+      .eq('reference', reference)
+      .single();
+
+    if (existingTransaction?.status === 'failed' && existingTransaction?.webhook_processed_at) {
+      console.log(`Duplicate failed payment webhook for reference: ${reference}, skipping`);
+      return;
+    }
+
+    const { error: updateError } = await supabase
       .from('payment_transactions')
       .update({
         status: 'failed',
@@ -224,16 +278,34 @@ async function handleFailedPayment(supabase: any, data: any) {
         paystack_webhook_data: data
       })
       .eq('reference', reference);
+
+    if (updateError) {
+      console.error('Failed to update payment transaction:', updateError);
+      throw new Error(`Database update failed: ${updateError.message}`);
+    }
   } catch (error) {
     console.error('Error handling failed payment:', error);
+    throw error;
   }
 }
 
 async function handleSuccessfulTransfer(supabase: any, data: any) {
   const { transfer_code, reference } = data;
-  
+
   try {
-    await supabase
+    // Check for duplicate webhook processing
+    const { data: existingTransfer } = await supabase
+      .from('seller_payments')
+      .select('status, webhook_processed_at')
+      .eq('transfer_code', transfer_code)
+      .single();
+
+    if (existingTransfer?.status === 'success' && existingTransfer?.webhook_processed_at) {
+      console.log(`Duplicate successful transfer webhook for transfer_code: ${transfer_code}, skipping`);
+      return;
+    }
+
+    const { error: updateError } = await supabase
       .from('seller_payments')
       .update({
         status: 'success',
@@ -241,16 +313,34 @@ async function handleSuccessfulTransfer(supabase: any, data: any) {
         paystack_webhook_data: data
       })
       .eq('transfer_code', transfer_code);
+
+    if (updateError) {
+      console.error('Failed to update seller payment:', updateError);
+      throw new Error(`Database update failed: ${updateError.message}`);
+    }
   } catch (error) {
     console.error('Error handling successful transfer:', error);
+    throw error;
   }
 }
 
 async function handleFailedTransfer(supabase: any, data: any) {
   const { transfer_code } = data;
-  
+
   try {
-    await supabase
+    // Check for duplicate webhook processing
+    const { data: existingTransfer } = await supabase
+      .from('seller_payments')
+      .select('status, webhook_processed_at')
+      .eq('transfer_code', transfer_code)
+      .single();
+
+    if (existingTransfer?.status === 'failed' && existingTransfer?.webhook_processed_at) {
+      console.log(`Duplicate failed transfer webhook for transfer_code: ${transfer_code}, skipping`);
+      return;
+    }
+
+    const { error: updateError } = await supabase
       .from('seller_payments')
       .update({
         status: 'failed',
@@ -258,7 +348,13 @@ async function handleFailedTransfer(supabase: any, data: any) {
         paystack_webhook_data: data
       })
       .eq('transfer_code', transfer_code);
+
+    if (updateError) {
+      console.error('Failed to update seller payment:', updateError);
+      throw new Error(`Database update failed: ${updateError.message}`);
+    }
   } catch (error) {
     console.error('Error handling failed transfer:', error);
+    throw error;
   }
 }
