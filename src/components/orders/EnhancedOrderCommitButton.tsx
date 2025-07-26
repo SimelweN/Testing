@@ -74,16 +74,15 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
     orderStatus === "courier_scheduled" ||
     orderStatus === "shipped";
 
-  // Check if form is valid
-  const isFormValid = isPackagedSecurely && canFulfillOrder && 
-    (deliveryMethod === "home" || (deliveryMethod === "locker" && selectedLockerId));
+  // Check if form is valid - SIMPLIFIED: Only home delivery available
+  const isFormValid = isPackagedSecurely && canFulfillOrder;
 
-  // Load lockers when locker delivery is selected
-  useEffect(() => {
-    if (deliveryMethod === "locker" && lockers.length === 0) {
-      loadLockers();
-    }
-  }, [deliveryMethod]);
+  // DISABLED - Locker loading functionality removed
+  // useEffect(() => {
+  //   if (deliveryMethod === "locker" && lockers.length === 0) {
+  //     loadLockers();
+  //   }
+  // }, [deliveryMethod]);
 
   const loadLockers = async () => {
     setLoadingLockers(true);
