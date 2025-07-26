@@ -455,6 +455,41 @@ body {
     @apply flex items-center justify-center;
   }
 
+  /* Global button mobile improvements */
+  @media (max-width: 768px) {
+    /* Ensure all buttons meet minimum touch target */
+    button:not(.btn-exception) {
+      min-height: 44px !important;
+      min-width: 44px !important;
+      padding: 8px 12px !important;
+      font-size: 14px !important;
+    }
+
+    /* Size variants for mobile */
+    button[data-size="sm"]:not(.btn-exception) {
+      min-height: 40px !important;
+      min-width: 40px !important;
+      padding: 6px 10px !important;
+      font-size: 13px !important;
+    }
+
+    button[data-size="lg"]:not(.btn-exception) {
+      min-height: 48px !important;
+      padding: 12px 16px !important;
+      font-size: 16px !important;
+    }
+
+    /* Icon spacing in buttons */
+    button svg:not(:only-child) {
+      margin-right: 4px !important;
+    }
+
+    /* Button text should not wrap awkwardly */
+    button {
+      white-space: nowrap !important;
+    }
+  }
+
   /* Safe area for mobile devices */
   .safe-area-top {
     padding-top: env(safe-area-inset-top);
