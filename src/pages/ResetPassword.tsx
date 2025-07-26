@@ -182,13 +182,22 @@ const ResetPassword = () => {
             <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 text-center">
               <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
               <h2 className="text-xl md:text-2xl font-semibold mb-2 text-gray-800">
-                Invalid Reset Link
+                Reset Link Required
               </h2>
               <p className="text-gray-600 text-sm md:text-base mb-4">
-                This password reset link is invalid or has expired.
+                To reset your password, please use the secure link sent to your email.
+                If you don't have a reset email, we'll help you request one.
               </p>
+              <div className="text-left bg-blue-50 rounded-lg p-4 mb-4">
+                <h4 className="font-medium text-blue-900 mb-2">📧 To reset your password:</h4>
+                <ol className="text-sm text-blue-800 space-y-1">
+                  <li>1. Check your email for a "Reset Password" message</li>
+                  <li>2. Click the secure link in that email</li>
+                  <li>3. You'll be brought back here to set a new password</li>
+                </ol>
+              </div>
               <p className="text-gray-500 text-sm">
-                Redirecting you to request a new link...
+                Redirecting you to request a reset email...
               </p>
             </div>
           </div>
