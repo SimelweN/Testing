@@ -565,6 +565,137 @@ const ActivityLog = () => {
               )}
             </TabsContent>
 
+            <TabsContent value="sales">
+              <Card className="bg-white/60 backdrop-blur-sm">
+                <CardContent className="p-6">
+                  {isLoading ? (
+                    <div className="flex justify-center py-12">
+                      <RefreshCw className="h-8 w-8 animate-spin text-slate-400" />
+                    </div>
+                  ) : filteredActivities.length > 0 ? (
+                    <div className="space-y-4">
+                      {filteredActivities.map((activity) => (
+                        <div
+                          key={activity.id}
+                          className="flex items-start gap-4 p-4 rounded-lg bg-white/60 hover:bg-white/80 transition-colors border border-slate-100"
+                        >
+                          <div className="flex-shrink-0">
+                            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+                              {getActivityIcon(activity.type)}
+                            </div>
+                          </div>
+                          <div className="flex-grow min-w-0">
+                            <div className="flex justify-between items-start mb-2">
+                              <h3 className="font-medium text-slate-800">{activity.title}</h3>
+                              <div className="text-right flex-shrink-0 ml-4">
+                                <div className="text-sm text-slate-500">
+                                  {formatDate(activity.created_at)}
+                                </div>
+                                {getStatusBadge(activity)}
+                              </div>
+                            </div>
+                            <p className="text-sm text-slate-600 mb-2">{activity.description}</p>
+
+                            {activity.metadata && Object.keys(activity.metadata).length > 0 && (
+                              <div className="flex items-center gap-4 text-xs text-slate-500">
+                                {activity.metadata.price && (
+                                  <span>Amount: R{activity.metadata.price}</span>
+                                )}
+                                {activity.metadata.rating && (
+                                  <div className="flex items-center gap-1">
+                                    <span>Rating:</span>
+                                    {[...Array(5)].map((_, i) => (
+                                      <Star
+                                        key={i}
+                                        className={`h-3 w-3 ${i < activity.metadata!.rating! ? "text-amber-400 fill-amber-400" : "text-slate-300"}`}
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <Check className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-slate-600 mb-2">
+                        No sales yet
+                      </h3>
+                      <p className="text-slate-500 text-sm mb-6">
+                        List books to see your sales history here!
+                      </p>
+                      <Button
+                        onClick={() => navigate("/sell")}
+                        variant="outline"
+                        className="border-slate-200"
+                      >
+                        List a Book
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="listings">
+              <Card className="bg-white/60 backdrop-blur-sm">
+                <CardContent className="p-6">
+                  {isLoading ? (
+                    <div className="flex justify-center py-12">
+                      <RefreshCw className="h-8 w-8 animate-spin text-slate-400" />
+                    </div>
+                  ) : filteredActivities.length > 0 ? (
+                    <div className="space-y-4">
+                      {filteredActivities.map((activity) => (
+                        <div
+                          key={activity.id}
+                          className="flex items-start gap-4 p-4 rounded-lg bg-white/60 hover:bg-white/80 transition-colors border border-slate-100"
+                        >
+                          <div className="flex-shrink-0">
+                            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+                              {getActivityIcon(activity.type)}
+                            </div>
+                          </div>
+                          <div className="flex-grow min-w-0">
+                            <div className="flex justify-between items-start mb-2">
+                              <h3 className="font-medium text-slate-800">{activity.title}</h3>
+                              <div className="text-right flex-shrink-0 ml-4">
+                                <div className="text-sm text-slate-500">
+                                  {formatDate(activity.created_at)}
+                                </div>
+                                {getStatusBadge(activity)}
+                              </div>
+                            </div>
+                            <p className="text-sm text-slate-600 mb-2">{activity.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <BookIcon className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-slate-600 mb-2">
+                        No listings yet
+                      </h3>
+                      <p className="text-slate-500 text-sm mb-6">
+                        Create your first book listing to get started!
+                      </p>
+                      <Button
+                        onClick={() => navigate("/sell")}
+                        variant="outline"
+                        className="border-slate-200"
+                      >
+                        Create Listing
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="purchases">
               <Card className="bg-white/60 backdrop-blur-sm">
                 <CardContent className="p-6">
