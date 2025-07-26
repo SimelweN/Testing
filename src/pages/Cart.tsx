@@ -203,57 +203,32 @@ const Cart = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg md:text-xl">
-                  Multi-Seller Checkout
+                  Order Summary
                 </CardTitle>
                 <p className="text-sm text-gray-600">
-                  Orders from {Object.keys(sellerTotals).length} seller(s) will
-                  be processed separately
+                  Single-seller checkout from {Object.values(sellerTotals)[0]?.sellerName}
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-blue-50 p-3 rounded-lg">
-                  <h4 className="font-medium text-blue-900 mb-2">
-                    How it works:
+                <div className="bg-green-50 p-3 rounded-lg">
+                  <h4 className="font-medium text-green-900 mb-2">
+                    ✅ Benefits of single-seller checkout:
                   </h4>
-                  <ul className="text-xs text-blue-800 space-y-1">
-                    <li>• Each seller gets a separate order</li>
-                    <li>• Different delivery fees per seller</li>
-                    <li>• Independent tracking per order</li>
-                    <li>• 48-hour seller commitment required</li>
+                  <ul className="text-xs text-green-800 space-y-1">
+                    <li>• Faster delivery from one location</li>
+                    <li>• Single delivery fee (no double charges)</li>
+                    <li>• One tracking number to follow</li>
+                    <li>• Simpler order management</li>
                   </ul>
                 </div>
 
-                {Object.entries(sellerTotals).map(
-                  ([sellerId, seller], index) => (
-                    <div key={sellerId} className="p-3 bg-gray-50 rounded-lg">
-                      <div className="flex justify-between items-center mb-1">
-                        <p className="font-medium text-sm truncate">
-                          Order #{index + 1}
-                        </p>
-                        <span className="font-bold text-book-600">
-                          R{seller.total.toFixed(2)}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-600">
-                        {seller.sellerName}
-                      </p>
-                      <div className="text-xs text-gray-500 mt-1">
-                        Seller receives R{seller.sellerReceives.toFixed(2)} •
-                        Fee R{seller.commission.toFixed(2)}
-                      </div>
-                    </div>
-                  ),
-                )}
-
-                <Separator />
-
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Subtotal (books only):</span>
+                    <span className="text-sm">Books subtotal:</span>
                     <span className="text-sm">R{totalPrice.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Delivery fees:</span>
+                    <span className="text-sm">Delivery fee:</span>
                     <span className="text-sm text-orange-600">
                       Calculated at checkout
                     </span>
@@ -261,12 +236,15 @@ const Cart = () => {
                   <Separator />
                   <div className="flex justify-between items-center">
                     <span className="text-base md:text-lg font-bold">
-                      Book Total
+                      Current Total
                     </span>
                     <span className="text-base md:text-lg font-bold">
                       R{totalPrice.toFixed(2)}
                     </span>
                   </div>
+                  <p className="text-xs text-gray-500 text-center">
+                    + delivery fee (shown at checkout)
+                  </p>
                 </div>
 
                 <Button
@@ -276,12 +254,15 @@ const Cart = () => {
                 >
                   {isProcessing
                     ? "Processing..."
-                    : "Proceed to Multi-Seller Checkout"}
+                    : "Proceed to Checkout"}
                 </Button>
 
-                <p className="text-xs text-gray-500 text-center">
-                  Final totals including delivery will be shown at checkout
-                </p>
+                <div className="bg-blue-50 p-3 rounded-lg mt-4">
+                  <p className="text-xs text-blue-800">
+                    💡 <strong>Want books from other sellers?</strong><br/>
+                    Complete this purchase first, then browse and add books from other sellers to a new cart.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>
