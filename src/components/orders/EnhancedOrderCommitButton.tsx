@@ -161,18 +161,31 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
       }
 
       if (error) {
-        console.error("Supabase function error:", error);
+        console.error("🚨 Supabase function error details:", {
+          error,
+          errorName: error.name,
+          errorMessage: error.message,
+          data,
+          stack: error.stack
+        });
 
         // More specific error handling for edge functions
         let errorMessage = "Failed to call commit function";
 
         // Handle FunctionsHttpError (non-2xx status codes)
         if (error.name === 'FunctionsHttpError' || error.message?.includes('non-2xx status code')) {
+          console.log("🔍 FunctionsHttpError detected, response data:", data);
+
           // Try to extract the actual error from the edge function response
           if (data?.error) {
             errorMessage = data.error;
+          } else if (data?.message) {
+            errorMessage = data.message;
+          } else if (typeof data === 'string') {
+            errorMessage = data;
           } else {
             errorMessage = "Order commit failed. Please check order status and try again.";
+            console.log("❓ No specific error message found in response data");
           }
         } else if (error.message?.includes('FunctionsFetchError')) {
           errorMessage = "Edge Function service is temporarily unavailable. Please try again.";
@@ -182,6 +195,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
           errorMessage = error.message || errorMessage;
         }
 
+        console.error("💥 Final error message to user:", errorMessage);
         throw new Error(errorMessage);
       }
 
