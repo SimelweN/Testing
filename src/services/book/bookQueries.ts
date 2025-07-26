@@ -12,6 +12,7 @@ import {
   logDatabaseError,
 } from "@/utils/errorUtils";
 import { safeLogError } from "@/utils/errorHandling";
+import { safeLogError as safelog, formatSupabaseError } from "@/utils/safeErrorLogger";
 // Simple retry function to replace the missing connectionHealthCheck
 const retryWithConnection = async <T>(
   operation: () => Promise<T>,
