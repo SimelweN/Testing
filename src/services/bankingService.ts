@@ -20,6 +20,18 @@ export class BankingService {
     try {
       console.log("Fetching banking details for user:", userId);
 
+      // First check if user has ANY banking records (regardless of status)
+      const { data: allRecords, error: allError } = await supabase
+        .from("banking_subaccounts")
+        .select("*")
+        .eq("user_id", userId);
+
+      console.log("🔍 [Banking Debug] All banking records for user:", {
+        userId,
+        records: allRecords,
+        count: allRecords?.length || 0
+      });
+
       const { data, error } = await supabase
         .from("banking_subaccounts")
         .select("*")
