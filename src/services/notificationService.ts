@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { safeApiCall } from "@/utils/apiErrorHandler";
 
 export interface Notification {
   id: string;
