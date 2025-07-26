@@ -629,6 +629,28 @@ export class PaystackSubaccountService {
 
       if (error) {
         console.error("Supabase function error:", error);
+
+        // Check if this is an edge function deployment issue
+        const isEdgeFunctionError = [
+          "non-2xx status code",
+          "Failed to send a request to the Edge Function",
+          "FunctionsHttpError",
+          "FunctionsFetchError",
+          "404",
+          "Function not found",
+          "NetworkError",
+          "Connection error"
+        ].some(errorType =>
+          error.message?.includes(errorType) ||
+          this.formatError(error).includes(errorType)
+        );
+
+        if (isEdgeFunctionError) {
+          console.warn("Edge function not available, using database fallback");
+          // Fallback to direct database queries
+          return await this.getCompleteSubaccountInfoFallback(session.user.id);
+        }
+
         throw new Error(error.message || "Failed to get subaccount info");
       }
 
@@ -642,6 +664,85 @@ export class PaystackSubaccountService {
       };
     } catch (error) {
       console.error("Error getting complete subaccount info:", error);
+
+      // If main method fails, try fallback
+      if (error.message?.includes("Authentication required")) {
+        return {
+          success: false,
+          error: this.formatError(error),
+        };
+      }
+
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session?.user?.id) {
+          console.log("Attempting database fallback after main method failed");
+          return await this.getCompleteSubaccountInfoFallback(session.user.id);
+        }
+      } catch (fallbackError) {
+        console.error("Fallback also failed:", fallbackError);
+      }
+
+      return {
+        success: false,
+        error: this.formatError(error),
+      };
+    }
+  }
+
+  // 🔄 FALLBACK METHOD FOR DATABASE-ONLY QUERIES
+  private static async getCompleteSubaccountInfoFallback(userId: string): Promise<{
+    success: boolean;
+    data?: {
+      subaccount_code: string;
+      banking_details: any;
+      paystack_data: SubaccountData;
+      profile_preferences: any;
+    };
+    error?: string;
+  }> {
+    try {
+      console.log("Using database fallback for subaccount info");
+
+      // Get profile data
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("subaccount_code, preferences")
+        .eq("id", userId)
+        .single();
+
+      if (profileError || !profileData?.subaccount_code) {
+        return {
+          success: false,
+          error: "No subaccount found for this user",
+        };
+      }
+
+      // Get banking details
+      const { data: bankingData, error: bankingError } = await supabase
+        .from("banking_subaccounts")
+        .select("*")
+        .eq("subaccount_code", profileData.subaccount_code)
+        .single();
+
+      if (bankingError) {
+        console.warn("Banking details not found:", bankingError);
+      }
+
+      return {
+        success: true,
+        data: {
+          subaccount_code: profileData.subaccount_code,
+          banking_details: bankingData || null,
+          paystack_data: bankingData?.paystack_response || null,
+          profile_preferences: profileData.preferences || {},
+        },
+      };
+    } catch (error) {
+      console.error("Database fallback failed:", error);
       return {
         success: false,
         error: this.formatError(error),
