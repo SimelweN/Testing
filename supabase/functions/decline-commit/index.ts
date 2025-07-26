@@ -358,7 +358,7 @@ serve(async (req) => {
 </head>
 <body>
   <div class="container">
-    <div class="header">
+    <div class="header-error">
       <h1>❌ Order Declined</h1>
     </div>
 
@@ -375,7 +375,7 @@ serve(async (req) => {
     ${
       refundResult?.success
         ? `
-    <div class="info-box">
+    <div class="info-box-success">
       <h3>💰 Refund Information</h3>
       <p><strong>Refund Status:</strong> ${refundResult.data.status}</p>
       <p><strong>Refund Reference:</strong> ${refundResult.data.id}</p>
@@ -384,7 +384,7 @@ serve(async (req) => {
     </div>
     `
         : `
-    <div class="info-box">
+    <div class="info-box-error">
       <h3>⚠️ Refund Processing</h3>
       <p>Your refund is being processed manually and will appear in your account within 3-5 business days.</p>
     </div>
