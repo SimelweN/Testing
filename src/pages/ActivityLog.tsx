@@ -264,9 +264,10 @@ const ActivityLog = () => {
             <Button
               variant="ghost"
               onClick={() => navigate(-1)}
-              className="mb-4 text-slate-600 hover:text-slate-800"
+              className="mb-4 text-slate-600 hover:text-slate-800 btn-mobile"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back
+              <ArrowLeft className="btn-mobile-icon" />
+              <span className="btn-mobile-text">Back</span>
             </Button>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
