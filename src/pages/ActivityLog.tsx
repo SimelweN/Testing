@@ -51,7 +51,9 @@ const ActivityLog = () => {
   } = useCommit();
   const [activeTab, setActiveTab] = useState("overview");
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [userBooks, setUserBooks] = useState<Book[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingBooks, setIsLoadingBooks] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadActivities = useCallback(async () => {
