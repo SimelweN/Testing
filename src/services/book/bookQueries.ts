@@ -472,12 +472,10 @@ const getUserBooksWithFallback = async (userId: string): Promise<Book[]> => {
 
     if (booksError) {
       // Log error with proper formatting
-      console.error('getUserBooksWithFallback - books query failed:', {
-        message: booksError.message || 'Unknown error',
+      safelog('getUserBooksWithFallback - books query failed', booksError, {
+        userId,
         code: booksError.code || 'NO_CODE',
-        details: typeof booksError.details === 'object' ? JSON.stringify(booksError.details) : (booksError.details || 'No details'),
-        hint: booksError.hint || 'No hint',
-        userId
+        hint: booksError.hint || 'No hint'
       });
 
       logDetailedError(
