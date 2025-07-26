@@ -177,13 +177,7 @@ export const secureStorage = {
   },
 
   clear: (): void => {
-    // Preserve APS profile when clearing security-related storage
-    const apsProfile = localStorage.getItem('userAPSProfile');
     localStorage.clear();
-    // Restore APS profile if it existed
-    if (apsProfile) {
-      localStorage.setItem('userAPSProfile', apsProfile);
-    }
   },
 };
 

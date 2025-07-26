@@ -69,7 +69,7 @@ export async function saveAPSProfile(
 
     // ✅ VERIFY SAVE SUCCESS
     const verification = localStorage.getItem(APS_STORAGE_KEY);
-    console.log("���� Profile saved and verified:", !!verification);
+    console.log("🔍 Profile saved and verified:", !!verification);
 
     if (user) {
       try {
@@ -124,9 +124,8 @@ export function loadAPSProfile(): UserAPSProfile | null {
 
     // ✅ Validate profile structure
     if (!isValidAPSProfile(profile)) {
-      console.warn("❌ Invalid APS profile structure detected, but preserving data for manual review");
-      // Don't automatically clear - let user decide through "Clear APS Profile" button
-      // Return null but keep data for potential recovery
+      console.warn("❌ Invalid APS profile structure, clearing corrupted data");
+      localStorage.removeItem(APS_STORAGE_KEY);
       return null;
     }
 
@@ -142,8 +141,8 @@ export function loadAPSProfile(): UserAPSProfile | null {
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     });
-    // Don't automatically clear data on parsing errors - preserve for manual review
-    // User can explicitly clear via "Clear APS Profile" button if needed
+    // Clear corrupted data
+    localStorage.removeItem(APS_STORAGE_KEY);
     return null;
   }
 }

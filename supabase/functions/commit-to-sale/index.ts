@@ -115,13 +115,13 @@ serve(async (req) => {
       .from("profiles")
       .select("id, name, email, phone")
       .eq("id", order.buyer_id)
-      .maybeSingle();
+      .single();
 
         const { data: seller } = await supabase
       .from("profiles")
       .select("id, name, email, phone, pickup_address")
       .eq("id", order.seller_id)
-      .maybeSingle();
+      .single();
 
     // Update order status to committed
     const { error: updateError } = await supabase

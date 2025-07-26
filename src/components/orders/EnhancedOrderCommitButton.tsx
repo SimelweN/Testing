@@ -75,8 +75,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
     orderStatus === "shipped";
 
   // Check if form is valid - SIMPLIFIED: Only home delivery available
-  const isValidOrderStatus = !orderStatus || orderStatus === 'pending_commit';
-  const isFormValid = isPackagedSecurely && canFulfillOrder && isValidOrderStatus;
+  const isFormValid = isPackagedSecurely && canFulfillOrder;
 
   // DISABLED - Locker loading functionality removed
   // useEffect(() => {
@@ -89,18 +88,11 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
   // const loadLockers = async () => { ... }
 
   const handleCommit = async () => {
-    // Check order status before attempting commit
-    if (orderStatus && orderStatus !== 'pending_commit') {
-      console.error('❌ Cannot commit order with status:', orderStatus);
-      toast.error(`Cannot commit order. Order status is "${orderStatus}" but should be "pending_commit"`);
-      return;
-    }
-
     setIsCommitting(true);
     setIsDialogOpen(false);
 
     try {
-      console.log(`🚀 Committing to sale for order: ${orderId} with delivery method: ${deliveryMethod}, current status: ${orderStatus}`);
+      console.log(`🚀 Committing to sale for order: ${orderId} with delivery method: ${deliveryMethod}`);
 
       // Prepare the commit data with delivery method
       const commitData = {
@@ -114,14 +106,13 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
 
       // Try enhanced function first, fallback to original if it doesn't exist
       try {
-        console.log("📞 Attempting enhanced-commit-to-sale function with data:", commitData);
+        console.log("📞 Attempting enhanced-commit-to-sale function...");
         const result = await supabase.functions.invoke(
           "enhanced-commit-to-sale",
           {
             body: commitData,
           },
         );
-        console.log("📄 Enhanced function response:", { data: result.data, error: result.error });
         data = result.data;
         error = result.error;
       } catch (enhancedError) {
@@ -169,33 +160,11 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
       }
 
       if (error) {
-        console.error("🚨 Supabase function error details:", {
-          error,
-          errorName: error.name,
-          errorMessage: error.message,
-          data,
-          stack: error.stack
-        });
+        console.error("Supabase function error:", error);
 
         // More specific error handling for edge functions
         let errorMessage = "Failed to call commit function";
-
-        // Handle FunctionsHttpError (non-2xx status codes)
-        if (error.name === 'FunctionsHttpError' || error.message?.includes('non-2xx status code')) {
-          console.log("🔍 FunctionsHttpError detected, response data:", data);
-
-          // Try to extract the actual error from the edge function response
-          if (data?.error) {
-            errorMessage = data.error;
-          } else if (data?.message) {
-            errorMessage = data.message;
-          } else if (typeof data === 'string') {
-            errorMessage = data;
-          } else {
-            errorMessage = "Order commit failed. Please check order status and try again.";
-            console.log("❓ No specific error message found in response data");
-          }
-        } else if (error.message?.includes('FunctionsFetchError')) {
+        if (error.message?.includes('FunctionsFetchError')) {
           errorMessage = "Edge Function service is temporarily unavailable. Please try again.";
         } else if (error.message?.includes('CORS')) {
           errorMessage = "CORS error - Edge Function configuration issue";
@@ -203,7 +172,6 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
           errorMessage = error.message || errorMessage;
         }
 
-        console.error("💥 Final error message to user:", errorMessage);
         throw new Error(errorMessage);
       }
 
@@ -288,19 +256,13 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
       <AlertDialogTrigger asChild>
         <Button
           variant="default"
-          disabled={disabled || isCommitting || !isValidOrderStatus}
-          className={`${className} ${isValidOrderStatus ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400'} text-white`}
-          title={!isValidOrderStatus ? `Cannot commit: Order status is "${orderStatus}" (expected "pending_commit")` : undefined}
+          disabled={disabled || isCommitting}
+          className={`${className} bg-green-600 hover:bg-green-700 text-white`}
         >
           {isCommitting ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               Committing...
-            </>
-          ) : !isValidOrderStatus ? (
-            <>
-              <AlertCircle className="w-4 h-4 mr-2" />
-              Invalid Status ({orderStatus})
             </>
           ) : (
             <>
