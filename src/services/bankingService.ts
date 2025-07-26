@@ -459,6 +459,7 @@ export class BankingService {
 
       const status: BankingRequirementsStatus = {
         hasBankingInfo: requirements.hasBankingSetup,
+        hasPickupAddress: requirements.hasPickupAddress,
         isVerified: bankingDetails?.status === "active",
         canListBooks: requirements.canReceivePayments,
         missingRequirements,
