@@ -415,7 +415,7 @@ const ActivityLog = () => {
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <Activity className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+                      <ActivityIcon className="h-8 w-8 text-slate-300 mx-auto mb-2" />
                       <p className="text-slate-500 text-sm">No recent activity</p>
                     </div>
                   )}
