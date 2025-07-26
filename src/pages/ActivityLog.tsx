@@ -313,7 +313,7 @@ const ActivityLog = () => {
           )}
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="flex w-full overflow-x-auto mb-8 bg-white/60 backdrop-blur-sm scrollbar-hide pb-1">
+            <TabsList className="grid grid-cols-4 lg:grid-cols-8 w-full mb-8 bg-white/60 backdrop-blur-sm h-auto">
               <TabsTrigger value="overview" className="flex-shrink-0 text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
                 <TrendingUp className="h-4 w-4 mr-1" />
                 Overview
