@@ -45,7 +45,7 @@ interface EnhancedOrderCommitButtonProps {
   className?: string;
 }
 
-// Use LockerLocation from lockerService instead of custom Locker interface
+// DISABLED - Locker interfaces removed
 
 const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
   orderId,
