@@ -148,7 +148,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
             order_id: orderId,
             seller_id: sellerId,
             delivery_method: deliveryMethod,
-            locker_id: deliveryMethod === "locker" ? selectedLockerId : undefined,
+            // DISABLED - Locker ID removed
           });
 
           if (fallbackResult.success) {
