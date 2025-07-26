@@ -6,7 +6,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ArrowLeft, Trash2, Info } from "lucide-react";
 import { toast } from "sonner";
 
 const Cart = () => {
@@ -91,6 +92,16 @@ const Cart = () => {
             Clear Cart
           </Button>
         </div>
+
+        {/* Single-Seller Policy Info */}
+        <Alert className="border-blue-200 bg-blue-50 mb-6">
+          <Info className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            <strong>Single-Seller Cart Policy:</strong> You can only purchase books from one seller at a time.
+            This ensures faster delivery and avoids double delivery charges, as each seller ships from a different location.
+            Complete your current purchase, then start a new cart for books from other sellers.
+          </AlertDescription>
+        </Alert>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Cart Items - Grouped by Seller */}
