@@ -67,28 +67,14 @@ const ResetPassword = () => {
           console.log("Session set successfully:", data);
           setIsValidSession(true);
         } else {
-          console.log("Checking existing session");
-          const {
-            data: { session },
-            error,
-          } = await supabase.auth.getSession();
+          console.log("No reset tokens found, checking if user accessed directly");
 
-          if (error) {
-            console.error(
-              "Session check error:",
-              error.message || String(error),
-            );
-          }
-
-          if (session) {
-            console.log("Valid session found");
-            setIsValidSession(true);
-          } else {
-            console.log("No valid session found");
-            toast.error("Invalid or expired reset link");
-            setIsValidSession(false);
-            setTimeout(() => navigate("/forgot-password"), 3000);
-          }
+          // If no reset tokens, this means user accessed /reset-password directly
+          // In this case, we should redirect them to forgot-password to get the proper reset link
+          console.log("No reset parameters found - user likely accessed directly");
+          toast.error("Please use the reset link from your email. If you don't have one, request a new password reset.");
+          setIsValidSession(false);
+          setTimeout(() => navigate("/forgot-password"), 4000);
         }
       } catch (error) {
         console.error(
