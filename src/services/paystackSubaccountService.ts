@@ -155,14 +155,25 @@ export class PaystackSubaccountService {
 
         console.error("📋 Error summary:", errorSummary);
 
-        if (
-          errorSummary.includes("non-2xx status code") ||
-          errorSummary.includes("404") ||
-          errorSummary.includes("Function not found") ||
-          errorSummary.includes("FunctionsError") ||
-          errorSummary.includes("fetch") ||
-          errorSummary === "Unknown edge function error"
-        ) {
+        // Enhanced error detection for edge function issues
+        const edgeFunctionErrors = [
+          "non-2xx status code",
+          "404",
+          "Function not found",
+          "FunctionsError",
+          "FunctionsHttpError",
+          "fetch",
+          "NetworkError",
+          "Failed to invoke function",
+          "Connection error",
+          "Unknown edge function error"
+        ];
+
+        const isEdgeFunctionError = edgeFunctionErrors.some(errorType =>
+          errorSummary.includes(errorType)
+        );
+
+        if (isEdgeFunctionError) {
           console.warn("🔧 Edge function not available, using development fallback");
           throw new Error("non-2xx status code"); // This will trigger the development fallback below
         }
