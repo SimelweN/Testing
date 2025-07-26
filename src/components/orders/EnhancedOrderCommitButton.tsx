@@ -98,11 +98,8 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
       const commitData = {
         order_id: orderId,
         seller_id: sellerId,
-        delivery_method: deliveryMethod,
-        ...(deliveryMethod === "locker" && {
-          locker_id: selectedLockerId,
-          use_locker_api: true
-        })
+        delivery_method: deliveryMethod
+        // DISABLED - Locker options removed
       };
 
       let data, error;
