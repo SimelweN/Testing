@@ -565,14 +565,14 @@ const ActivityLog = () => {
                                 }}
                                 disabled={isCommitting || isDeclining}
                                 variant="destructive"
-                                className="flex-1 lg:flex-none"
+                                className="flex-1 lg:flex-none btn-mobile"
                               >
                                 {isDeclining ? (
-                                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                  <RefreshCw className="btn-mobile-icon animate-spin" />
                                 ) : (
-                                  <X className="h-4 w-4 mr-2" />
+                                  <X className="btn-mobile-icon" />
                                 )}
-                                Decline
+                                <span className="btn-mobile-text">Decline</span>
                               </Button>
                             </div>
                           </div>
