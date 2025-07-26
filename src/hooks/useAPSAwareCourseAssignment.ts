@@ -51,7 +51,7 @@ function useLocalStorage<T>(key: string, initialValue: T) {
         setStoredValue(valueToStore);
 
         if (valueToStore === null || valueToStore === undefined) {
-          sessionStorage.removeItem(key);
+          localStorage.removeItem(key);
         } else {
           localStorage.setItem(key, JSON.stringify(valueToStore));
         }
