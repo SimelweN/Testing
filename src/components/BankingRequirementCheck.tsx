@@ -145,7 +145,11 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
 
             <div className="flex items-center gap-3 p-3 bg-white rounded-lg border">
               <div className="flex-shrink-0">
-                <MapPin className="h-5 w-5 text-gray-400" />
+                {bankingStatus.hasPickupAddress ? (
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                ) : (
+                  <AlertTriangle className="h-5 w-5 text-orange-600" />
+                )}
               </div>
               <div className="flex-1">
                 <h4 className="font-medium">Pickup Address</h4>
@@ -154,12 +158,22 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
                 </p>
               </div>
               <div className="flex-shrink-0">
-                <Badge
-                  variant="outline"
-                  className="border-gray-500 text-gray-700"
-                >
-                  Check Profile
-                </Badge>
+                {bankingStatus.hasPickupAddress ? (
+                  <Badge
+                    variant="default"
+                    className="bg-green-100 text-green-800"
+                  >
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Complete
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="border-red-500 text-red-700"
+                  >
+                    Missing
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
