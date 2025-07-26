@@ -134,12 +134,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
           data = result.data;
           error = result.error;
 
-          // Show a note about fallback mode
-          if (deliveryMethod === "locker") {
-            toast.info("🔄 Using standard commit process - enhanced locker features temporarily unavailable", {
-              duration: 5000,
-            });
-          }
+          // DISABLED - Locker-specific messaging removed
         } catch (originalError) {
           console.warn("⚠️ Original function also failed, using fallback service:", originalError);
 
@@ -187,30 +182,14 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
 
       console.log("✅ Commit successful:", data);
 
-      // Show success messages based on delivery method
-      if (deliveryMethod === "locker") {
-        toast.success("✅ Order committed with Locker Drop-Off!", {
-          description: "🚀 Get paid earlier with locker delivery!",
-          duration: 5000,
-        });
-
-        if (data.qrCode || data.waybill) {
-          toast.info("📱 QR Code generated for locker drop-off", {
-            description: "Check your email for the QR code and drop-off instructions.",
-            duration: 7000,
-          });
-        }
-      } else {
-        toast.success("✅ Order committed with Home Pick-Up!", {
-          description: "🚚 Courier pickup will be scheduled automatically.",
-          duration: 5000,
-        });
-      }
+      // Show success message for home delivery
+      toast.success("✅ Order committed with Home Pick-Up!", {
+        description: "🚚 Courier pickup will be scheduled automatically.",
+        duration: 5000,
+      });
 
       toast.info(
-        deliveryMethod === "locker" 
-          ? "📧 Locker drop-off instructions sent to your email."
-          : "📧 Courier pickup details sent to your email.",
+        "📧 Courier pickup details sent to your email.",
         {
           duration: 7000,
         },
