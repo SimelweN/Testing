@@ -114,12 +114,30 @@ const ActivityLog = () => {
 
     if (!doubleConfirm) return;
 
-    const success = await clearAllUserData(user.id);
-    if (success) {
-      // Reload activities after clearing
-      await loadActivities();
-      // Also refresh pending commits
-      refreshPendingCommits().catch(console.error);
+    try {
+      const success = await clearAllUserData(user.id);
+      if (success) {
+        // Reload activities after clearing
+        await loadActivities();
+        // Also refresh pending commits
+        refreshPendingCommits().catch(console.error);
+        toast.success("All user data cleared successfully");
+      } else {
+        toast.error("Failed to clear some data. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error clearing user data:", error);
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch')) {
+          toast.error("Network error: Please check your connection and try again.");
+        } else if (error.message.includes('timeout')) {
+          toast.error("Operation timed out. Please try again with a better connection.");
+        } else {
+          toast.error(`Failed to clear data: ${error.message}`);
+        }
+      } else {
+        toast.error("An unexpected error occurred while clearing data.");
+      }
     }
   };
 
