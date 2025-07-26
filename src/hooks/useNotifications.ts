@@ -132,11 +132,19 @@ class NotificationManager {
           this.reconnectAttempts = 0; // Reset retry counter on success
           console.log("[NotificationManager] ✅ Successfully connected to realtime");
         } else if (status === "CHANNEL_ERROR") {
-          console.error("[NotificationManager] ❌ Channel error occurred");
+          // Only log channel errors occasionally to reduce spam
+          if (this.reconnectAttempts === 0 || this.reconnectAttempts % 5 === 0) {
+            console.warn("[NotificationManager] ⚠️ Channel connection issue (notifications may be delayed)");
+          }
           this.connectionStatus = 'error';
           this.subscriptionRef = null;
           this.subscribingRef = false;
-          this.scheduleReconnect(userId, refreshCallback);
+          // Don't immediately reconnect on channel errors - they often resolve themselves
+          setTimeout(() => {
+            if (this.currentUserId === userId && this.connectionStatus === 'error') {
+              this.scheduleReconnect(userId, refreshCallback);
+            }
+          }, 5000);
         } else if (status === "CLOSED") {
           console.warn("[NotificationManager] 🔌 Connection closed");
           this.connectionStatus = 'disconnected';
