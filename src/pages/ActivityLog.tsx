@@ -115,6 +115,7 @@ interface ActivityItem {
 
 const ActivityLog: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [commits, setCommits] = useState<Commit[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
