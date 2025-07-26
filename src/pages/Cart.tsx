@@ -6,7 +6,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ArrowLeft, Trash2, Info } from "lucide-react";
 import { toast } from "sonner";
 
 const Cart = () => {
@@ -92,16 +93,28 @@ const Cart = () => {
           </Button>
         </div>
 
+        {/* Single-Seller Policy Info */}
+        <Alert className="border-blue-200 bg-blue-50 mb-6">
+          <Info className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            <strong>Single-Seller Cart Policy:</strong> You can only purchase books from one seller at a time.
+            This ensures faster delivery and avoids double delivery charges, as each seller ships from a different location.
+            Complete your current purchase, then start a new cart for books from other sellers.
+          </AlertDescription>
+        </Alert>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Cart Items - Grouped by Seller */}
+          {/* Cart Items - Single Seller */}
           <div className="lg:col-span-2 space-y-6">
-            {Object.entries(sellerTotals).map(([sellerId, seller]) => {
+            {/* Get the first (and only) seller */}
+            {(() => {
+              const [sellerId, seller] = Object.entries(sellerTotals)[0];
               const sellerItems = items.filter(
                 (item) => item.sellerId === sellerId,
               );
 
               return (
-                <Card key={sellerId} className="border-2 border-book-200">
+                <Card className="border-2 border-book-200">
                   <CardHeader className="bg-book-50 rounded-t-lg">
                     <div className="flex justify-between items-center">
                       <div>
@@ -162,7 +175,7 @@ const Cart = () => {
                     <div className="border-t pt-3 mt-3">
                       <div className="flex justify-between items-center">
                         <span className="font-medium">
-                          Subtotal for this seller:
+                          Subtotal:
                         </span>
                         <span className="font-bold text-book-600">
                           R{seller.total.toFixed(2)}
@@ -176,14 +189,13 @@ const Cart = () => {
                         • Platform fee: R{seller.commission.toFixed(2)} (10%)
                       </div>
                       <div className="text-xs text-orange-600 mt-2">
-                        📦 Delivery charges will be calculated separately per
-                        seller at checkout
+                        📦 Delivery charges will be calculated at checkout
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               );
-            })}
+            })()}
           </div>
 
           {/* Order Summary */}
@@ -191,57 +203,32 @@ const Cart = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg md:text-xl">
-                  Multi-Seller Checkout
+                  Order Summary
                 </CardTitle>
                 <p className="text-sm text-gray-600">
-                  Orders from {Object.keys(sellerTotals).length} seller(s) will
-                  be processed separately
+                  Single-seller checkout from {Object.values(sellerTotals)[0]?.sellerName}
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-blue-50 p-3 rounded-lg">
-                  <h4 className="font-medium text-blue-900 mb-2">
-                    How it works:
+                <div className="bg-green-50 p-3 rounded-lg">
+                  <h4 className="font-medium text-green-900 mb-2">
+                    ✅ Benefits of single-seller checkout:
                   </h4>
-                  <ul className="text-xs text-blue-800 space-y-1">
-                    <li>• Each seller gets a separate order</li>
-                    <li>• Different delivery fees per seller</li>
-                    <li>• Independent tracking per order</li>
-                    <li>• 48-hour seller commitment required</li>
+                  <ul className="text-xs text-green-800 space-y-1">
+                    <li>• Faster delivery from one location</li>
+                    <li>• Single delivery fee (no double charges)</li>
+                    <li>• One tracking number to follow</li>
+                    <li>• Simpler order management</li>
                   </ul>
                 </div>
 
-                {Object.entries(sellerTotals).map(
-                  ([sellerId, seller], index) => (
-                    <div key={sellerId} className="p-3 bg-gray-50 rounded-lg">
-                      <div className="flex justify-between items-center mb-1">
-                        <p className="font-medium text-sm truncate">
-                          Order #{index + 1}
-                        </p>
-                        <span className="font-bold text-book-600">
-                          R{seller.total.toFixed(2)}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-600">
-                        {seller.sellerName}
-                      </p>
-                      <div className="text-xs text-gray-500 mt-1">
-                        Seller receives R{seller.sellerReceives.toFixed(2)} •
-                        Fee R{seller.commission.toFixed(2)}
-                      </div>
-                    </div>
-                  ),
-                )}
-
-                <Separator />
-
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Subtotal (books only):</span>
+                    <span className="text-sm">Books subtotal:</span>
                     <span className="text-sm">R{totalPrice.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Delivery fees:</span>
+                    <span className="text-sm">Delivery fee:</span>
                     <span className="text-sm text-orange-600">
                       Calculated at checkout
                     </span>
@@ -249,12 +236,15 @@ const Cart = () => {
                   <Separator />
                   <div className="flex justify-between items-center">
                     <span className="text-base md:text-lg font-bold">
-                      Book Total
+                      Current Total
                     </span>
                     <span className="text-base md:text-lg font-bold">
                       R{totalPrice.toFixed(2)}
                     </span>
                   </div>
+                  <p className="text-xs text-gray-500 text-center">
+                    + delivery fee (shown at checkout)
+                  </p>
                 </div>
 
                 <Button
@@ -264,12 +254,15 @@ const Cart = () => {
                 >
                   {isProcessing
                     ? "Processing..."
-                    : "Proceed to Multi-Seller Checkout"}
+                    : "Proceed to Checkout"}
                 </Button>
 
-                <p className="text-xs text-gray-500 text-center">
-                  Final totals including delivery will be shown at checkout
-                </p>
+                <div className="bg-blue-50 p-3 rounded-lg mt-4">
+                  <p className="text-xs text-blue-800">
+                    💡 <strong>Want books from other sellers?</strong><br/>
+                    Complete this purchase first, then browse and add books from other sellers to a new cart.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>

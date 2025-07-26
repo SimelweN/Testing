@@ -26,7 +26,7 @@ const BankingSetup: React.FC = () => {
   const [existingBanking, setExistingBanking] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [showDebug, setShowDebug] = useState(false);
+
 
   useEffect(() => {
     const checkExistingBanking = async () => {
@@ -152,20 +152,11 @@ const BankingSetup: React.FC = () => {
                 Set up your banking details to receive payments from book sales
                 securely and automatically.
               </p>
-              <div className="mt-4">
-                <Button
-                  onClick={() => setShowDebug(!showDebug)}
-                  variant="outline"
-                  size="sm"
-                  className="text-blue-600 border-blue-300 hover:bg-blue-50"
-                >
-                  {showDebug ? "Hide" : "Show"} Debug Tools
-                </Button>
-              </div>
+
             </div>
           </div>
 
-          {/* Debug Tools */}
+
 
 
           {/* Existing Banking Details */}

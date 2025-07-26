@@ -58,7 +58,9 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
         msg.includes("failed to load google maps script") ||
         msg.includes("google maps script, retrying") ||
         msg.includes("retrying in") ||
-        msg.includes("google maps") ||
+        msg.includes("google maps javascript api") ||
+        msg.includes("maps.googleapis.com") ||
+        msg.includes("google maps api") ||
         msg.includes("gmaps")
       );
     };
@@ -94,16 +96,22 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
         googleMapsApiKey: apiKey!,
         libraries,
         preventGoogleFontsLoading: true,
+        region: "ZA", // South Africa region
+        retries: 2, // Reduce retry attempts
+        nonce: undefined,
+        language: "en"
       })
     : { isLoaded: false, loadError: undefined };
 
   const value: GoogleMapsContextType = {
     isLoaded: shouldLoadMaps && isLoaded,
-    loadError: shouldLoadMaps
+    loadError: shouldLoadMaps && loadError
       ? loadError
-      : new Error(
+      : !shouldLoadMaps
+      ? new Error(
           "Google Maps is disabled. Please configure VITE_GOOGLE_MAPS_API_KEY in your environment variables."
-        ),
+        )
+      : undefined,
   };
 
   // Log helpful message in development if API key is missing or invalid

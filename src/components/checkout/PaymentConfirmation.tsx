@@ -155,9 +155,9 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
         body: JSON.stringify({
           to: user.email,
           from: "noreply@rebookedsolutions.co.za",
-          subject: "🎉 Payment Confirmed - Order Processing",
+          subject: "🎉 Payment Confirmed - Your Custom Receipt from ReBooked Marketplace",
           html: generateBuyerConfirmationEmail(order, paymentData),
-          text: `Payment Confirmed!\n\nYour order has been confirmed and is being processed.\n\nOrder ID: ${order.id}\nPayment Reference: ${paymentData.payment_reference}\nTotal: R${paymentData.total_paid}\n\nYou'll receive updates as your order progresses.\n\nReBooked Solutions`,
+          text: `Payment Confirmed - Your Custom Receipt\n\n✅ Your payment has been successfully processed!\n\nORDER SUMMARY:\nOrder ID: ${order.id}\nPayment Reference: ${paymentData.payment_reference}\nBook: ${paymentData.book_title}\nTotal Paid: R${paymentData.total_paid.toFixed(2)}\nDelivery Method: ${paymentData.delivery_method}\n\nWHAT HAPPENS NEXT (Step-by-Step):\n\n1. SELLER NOTIFICATION (Right Now)\n   The seller has been automatically notified of your order.\n\n2. SELLER COMMITMENT (Within 48 Hours)\n   The seller has exactly 48 hours to commit to fulfilling your order.\n   If they don't respond, you'll get an automatic full refund.\n\n3. COURIER PICKUP (Same Day as Commitment)\n   Once seller commits, we arrange courier pickup immediately.\n\n4. SHIPPING & TRACKING (1-2 Days After Pickup)\n   You'll receive tracking details via email and SMS.\n\n5. DELIVERY (2-3 Business Days)\n   Expected delivery: 2-3 business days after pickup.\n\nTOTAL TIMEFRAME: 3-5 business days from now to delivery\n\nTrack your order: https://rebookedsolutions.co.za/orders/${order.id}\n\nThis is your official receipt from ReBooked Marketplace.\n\nFor assistance: support@rebookedsolutions.co.za\nReBooked Marketplace - "Pre-Loved Pages, New Adventures"`,
         }),
       });
 
@@ -173,13 +173,14 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Payment Confirmed - ReBooked Solutions</title>
+  <title>Payment Confirmed - ReBooked Marketplace</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background-color: #f3fef7;
       padding: 20px;
       color: #1f4e3d;
+      margin: 0;
     }
     .container {
       max-width: 500px;
@@ -199,49 +200,222 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
       margin-top: 20px;
       font-weight: bold;
     }
+    .link {
+      color: #3ab26f;
+    }
+    .header {
+      background: #3ab26f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+      margin: -30px -30px 20px -30px;
+    }
+    .footer {
+      background: #f3fef7;
+      color: #1f4e3d;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 30px -30px -30px -30px;
+      border-radius: 0 0 10px 10px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .info-box {
+      background: #f3fef7;
+      border: 1px solid #3ab26f;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+    .info-box-success {
+      background: #f0fdf4;
+      border: 1px solid #10b981;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+    .info-box-warning {
+      background: #fffbeb;
+      border: 1px solid #f59e0b;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+    .total {
+      font-weight: bold;
+      font-size: 18px;
+      color: #3ab26f;
+    }
+    .timeline-step {
+      display: flex;
+      align-items: flex-start;
+      margin: 15px 0;
+      padding: 10px 0;
+      border-bottom: 1px dashed #e5e7eb;
+    }
+    .timeline-step:last-child {
+      border-bottom: none;
+    }
+    .step-number {
+      background: #3ab26f;
+      color: white;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 12px;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
     .success-box {
       background: #d1fae5;
       border: 1px solid #10b981;
       padding: 15px;
       border-radius: 5px;
       margin: 20px 0;
+      text-align: center;
+    }
+    .info-box {
+      background: #f3fef7;
+      border: 1px solid #3ab26f;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+    .timeline-step {
+      display: flex;
+      align-items: flex-start;
+      margin: 15px 0;
+      padding: 10px 0;
+      border-bottom: 1px dashed #e5e7eb;
+    }
+    .timeline-step:last-child {
+      border-bottom: none;
+    }
+    .step-number {
+      background: #3ab26f;
+      color: white;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 12px;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
+    .link {
+      color: #3ab26f;
+    }
+    .total {
+      font-weight: bold;
+      font-size: 18px;
+      color: #3ab26f;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🎉 Payment Confirmed!</h1>
-    
-    <div class="success-box">
-      <strong>✅ Your payment has been successfully processed</strong>
+    <div class="header">
+      <h1>🎉 Payment Confirmed!</h1>
+      <p>Your custom receipt from ReBooked Marketplace</p>
     </div>
 
-    <p><strong>Order Details:</strong></p>
-    <p>
-      Order ID: ${order.id}<br>
-      Payment Reference: ${payment.payment_reference}<br>
-      Book: ${payment.book_title}<br>
-      Total Paid: R${payment.total_paid}<br>
-      Delivery Method: ${payment.delivery_method}
-    </p>
+    <div class="success-box">
+      <h2 style="margin: 0; color: #10b981;">✅ Payment Successfully Processed</h2>
+      <p style="margin: 10px 0 0 0; font-size: 14px;">Thank you for your purchase! Your order is now being processed.</p>
+    </div>
 
-    <p><strong>📦 What happens next?</strong></p>
-    <ul>
-      <li>The seller has been notified of your order</li>
-      <li>They have 48 hours to commit to shipping</li>
-      <li>You'll receive tracking information once shipped</li>
-      <li>Delivery within 2-3 business days</li>
-    </ul>
+    <div class="info-box">
+      <h3 style="margin-top: 0;">📋 Order Summary</h3>
+      <p><strong>Order ID:</strong> ${order.id}</p>
+      <p><strong>Payment Reference:</strong> ${payment.payment_reference}</p>
+      <p><strong>Book:</strong> ${payment.book_title}</p>
+      <p><strong>Delivery Method:</strong> ${payment.delivery_method}</p>
+      <div class="total">
+        <p>Total Paid: R${payment.total_paid.toFixed(2)}</p>
+      </div>
+    </div>
 
-    <a href="https://rebookedsolutions.co.za/orders/${order.id}" class="btn">Track Your Order</a>
+    <div class="info-box">
+      <h3 style="margin-top: 0;">📦 What Happens Next? (Step-by-Step)</h3>
+      <p><strong>We know waiting can be nerve-wracking, so here's exactly what happens:</strong></p>
 
-    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-    
-    <p style="font-size: 12px; color: #6b7280;">
-      <strong>Thank you for choosing ReBooked Solutions!</strong><br>
-      For assistance: support@rebookedsolutions.co.za<br>
-      <em>"Pre-Loved Pages, New Adventures"</em>
-    </p>
+      <div class="timeline-step">
+        <div class="step-number">1</div>
+        <div>
+          <h4 style="margin: 0 0 5px 0;">Seller Notification (Right Now)</h4>
+          <p style="margin: 0; font-size: 14px; color: #666;">The seller has been automatically notified of your order and payment. They can see all order details in their dashboard.</p>
+        </div>
+      </div>
+
+      <div class="timeline-step">
+        <div class="step-number">2</div>
+        <div>
+          <h4 style="margin: 0 0 5px 0;">Seller Commitment (Within 48 Hours)</h4>
+          <p style="margin: 0; font-size: 14px; color: #666;">The seller has exactly <strong>48 hours</strong> to commit to fulfilling your order. If they don't respond, you'll get an automatic full refund.</p>
+        </div>
+      </div>
+
+      <div class="timeline-step">
+        <div class="step-number">3</div>
+        <div>
+          <h4 style="margin: 0 0 5px 0;">Courier Pickup Arranged (Same Day as Commitment)</h4>
+          <p style="margin: 0; font-size: 14px; color: #666;">Once the seller commits, we immediately arrange courier pickup from their location. No action required from you!</p>
+        </div>
+      </div>
+
+      <div class="timeline-step">
+        <div class="step-number">4</div>
+        <div>
+          <h4 style="margin: 0 0 5px 0;">Shipping & Tracking (1-2 Days After Pickup)</h4>
+          <p style="margin: 0; font-size: 14px; color: #666;">You'll receive tracking details via email and SMS as soon as the book is collected and in transit to you.</p>
+        </div>
+      </div>
+
+      <div class="timeline-step">
+        <div class="step-number">5</div>
+        <div>
+          <h4 style="margin: 0 0 5px 0;">Delivery (2-3 Business Days)</h4>
+          <p style="margin: 0; font-size: 14px; color: #666;">Your book will be delivered to your address. Expected delivery: <strong>2-3 business days</strong> after pickup.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box" style="border-color: #fbbf24; background: #fef3c7;">
+      <h3 style="margin-top: 0; color: #92400e;">⏰ Important Timeline</h3>
+      <p style="margin: 0; color: #92400e;"><strong>Total Expected Timeframe:</strong> 3-5 business days from now to delivery</p>
+      <p style="margin: 10px 0 0 0; font-size: 14px; color: #92400e;">We'll update you at every step via email and SMS notifications.</p>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="https://rebookedsolutions.co.za/orders/${order.id}" class="btn">Track Your Order Live</a>
+    </div>
+
+    <div class="info-box" style="border-color: #06b6d4; background: #e0f7fa;">
+      <h3 style="margin-top: 0; color: #0e7490;">💡 Pro Tips</h3>
+      <ul style="margin: 0; padding-left: 20px; color: #0e7490;">
+        <li>Check your email regularly for updates</li>
+        <li>Save our contact info: <strong>support@rebookedsolutions.co.za</strong></li>
+        <li>Your payment is 100% protected until delivery confirmation</li>
+        <li>Rate your experience after delivery to help other students</li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      <p><strong>This is an automated message from ReBooked Marketplace.</strong><br>
+      Please do not reply to this email.</p>
+      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
+      <p>T&Cs apply. <em>"Pre-Loved Pages, New Adventures"</em></p>
+    </div>
   </div>
 </body>
 </html>`;

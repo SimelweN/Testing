@@ -64,7 +64,18 @@ const SubaccountView: React.FC<SubaccountViewProps> = ({
       if (result.success && result.data) {
         setSubaccountData(result.data);
       } else {
-        setError(result.error || "Failed to load subaccount details");
+        const errorMessage = result.error || "Failed to load subaccount details";
+
+        // Provide more user-friendly error messages
+        if (errorMessage.includes("Edge Function") || errorMessage.includes("non-2xx")) {
+          setError("Banking services are temporarily unavailable. Please try again in a few minutes.");
+        } else if (errorMessage.includes("Authentication")) {
+          setError("Please log out and log back in to refresh your session.");
+        } else if (errorMessage.includes("No subaccount")) {
+          setError("No banking details found. Please set up your banking information first.");
+        } else {
+          setError(errorMessage);
+        }
       }
     } catch (error) {
       console.error("Error loading subaccount data:", error);

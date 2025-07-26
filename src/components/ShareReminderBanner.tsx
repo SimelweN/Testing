@@ -58,7 +58,7 @@ const ShareReminderBanner = ({ userId, userName, onShare }: ShareReminderBannerP
       <AlertDescription className="flex items-center justify-between">
         <div className="flex-1">
           <span className="font-medium text-book-800">
-            💡 Tip: Share your ReBooked mini page to sell books faster!
+            💡 Tip: Share your ReBooked Campus mini page to sell books faster!
           </span>
           <p className="text-sm text-book-700 mt-1">
             Post it on social media or send to classmates who might need your books.

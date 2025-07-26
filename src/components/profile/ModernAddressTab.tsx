@@ -20,6 +20,8 @@ import {
 import GoogleMapsAddressAutocomplete, {
   AddressData as GoogleAddressData,
 } from "@/components/GoogleMapsAddressAutocomplete";
+import ManualAddressInput from "@/components/ManualAddressInput";
+import { useGoogleMaps } from "@/contexts/GoogleMapsContext";
 import { AddressData, Address } from "@/types/address";
 
 interface ModernAddressTabProps {
@@ -44,6 +46,10 @@ const ModernAddressTab = ({
   const [shippingAddress, setShippingAddress] = useState<Address | null>(null);
   const [sameAsPickup, setSameAsPickup] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Check Google Maps availability
+  const { isLoaded: mapsLoaded, loadError } = useGoogleMaps();
+  const useManualInput = !mapsLoaded || !!loadError;
 
   useEffect(() => {
     if (addressData) {
@@ -213,23 +219,43 @@ const ModernAddressTab = ({
                 </div>
               ) : editMode === "pickup" || editMode === "both" ? (
                 <div className="space-y-4">
-                  <GoogleMapsAddressAutocomplete
-                    label="Pickup Address"
-                    required
-                    onAddressSelect={handlePickupAddressChange}
-                    defaultValue={
-                      pickupAddress
-                        ? {
-                            formattedAddress: `${pickupAddress.street}, ${pickupAddress.city}, ${pickupAddress.province}, ${pickupAddress.postalCode}`,
-                            street: pickupAddress.street,
-                            city: pickupAddress.city,
-                            province: pickupAddress.province,
-                            postalCode: pickupAddress.postalCode,
-                            country: pickupAddress.country,
-                          }
-                        : undefined
-                    }
-                  />
+                  {useManualInput ? (
+                    <ManualAddressInput
+                      label="Pickup Address"
+                      required
+                      onAddressSelect={handlePickupAddressChange}
+                      defaultValue={
+                        pickupAddress
+                          ? {
+                              formattedAddress: `${pickupAddress.street}, ${pickupAddress.city}, ${pickupAddress.province}, ${pickupAddress.postalCode}`,
+                              street: pickupAddress.street,
+                              city: pickupAddress.city,
+                              province: pickupAddress.province,
+                              postalCode: pickupAddress.postalCode,
+                              country: pickupAddress.country,
+                            }
+                          : undefined
+                      }
+                    />
+                  ) : (
+                    <GoogleMapsAddressAutocomplete
+                      label="Pickup Address"
+                      required
+                      onAddressSelect={handlePickupAddressChange}
+                      defaultValue={
+                        pickupAddress
+                          ? {
+                              formattedAddress: `${pickupAddress.street}, ${pickupAddress.city}, ${pickupAddress.province}, ${pickupAddress.postalCode}`,
+                              street: pickupAddress.street,
+                              city: pickupAddress.city,
+                              province: pickupAddress.province,
+                              postalCode: pickupAddress.postalCode,
+                              country: pickupAddress.country,
+                            }
+                          : undefined
+                      }
+                    />
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-8">
@@ -331,23 +357,43 @@ const ModernAddressTab = ({
                   </div>
 
                   {!sameAsPickup && (
-                    <GoogleMapsAddressAutocomplete
-                      label="Shipping Address"
-                      required
-                      onAddressSelect={handleShippingAddressChange}
-                      defaultValue={
-                        shippingAddress
-                          ? {
-                              formattedAddress: `${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.province}, ${shippingAddress.postalCode}`,
-                              street: shippingAddress.street,
-                              city: shippingAddress.city,
-                              province: shippingAddress.province,
-                              postalCode: shippingAddress.postalCode,
-                              country: shippingAddress.country,
-                            }
-                          : undefined
-                      }
-                    />
+                    useManualInput ? (
+                      <ManualAddressInput
+                        label="Shipping Address"
+                        required
+                        onAddressSelect={handleShippingAddressChange}
+                        defaultValue={
+                          shippingAddress
+                            ? {
+                                formattedAddress: `${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.province}, ${shippingAddress.postalCode}`,
+                                street: shippingAddress.street,
+                                city: shippingAddress.city,
+                                province: shippingAddress.province,
+                                postalCode: shippingAddress.postalCode,
+                                country: shippingAddress.country,
+                              }
+                            : undefined
+                        }
+                      />
+                    ) : (
+                      <GoogleMapsAddressAutocomplete
+                        label="Shipping Address"
+                        required
+                        onAddressSelect={handleShippingAddressChange}
+                        defaultValue={
+                          shippingAddress
+                            ? {
+                                formattedAddress: `${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.province}, ${shippingAddress.postalCode}`,
+                                street: shippingAddress.street,
+                                city: shippingAddress.city,
+                                province: shippingAddress.province,
+                                postalCode: shippingAddress.postalCode,
+                                country: shippingAddress.country,
+                              }
+                            : undefined
+                        }
+                      />
+                    )
                   )}
 
                   {sameAsPickup && (

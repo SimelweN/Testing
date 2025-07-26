@@ -23,11 +23,17 @@ const ResetPassword = () => {
       try {
         console.log("Verifying reset password session");
 
-        const accessToken = searchParams.get("access_token");
-        const refreshToken = searchParams.get("refresh_token");
-        const type = searchParams.get("type");
-        const error_code = searchParams.get("error_code");
-        const error_description = searchParams.get("error_description");
+        // Check both URL params and hash fragments (Supabase can use either)
+        const accessToken = searchParams.get("access_token") ||
+                           new URLSearchParams(window.location.hash.slice(1)).get("access_token");
+        const refreshToken = searchParams.get("refresh_token") ||
+                            new URLSearchParams(window.location.hash.slice(1)).get("refresh_token");
+        const type = searchParams.get("type") ||
+                     new URLSearchParams(window.location.hash.slice(1)).get("type");
+        const error_code = searchParams.get("error_code") ||
+                          new URLSearchParams(window.location.hash.slice(1)).get("error_code");
+        const error_description = searchParams.get("error_description") ||
+                                 new URLSearchParams(window.location.hash.slice(1)).get("error_description");
 
         console.log("Reset password params:", {
           accessToken: !!accessToken,
@@ -67,28 +73,14 @@ const ResetPassword = () => {
           console.log("Session set successfully:", data);
           setIsValidSession(true);
         } else {
-          console.log("Checking existing session");
-          const {
-            data: { session },
-            error,
-          } = await supabase.auth.getSession();
+          console.log("No reset tokens found, checking if user accessed directly");
 
-          if (error) {
-            console.error(
-              "Session check error:",
-              error.message || String(error),
-            );
-          }
-
-          if (session) {
-            console.log("Valid session found");
-            setIsValidSession(true);
-          } else {
-            console.log("No valid session found");
-            toast.error("Invalid or expired reset link");
-            setIsValidSession(false);
-            setTimeout(() => navigate("/forgot-password"), 3000);
-          }
+          // If no reset tokens, this means user accessed /reset-password directly
+          // In this case, we should redirect them to forgot-password to get the proper reset link
+          console.log("No reset parameters found - user likely accessed directly");
+          toast.error("Please use the reset link from your email. If you don't have one, request a new password reset.");
+          setIsValidSession(false);
+          setTimeout(() => navigate("/forgot-password"), 4000);
         }
       } catch (error) {
         console.error(
@@ -196,14 +188,29 @@ const ResetPassword = () => {
             <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 text-center">
               <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
               <h2 className="text-xl md:text-2xl font-semibold mb-2 text-gray-800">
-                Invalid Reset Link
+                Reset Link Required
               </h2>
               <p className="text-gray-600 text-sm md:text-base mb-4">
-                This password reset link is invalid or has expired.
+                To reset your password, please use the secure link sent to your email.
+                If you don't have a reset email, we'll help you request one.
               </p>
-              <p className="text-gray-500 text-sm">
-                Redirecting you to request a new link...
+              <div className="text-left bg-blue-50 rounded-lg p-4 mb-4">
+                <h4 className="font-medium text-blue-900 mb-2">📧 To reset your password:</h4>
+                <ol className="text-sm text-blue-800 space-y-1">
+                  <li>1. Check your email for a "Reset Password" message</li>
+                  <li>2. Click the secure link in that email</li>
+                  <li>3. You'll be brought back here to set a new password</li>
+                </ol>
+              </div>
+              <p className="text-gray-500 text-sm mb-4">
+                Redirecting you to request a reset email...
               </p>
+              <Button
+                onClick={() => navigate("/forgot-password")}
+                className="w-full"
+              >
+                Request Password Reset Email
+              </Button>
             </div>
           </div>
         </div>

@@ -45,7 +45,7 @@ const SellerPolicyModal = ({ isOpen, onClose }: SellerPolicyModalProps) => {
                 Welcome to ReBooked Marketplace
               </h3>
               <p className="text-sm text-book-700">
-                By listing books on ReBooked, you agree to follow our platform
+                By listing books on ReBooked Marketplace, you agree to follow our platform
                 rules and provide a reliable service to student buyers. These
                 policies protect both buyers and sellers.
               </p>

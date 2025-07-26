@@ -195,8 +195,8 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
       localStorage.removeItem("userAPSProfile");
       localStorage.removeItem("apsSearchResults");
       // Also remove legacy keys for migration
-      localStorage.removeItem("reBooked-aps-profile");
-      localStorage.removeItem("reBooked-aps-search-results");
+      localStorage.removeItem("rebookedMarketplace-aps-profile");
+      localStorage.removeItem("rebookedMarketplace-aps-search-results");
       setUserProfile(null);
       setLastSearchResults(null);
       setError(null);

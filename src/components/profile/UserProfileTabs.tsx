@@ -369,7 +369,7 @@ const UserProfileTabs = ({
                   </Button>
 
                   <p className="text-gray-500 text-sm mt-4">
-                    Get a comprehensive view of all your ReBooked activity
+                    Get a comprehensive view of all your ReBooked Marketplace activity
                   </p>
                 </div>
               </CardContent>

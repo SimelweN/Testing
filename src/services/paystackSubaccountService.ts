@@ -134,7 +134,7 @@ export class PaystackSubaccountService {
         hasRecipientCode: !!data?.recipient_code
       });
 
-      // Check for edge function not deployed/available (development mode)
+      // Check for edge function not deployed/available
       if (error) {
         console.error("🚨 Edge function error occurred:");
         console.error("- Error object:", error);
@@ -155,16 +155,29 @@ export class PaystackSubaccountService {
 
         console.error("📋 Error summary:", errorSummary);
 
-        if (
-          errorSummary.includes("non-2xx status code") ||
-          errorSummary.includes("404") ||
-          errorSummary.includes("Function not found") ||
-          errorSummary.includes("FunctionsError") ||
-          errorSummary.includes("fetch") ||
-          errorSummary === "Unknown edge function error"
-        ) {
-          console.warn("🔧 Edge function not available, using development fallback");
-          throw new Error("non-2xx status code"); // This will trigger the development fallback below
+        // Enhanced error detection for edge function issues
+        const edgeFunctionErrors = [
+          "non-2xx status code",
+          "404",
+          "Function not found",
+          "FunctionsError",
+          "FunctionsHttpError",
+          "FunctionsFetchError",
+          "Failed to send a request to the Edge Function",
+          "fetch",
+          "NetworkError",
+          "Failed to invoke function",
+          "Connection error",
+          "Unknown edge function error"
+        ];
+
+        const isEdgeFunctionError = edgeFunctionErrors.some(errorType =>
+          errorSummary.includes(errorType)
+        );
+
+        if (isEdgeFunctionError) {
+          console.warn("🔧 Edge function not available, using fallback mode");
+          throw new Error("edge-function-unavailable"); // This will trigger the fallback below
         }
       }
 
@@ -205,10 +218,12 @@ export class PaystackSubaccountService {
         error,
       );
 
-      // 🧪 DEVELOPMENT MODE: Create mock subaccount for testing
+      // 🧪 FALLBACK MODE: Create mock subaccount when edge functions are unavailable
       if (
         error.message?.includes("non-2xx status code") ||
+        error.message?.includes("edge-function-unavailable") ||
         error.message?.includes("Edge Function") ||
+        error.message?.includes("Failed to send a request to the Edge Function") ||
         import.meta.env.DEV
       ) {
         console.warn(
@@ -260,10 +275,22 @@ export class PaystackSubaccountService {
                 JSON.stringify(dbError, null, 2),
               );
 
-              // Since we now know the exact schema, this shouldn't fail
-              // But if it does, provide helpful error information
-              const errorMsg = this.formatError(dbError);
-              throw new Error(`Failed to create mock subaccount: ${errorMsg}`);
+              // Provide specific error messages for common database issues
+              let errorMsg = this.formatError(dbError);
+
+              if (dbError.code === "23505") {
+                errorMsg = "Banking details already exist for this user. Please update instead of creating new.";
+              } else if (dbError.code === "23502") {
+                errorMsg = "Required banking information is missing. Please fill in all required fields.";
+              } else if (dbError.code === "42P01") {
+                errorMsg = "Banking system is being set up. Please try again in a few minutes.";
+              } else if (dbError.message?.includes("duplicate key")) {
+                errorMsg = "These banking details are already registered. Please use different details or update existing ones.";
+              } else if (dbError.message?.includes("permission denied")) {
+                errorMsg = "Permission error accessing banking system. Please log out and log back in.";
+              }
+
+              throw new Error(`Failed to create subaccount: ${errorMsg}`);
             }
 
             console.log("✅ Mock subaccount created:", mockSubaccountCode);
@@ -606,6 +633,28 @@ export class PaystackSubaccountService {
 
       if (error) {
         console.error("Supabase function error:", error);
+
+        // Check if this is an edge function deployment issue
+        const isEdgeFunctionError = [
+          "non-2xx status code",
+          "Failed to send a request to the Edge Function",
+          "FunctionsHttpError",
+          "FunctionsFetchError",
+          "404",
+          "Function not found",
+          "NetworkError",
+          "Connection error"
+        ].some(errorType =>
+          error.message?.includes(errorType) ||
+          this.formatError(error).includes(errorType)
+        );
+
+        if (isEdgeFunctionError) {
+          console.warn("Edge function not available, using database fallback");
+          // Fallback to direct database queries
+          return await this.getCompleteSubaccountInfoFallback(session.user.id);
+        }
+
         throw new Error(error.message || "Failed to get subaccount info");
       }
 
@@ -619,6 +668,85 @@ export class PaystackSubaccountService {
       };
     } catch (error) {
       console.error("Error getting complete subaccount info:", error);
+
+      // If main method fails, try fallback
+      if (error.message?.includes("Authentication required")) {
+        return {
+          success: false,
+          error: this.formatError(error),
+        };
+      }
+
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session?.user?.id) {
+          console.log("Attempting database fallback after main method failed");
+          return await this.getCompleteSubaccountInfoFallback(session.user.id);
+        }
+      } catch (fallbackError) {
+        console.error("Fallback also failed:", fallbackError);
+      }
+
+      return {
+        success: false,
+        error: this.formatError(error),
+      };
+    }
+  }
+
+  // 🔄 FALLBACK METHOD FOR DATABASE-ONLY QUERIES
+  private static async getCompleteSubaccountInfoFallback(userId: string): Promise<{
+    success: boolean;
+    data?: {
+      subaccount_code: string;
+      banking_details: any;
+      paystack_data: SubaccountData;
+      profile_preferences: any;
+    };
+    error?: string;
+  }> {
+    try {
+      console.log("Using database fallback for subaccount info");
+
+      // Get profile data
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("subaccount_code, preferences")
+        .eq("id", userId)
+        .single();
+
+      if (profileError || !profileData?.subaccount_code) {
+        return {
+          success: false,
+          error: "No subaccount found for this user",
+        };
+      }
+
+      // Get banking details
+      const { data: bankingData, error: bankingError } = await supabase
+        .from("banking_subaccounts")
+        .select("*")
+        .eq("subaccount_code", profileData.subaccount_code)
+        .single();
+
+      if (bankingError) {
+        console.warn("Banking details not found:", bankingError);
+      }
+
+      return {
+        success: true,
+        data: {
+          subaccount_code: profileData.subaccount_code,
+          banking_details: bankingData || null,
+          paystack_data: bankingData?.paystack_response || null,
+          profile_preferences: profileData.preferences || {},
+        },
+      };
+    } catch (error) {
+      console.error("Database fallback failed:", error);
       return {
         success: false,
         error: this.formatError(error),
@@ -657,7 +785,7 @@ export class PaystackSubaccountService {
       }
 
       // First, check the profile table for subaccount_code
-      console.log("📋 getUserSubaccountStatus: Checking profile table...");
+      console.log("���� getUserSubaccountStatus: Checking profile table...");
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("subaccount_code, preferences")

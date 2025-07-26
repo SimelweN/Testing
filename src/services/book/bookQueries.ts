@@ -12,6 +12,7 @@ import {
   logDatabaseError,
 } from "@/utils/errorUtils";
 import { safeLogError } from "@/utils/errorHandling";
+import { safeLogError as safelog, formatSupabaseError } from "@/utils/safeErrorLogger";
 // Simple retry function to replace the missing connectionHealthCheck
 const retryWithConnection = async <T>(
   operation: () => Promise<T>,
@@ -471,12 +472,10 @@ const getUserBooksWithFallback = async (userId: string): Promise<Book[]> => {
 
     if (booksError) {
       // Log error with proper formatting
-      console.error('getUserBooksWithFallback - books query failed:', {
-        message: booksError.message || 'Unknown error',
+      safelog('getUserBooksWithFallback - books query failed', booksError, {
+        userId,
         code: booksError.code || 'NO_CODE',
-        details: booksError.details || 'No details',
-        hint: booksError.hint || 'No hint',
-        userId
+        hint: booksError.hint || 'No hint'
       });
 
       logDetailedError(
@@ -538,10 +537,9 @@ const getUserBooksWithFallback = async (userId: string): Promise<Book[]> => {
     return mappedBooks;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`[BookQueries] Error in getUserBooksWithFallback:`, {
-      message: errorMessage,
+    safelog('BookQueries - getUserBooksWithFallback', error, {
       userId,
-      error: error instanceof Error ? error.stack : error,
+      errorMessage
     });
 
     // If it's a network error, throw it so retry can handle it

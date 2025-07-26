@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import EmailTemplateDashboard from "@/components/admin/EmailTemplateDashboard";
 import {
   ArrowLeft,
   Play,
@@ -524,10 +525,10 @@ const Developer = () => {
     }
   };
 
-  // Get current test data
-  const getTestBook = () => books.find(b => b.id === selectedBook) || books[0];
-  const getTestBuyer = () => users.find(u => u.id === selectedBuyer) || users[0];
-  const getTestSeller = () => users.find(u => u.id === selectedSeller) || users[0];
+  // Get current test data with proper null checks
+  const getTestBook = () => books.find(b => b && b.id === selectedBook) || (books.length > 0 ? books[0] : null);
+  const getTestBuyer = () => users.find(u => u && u.id === selectedBuyer) || (users.length > 0 ? users[0] : null);
+  const getTestSeller = () => users.find(u => u && u.id === selectedSeller) || (users.length > 0 ? users[0] : null);
 
   // ALL EDGE FUNCTIONS WITH PROPER PAYLOADS
 
@@ -1308,7 +1309,7 @@ const Developer = () => {
         <div className="max-w-6xl mx-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             {/* Navigation Tabs */}
-            <TabsList className="grid grid-cols-3 lg:grid-cols-6 gap-2 h-auto p-1">
+            <TabsList className="grid grid-cols-3 lg:grid-cols-7 gap-2 h-auto p-1">
               <TabsTrigger value="overview" className="flex flex-col items-center p-3">
                 <Bug className="h-4 w-4 mb-1" />
                 <span className="text-xs">Overview</span>
@@ -1333,6 +1334,10 @@ const Developer = () => {
                 <Mail className="h-4 w-4 mb-1" />
                 <span className="text-xs">Email (2)</span>
               </TabsTrigger>
+              <TabsTrigger value="email-templates" className="flex flex-col items-center p-3">
+                <Send className="h-4 w-4 mb-1" />
+                <span className="text-xs">Templates</span>
+              </TabsTrigger>
             </TabsList>
 
             {/* Test Data Selection */}
@@ -1353,11 +1358,13 @@ const Developer = () => {
                         <SelectValue placeholder="Select a book" />
                       </SelectTrigger>
                       <SelectContent>
-                        {books.filter(book => book && book.id).map(book => (
+                        {books && books.length > 0 ? books.filter(book => book && book.id).map(book => (
                           <SelectItem key={book.id} value={book.id}>
                             {book.title} - R{book.price} ({book.seller_name})
                           </SelectItem>
-                        ))}
+                        )) : (
+                          <SelectItem value="loading" disabled>Loading books...</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -1368,11 +1375,13 @@ const Developer = () => {
                         <SelectValue placeholder="Select a buyer" />
                       </SelectTrigger>
                       <SelectContent>
-                        {users.filter(user => user && user.id).map(user => (
+                        {users && users.length > 0 ? users.filter(user => user && user.id).map(user => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.name} ({user.email})
                           </SelectItem>
-                        ))}
+                        )) : (
+                          <SelectItem value="loading" disabled>Loading users...</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -1383,11 +1392,13 @@ const Developer = () => {
                         <SelectValue placeholder="Select a seller" />
                       </SelectTrigger>
                       <SelectContent>
-                        {users.filter(user => user && user.id).map(user => (
+                        {users && users.length > 0 ? users.filter(user => user && user.id).map(user => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.name} ({user.email})
                           </SelectItem>
-                        ))}
+                        )) : (
+                          <SelectItem value="loading" disabled>Loading users...</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -1915,6 +1926,10 @@ const Developer = () => {
                   </Button>
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="email-templates">
+              <EmailTemplateDashboard />
             </TabsContent>
 
             {/* Test Results */}

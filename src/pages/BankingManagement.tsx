@@ -408,7 +408,7 @@ const BankingManagement: React.FC = () => {
                             2
                           </div>
                           <span className="text-green-800">
-                            ReBooked keeps 10% platform fee
+                            ReBooked Marketplace keeps 10% platform fee
                           </span>
                         </div>
                         <div className="flex items-center gap-3">

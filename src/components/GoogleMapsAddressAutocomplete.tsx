@@ -62,6 +62,8 @@ const GoogleMapsAddressAutocomplete: React.FC<
     null,
   );
   const [inputValue, setInputValue] = useState("");
+  const [isLoading, setIsLoading] = useState(!mapsLoaded);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Check if Google Maps is already loaded
   const checkGoogleMapsLoaded = () => {
@@ -79,8 +81,8 @@ const GoogleMapsAddressAutocomplete: React.FC<
       const autocomplete = new window.google.maps.places.Autocomplete(
         inputRef.current,
         {
-          types: ["address"],
-          componentRestrictions: { country: "ZA" }, // South Africa only
+          types: ["geocode"], // only show addresses (like the example)
+          componentRestrictions: { country: "za" }, // restrict to South Africa (lowercase like example)
           fields: ["formatted_address", "geometry", "address_components"],
         },
       );
@@ -90,35 +92,39 @@ const GoogleMapsAddressAutocomplete: React.FC<
       autocomplete.addListener("place_changed", () => {
         const place = autocomplete.getPlace();
 
-        if (!place?.geometry?.location || !place.address_components) {
-          console.warn("Invalid place data");
+        if (!place.geometry) {
+          console.warn("No details available for input: '" + place.name + "'");
           return;
         }
 
-        // Extract address components
+        console.log("Full address:", place.formatted_address);
+
+        // Extract address components (like the example)
         let street = "";
         let city = "";
         let province = "";
         let postalCode = "";
 
-        place.address_components.forEach((component: any) => {
-          const types = component.types;
+        const addressComponents = place.address_components;
+        for (let component of addressComponents) {
+          const type = component.types[0];
+          console.log(type + ": " + component.long_name);
 
-          if (types.includes("street_number")) {
+          if (component.types.includes("street_number")) {
             street = component.long_name + " ";
-          } else if (types.includes("route")) {
+          } else if (component.types.includes("route")) {
             street += component.long_name;
           } else if (
-            types.includes("sublocality") ||
-            types.includes("locality")
+            component.types.includes("sublocality") ||
+            component.types.includes("locality")
           ) {
             city = component.long_name;
-          } else if (types.includes("administrative_area_level_1")) {
+          } else if (component.types.includes("administrative_area_level_1")) {
             province = component.long_name;
-          } else if (types.includes("postal_code")) {
+          } else if (component.types.includes("postal_code")) {
             postalCode = component.long_name;
           }
-        });
+        }
 
         // Validate province is in South Africa
         const normalizedProvince =
@@ -128,6 +134,11 @@ const GoogleMapsAddressAutocomplete: React.FC<
               province.toLowerCase().includes(p.toLowerCase()),
           ) || province;
 
+        // Optional: Store lat/lng (like the example)
+        const location = place.geometry.location;
+        console.log("Latitude:", location.lat());
+        console.log("Longitude:", location.lng());
+
         const addressData: AddressData = {
           formattedAddress: place.formatted_address || "",
           street: street.trim(),
@@ -135,8 +146,8 @@ const GoogleMapsAddressAutocomplete: React.FC<
           province: normalizedProvince,
           postalCode: postalCode || "",
           country: "South Africa",
-          latitude: place.geometry.location.lat(),
-          longitude: place.geometry.location.lng(),
+          latitude: location.lat(),
+          longitude: location.lng(),
         };
 
         setSelectedAddress(addressData);
@@ -185,9 +196,13 @@ const GoogleMapsAddressAutocomplete: React.FC<
   // Initialize Google Maps when context is ready
   useEffect(() => {
     if (mapsLoaded) {
+      setIsLoading(true);
       initializeGoogleMaps();
+    } else if (mapsLoadError) {
+      setIsLoading(false);
+      setLoadError(mapsLoadError.message);
     }
-  }, [mapsLoaded]);
+  }, [mapsLoaded, mapsLoadError]);
 
   const handleRetry = () => {
     // Retry by attempting to initialize again
@@ -219,7 +234,7 @@ const GoogleMapsAddressAutocomplete: React.FC<
     );
   }
 
-  // Show error from context or local error
+  // Show error from context or local error, but fall back to manual input
   const displayError = mapsLoadError?.message || error;
 
   if (displayError) {
@@ -231,23 +246,60 @@ const GoogleMapsAddressAutocomplete: React.FC<
             {label} {required && <span className="text-red-500">*</span>}
           </Label>
         )}
-        <Alert className="border-red-200 bg-red-50">
-          <AlertCircle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-red-800">
-            <div className="flex items-center justify-between">
-              <span>{displayError}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRetry}
-                className="ml-2"
-              >
-                <RefreshCw className="h-3 w-3 mr-1" />
-                Retry
-              </Button>
+
+        {/* Show error but continue with manual input */}
+        <Alert className="border-yellow-200 bg-yellow-50">
+          <AlertCircle className="h-4 w-4 text-yellow-600" />
+          <AlertDescription className="text-yellow-800">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Google Maps unavailable - using manual input</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRetry}
+                  className="ml-2"
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Retry Maps
+                </Button>
+              </div>
             </div>
           </AlertDescription>
         </Alert>
+
+        {/* Manual address input fallback */}
+        <Card>
+          <CardContent className="p-4">
+            <Input
+              ref={inputRef}
+              type="text"
+              placeholder="Enter your full address manually..."
+              value={inputValue}
+              onChange={(e) => {
+                setInputValue(e.target.value);
+                // Create a basic address object from manual input
+                if (e.target.value.trim()) {
+                  const manualAddress: AddressData = {
+                    formattedAddress: e.target.value.trim(),
+                    street: e.target.value.trim(),
+                    city: "",
+                    province: "",
+                    postalCode: "",
+                    country: "South Africa",
+                  };
+                  setSelectedAddress(manualAddress);
+                  onAddressSelect(manualAddress);
+                }
+              }}
+              className={`${error ? "border-red-500" : ""} text-base`}
+              required={required}
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              Please enter your complete address manually (Google Maps is not available)
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
