@@ -140,7 +140,7 @@ export const getUserAddresses = async (userId: string) => {
     return data;
   } catch (error) {
     console.error("Error in getUserAddresses:", {
-      error,
+      error: error instanceof Error ? error.message : String(error),
       userId,
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
