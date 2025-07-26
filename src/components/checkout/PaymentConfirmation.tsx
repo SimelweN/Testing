@@ -183,12 +183,25 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
       margin: 0;
     }
     .container {
-      max-width: 600px;
+      max-width: 500px;
       margin: auto;
       background-color: #ffffff;
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      background-color: #3ab26f;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .link {
+      color: #3ab26f;
     }
     .header {
       background: #3ab26f;
@@ -209,15 +222,55 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
       border-radius: 0 0 10px 10px;
       border-top: 1px solid #e5e7eb;
     }
-    .btn {
-      display: inline-block;
-      padding: 12px 20px;
-      background-color: #3ab26f;
-      color: white;
-      text-decoration: none;
+    .info-box {
+      background: #f3fef7;
+      border: 1px solid #3ab26f;
+      padding: 15px;
       border-radius: 5px;
-      margin-top: 20px;
+      margin: 15px 0;
+    }
+    .info-box-success {
+      background: #f0fdf4;
+      border: 1px solid #10b981;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+    .info-box-warning {
+      background: #fffbeb;
+      border: 1px solid #f59e0b;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+    .total {
       font-weight: bold;
+      font-size: 18px;
+      color: #3ab26f;
+    }
+    .timeline-step {
+      display: flex;
+      align-items: flex-start;
+      margin: 15px 0;
+      padding: 10px 0;
+      border-bottom: 1px dashed #e5e7eb;
+    }
+    .timeline-step:last-child {
+      border-bottom: none;
+    }
+    .step-number {
+      background: #3ab26f;
+      color: white;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 12px;
+      margin-right: 15px;
+      flex-shrink: 0;
     }
     .success-box {
       background: #d1fae5;
