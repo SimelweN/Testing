@@ -1,3 +1,6 @@
+// DISABLED - Locker functionality has been removed system-wide
+// This edge function is no longer deployed or used
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 
