@@ -251,9 +251,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           // Try to load full profile in background (only if we don't have one)
           if (!profile || profile.id !== session.user.id) {
             fetchUserProfileQuick(session.user)
-              .then((userProfile) => {
+              .then(async (userProfile) => {
                 if (userProfile && userProfile.id === session.user?.id) {
                   setProfile(userProfile);
+
+                  // Check if this is a first-time login (profile exists but no welcome email sent)
+                  // We'll use a simple heuristic: if profile was created recently (within 24 hours)
+                  // and user is logging in, send welcome email
+                  try {
+                    const profileCreatedAt = new Date(userProfile.id); // UUID v4 has timestamp embedded
+                    const now = new Date();
+                    const hoursSinceCreation = (now.getTime() - profileCreatedAt.getTime()) / (1000 * 60 * 60);
+
+                    // If profile created within last 24 hours, likely first login after verification
+                    if (hoursSinceCreation <= 24) {
+                      console.log("🎉 Detected first login after verification, sending welcome email");
+
+                      // Import email service dynamically
+                      const { emailService } = await import("@/services/emailService");
+
+                      await emailService.sendWelcomeEmail(session.user.email!, {
+                        userName: userProfile.name,
+                        loginUrl: `${window.location.origin}/profile`
+                      });
+
+                      console.log("✅ Welcome email sent to verified user");
+                    }
+                  } catch (welcomeError) {
+                    console.warn("⚠️ Welcome email failed (non-critical):", welcomeError);
+                    // Don't fail the login process for email issues
+                  }
                 }
               })
               .catch((error) => {
