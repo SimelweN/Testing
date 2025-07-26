@@ -283,7 +283,7 @@ const ActivityLog = () => {
           )}
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 mb-8 bg-white/60 backdrop-blur-sm">
+            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7 mb-8 bg-white/60 backdrop-blur-sm">
               <TabsTrigger value="overview" className="text-xs sm:text-sm">
                 <TrendingUp className="h-4 w-4 mr-1" />
                 Overview
@@ -299,6 +299,14 @@ const ActivityLog = () => {
               <TabsTrigger value="notifications" className="text-xs sm:text-sm">
                 <Bell className="h-4 w-4 mr-1" />
                 Alerts
+              </TabsTrigger>
+              <TabsTrigger value="sales" className="text-xs sm:text-sm">
+                <Check className="h-4 w-4 mr-1" />
+                Sales
+              </TabsTrigger>
+              <TabsTrigger value="listings" className="text-xs sm:text-sm">
+                <BookIcon className="h-4 w-4 mr-1" />
+                Listings
               </TabsTrigger>
               <TabsTrigger value="purchases" className="text-xs sm:text-sm">
                 <ShoppingCart className="h-4 w-4 mr-1" />
