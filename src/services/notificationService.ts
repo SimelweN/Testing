@@ -79,13 +79,24 @@ export const getNotifications = async (
           }, 4000),
         );
 
-        const queryPromise = supabase
-          .from("notifications")
-          .select("*")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(50) // Limit to 50 notifications for performance
-          .abortSignal(currentFetchController?.signal);
+        let queryPromise;
+        if (currentFetchController?.signal) {
+          queryPromise = supabase
+            .from("notifications")
+            .select("*")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(50) // Limit to 50 notifications for performance
+            .abortSignal(currentFetchController.signal);
+        } else {
+          // Fallback without AbortController
+          queryPromise = supabase
+            .from("notifications")
+            .select("*")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(50);
+        }
 
         return await Promise.race([queryPromise, timeoutPromise]);
       },
