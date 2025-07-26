@@ -271,10 +271,22 @@ export class PaystackSubaccountService {
                 JSON.stringify(dbError, null, 2),
               );
 
-              // Since we now know the exact schema, this shouldn't fail
-              // But if it does, provide helpful error information
-              const errorMsg = this.formatError(dbError);
-              throw new Error(`Failed to create mock subaccount: ${errorMsg}`);
+              // Provide specific error messages for common database issues
+              let errorMsg = this.formatError(dbError);
+
+              if (dbError.code === "23505") {
+                errorMsg = "Banking details already exist for this user. Please update instead of creating new.";
+              } else if (dbError.code === "23502") {
+                errorMsg = "Required banking information is missing. Please fill in all required fields.";
+              } else if (dbError.code === "42P01") {
+                errorMsg = "Banking system is being set up. Please try again in a few minutes.";
+              } else if (dbError.message?.includes("duplicate key")) {
+                errorMsg = "These banking details are already registered. Please use different details or update existing ones.";
+              } else if (dbError.message?.includes("permission denied")) {
+                errorMsg = "Permission error accessing banking system. Please log out and log back in.";
+              }
+
+              throw new Error(`Failed to create subaccount: ${errorMsg}`);
             }
 
             console.log("✅ Mock subaccount created:", mockSubaccountCode);
@@ -668,7 +680,7 @@ export class PaystackSubaccountService {
       }
 
       // First, check the profile table for subaccount_code
-      console.log("📋 getUserSubaccountStatus: Checking profile table...");
+      console.log("���� getUserSubaccountStatus: Checking profile table...");
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("subaccount_code, preferences")
