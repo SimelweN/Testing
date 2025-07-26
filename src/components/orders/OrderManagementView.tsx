@@ -78,7 +78,30 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
         return;
       }
 
-      setOrders(data || []);
+      // Filter out test/demo data
+      const realOrders = (data || []).filter(order => {
+        // Filter out orders with test/demo indicators
+        const testIndicators = [
+          'unknown book',
+          'test book',
+          'demo book',
+          'sample book',
+          'test order',
+          'demo order'
+        ];
+
+        const hasTestTitle = testIndicators.some(indicator =>
+          order.book_title?.toLowerCase().includes(indicator)
+        );
+
+        // Also filter out orders with no book title
+        const hasValidTitle = order.book_title && order.book_title.trim().length > 0;
+
+        return hasValidTitle && !hasTestTitle;
+      });
+
+      console.log(`🧹 Filtered ${(data?.length || 0) - realOrders.length} test/demo orders`);
+      setOrders(realOrders);
     } catch (error) {
       logError("Error fetching orders (catch block)", error);
 
