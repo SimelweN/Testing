@@ -389,112 +389,20 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <RadioGroup 
-                value={deliveryMethod} 
-                onValueChange={(value) => setDeliveryMethod(value as "home" | "locker")}
-                className="space-y-4"
-              >
-                {/* Home Pick-Up Option */}
-                <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50">
-                  <RadioGroupItem value="home" id="home-pickup" className="mt-1" />
+              {/* SIMPLIFIED - Only home delivery available, locker functionality disabled */}
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3 p-4 border rounded-lg bg-blue-50 border-blue-200">
                   <div className="flex-1">
-                    <Label htmlFor="home-pickup" className="flex items-center gap-2 font-medium cursor-pointer">
+                    <Label className="flex items-center gap-2 font-medium">
                       <Home className="w-4 h-4" />
-                      Home Pick-Up (Standard)
+                      Home Pick-Up (Courier Collection)
                     </Label>
                     <p className="text-sm text-gray-600 mt-1">
-                      Courier will collect from your address. Traditional pickup service.
+                      Our courier will collect the book from your address at a scheduled time.
                     </p>
                   </div>
                 </div>
-
-                {/* Locker Drop-Off Option */}
-                <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50 relative">
-                  <RadioGroupItem value="locker" id="locker-dropoff" className="mt-1" />
-                  <div className="flex-1">
-                    <Label htmlFor="locker-dropoff" className="flex items-center gap-2 font-medium cursor-pointer">
-                      <Package className="w-4 h-4" />
-                      Locker Drop-Off 
-                      <Badge className="bg-green-100 text-green-800 text-xs">
-                        💰 Earlier Payment
-                      </Badge>
-                    </Label>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Drop off at a secure locker location. Faster and more reliable.
-                    </p>
-                    
-                    {/* Incentive Info */}
-                    <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
-                      <div className="flex items-start gap-2">
-                        <DollarSign className="w-4 h-4 text-green-600 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-green-800">
-                            Get paid earlier when using locker drop-off.
-                          </p>
-                          <div className="flex items-center gap-1 mt-1">
-                            <Info className="w-3 h-3 text-green-600" />
-                            <p className="text-xs text-green-700">
-                              Locker shipments are faster and more reliable. Payments are processed earlier.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </RadioGroup>
-
-              {/* Locker Selection */}
-              {deliveryMethod === "locker" && (
-                <div className="mt-4 p-4 border rounded-lg bg-blue-50">
-                  <Label className="text-sm font-medium mb-2 block">
-                    Select a Locker Location
-                  </Label>
-                  
-                  {loadingLockers ? (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Loading locker locations...
-                    </div>
-                  ) : (
-                    <Select 
-                      value={selectedLockerId} 
-                      onValueChange={setSelectedLockerId}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a locker near you" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {lockers.map((locker) => (
-                          <SelectItem key={locker.id} value={locker.id}>
-                            <div className="text-left">
-                              <div className="font-medium">{locker.name}</div>
-                              <div className="text-sm text-gray-600">
-                                {locker.city} • {locker.opening_hours || 'Mon-Sun: 24/7'}
-                              </div>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                  
-                  {selectedLockerId && (
-                    <div className="mt-3 p-3 bg-white border rounded text-sm">
-                      <div className="flex items-center gap-2 mb-2">
-                        <QrCode className="w-4 h-4 text-blue-600" />
-                        <span className="font-medium">What happens next:</span>
-                      </div>
-                      <ul className="text-gray-700 space-y-1 ml-6">
-                        <li>• You'll receive a QR code and drop-off instructions via email</li>
-                        <li>• Drop off your package at the selected locker using the QR code</li>
-                        <li>• Payment will be processed earlier than standard pickup</li>
-                        <li>• Tracking updates will be sent automatically</li>
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
+              </div>
             </CardContent>
           </Card>
 
@@ -504,28 +412,17 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
               What happens after commitment:
             </h4>
             <ul className="text-sm text-blue-700 space-y-1">
-              {deliveryMethod === "locker" ? (
-                <>
-                  <li>• QR code and drop-off instructions sent to your email</li>
-                  <li>• Drop off at selected locker within 24 hours</li>
-                  <li>• Automatic tracking and buyer notifications</li>
-                  <li>• Payment processed earlier than standard</li>
-                </>
-              ) : (
-                <>
-                  <li>• Courier pickup will be automatically scheduled</li>
-                  <li>• You'll receive pickup details via email</li>
-                  <li>• You must be available during pickup time window</li>
-                  <li>• Standard payment processing timeline</li>
-                </>
-              )}
+              <li>• Courier pickup will be automatically scheduled</li>
+              <li>• You'll receive pickup details via email</li>
+              <li>• You must be available during pickup time window</li>
+              <li>• Standard payment processing timeline</li>
             </ul>
           </div>
 
           <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
             <p className="text-sm text-amber-700">
               <strong>Important:</strong> Once committed, you are obligated to fulfill this order. 
-              Failure to complete the {deliveryMethod === "locker" ? "drop-off" : "pickup"} may result in penalties.
+              Failure to complete the pickup may result in penalties.
             </p>
           </div>
         </div>
@@ -545,7 +442,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
             ) : (
               <>
                 <CheckCircle className="w-4 w-4 mr-2" />
-                {deliveryMethod === "locker" ? "Commit with Locker Drop-Off" : "Commit with Home Pick-Up"}
+                Commit with Home Pick-Up
               </>
             )}
           </AlertDialogAction>
