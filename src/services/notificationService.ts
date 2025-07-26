@@ -63,7 +63,7 @@ export const getNotifications = async (
         // Create timeout promise
         const timeoutPromise = new Promise<never>((_, reject) =>
           setTimeout(() => {
-            if (currentFetchController) {
+            if (currentFetchController && !currentFetchController.signal.aborted) {
               currentFetchController.abort();
             }
             reject(new Error("Request timeout"));
