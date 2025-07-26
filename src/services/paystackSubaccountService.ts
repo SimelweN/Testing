@@ -134,7 +134,7 @@ export class PaystackSubaccountService {
         hasRecipientCode: !!data?.recipient_code
       });
 
-      // Check for edge function not deployed/available (development mode)
+      // Check for edge function not deployed/available
       if (error) {
         console.error("🚨 Edge function error occurred:");
         console.error("- Error object:", error);
@@ -162,6 +162,8 @@ export class PaystackSubaccountService {
           "Function not found",
           "FunctionsError",
           "FunctionsHttpError",
+          "FunctionsFetchError",
+          "Failed to send a request to the Edge Function",
           "fetch",
           "NetworkError",
           "Failed to invoke function",
@@ -174,8 +176,8 @@ export class PaystackSubaccountService {
         );
 
         if (isEdgeFunctionError) {
-          console.warn("🔧 Edge function not available, using development fallback");
-          throw new Error("non-2xx status code"); // This will trigger the development fallback below
+          console.warn("🔧 Edge function not available, using fallback mode");
+          throw new Error("edge-function-unavailable"); // This will trigger the fallback below
         }
       }
 
@@ -765,7 +767,7 @@ export class PaystackSubaccountService {
 
       if (!userId) {
         console.log(
-          "📝 getUserSubaccountStatus: No userId provided, getting from auth...",
+          "��� getUserSubaccountStatus: No userId provided, getting from auth...",
         );
         const {
           data: { user },
