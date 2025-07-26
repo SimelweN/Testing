@@ -314,7 +314,7 @@ const ActivityLog = () => {
                         <p className="text-blue-700 text-sm font-medium">Total Activity</p>
                         <p className="text-2xl font-bold text-blue-900">{summary.total}</p>
                       </div>
-                      <Activity className="h-8 w-8 text-blue-600" />
+                      <ActivityIcon className="h-8 w-8 text-blue-600" />
                     </div>
                   </CardContent>
                 </Card>
