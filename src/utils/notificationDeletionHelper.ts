@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { deleteMultipleNotifications } from "@/services/notificationService";
+import { supabase } from "@/lib/supabase";
 
 /**
  * Safe wrapper for deleting notifications with user-friendly error handling
