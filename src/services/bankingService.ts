@@ -40,12 +40,30 @@ export class BankingService {
         .single();
 
       if (error) {
-        // No record found is expected for users without banking setup
+        // No active record found - let's check for any record
         if (error.code === "PGRST116") {
-          console.log(
-            "No banking details found for user - this is normal for new users",
-          );
-          return null;
+          console.log("No active banking record found, checking for any record...");
+
+          // Try to get any banking record (regardless of status)
+          const { data: anyRecord, error: anyError } = await supabase
+            .from("banking_subaccounts")
+            .select("*")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single();
+
+          if (anyError) {
+            if (anyError.code === "PGRST116") {
+              console.log("No banking details found for user - this is normal for new users");
+              return null;
+            }
+            console.error("Error fetching any banking record:", anyError);
+            return null;
+          }
+
+          console.log("🔍 Found banking record with status:", anyRecord?.status);
+          return anyRecord;
         }
 
         // Check if table doesn't exist
