@@ -77,12 +77,12 @@ export class ApiErrorHandler {
       details: error.details
     };
 
-    console.error(`[ApiErrorHandler] Error in ${context}:`, {
+    console.error(`[ApiErrorHandler] Error in ${context}:`, JSON.stringify({
       code: errorDetails.code,
       message: errorDetails.message,
       statusCode: errorDetails.statusCode,
       hint: errorDetails.hint
-    });
+    }, null, 2));
 
     // Determine if this is a retry-able error
     const needsRetry = this.isRetryableError(errorDetails);
