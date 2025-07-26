@@ -590,13 +590,24 @@ export class BankingService {
 
       return status;
     } catch (error) {
-      console.error("Error checking banking requirements:", error);
+      console.error("Error checking banking requirements:", JSON.stringify(error, null, 2));
+
+      // Provide more specific error messages based on error type
+      let missingRequirements = ["Unable to verify requirements"];
+      if (error instanceof Error) {
+        if (error.message?.includes("Connection error")) {
+          missingRequirements = ["Connection error - please check your internet and try again"];
+        } else if (error.message?.includes("Banking system not properly configured")) {
+          missingRequirements = ["Banking system not available - please contact support"];
+        }
+      }
+
       return {
         hasBankingInfo: false,
         hasPickupAddress: false,
         isVerified: false,
         canListBooks: false,
-        missingRequirements: ["Unable to verify requirements"],
+        missingRequirements,
       };
     }
   }
