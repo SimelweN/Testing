@@ -52,7 +52,8 @@ export async function safeParseBody<T = any>(req: Request): Promise<SafeBodyResu
     };
 
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const { getErrorMessage } = await import('./error-utils.ts');
+    const errorMessage = getErrorMessage(error);
     
     console.error(`❌ Body parsing failed:`, {
       error: errorMessage,

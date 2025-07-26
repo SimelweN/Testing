@@ -113,7 +113,7 @@ serve(async (req) => {
       .eq("id", book_id)
       .eq("seller_id", seller_id)
       .eq("sold", false)
-      .single();
+      .maybeSingle();
 
     if (bookError || !book) {
       console.error('❌ Book not available:', bookError?.message);
@@ -151,8 +151,8 @@ serve(async (req) => {
     // Get buyer and seller profiles
     console.log('👥 Fetching user profiles...');
     const [{ data: buyer, error: buyerError }, { data: seller, error: sellerError }] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", buyer_id).single(),
-      supabase.from("profiles").select("*").eq("id", seller_id).single()
+      supabase.from("profiles").select("*").eq("id", buyer_id).maybeSingle(),
+      supabase.from("profiles").select("*").eq("id", seller_id).maybeSingle()
     ]);
 
     if (buyerError || !buyer) {
@@ -252,7 +252,7 @@ serve(async (req) => {
         }
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (orderError) {
       console.error('❌ Order creation failed:', orderError.message);
@@ -332,32 +332,22 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('❌ Error in process-book-purchase:', error);
-    console.error('❌ Error type:', typeof error);
-    console.error('❌ Error constructor:', error?.constructor?.name);
-    console.error('❌ Error message:', error?.message);
-    console.error('❌ Error stack:', error?.stack);
+    // Import and use the proper error utilities
+    const { createErrorDetails, logError } = await import('../_shared/error-utils.ts');
 
-    // Extract a meaningful error message
-    let errorMessage = "Unknown internal server error";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    } else if (typeof error === 'string') {
-      errorMessage = error;
-    } else if (error && typeof error === 'object') {
-      errorMessage = error.message || error.details || error.hint || String(error);
-    }
+    // Log error safely with consistent formatting
+    logError('process-book-purchase', error);
+
+    // Create comprehensive error details
+    const errorDetails = createErrorDetails(error, 'process-book-purchase');
 
     return jsonResponse({
       success: false,
       error: "INTERNAL_SERVER_ERROR",
       details: {
-        error_message: errorMessage,
-        error_type: typeof error,
-        error_constructor: error?.constructor?.name,
+        ...errorDetails,
         timestamp: new Date().toISOString(),
         debug_info: {
-          full_error: String(error),
           request_processing_failed: true
         }
       },

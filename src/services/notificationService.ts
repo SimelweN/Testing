@@ -375,20 +375,45 @@ export const deleteMultipleNotifications = async (
 ): Promise<void> => {
   if (notificationIds.length === 0) return;
 
+  // Create abort controller for this deletion request
+  const deleteController = new AbortController();
+
   try {
-    const { error } = await supabase
+    // Create timeout promise
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => {
+        deleteController.abort();
+        reject(new Error("Delete request timeout - please try again"));
+      }, 8000), // Longer timeout for delete operations
+    );
+
+    const deletePromise = supabase
       .from("notifications")
       .delete()
-      .in("id", notificationIds);
+      .in("id", notificationIds)
+      .abortSignal(deleteController.signal);
+
+    const { error } = await Promise.race([deletePromise, timeoutPromise]);
 
     if (error) {
       console.error("Error deleting multiple notifications:", error);
-      throw error;
+      throw new Error(`Failed to delete notifications: ${error.message || 'Unknown error'}`);
     }
 
     notificationCache.clear();
+    console.log(`✅ Successfully deleted ${notificationIds.length} notifications`);
   } catch (error) {
     console.error("Error in deleteMultipleNotifications:", error);
+
+    // Provide user-friendly error messages
+    if (error instanceof Error) {
+      if (error.name === 'AbortError' || error.message.includes('timeout')) {
+        throw new Error("Delete operation timed out. Please try again or delete fewer notifications at once.");
+      } else if (error.message.includes('Failed to fetch')) {
+        throw new Error("Network error. Please check your connection and try again.");
+      }
+    }
+
     throw error;
   }
 };

@@ -1,816 +1,833 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Layout from "@/components/Layout";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ActivityService, Activity } from "@/services/activityService";
-import { useCommit } from "@/hooks/useCommit";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
 import {
-  ArrowLeft,
-  Check,
+  Activity,
   Clock,
-  ShoppingCart,
-  Star,
-  BookIcon,
-  HeartIcon,
-  User,
-  Search,
-  Eye,
-  Edit,
-  Trash2,
-  LogIn,
-  AlertCircle,
-  RefreshCw,
+  ShoppingBag,
   Package,
+  CreditCard,
+  User,
+  Calendar,
   TrendingUp,
-  X,
+  RefreshCw,
+  Filter,
+  Search,
+  Truck,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
   Bell,
+  MessageSquare,
+  Edit,
+  BookOpen,
+  MapPin,
+  Timer,
+  Eye,
+  DollarSign,
+  Star,
+  FileText,
+  Home,
+  Building,
+  ArrowLeft
 } from "lucide-react";
-import OrderManagementView from "@/components/orders/OrderManagementView";
-import OrderNotificationSystem from "@/components/notifications/OrderNotificationSystem";
-import EnhancedOrderCommitButton from "@/components/orders/EnhancedOrderCommitButton";
-import { clearAllTestData, clearAllUserData, clearAllData } from "@/utils/clearTestData";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+import Layout from "@/components/Layout";
 
-const ActivityLog = () => {
-  const { user, profile } = useAuth();
+interface Order {
+  id: string;
+  status: string;
+  total_price: number;
+  created_at: string;
+  updated_at: string;
+  buyer_id: string;
+  seller_id: string;
+  shipping_method: string;
+  tracking_number?: string;
+  courier_reference?: string;
+  buyer_address: any;
+  committed_at?: string;
+  book: {
+    title: string;
+    author: string;
+    price: number;
+    images?: string[];
+  };
+  seller: {
+    name: string;
+    email: string;
+  };
+}
+
+interface Commit {
+  id: string;
+  order_id: string;
+  seller_id: string;
+  buyer_id: string;
+  status: string;
+  committed_at: string;
+  expires_at: string;
+  created_at: string;
+  order: {
+    id: string;
+    total_price: number;
+    status: string;
+    book: {
+      title: string;
+      author: string;
+      price: number;
+    };
+    buyer: {
+      name: string;
+      email: string;
+    };
+  };
+}
+
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  created_at: string;
+  is_read: boolean;
+  user_id: string;
+  metadata?: any;
+}
+
+interface ActivityItem {
+  id: string;
+  type: 'order' | 'listing' | 'message' | 'edit' | 'notification' | 'commit';
+  title: string;
+  description: string;
+  timestamp: string;
+  status: string;
+  amount?: number;
+  metadata?: any;
+  icon: React.ReactNode;
+}
+
+const ActivityLog: React.FC = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const {
-    commitBook,
-    declineBook,
-    pendingCommits,
-    refreshPendingCommits,
-    isCommitting,
-    isDeclining,
-  } = useCommit();
-  const [activeTab, setActiveTab] = useState("orders");
-  const [activities, setActivities] = useState<Activity[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [commits, setCommits] = useState<Commit[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const loadActivities = useCallback(async () => {
-    if (!user) {
-      setIsLoading(false);
-      setActivities([]);
-      return;
-    }
-
+  // Load all user data
+  const loadUserData = async () => {
+    if (!user) return;
+    
     setIsLoading(true);
-    setError(null);
-
     try {
-      console.log("Loading activities for user:", user.id);
-      const userActivities = await ActivityService.getUserActivities(
-        user.id,
-        100,
+      // Load orders (both as buyer and seller)
+      const [buyerOrdersRes, sellerOrdersRes] = await Promise.all([
+        supabase
+          .from('orders')
+          .select(`
+            *,
+            book:books(*),
+            seller:profiles!seller_id(name, email)
+          `)
+          .eq('buyer_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('orders')
+          .select(`
+            *,
+            book:books(*),
+            buyer:profiles!buyer_id(name, email)
+          `)
+          .eq('seller_id', user.id)
+          .order('created_at', { ascending: false })
+      ]);
+
+      // Load commits (as seller)
+      const commitsRes = await supabase
+        .from('sale_commitments')
+        .select(`
+          *,
+          order:orders(
+            id,
+            total_price,
+            status,
+            book:books(title, author, price),
+            buyer:profiles!buyer_id(name, email)
+          )
+        `)
+        .eq('seller_id', user.id)
+        .order('created_at', { ascending: false });
+
+      // Load notifications
+      const notificationsRes = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      // Process and combine data
+      const allOrders = [
+        ...(buyerOrdersRes.data || []),
+        ...(sellerOrdersRes.data || [])
+      ];
+
+      setOrders(allOrders);
+      setCommits(commitsRes.data || []);
+      setNotifications(notificationsRes.data || []);
+
+      // Generate activity timeline
+      generateActivityTimeline(
+        allOrders,
+        commitsRes.data || [],
+        notificationsRes.data || []
       );
 
-      console.log("Loaded activities:", userActivities.length);
-      setActivities(userActivities);
-
-      if (userActivities.length === 0) {
-        console.log("No activities found, but this is expected for new users");
-      }
     } catch (error) {
-      console.error("Error loading activities:", error);
-      setError("Failed to load activities. Please try again.");
-      // Don't clear activities on error - keep any existing data
+      console.error('Error loading user data:', error);
+      toast.error('Failed to load activity data');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Generate comprehensive activity timeline
+  const generateActivityTimeline = (
+    orders: Order[],
+    commits: Commit[],
+    notifications: Notification[]
+  ) => {
+    const timeline: ActivityItem[] = [];
+
+    // Add order activities
+    orders.forEach(order => {
+      const isAsBuyer = order.buyer_id === user?.id;
+      
+      timeline.push({
+        id: `order-${order.id}`,
+        type: 'order',
+        title: isAsBuyer ? 'Book Purchase' : 'Book Sale',
+        description: `${order.book?.title} by ${order.book?.author} - R${order.total_price}`,
+        timestamp: order.created_at,
+        status: order.status,
+        amount: order.total_price,
+        metadata: { order, isAsBuyer },
+        icon: isAsBuyer ? <ShoppingBag className="w-4 h-4" /> : <Package className="w-4 h-4" />
+      });
+
+      // Add status updates for orders
+      if (order.committed_at) {
+        timeline.push({
+          id: `commit-${order.id}`,
+          type: 'commit',
+          title: isAsBuyer ? 'Seller Committed' : 'Order Committed',
+          description: `${order.book?.title} - Order confirmed`,
+          timestamp: order.committed_at,
+          status: 'completed',
+          metadata: { order, isAsBuyer },
+          icon: <CheckCircle className="w-4 h-4" />
+        });
+      }
+    });
+
+    // Add commit activities
+    commits.forEach(commit => {
+      timeline.push({
+        id: `sale-commit-${commit.id}`,
+        type: 'commit',
+        title: 'Sale Commitment',
+        description: `${commit.order?.book?.title} - Committed to ${commit.order?.buyer?.name}`,
+        timestamp: commit.committed_at || commit.created_at,
+        status: commit.status,
+        amount: commit.order?.total_price,
+        metadata: { commit },
+        icon: <FileText className="w-4 h-4" />
+      });
+    });
+
+    // Add notification activities
+    notifications.forEach(notification => {
+      timeline.push({
+        id: `notification-${notification.id}`,
+        type: 'notification',
+        title: notification.title || 'Notification',
+        description: notification.message,
+        timestamp: notification.created_at,
+        status: notification.is_read ? 'read' : 'unread',
+        metadata: { notification },
+        icon: <Bell className="w-4 h-4" />
+      });
+    });
+
+    // Sort by timestamp (newest first)
+    timeline.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+    setActivities(timeline);
+  };
+
+  useEffect(() => {
+    loadUserData();
   }, [user]);
 
-  const handleClearTestData = async () => {
-    const confirmClear = window.confirm(
-      "This will permanently delete all test/demo data including 'Unknown Book' orders. Are you sure?"
+  // Filter activities
+  const filteredActivities = activities.filter(activity => {
+    const matchesSearch = searchTerm === '' || 
+      activity.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      activity.description.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
+
+  const getStatusBadge = (status: string, type: string) => {
+    const statusConfig = {
+      'pending_commit': { color: 'bg-yellow-100 text-yellow-800', label: 'Pending', icon: <Clock className="w-3 h-3" /> },
+      'committed': { color: 'bg-blue-100 text-blue-800', label: 'Committed', icon: <CheckCircle className="w-3 h-3" /> },
+      'shipped': { color: 'bg-purple-100 text-purple-800', label: 'Shipped', icon: <Truck className="w-3 h-3" /> },
+      'delivered': { color: 'bg-green-100 text-green-800', label: 'Delivered', icon: <CheckCircle className="w-3 h-3" /> },
+      'cancelled': { color: 'bg-red-100 text-red-800', label: 'Cancelled', icon: <XCircle className="w-3 h-3" /> },
+      'completed': { color: 'bg-green-100 text-green-800', label: 'Completed', icon: <CheckCircle className="w-3 h-3" /> },
+      'read': { color: 'bg-gray-100 text-gray-800', label: 'Read', icon: <Eye className="w-3 h-3" /> },
+      'unread': { color: 'bg-blue-100 text-blue-800', label: 'Unread', icon: <AlertCircle className="w-3 h-3" /> },
+    };
+
+    const config = statusConfig[status as keyof typeof statusConfig] || 
+      { color: 'bg-gray-100 text-gray-800', label: status, icon: <AlertCircle className="w-3 h-3" /> };
+
+    return (
+      <Badge variant="outline" className={config.color}>
+        {config.icon}
+        <span className="ml-1">{config.label}</span>
+      </Badge>
     );
-
-    if (!confirmClear) return;
-
-    const success = await clearAllTestData();
-    if (success) {
-      // Reload activities after clearing
-      await loadActivities();
-      // Also refresh pending commits
-      refreshPendingCommits().catch(console.error);
-    }
   };
 
-  const handleClearAllUserData = async () => {
-    if (!user) return;
-
-    const confirmClear = window.confirm(
-      "⚠️ WARNING: This will permanently delete ALL your orders and notifications. This cannot be undone. Are you absolutely sure?"
-    );
-
-    if (!confirmClear) return;
-
-    const doubleConfirm = window.confirm(
-      "This is your final warning. All your data will be permanently deleted. Continue?"
-    );
-
-    if (!doubleConfirm) return;
-
-    const success = await clearAllUserData(user.id);
-    if (success) {
-      // Reload activities after clearing
-      await loadActivities();
-      // Also refresh pending commits
-      refreshPendingCommits().catch(console.error);
-    }
-  };
-
-  useEffect(() => {
-    loadActivities();
-  }, [user, loadActivities]);
-
-  useEffect(() => {
-    if (user) {
-      // Auto-clear all activity data on load
-      clearAllData().then(() => {
-        console.log("✅ Activity data cleared automatically");
-        // Reload activities after clearing
-        loadActivities();
-      }).catch((error) => {
-        console.warn("Could not clear activity data:", error);
-      });
-
-      // Safely attempt to refresh pending commits
-      refreshPendingCommits().catch((error) => {
-        console.warn("Could not load pending commits:", error);
-        // Silently fail to prevent UI crashes
-      });
-    }
-  }, [user, refreshPendingCommits]);
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case "purchase":
-        return <ShoppingCart className="h-5 w-5 text-blue-500" />;
-      case "sale":
-        return <Check className="h-5 w-5 text-green-500" />;
-      case "wishlist_added":
-      case "wishlist_removed":
-        return <HeartIcon className="h-5 w-5 text-red-500" />;
-      case "rating_given":
-      case "rating_received":
-        return <Star className="h-5 w-5 text-yellow-500" />;
-      case "listing_created":
-      case "listing_updated":
-      case "listing_deleted":
-        return <BookIcon className="h-5 w-5 text-purple-500" />;
-      case "book_viewed":
-        return <Eye className="h-5 w-5 text-gray-500" />;
-      case "search":
-        return <Search className="h-5 w-5 text-blue-400" />;
-      case "profile_updated":
-        return <User className="h-5 w-5 text-indigo-500" />;
-      case "login":
-        return <LogIn className="h-5 w-5 text-green-600" />;
-      default:
-        return <Clock className="h-5 w-5 text-gray-500" />;
-    }
-  };
-
-  const getStatusBadge = (activity: Activity) => {
-    switch (activity.type) {
-      case "purchase":
-      case "sale":
-        return (
-          <Badge className="bg-green-100 text-green-800 border-green-200">
-            Completed
-          </Badge>
-        );
-      case "listing_created":
-        return (
-          <Badge className="bg-blue-100 text-blue-800 border-blue-200">
-            Active
-          </Badge>
-        );
-      case "listing_deleted":
-        return (
-          <Badge className="bg-gray-100 text-gray-800 border-gray-200">
-            Removed
-          </Badge>
-        );
-      case "wishlist_added":
-        return (
-          <Badge className="bg-red-100 text-red-800 border-red-200">
-            Watching
-          </Badge>
-        );
-      case "login":
-        return (
-          <Badge className="bg-green-100 text-green-800 border-green-200">
-            Session
-          </Badge>
-        );
-      default:
-        return null;
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-
-    if (diffMinutes < 1) {
-      return "Just now";
-    } else if (diffMinutes < 60) {
-      return `${diffMinutes} minute${diffMinutes > 1 ? "s" : ""} ago`;
-    } else if (diffHours < 24) {
-      return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-    } else if (diffDays < 7) {
-      return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
-    } else {
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    }
+    const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffHours < 1) return 'Just now';
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffHours < 168) return `${Math.floor(diffHours / 24)}d ago`;
+    return date.toLocaleDateString();
   };
 
-  const getActivityTypeLabel = (type: string) => {
-    switch (type) {
-      case "purchase":
-        return "Purchases";
-      case "sale":
-        return "Sales";
-      case "listing_created":
-        return "Listings";
-      case "listing_updated":
-        return "Listings";
-      case "listing_deleted":
-        return "Listings";
-      case "wishlist_added":
-        return "Wishlist";
-      case "wishlist_removed":
-        return "Wishlist";
-      case "rating_given":
-        return "Ratings";
-      case "rating_received":
-        return "Ratings";
-      case "book_viewed":
-        return "Views";
-      case "search":
-        return "Searches";
-      case "profile_updated":
-        return "Profile";
-      case "login":
-        return "Sessions";
-      default:
-        return "Other";
-    }
+  const getDeliveryTimeline = (order: Order) => {
+    const steps = [
+      { 
+        key: 'ordered', 
+        label: 'Order Placed', 
+        completed: true, 
+        timestamp: order.created_at,
+        icon: <ShoppingBag className="w-4 h-4" />
+      },
+      { 
+        key: 'committed', 
+        label: 'Seller Committed', 
+        completed: !!order.committed_at, 
+        timestamp: order.committed_at,
+        icon: <CheckCircle className="w-4 h-4" />
+      },
+      { 
+        key: 'collected', 
+        label: 'Collected', 
+        completed: order.status === 'shipped' || order.status === 'delivered', 
+        timestamp: order.status === 'shipped' ? order.updated_at : null,
+        icon: <Package className="w-4 h-4" />
+      },
+      { 
+        key: 'in_transit', 
+        label: 'In Transit', 
+        completed: order.status === 'shipped' || order.status === 'delivered', 
+        timestamp: order.status === 'shipped' ? order.updated_at : null,
+        icon: <Truck className="w-4 h-4" />
+      },
+      { 
+        key: 'delivered', 
+        label: 'Delivered', 
+        completed: order.status === 'delivered', 
+        timestamp: order.status === 'delivered' ? order.updated_at : null,
+        icon: <Home className="w-4 h-4" />
+      }
+    ];
+
+    return steps;
   };
 
-  const filteredActivities =
-    activeTab === "all"
-      ? activities
-      : activities.filter((activity) => {
-          switch (activeTab) {
-            case "purchases":
-              return activity.type === "purchase";
-            case "sales":
-              return activity.type === "sale";
-            case "listings":
-              return [
-                "listing_created",
-                "listing_updated",
-                "listing_deleted",
-              ].includes(activity.type);
-            case "social":
-              return [
-                "rating_given",
-                "rating_received",
-                "wishlist_added",
-                "wishlist_removed",
-              ].includes(activity.type);
-            default:
-              return true;
-          }
-        });
+  const OrderTimeline: React.FC<{ order: Order }> = ({ order }) => {
+    const timeline = getDeliveryTimeline(order);
+    
+    return (
+      <div className="space-y-3">
+        {timeline.map((step, index) => (
+          <div key={step.key} className="flex items-center space-x-3">
+            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+              step.completed 
+                ? 'bg-green-100 text-green-600' 
+                : 'bg-gray-100 text-gray-400'
+            }`}>
+              {step.icon}
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <span className={`text-sm font-medium ${
+                  step.completed ? 'text-green-800' : 'text-gray-500'
+                }`}>
+                  {step.label}
+                </span>
+                {step.timestamp && (
+                  <span className="text-xs text-gray-500">
+                    {formatTimestamp(step.timestamp)}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   if (!user) {
     return (
-      <Layout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Sign In Required
+            </h3>
             <p className="text-gray-600">
-              Please log in to view your activity history.
+              Please sign in to view your activity.
             </p>
-            <Button onClick={() => navigate("/login")} className="mt-4">
-              Log In
-            </Button>
-          </div>
-        </div>
-      </Layout>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-6 text-book-600"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back
-        </Button>
-
-        <div className="bg-white rounded-xl shadow-xl p-6 md:p-8 border border-gray-100">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Activity Center
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Track your commitments, sales, and marketplace activity
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleClearTestData}
-                className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Clear Test Data
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleClearAllUserData}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <X className="h-4 w-4 mr-2" />
-                Clear All Data
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={loadActivities}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                )}
-                Refresh
-              </Button>
-            </div>
-          </div>
-
-          {error && (
-            <Alert className="mb-6 border-red-200 bg-red-50">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-700">
-                {error}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <Tabs
-            defaultValue="orders"
-            value={activeTab}
-            onValueChange={setActiveTab}
+      <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2"
           >
-            <TabsList className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-8 mb-8 h-auto overflow-x-auto bg-gradient-to-r from-blue-50 to-purple-50">
-              <TabsTrigger
-                value="orders"
-                className="min-w-0 px-2 py-2 text-xs sm:text-sm"
-              >
-                <Package className="h-3 w-3 mr-1" />
-                Orders
-              </TabsTrigger>
-              <TabsTrigger
-                value="notifications"
-                className="min-w-0 px-2 py-2 text-xs sm:text-sm"
-              >
-                <Bell className="h-3 w-3 mr-1" />
-                Notifications
-              </TabsTrigger>
-              <TabsTrigger
-                value="commits"
-                className="min-w-0 px-2 py-2 text-xs sm:text-sm"
-              >
-                <Package className="h-3 w-3 mr-1" />
-                Commits
-              </TabsTrigger>
-              <TabsTrigger
-                value="all"
-                className="min-w-0 px-2 py-2 text-xs sm:text-sm"
-              >
-                All
-              </TabsTrigger>
-              <TabsTrigger
-                value="purchases"
-                className="min-w-0 px-2 py-2 text-xs sm:text-sm"
-              >
-                Purchases
-              </TabsTrigger>
-              <TabsTrigger
-                value="sales"
-                className="min-w-0 px-2 py-2 text-xs sm:text-sm"
-              >
-                Sales
-              </TabsTrigger>
-              <TabsTrigger
-                value="listings"
-                className="min-w-0 px-2 py-2 text-xs sm:text-sm"
-              >
-                Listings
-              </TabsTrigger>
-              <TabsTrigger
-                value="social"
-                className="min-w-0 px-2 py-2 text-xs sm:text-sm"
-              >
-                Social
-              </TabsTrigger>
-            </TabsList>
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">My Activity</h1>
+            <p className="text-gray-600 mt-1">Track your orders, commits, and platform activity</p>
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={loadUserData}
+          disabled={isLoading}
+        >
+          <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
+      </div>
 
-            {/* Orders Tab - New Enhanced Order Management */}
-            <TabsContent value="orders">
-              <OrderManagementView />
-            </TabsContent>
-
-            {/* Notifications Tab - New Notification System */}
-            <TabsContent value="notifications">
-              <OrderNotificationSystem />
-            </TabsContent>
-
-            {/* Commits Tab - Enhanced */}
-            <TabsContent value="commits">
-              <div className="space-y-6">
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                                    <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-                    <CardContent className="p-4 text-center">
-                      <Package className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-                      <div className="text-2xl font-bold text-orange-900">
-                        {pendingCommits.length}
-                      </div>
-                      <div className="text-sm text-orange-700">Pending</div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Pending Commits */}
-                {pendingCommits.length > 0 ? (
-                  <div className="space-y-4">
-                    <Alert className="border-orange-200 bg-gradient-to-r from-orange-50 to-red-50">
-                      <Clock className="h-4 w-4 text-orange-600" />
-                      <AlertDescription className="text-orange-800">
-                        <strong>⚡ Urgent Action Required:</strong> You have{" "}
-                        {pendingCommits.length} sale(s) that require your
-                        commitment within 48 hours. Failing to commit may affect
-                        your seller rating.
-                      </AlertDescription>
-                    </Alert>
-
-                    {pendingCommits.map((commit) => {
-                      const timeRemaining = Math.max(
-                        0,
-                        Math.floor(
-                          (new Date(commit.expiresAt).getTime() -
-                            new Date().getTime()) /
-                            (1000 * 60 * 60),
-                        ),
-                      );
-                      const isUrgent = timeRemaining < 12;
-
-                      return (
-                        <Card
-                          key={commit.id}
-                          className={`border-2 shadow-lg transition-all hover:shadow-xl ${
-                            isUrgent
-                              ? "border-red-300 bg-gradient-to-r from-red-50 to-orange-50"
-                              : "border-orange-300 bg-gradient-to-r from-orange-50 to-yellow-50"
-                          }`}
-                        >
-                          <CardContent className="p-6">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-grow">
-                                <div className="flex items-center gap-2 mb-3">
-                                  <h3 className="font-bold text-xl text-gray-800">
-                                    {commit.bookTitle}
-                                  </h3>
-                                  {isUrgent && (
-                                    <Badge className="bg-red-500 text-white animate-pulse">
-                                      URGENT
-                                    </Badge>
-                                  )}
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                  <div className="flex items-center gap-2">
-                                    <User className="h-4 w-4 text-blue-600" />
-                                    <span className="text-sm font-medium">
-                                      Buyer:
-                                    </span>
-                                    <span className="text-sm text-gray-700">
-                                      {commit.buyerName}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <ShoppingCart className="h-4 w-4 text-green-600" />
-                                    <span className="text-sm font-medium">
-                                      Price:
-                                    </span>
-                                    <span className="text-sm font-bold text-green-700">
-                                      R{commit.price}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2 p-3 rounded-lg bg-white/60">
-                                  <Clock
-                                    className={`h-5 w-5 ${isUrgent ? "text-red-500" : "text-orange-500"}`}
-                                  />
-                                  <span
-                                    className={`font-bold ${isUrgent ? "text-red-600" : "text-orange-600"}`}
-                                  >
-                                    {timeRemaining} hours remaining
-                                  </span>
-                                  <Badge variant="outline" className="ml-2">
-                                    {timeRemaining < 6
-                                      ? "⚠️ Critical"
-                                      : timeRemaining < 12
-                                        ? "🔥 Urgent"
-                                        : "⏰ Pending"}
-                                  </Badge>
-                                </div>
-                              </div>
-
-                              <div className="ml-6 flex flex-col gap-3">
-                                <EnhancedOrderCommitButton
-                                  orderId={commit.id}
-                                  sellerId={user?.id || ""}
-                                  bookTitle={commit.bookTitle}
-                                  buyerName={commit.buyerName}
-                                  onCommitSuccess={() => {
-                                    // Refresh pending commits after successful commit
-                                    refreshPendingCommits().catch(console.error);
-                                    // Scroll to top
-                                    setTimeout(() => {
-                                      window.scrollTo({
-                                        top: 0,
-                                        behavior: "smooth",
-                                      });
-                                    }, 500);
-                                  }}
-                                  disabled={isCommitting || isDeclining}
-                                  className="px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all"
-                                />
-                                <Button
-                                  onClick={async (e) => {
-                                    e.preventDefault();
-                                    try {
-                                      await declineBook(commit.bookId);
-                                      // Scroll to top after successful decline
-                                      setTimeout(() => {
-                                        window.scrollTo({
-                                          top: 0,
-                                          behavior: "smooth",
-                                        });
-                                      }, 500);
-                                    } catch (error) {
-                                      // Error is already handled in declineBook
-                                    }
-                                  }}
-                                  disabled={isCommitting || isDeclining}
-                                  variant="destructive"
-                                  size="lg"
-                                  className="text-white font-bold px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all"
-                                >
-                                  {isDeclining ? (
-                                    <>
-                                      <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
-                                      Processing...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <X className="h-5 w-5 mr-2" />
-                                      Decline Sale
-                                    </>
-                                  )}
-                                </Button>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
-                    <CardContent className="text-center py-12">
-                      <div className="relative">
-                        <Check className="h-16 w-16 text-green-400 mx-auto mb-4" />
-                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                          <Check className="h-3 w-3 text-white" />
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-semibold text-green-800 mb-2">
-                        ✅ All Clear!
-                      </h3>
-                      <p className="text-green-600 mb-4">
-                        You don't have any pending commitments right now.
-                      </p>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto mt-6">
-                        <div className="p-4 bg-white/60 rounded-lg">
-                          <BookIcon className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                          <h4 className="font-medium text-gray-800">
-                            List More Books
-                          </h4>
-                          <p className="text-gray-600 text-sm">
-                            Add more textbooks to sell
-                          </p>
-                        </div>
-                        <div className="p-4 bg-white/60 rounded-lg">
-                          <TrendingUp className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                          <h4 className="font-medium text-gray-800">
-                            Boost Visibility
-                          </h4>
-                          <p className="text-gray-600 text-sm">
-                            Optimize your listings
-                          </p>
-                        </div>
-                        <div className="p-4 bg-white/60 rounded-lg">
-                          <Star className="h-8 w-8 text-yellow-600 mx-auto mb-2" />
-                          <h4 className="font-medium text-gray-800">
-                            Build Reputation
-                          </h4>
-                          <p className="text-gray-600 text-sm">
-                            Earn positive reviews
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Commit System Info */}
-                <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-blue-800">
-                      <AlertCircle className="h-5 w-5" />
-                      How the 48-Hour Commit System Works
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <h4 className="font-semibold text-blue-800 mb-2">
-                          🎯 For Buyers:
-                        </h4>
-                        <ul className="space-y-1 text-blue-700 text-sm">
-                          <li>• Payment securely held in escrow</li>
-                          <li>• Seller has exactly 48 hours to commit</li>
-                          <li>
-                            • <strong>Automatic full refund</strong> if seller
-                            doesn't commit
-                          </li>
-                          <li>• Refund processed immediately after 48 hours</li>
-                          <li>• Order confirmed once seller commits</li>
-                          <li>• No penalties or fees for failed commits</li>
-                        </ul>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-blue-800 mb-2">
-                          📚 For Sellers:
-                        </h4>
-                        <ul className="space-y-1 text-blue-700 text-sm">
-                          <li>
-                            • <strong>Must commit within 48 hours</strong> or
-                            buyer gets full refund
-                          </li>
-                          <li>• Verify book availability before committing</li>
-                          <li>• Can decline sale if book not available</li>
-                          <li>• Missed commits affect seller reputation</li>
-                          <li>
-                            • Payment released after delivery confirmation
-                          </li>
-                          <li>• Automatic refund system protects buyers</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Orders</p>
+                <p className="text-2xl font-bold text-gray-900">{orders.length}</p>
               </div>
-            </TabsContent>
+              <ShoppingBag className="w-8 h-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
 
-            {/* Other Tabs */}
-            <TabsContent value={activeTab === "commits" ? "all" : activeTab}>
-              {isLoading ? (
-                <div className="flex justify-center items-center py-20">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-book-600"></div>
-                </div>
-              ) : filteredActivities.length > 0 ? (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Commits</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {commits.filter(c => c.status === 'pending' || c.status === 'active').length}
+                </p>
+              </div>
+              <FileText className="w-8 h-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Unread Notifications</p>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {notifications.filter(n => !n.is_read).length}
+                </p>
+              </div>
+              <Bell className="w-8 h-8 text-yellow-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Value</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  R{orders.reduce((sum, order) => sum + (order.total_price || 0), 0).toFixed(2)}
+                </p>
+              </div>
+              <DollarSign className="w-8 h-8 text-purple-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="orders">My Orders</TabsTrigger>
+          <TabsTrigger value="commits">Commits</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Recent Orders */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShoppingBag className="w-5 h-5" />
+                  Recent Orders
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-4">
-                  {filteredActivities.map((activity) => (
-                    <div
-                      key={activity.id}
-                      className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-start">
-                        <div className="bg-white p-2 rounded-full shadow-sm mr-4">
-                          {getActivityIcon(activity.type)}
-                        </div>
-                        <div className="flex-grow">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="font-medium text-gray-800">
-                                {activity.title}
-                              </h3>
-                              <p className="text-sm text-gray-600 mt-1">
-                                {activity.description}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-sm text-gray-500">
-                                {formatDate(activity.created_at)}
-                              </div>
-                              <div className="text-xs text-gray-400 mt-1">
-                                {getActivityTypeLabel(activity.type)}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Activity metadata */}
-                          {activity.metadata &&
-                            Object.keys(activity.metadata).length > 0 && (
-                              <div className="mt-2 text-xs text-gray-500">
-                                {activity.metadata.price && (
-                                  <span className="inline-block mr-3">
-                                    Amount: R{activity.metadata.price}
-                                  </span>
-                                )}
-                                {activity.metadata.rating && (
-                                  <div className="flex items-center mt-1">
-                                    {[...Array(5)].map((_, i) => (
-                                      <Star
-                                        key={i}
-                                        className={`h-3 w-3 ${i < activity.metadata!.rating! ? "text-yellow-500 fill-yellow-500" : "text-gray-300"}`}
-                                      />
-                                    ))}
-                                  </div>
-                                )}
-                                {activity.metadata.search_query && (
-                                  <span className="inline-block">
-                                    Query: "{activity.metadata.search_query}"
-                                  </span>
-                                )}
-                              </div>
-                            )}
-
-                          <div className="mt-2 flex justify-between items-center">
-                            {getStatusBadge(activity)}
-
-                            {activity.metadata?.book_id && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-book-600 hover:text-book-800"
-                                onClick={() =>
-                                  navigate(
-                                    `/books/${activity.metadata!.book_id}`,
-                                  )
-                                }
-                              >
-                                View Book
-                              </Button>
-                            )}
-                          </div>
-                        </div>
+                  {orders.slice(0, 5).map(order => (
+                    <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <p className="font-medium">{order.book?.title}</p>
+                        <p className="text-sm text-gray-600">R{order.total_price}</p>
+                      </div>
+                      <div className="text-right">
+                        {getStatusBadge(order.status, 'order')}
+                        <p className="text-xs text-gray-500 mt-1">
+                          {formatTimestamp(order.created_at)}
+                        </p>
                       </div>
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="py-12 text-center">
-                  <Clock className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 mb-4">
-                    No {activeTab === "all" ? "activities" : activeTab} found.
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    Start using ReBooked Solutions to see your activity here!
+              </CardContent>
+            </Card>
+
+            {/* Active Commits */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Active Commits
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {commits.filter(c => c.status === 'pending' || c.status === 'active').slice(0, 5).map(commit => (
+                    <div key={commit.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <p className="font-medium">{commit.order?.book?.title}</p>
+                        <p className="text-sm text-gray-600">
+                          To: {commit.order?.buyer?.name}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        {getStatusBadge(commit.status, 'commit')}
+                        <p className="text-xs text-gray-500 mt-1">
+                          {formatTimestamp(commit.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Orders Tab */}
+        <TabsContent value="orders" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="w-5 h-5" />
+                All Orders
+                <Badge variant="outline">{orders.length}</Badge>
+              </CardTitle>
+              <div className="flex gap-4 mt-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    placeholder="Search orders..."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {orders.map(order => {
+                  const isAsBuyer = order.buyer_id === user.id;
+                  return (
+                    <Card key={order.id} className="border-l-4 border-l-blue-500">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              {isAsBuyer ? <ShoppingBag className="w-4 h-4" /> : <Package className="w-4 h-4" />}
+                              <h4 className="font-semibold">
+                                {isAsBuyer ? 'Purchase' : 'Sale'}: {order.book?.title}
+                              </h4>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-2">
+                              by {order.book?.author} • R{order.total_price}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {isAsBuyer ? 'Seller' : 'Buyer'}: {isAsBuyer ? order.seller?.name : order.buyer?.name}
+                            </p>
+                            <div className="mt-3">
+                              <p className="text-xs font-medium text-gray-700 mb-2">Delivery Status:</p>
+                              <OrderTimeline order={order} />
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            {getStatusBadge(order.status, 'order')}
+                            <p className="text-xs text-gray-500 mt-1">
+                              {formatTimestamp(order.created_at)}
+                            </p>
+                            {order.tracking_number && (
+                              <p className="text-xs text-blue-600 mt-1">
+                                Tracking: {order.tracking_number}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Commits Tab */}
+        <TabsContent value="commits" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Sale Commitments
+                <Badge variant="outline">{commits.length}</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {commits.map(commit => (
+                  <Card key={commit.id} className="border-l-4 border-l-green-500">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <FileText className="w-4 h-4" />
+                            <h4 className="font-semibold">{commit.order?.book?.title}</h4>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">
+                            by {commit.order?.book?.author} • R{commit.order?.total_price}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Buyer: {commit.order?.buyer?.name}
+                          </p>
+                          <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
+                            <span>Created: {formatTimestamp(commit.created_at)}</span>
+                            {commit.committed_at && (
+                              <span>Committed: {formatTimestamp(commit.committed_at)}</span>
+                            )}
+                            {commit.expires_at && (
+                              <span>Expires: {formatTimestamp(commit.expires_at)}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          {getStatusBadge(commit.status, 'commit')}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Notifications Tab */}
+        <TabsContent value="notifications" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="w-5 h-5" />
+                Notifications
+                <Badge variant="outline">{notifications.length}</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {notifications.map(notification => (
+                  <div
+                    key={notification.id}
+                    className={`p-4 rounded-lg border-l-4 ${
+                      notification.is_read 
+                        ? 'bg-gray-50 border-l-gray-300' 
+                        : 'bg-blue-50 border-l-blue-500'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Bell className="w-4 h-4" />
+                          <h4 className="font-medium">{notification.title}</h4>
+                        </div>
+                        <p className="text-sm text-gray-600">{notification.message}</p>
+                      </div>
+                      <div className="text-right">
+                        {getStatusBadge(notification.is_read ? 'read' : 'unread', 'notification')}
+                        <p className="text-xs text-gray-500 mt-1">
+                          {formatTimestamp(notification.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Timeline Tab */}
+        <TabsContent value="timeline" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="w-5 h-5" />
+                Activity Timeline
+                <Badge variant="outline">{filteredActivities.length}</Badge>
+              </CardTitle>
+              <div className="relative mt-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Search timeline..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        </div>
+                      </div>
+                      <Separator className="my-4" />
+                    </div>
+                  ))}
+                </div>
+              ) : filteredActivities.length === 0 ? (
+                <div className="text-center py-12">
+                  <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    No Activities Found
+                  </h3>
+                  <p className="text-gray-600">
+                    {searchTerm 
+                      ? 'Try adjusting your search terms.'
+                      : 'Start using the platform to see your activity here.'
+                    }
                   </p>
                 </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredActivities.map((activity, index) => (
+                    <div key={activity.id}>
+                      <div className="flex items-start space-x-4">
+                        <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                          {activity.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-medium text-gray-900">
+                              {activity.title}
+                            </h4>
+                            <div className="flex items-center space-x-2">
+                              {activity.amount && (
+                                <span className="text-sm font-medium text-gray-900">
+                                  R{activity.amount.toFixed(2)}
+                                </span>
+                              )}
+                              {getStatusBadge(activity.status, activity.type)}
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {activity.description}
+                          </p>
+                          <div className="flex items-center mt-2 text-xs text-gray-500">
+                            <Calendar className="w-3 h-3 mr-1" />
+                            {formatTimestamp(activity.timestamp)}
+                          </div>
+                        </div>
+                      </div>
+                      {index < filteredActivities.length - 1 && (
+                        <Separator className="my-4" />
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
-            </TabsContent>
-          </Tabs>
-        </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
       </div>
     </Layout>
   );

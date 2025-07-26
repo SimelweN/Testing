@@ -45,14 +45,17 @@ serve(async (req) => {
       }
     );
 
-    const { order_id, seller_id, delivery_method, locker_id, use_locker_api }: CommitRequest = await req.json();
+    const requestBody = await req.json();
+    console.log('📥 Raw request body:', requestBody);
 
-    console.log('🚀 Enhanced commit request:', { 
-      order_id, 
-      seller_id, 
-      delivery_method, 
-      locker_id, 
-      use_locker_api 
+    const { order_id, seller_id, delivery_method, locker_id, use_locker_api }: CommitRequest = requestBody;
+
+    console.log('🚀 Enhanced commit request parsed:', {
+      order_id,
+      seller_id,
+      delivery_method,
+      locker_id,
+      use_locker_api
     });
 
     // Validate required fields
@@ -94,32 +97,77 @@ serve(async (req) => {
       `)
       .eq('id', order_id)
       .eq('seller_id', seller_id)
-      .single();
+      .maybeSingle();
 
     if (orderError || !order) {
-      console.error('❌ Order not found or access denied:', orderError);
+      console.error('❌ Order lookup failed:', {
+        orderError,
+        order,
+        order_id,
+        seller_id,
+        errorDetails: orderError?.details,
+        errorMessage: orderError?.message,
+        errorCode: orderError?.code
+      });
+
+      let errorMsg = 'Order not found or access denied';
+      if (orderError?.message) {
+        errorMsg += ` (${orderError.message})`;
+      }
+
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Order not found or access denied' 
+        JSON.stringify({
+          success: false,
+          error: errorMsg,
+          debug: {
+            order_id,
+            seller_id,
+            orderError: orderError?.message,
+            hasOrder: !!order
+          }
         }),
-        { 
-          status: 404, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
     }
 
+    console.log('✅ Order found successfully:', {
+      orderId: order.id,
+      status: order.status,
+      sellerId: order.seller_id,
+      buyerId: order.buyer_id,
+      totalPrice: order.total_price,
+      createdAt: order.created_at
+    });
+
     // Check if already committed
     if (order.status === 'committed' || order.status === 'shipped') {
+      console.log('⚠️ Order already committed:', order.status);
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Order is already committed' 
+        JSON.stringify({
+          success: false,
+          error: `Order is already ${order.status}. Current status: ${order.status}`
         }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // Check if order is in a valid state for committing
+    if (order.status !== 'pending_commit') {
+      console.log('⚠️ Order not in pending_commit status:', order.status);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Order cannot be committed. Expected status: pending_commit, actual status: ${order.status}`
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
     }
@@ -155,15 +203,17 @@ serve(async (req) => {
 
         console.log('✅ Locker shipment created:', shipmentResult);
       } catch (error) {
-        console.error('❌ Locker shipment creation failed:', error);
+        const { getErrorMessage, logError } = await import('../_shared/error-utils.ts');
+        logError('enhanced-commit-to-sale', error, { context: 'locker shipment creation' });
+
         return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: `Failed to create locker shipment: ${error.message}` 
+          JSON.stringify({
+            success: false,
+            error: `Failed to create locker shipment: ${getErrorMessage(error)}`
           }),
-          { 
-            status: 500, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           }
         );
       }
@@ -195,7 +245,7 @@ serve(async (req) => {
       .update(updateData)
       .eq('id', order_id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (updateError) {
       console.error('❌ Failed to update order:', updateError);
@@ -233,7 +283,7 @@ serve(async (req) => {
         }
       });
 
-    console.log('✅ Enhanced commit completed successfully');
+    console.log('���� Enhanced commit completed successfully');
 
     return new Response(
       JSON.stringify({ 
@@ -249,15 +299,17 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('💥 Enhanced commit error:', error);
+    const { getErrorMessage, logError } = await import('../_shared/error-utils.ts');
+    logError('enhanced-commit-to-sale', error, { context: 'main handler' });
+
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message || 'Internal server error' 
+      JSON.stringify({
+        success: false,
+        error: getErrorMessage(error)
       }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }
