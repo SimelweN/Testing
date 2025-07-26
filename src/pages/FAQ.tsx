@@ -1,4 +1,3 @@
-
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -9,12 +8,12 @@ import { Link } from 'react-router-dom';
 const FAQ = () => {
   const faqs = [
     {
-      question: "How do I sell my textbooks on ReBooked?",
+      question: "How do I sell my textbooks on ReBooked Marketplace?",
       answer: "Simply create an account, click 'Sell a Book', fill in the details about your textbook including photos, condition, and price. Your listing will be live immediately for buyers to see."
     },
     {
-      question: "What commission does ReBooked charge?",
-      answer: "ReBooked charges a 10% commission on completed sales. This means if you sell a book for R100, you'll receive R90 and ReBooked keeps R10 to maintain the platform."
+      question: "What commission does ReBooked Marketplace charge?",
+      answer: "ReBooked Marketplace charges a 10% commission on completed sales. This means if you sell a book for R100, you'll receive R90 and ReBooked Marketplace keeps R10 to maintain the platform."
     },
     {
       question: "How do I get paid when I sell a book?",
@@ -54,7 +53,7 @@ const FAQ = () => {
     },
     {
       question: "Can I sell books that aren't textbooks?",
-      answer: "ReBooked is specifically designed for textbooks and educational materials. We focus on school and university textbooks to provide the best experience for students."
+      answer: "ReBooked Marketplace is specifically designed for textbooks and educational materials. We focus on school and university textbooks to provide the best experience for students."
     }
   ];
 
