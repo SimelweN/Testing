@@ -92,10 +92,12 @@ const GoogleMapsAddressAutocomplete: React.FC<
       autocomplete.addListener("place_changed", () => {
         const place = autocomplete.getPlace();
 
-        if (!place?.geometry?.location || !place.address_components) {
-          console.warn("Invalid place data");
+        if (!place.geometry) {
+          console.warn("No details available for input: '" + place.name + "'");
           return;
         }
+
+        console.log("Full address:", place.formatted_address);
 
         // Extract address components
         let street = "";
