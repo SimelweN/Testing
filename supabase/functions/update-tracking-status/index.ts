@@ -259,13 +259,15 @@ Deno.serve(async (req) => {
             })
           } else {
             updatedOrders++
-            updateResults.push({
+
+            // Prepare update result
+            const updateResult: any = {
               order_id: order.order_id,
               tracking_number: order.tracking_number,
               status: 'updated',
               old_status: order.delivery_status,
               new_status: newStatus
-            })
+            }
 
             // Send email notifications based on status
             await sendStatusChangeEmails(supabase, order, newStatus)
@@ -273,8 +275,17 @@ Deno.serve(async (req) => {
             // Automatically create recipient for payout when delivered
             if (newStatus === 'delivered') {
               console.log(`🏦 Order delivered - creating recipient for payout: ${order.order_id}`)
-              await createRecipientForPayout(supabase, order)
+              const recipientResult = await createRecipientForPayout(supabase, order)
+
+              // Add recipient creation details to update result
+              updateResult.recipient_creation = recipientResult
+
+              if (recipientResult.success) {
+                console.log(`💰 PAYOUT READY: Seller ${order.seller_id} can now receive R${((recipientResult.payout_amount || 0) / 100).toFixed(2)}`)
+              }
             }
+
+            updateResults.push(updateResult)
           }
         } else {
           updateResults.push({
@@ -351,7 +362,7 @@ async function createRecipientForPayout(supabase: any, order: OrderToTrack) {
       const recipientResult = await recipientResponse.json();
       console.log(`✅ Recipient created successfully for order ${order.order_id}:`)
       console.log(`📊 PAYOUT DETAILS:`)
-      console.log(`┌─────────────────────────────────────────────────────────────┐`)
+      console.log(`┌────────────────────────────────────────────────��────────────┐`)
       console.log(`│                     SELLER PAYOUT SUMMARY                  │`)
       console.log(`├─────────────────────────────────────────────────────────────┤`)
       console.log(`│ Seller ID: ${order.seller_id}`)
@@ -365,7 +376,7 @@ async function createRecipientForPayout(supabase: any, order: OrderToTrack) {
         console.log(`│ • Total Orders: ${breakdown.total_orders}`)
         console.log(`│ • Total Book Sales: R${(breakdown.total_book_sales / 100).toFixed(2)}`)
         console.log(`│ • Total Delivery Fees: R${(breakdown.total_delivery_fees / 100).toFixed(2)}`)
-        console.log(`├─────────────────────────────────────────────────────────────┤`)
+        console.log(`├────────────────────���────────────────────────────────────────┤`)
         console.log(`│ PLATFORM EARNINGS:`)
         console.log(`│ • Book Commission (10%): R${(breakdown.platform_earnings.book_commission / 100).toFixed(2)}`)
         console.log(`│ • Delivery Fees (100%): R${(breakdown.platform_earnings.delivery_fees / 100).toFixed(2)}`)
@@ -383,7 +394,7 @@ async function createRecipientForPayout(supabase: any, order: OrderToTrack) {
         console.log(`│ • Email: ${seller.email}`)
         console.log(`│ • Account: ${seller.account_number}`)
         console.log(`│ • Bank: ${seller.bank_name}`)
-        console.log(`├─────────────────────────────────────────────────────────────┤`)
+        console.log(`├────────────��────────────────────────────────────────────────┤`)
       }
 
       console.log(`│ STATUS: ✅ Ready for manual payout processing`)
