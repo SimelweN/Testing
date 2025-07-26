@@ -120,10 +120,8 @@ export const getUserAddresses = async (userId: string) => {
     if (error) {
       const errorMsg =
         error.message || error.details || "Unknown database error";
-      console.error("Database error fetching addresses:", {
-        message: errorMsg,
+      safelog("Database error fetching addresses", error, {
         code: error.code,
-        details: typeof error.details === 'object' ? JSON.stringify(error.details) : error.details,
         hint: error.hint,
       });
 
