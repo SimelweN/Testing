@@ -443,13 +443,13 @@ serve(async (req) => {
 <body>
   <div class="container">
     <div class="header">
-      <h1>Order Decline Confirmed</h1>
+      <h1>✅ Order Decline Confirmed</h1>
     </div>
 
     <h2>Hello ${seller.name || "Seller"},</h2>
     <p>You have successfully declined the order commitment.</p>
 
-    <div class="info-box">
+    <div class="info-box-success">
       <h3>📋 Order Details</h3>
       <p><strong>Order ID:</strong> ${order_id}</p>
       <p><strong>Reason:</strong> ${reason || "You declined to commit"}</p>
@@ -458,7 +458,7 @@ serve(async (req) => {
     <p>The buyer has been notified and their payment has been refunded.</p>
 
     <div class="footer">
-      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
+      <p><strong>This is an automated message from ReBooked Marketplace.</strong><br>
       Please do not reply to this email.</p>
       <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
       Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
