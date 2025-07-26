@@ -142,6 +142,22 @@ const ActivityLog = () => {
     }
   };
 
+  const handleClearNotifications = async () => {
+    if (!user) return;
+
+    try {
+      const success = await safeDeleteAllNotifications();
+      if (success) {
+        // Reload activities after clearing notifications
+        await loadActivities();
+        toast.success("All notifications cleared successfully");
+      }
+    } catch (error) {
+      console.error("Error clearing notifications:", error);
+      // Error handling already done in safeDeleteAllNotifications
+    }
+  };
+
   useEffect(() => {
     loadActivities();
   }, [user, loadActivities]);
