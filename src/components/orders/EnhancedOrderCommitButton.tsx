@@ -243,10 +243,10 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
       <Button
         variant="outline"
         disabled
-        className={`${className} cursor-not-allowed opacity-60`}
+        className={`${className} cursor-not-allowed opacity-60 min-h-[44px] px-3 sm:px-4 text-sm sm:text-base`}
       >
-        <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
-        Already Committed
+        <CheckCircle className="w-4 h-4 mr-1 sm:mr-2 text-green-600 flex-shrink-0" />
+        <span className="truncate">Already Committed</span>
       </Button>
     );
   }
