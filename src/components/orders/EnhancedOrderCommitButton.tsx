@@ -323,21 +323,21 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
           {/* Delivery Method Selection */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <MapPin className="w-5 h-5" />
-                Choose Delivery Method
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span className="text-sm sm:text-base">Choose Delivery Method</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               {/* SIMPLIFIED - Only home delivery available, locker functionality disabled */}
               <div className="space-y-4">
-                <div className="flex items-start space-x-3 p-4 border rounded-lg bg-blue-50 border-blue-200">
+                <div className="flex items-start space-x-3 p-3 sm:p-4 border rounded-lg bg-blue-50 border-blue-200">
                   <div className="flex-1">
-                    <Label className="flex items-center gap-2 font-medium">
-                      <Home className="w-4 h-4" />
-                      Home Pick-Up (Courier Collection)
+                    <Label className="flex items-center gap-2 font-medium text-sm sm:text-base">
+                      <Home className="w-4 h-4 flex-shrink-0" />
+                      <span>Home Pick-Up (Courier Collection)</span>
                     </Label>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1">
                       Our courier will collect the book from your address at a scheduled time.
                     </p>
                   </div>
