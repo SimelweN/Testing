@@ -667,9 +667,9 @@ const ActivityLog = () => {
                       <Button
                         onClick={() => navigate("/sell")}
                         variant="outline"
-                        className="border-slate-200"
+                        className="border-slate-200 btn-mobile"
                       >
-                        List a Book
+                        <span className="btn-mobile-text">List a Book</span>
                       </Button>
                     </div>
                   )}
