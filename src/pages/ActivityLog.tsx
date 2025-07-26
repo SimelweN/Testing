@@ -419,9 +419,20 @@ const ActivityLog: React.FC = () => {
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Activity</h1>
-          <p className="text-gray-600 mt-1">Track your orders, commits, and platform activity</p>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">My Activity</h1>
+            <p className="text-gray-600 mt-1">Track your orders, commits, and platform activity</p>
+          </div>
         </div>
         <Button
           variant="outline"
