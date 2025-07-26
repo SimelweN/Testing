@@ -46,5 +46,33 @@ export const supabase = createClient<Database>(
       // Better error handling for failed auth attempts
       debug: import.meta.env.DEV,
     },
+    realtime: {
+      // Enhanced WebSocket configuration for better reliability
+      params: {
+        eventsPerSecond: 10,
+      },
+      // Add heartbeat to keep connections alive
+      heartbeatIntervalMs: 30000,
+      // Reconnection settings
+      reconnectAfterMs: (retries) => {
+        // Exponential backoff: 1s, 2s, 4s, 8s, then 10s max
+        const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+        console.log(`[Supabase] Reconnecting in ${delay}ms (attempt ${retries + 1})`);
+        return delay;
+      },
+      // Increase timeout for slower connections
+      timeout: 20000,
+      // Log WebSocket events in development
+      logger: import.meta.env.DEV ? (level, message, ...args) => {
+        if (level === 'error' || level === 'warn') {
+          console.log(`[Supabase Realtime ${level.toUpperCase()}]`, message, ...args);
+        }
+      } : undefined,
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'rebooked-marketplace',
+      },
+    },
   },
 );
