@@ -164,7 +164,16 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
 
         // More specific error handling for edge functions
         let errorMessage = "Failed to call commit function";
-        if (error.message?.includes('FunctionsFetchError')) {
+
+        // Handle FunctionsHttpError (non-2xx status codes)
+        if (error.name === 'FunctionsHttpError' || error.message?.includes('non-2xx status code')) {
+          // Try to extract the actual error from the edge function response
+          if (data?.error) {
+            errorMessage = data.error;
+          } else {
+            errorMessage = "Order commit failed. Please check order status and try again.";
+          }
+        } else if (error.message?.includes('FunctionsFetchError')) {
           errorMessage = "Edge Function service is temporarily unavailable. Please try again.";
         } else if (error.message?.includes('CORS')) {
           errorMessage = "CORS error - Edge Function configuration issue";
