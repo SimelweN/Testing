@@ -225,7 +225,7 @@ const GoogleMapsAddressAutocomplete: React.FC<
     );
   }
 
-  // Show error from context or local error
+  // Show error from context or local error, but fall back to manual input
   const displayError = mapsLoadError?.message || error;
 
   if (displayError) {
@@ -237,23 +237,60 @@ const GoogleMapsAddressAutocomplete: React.FC<
             {label} {required && <span className="text-red-500">*</span>}
           </Label>
         )}
-        <Alert className="border-red-200 bg-red-50">
-          <AlertCircle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-red-800">
-            <div className="flex items-center justify-between">
-              <span>{displayError}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRetry}
-                className="ml-2"
-              >
-                <RefreshCw className="h-3 w-3 mr-1" />
-                Retry
-              </Button>
+
+        {/* Show error but continue with manual input */}
+        <Alert className="border-yellow-200 bg-yellow-50">
+          <AlertCircle className="h-4 w-4 text-yellow-600" />
+          <AlertDescription className="text-yellow-800">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Google Maps unavailable - using manual input</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRetry}
+                  className="ml-2"
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Retry Maps
+                </Button>
+              </div>
             </div>
           </AlertDescription>
         </Alert>
+
+        {/* Manual address input fallback */}
+        <Card>
+          <CardContent className="p-4">
+            <Input
+              ref={inputRef}
+              type="text"
+              placeholder="Enter your full address manually..."
+              value={inputValue}
+              onChange={(e) => {
+                setInputValue(e.target.value);
+                // Create a basic address object from manual input
+                if (e.target.value.trim()) {
+                  const manualAddress: AddressData = {
+                    formattedAddress: e.target.value.trim(),
+                    street: e.target.value.trim(),
+                    city: "",
+                    province: "",
+                    postalCode: "",
+                    country: "South Africa",
+                  };
+                  setSelectedAddress(manualAddress);
+                  onAddressSelect(manualAddress);
+                }
+              }}
+              className={`${error ? "border-red-500" : ""} text-base`}
+              required={required}
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              Please enter your complete address manually (Google Maps is not available)
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
