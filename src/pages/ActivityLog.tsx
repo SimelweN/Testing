@@ -618,7 +618,7 @@ const ActivityLog = () => {
                     </div>
                   ) : (
                     <div className="text-center py-12">
-                      <Activity className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                      <ActivityIcon className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                       <h3 className="text-lg font-medium text-slate-600 mb-2">
                         No {activeTab === "all" ? "activities" : activeTab} yet
                       </h3>
