@@ -20,6 +20,8 @@ import {
 import GoogleMapsAddressAutocomplete, {
   AddressData as GoogleAddressData,
 } from "@/components/GoogleMapsAddressAutocomplete";
+import ManualAddressInput from "@/components/ManualAddressInput";
+import { useGoogleMaps } from "@/contexts/GoogleMapsContext";
 import { AddressData, Address } from "@/types/address";
 
 interface ModernAddressTabProps {
