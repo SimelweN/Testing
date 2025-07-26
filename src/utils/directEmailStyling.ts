@@ -1,80 +1,8 @@
-// THE ONLY CORRECT WAY TO SEND EMAILS - DIRECT HTML STYLING
-// Based on testNewEmailStyling.ts which is the ONLY file that works
+// CENTRALIZED EMAIL STYLING - USE STANDARDIZED STYLES
+import { EMAIL_STYLES, EMAIL_FOOTER } from './emailStyles';
 
-const getCorrectEmailStyles = () => `
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #f3fef7;
-    padding: 20px;
-    color: #1f4e3d;
-    margin: 0;
-  }
-  .container {
-    max-width: 500px;
-    margin: auto;
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  }
-  .btn {
-    display: inline-block;
-    padding: 12px 20px;
-    background-color: #3ab26f;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    margin-top: 20px;
-    font-weight: bold;
-  }
-  .link {
-    color: #3ab26f;
-  }
-  .header {
-    background: #3ab26f;
-    color: white;
-    padding: 20px;
-    text-align: center;
-    border-radius: 10px 10px 0 0;
-    margin: -30px -30px 20px -30px;
-  }
-  .footer {
-    background: #f3fef7;
-    color: #1f4e3d;
-    padding: 20px;
-    text-align: center;
-    font-size: 12px;
-    line-height: 1.5;
-    margin: 30px -30px -30px -30px;
-    border-radius: 0 0 10px 10px;
-    border-top: 1px solid #e5e7eb;
-  }
-  .info-box {
-    background: #f3fef7;
-    border: 1px solid #3ab26f;
-    padding: 15px;
-    border-radius: 5px;
-    margin: 15px 0;
-  }
-  .total {
-    font-weight: bold;
-    font-size: 18px;
-    color: #3ab26f;
-  }
-</style>
-`;
-
-const getCorrectFooter = () => `
-<div class="footer">
-  <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
-  Please do not reply to this email.</p>
-  <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
-  Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
-  <p>T&Cs apply.</p>
-  <p><em>"Pre-Loved Pages, New Adventures"</em></p>
-</div>
-`;
+const getCorrectEmailStyles = () => EMAIL_STYLES;
+const getCorrectFooter = () => EMAIL_FOOTER;
 
 export function createOrderConfirmationEmail(data: {
   orderNumber: string;
