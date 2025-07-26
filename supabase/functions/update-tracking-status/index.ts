@@ -328,6 +328,119 @@ Deno.serve(async (req) => {
   }
 })
 
+async function createRecipientForPayout(supabase: any, order: OrderToTrack) {
+  try {
+    console.log(`💰 Creating recipient for seller ${order.seller_id} - Order ${order.order_id}`)
+
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+    const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Call the create-recipient function
+    const recipientResponse = await fetch(`${SUPABASE_URL}/functions/v1/create-recipient`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+      },
+      body: JSON.stringify({
+        sellerId: order.seller_id
+      })
+    });
+
+    if (recipientResponse.ok) {
+      const recipientResult = await recipientResponse.json();
+      console.log(`✅ Recipient created successfully for order ${order.order_id}:`)
+      console.log(`📊 PAYOUT DETAILS:`)
+      console.log(`┌─────────────────────────────────────────────────────────────┐`)
+      console.log(`│                     SELLER PAYOUT SUMMARY                  │`)
+      console.log(`├─────────────────────────────────────────────────────────────┤`)
+      console.log(`│ Seller ID: ${order.seller_id}`)
+      console.log(`│ Recipient Code: ${recipientResult.recipient_code || 'N/A'}`)
+      console.log(`│ Payment Status: ${recipientResult.already_existed ? 'EXISTING RECIPIENT' : 'NEW RECIPIENT CREATED'}`)
+      console.log(`├─────────────────────────────────────────────────────────────┤`)
+
+      if (recipientResult.payment_breakdown) {
+        const breakdown = recipientResult.payment_breakdown;
+        console.log(`│ PAYMENT BREAKDOWN:`)
+        console.log(`│ • Total Orders: ${breakdown.total_orders}`)
+        console.log(`│ • Total Book Sales: R${(breakdown.total_book_sales / 100).toFixed(2)}`)
+        console.log(`│ • Total Delivery Fees: R${(breakdown.total_delivery_fees / 100).toFixed(2)}`)
+        console.log(`├─────────────────────────────────────────────────────────────┤`)
+        console.log(`│ PLATFORM EARNINGS:`)
+        console.log(`│ • Book Commission (10%): R${(breakdown.platform_earnings.book_commission / 100).toFixed(2)}`)
+        console.log(`│ • Delivery Fees (100%): R${(breakdown.platform_earnings.delivery_fees / 100).toFixed(2)}`)
+        console.log(`│ • Total Platform: R${(breakdown.platform_earnings.total / 100).toFixed(2)}`)
+        console.log(`├─────────────────────────────────────────────────────────────┤`)
+        console.log(`│ SELLER EARNINGS:`)
+        console.log(`│ • Net Amount (90% of books): R${(breakdown.seller_amount / 100).toFixed(2)}`)
+        console.log(`├─────────────────────────────────────────────────────────────┤`)
+      }
+
+      if (recipientResult.seller_info) {
+        const seller = recipientResult.seller_info;
+        console.log(`│ SELLER INFORMATION:`)
+        console.log(`│ • Name: ${seller.name}`)
+        console.log(`│ • Email: ${seller.email}`)
+        console.log(`│ • Account: ${seller.account_number}`)
+        console.log(`│ • Bank: ${seller.bank_name}`)
+        console.log(`├─────────────────────────────────────────────────────────────┤`)
+      }
+
+      console.log(`│ STATUS: ✅ Ready for manual payout processing`)
+      console.log(`│ INSTRUCTIONS: ${recipientResult.instructions || 'Manual payment processing required'}`)
+      console.log(`└─────────────────────────────────────────────────────────────┘`)
+
+      // Log detailed order breakdown if available
+      if (recipientResult.payment_breakdown?.order_details) {
+        console.log(`\n📋 DETAILED ORDER BREAKDOWN:`)
+        recipientResult.payment_breakdown.order_details.forEach((orderDetail: any, index: number) => {
+          console.log(`\n[ORDER ${index + 1}] ${orderDetail.order_id}`)
+          console.log(`  💳 Transaction ID: ${orderDetail.paystack_transaction_id}`)
+          console.log(`  📚 Book: ${orderDetail.book.title} - R${(orderDetail.book.price / 100).toFixed(2)}`)
+          console.log(`  👤 Buyer: ${orderDetail.buyer.name} (${orderDetail.buyer.email})`)
+          console.log(`  🚚 Delivery: ${orderDetail.delivery_details.courier_service} - R${(orderDetail.delivery_details.delivery_fee / 100).toFixed(2)}`)
+          console.log(`  💰 Seller Earnings: R${(orderDetail.amounts.seller_earnings / 100).toFixed(2)}`)
+          console.log(`  📅 Timeline:`)
+          console.log(`    • Created: ${orderDetail.timeline.order_created ? new Date(orderDetail.timeline.order_created).toLocaleDateString() : 'N/A'}`)
+          console.log(`    • Paid: ${orderDetail.timeline.payment_received ? new Date(orderDetail.timeline.payment_received).toLocaleDateString() : 'N/A'}`)
+          console.log(`    • Committed: ${orderDetail.timeline.seller_committed ? new Date(orderDetail.timeline.seller_committed).toLocaleDateString() : 'N/A'}`)
+          console.log(`    • Delivered: ${orderDetail.timeline.delivered ? new Date(orderDetail.timeline.delivered).toLocaleDateString() : 'N/A'}`)
+        });
+      }
+
+      console.log(`\n🎯 NEXT STEPS: Admin can now process manual payout using recipient code: ${recipientResult.recipient_code}`)
+
+      // Store the recipient creation in the update results for tracking
+      return {
+        success: true,
+        recipient_created: true,
+        recipient_code: recipientResult.recipient_code,
+        payout_amount: recipientResult.payment_breakdown?.seller_amount || 0,
+        payment_breakdown: recipientResult.payment_breakdown,
+        seller_info: recipientResult.seller_info
+      };
+
+    } else {
+      const errorText = await recipientResponse.text();
+      console.error(`❌ Failed to create recipient for order ${order.order_id}:`, {
+        status: recipientResponse.status,
+        error: errorText
+      });
+      return {
+        success: false,
+        error: `Recipient creation failed: ${recipientResponse.status} - ${errorText}`
+      };
+    }
+
+  } catch (error) {
+    console.error(`❌ Error creating recipient for order ${order.order_id}:`, error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
 async function sendStatusChangeEmails(supabase: any, order: OrderToTrack, newStatus: string) {
   const customerName = order.buyer_name || "Customer";
   const sellerName = order.seller_name || "Seller";
