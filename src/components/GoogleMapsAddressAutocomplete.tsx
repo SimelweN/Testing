@@ -187,9 +187,13 @@ const GoogleMapsAddressAutocomplete: React.FC<
   // Initialize Google Maps when context is ready
   useEffect(() => {
     if (mapsLoaded) {
+      setIsLoading(true);
       initializeGoogleMaps();
+    } else if (mapsLoadError) {
+      setIsLoading(false);
+      setLoadError(mapsLoadError.message);
     }
-  }, [mapsLoaded]);
+  }, [mapsLoaded, mapsLoadError]);
 
   const handleRetry = () => {
     // Retry by attempting to initialize again
