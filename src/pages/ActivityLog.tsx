@@ -80,6 +80,26 @@ const ActivityLog = () => {
     }
   }, [user]);
 
+  const loadUserBooks = useCallback(async () => {
+    if (!user) {
+      setUserBooks([]);
+      return;
+    }
+
+    setIsLoadingBooks(true);
+    try {
+      console.log("Loading user books for:", user.id);
+      const books = await getUserBooks(user.id);
+      console.log("Loaded user books:", books.length);
+      setUserBooks(books);
+    } catch (error) {
+      console.error("Error loading user books:", error);
+      setUserBooks([]);
+    } finally {
+      setIsLoadingBooks(false);
+    }
+  }, [user]);
+
   useEffect(() => {
     loadActivities();
   }, [user, loadActivities]);
