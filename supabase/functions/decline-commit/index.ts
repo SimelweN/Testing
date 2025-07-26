@@ -365,7 +365,7 @@ serve(async (req) => {
     <p>Hello ${buyer.name || "Customer"},</p>
     <p>We're sorry to inform you that your order has been declined by the seller.</p>
 
-    <div class="info-box">
+    <div class="info-box-error">
       <h3>📋 Order Details</h3>
       <p><strong>Order ID:</strong> ${order_id}</p>
       <p><strong>Amount:</strong> R${order.total_amount?.toFixed(2) || "0.00"}</p>
