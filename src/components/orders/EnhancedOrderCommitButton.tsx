@@ -348,10 +348,10 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
 
           {/* Standard Information */}
           <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-            <h4 className="font-semibold text-blue-800 mb-2">
+            <h4 className="font-semibold text-blue-800 mb-2 text-sm sm:text-base">
               What happens after commitment:
             </h4>
-            <ul className="text-sm text-blue-700 space-y-1">
+            <ul className="text-xs sm:text-sm text-blue-700 space-y-1">
               <li>• Courier pickup will be automatically scheduled</li>
               <li>• You'll receive pickup details via email</li>
               <li>• You must be available during pickup time window</li>
@@ -360,8 +360,8 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
           </div>
 
           <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
-            <p className="text-sm text-amber-700">
-              <strong>Important:</strong> Once committed, you are obligated to fulfill this order. 
+            <p className="text-xs sm:text-sm text-amber-700">
+              <strong>Important:</strong> Once committed, you are obligated to fulfill this order.
               Failure to complete the pickup may result in penalties.
             </p>
           </div>
