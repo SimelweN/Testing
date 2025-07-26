@@ -182,8 +182,8 @@ class NotificationManager {
 
   private scheduleReconnect(userId: string, refreshCallback: () => Promise<void>) {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error(
-        "[NotificationManager] 🚫 Max reconnection attempts reached, giving up",
+      console.warn(
+        "[NotificationManager] 🔕 Notifications temporarily disabled due to connection issues",
       );
       this.connectionStatus = 'error';
       return;
@@ -192,13 +192,15 @@ class NotificationManager {
     this.reconnectAttempts++;
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 30000); // Max 30s delay
 
-    console.log(
-      `[NotificationManager] 🔄 Scheduling reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
-    );
+    // Only log every few attempts to reduce spam
+    if (this.reconnectAttempts <= 2 || this.reconnectAttempts % 3 === 0) {
+      console.log(
+        `[NotificationManager] 🔄 Scheduling reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
+      );
+    }
 
     this.reconnectTimeoutId = setTimeout(() => {
       if (this.currentUserId === userId) {
-        console.log("[NotificationManager] 🔄 Attempting to reconnect...");
         this.setupSubscription(userId, refreshCallback);
       }
     }, delay);
