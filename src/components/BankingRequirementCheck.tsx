@@ -198,18 +198,26 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
               onClick={() => navigate("/profile")}
-              className="bg-book-600 hover:bg-book-700 flex-1"
+              className="bg-book-600 hover:bg-book-700 flex-1 btn-mobile"
             >
-              <CreditCard className="h-4 w-4 mr-2" />
-              Set Up Banking & Address
-              <ArrowRight className="h-4 w-4 ml-2" />
+              <CreditCard className="btn-mobile-icon" />
+              <span className="btn-mobile-text">Set Up Banking & Address</span>
+              <ArrowRight className="btn-mobile-icon" />
             </Button>
             <Button
               variant="outline"
               onClick={() => navigate("/books")}
-              className="flex-1"
+              className="flex-1 btn-mobile"
             >
-              Browse Books Instead
+              <span className="btn-mobile-text">Browse Books Instead</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={checkRequirements}
+              disabled={loading}
+              className="sm:w-auto btn-mobile"
+            >
+              <span className="btn-mobile-text">Refresh Status</span>
             </Button>
           </div>
 
