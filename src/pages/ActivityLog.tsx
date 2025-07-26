@@ -300,7 +300,7 @@ const ActivityLog = () => {
                 Purchases
               </TabsTrigger>
               <TabsTrigger value="all" className="text-xs sm:text-sm">
-                <Activity className="h-4 w-4 mr-1" />
+                <ActivityIcon className="h-4 w-4 mr-1" />
                 All
               </TabsTrigger>
             </TabsList>
