@@ -137,7 +137,9 @@ serve(async (req) => {
       orderId: order.id,
       status: order.status,
       sellerId: order.seller_id,
-      buyerId: order.buyer_id
+      buyerId: order.buyer_id,
+      totalPrice: order.total_price,
+      createdAt: order.created_at
     });
 
     // Check if already committed
@@ -146,7 +148,22 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error: `Order is already ${order.status}`
+          error: `Order is already ${order.status}. Current status: ${order.status}`
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // Check if order is in a valid state for committing
+    if (order.status !== 'pending_commit') {
+      console.log('⚠️ Order not in pending_commit status:', order.status);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Order cannot be committed. Expected status: pending_commit, actual status: ${order.status}`
         }),
         {
           status: 400,
@@ -266,7 +283,7 @@ serve(async (req) => {
         }
       });
 
-    console.log('�� Enhanced commit completed successfully');
+    console.log('���� Enhanced commit completed successfully');
 
     return new Response(
       JSON.stringify({ 
