@@ -155,6 +155,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         return false;
       }
 
+      // ✅ NEW: PREVENT MULTI-SELLER CART
+      if (items.length > 0) {
+        const currentSellerId = items[0].sellerId;
+        if (book.seller.id !== currentSellerId) {
+          toast.error("Cannot add books from different sellers", {
+            description: "Complete your current purchase first, then start a new cart with books from other sellers.",
+            duration: 6000,
+          });
+          return false;
+        }
+      }
+
       // ✅ FIXED: Create cart item with all necessary data
       const newItem: CartItem = {
         id: `${book.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
