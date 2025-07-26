@@ -9,6 +9,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ActivityService, Activity } from "@/services/activityService";
 import { useCommit } from "@/hooks/useCommit";
+import { getUserBooks } from "@/services/book/bookQueries";
+import { Book } from "@/types/book";
 import {
   ArrowLeft,
   Check,
