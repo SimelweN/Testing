@@ -525,10 +525,10 @@ const Developer = () => {
     }
   };
 
-  // Get current test data
-  const getTestBook = () => books.find(b => b.id === selectedBook) || books[0];
-  const getTestBuyer = () => users.find(u => u.id === selectedBuyer) || users[0];
-  const getTestSeller = () => users.find(u => u.id === selectedSeller) || users[0];
+  // Get current test data with proper null checks
+  const getTestBook = () => books.find(b => b && b.id === selectedBook) || (books.length > 0 ? books[0] : null);
+  const getTestBuyer = () => users.find(u => u && u.id === selectedBuyer) || (users.length > 0 ? users[0] : null);
+  const getTestSeller = () => users.find(u => u && u.id === selectedSeller) || (users.length > 0 ? users[0] : null);
 
   // ALL EDGE FUNCTIONS WITH PROPER PAYLOADS
 
