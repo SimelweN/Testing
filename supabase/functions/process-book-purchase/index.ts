@@ -113,7 +113,7 @@ serve(async (req) => {
       .eq("id", book_id)
       .eq("seller_id", seller_id)
       .eq("sold", false)
-      .single();
+      .maybeSingle();
 
     if (bookError || !book) {
       console.error('❌ Book not available:', bookError?.message);
@@ -151,8 +151,8 @@ serve(async (req) => {
     // Get buyer and seller profiles
     console.log('👥 Fetching user profiles...');
     const [{ data: buyer, error: buyerError }, { data: seller, error: sellerError }] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", buyer_id).single(),
-      supabase.from("profiles").select("*").eq("id", seller_id).single()
+      supabase.from("profiles").select("*").eq("id", buyer_id).maybeSingle(),
+      supabase.from("profiles").select("*").eq("id", seller_id).maybeSingle()
     ]);
 
     if (buyerError || !buyer) {
@@ -252,7 +252,7 @@ serve(async (req) => {
         }
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (orderError) {
       console.error('❌ Order creation failed:', orderError.message);
