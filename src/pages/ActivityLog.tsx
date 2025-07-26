@@ -30,7 +30,7 @@ import {
   Plus,
   Filter,
   Calendar,
-  Activity,
+  Activity as ActivityIcon,
 } from "lucide-react";
 import OrderManagementView from "@/components/orders/OrderManagementView";
 import OrderNotificationSystem from "@/components/notifications/OrderNotificationSystem";
