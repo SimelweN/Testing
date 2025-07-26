@@ -136,6 +136,11 @@ const ModernAddressTab = ({
 
   return (
     <div className="space-y-6">
+      {/* Google Maps Status */}
+      <div className="flex justify-center">
+        <GoogleMapsTest />
+      </div>
+
       {/* Header */}
       <Card className="border-2 border-orange-100 shadow-lg">
         <CardHeader className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-t-lg">
