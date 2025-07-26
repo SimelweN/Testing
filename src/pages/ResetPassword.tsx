@@ -23,11 +23,17 @@ const ResetPassword = () => {
       try {
         console.log("Verifying reset password session");
 
-        const accessToken = searchParams.get("access_token");
-        const refreshToken = searchParams.get("refresh_token");
-        const type = searchParams.get("type");
-        const error_code = searchParams.get("error_code");
-        const error_description = searchParams.get("error_description");
+        // Check both URL params and hash fragments (Supabase can use either)
+        const accessToken = searchParams.get("access_token") ||
+                           new URLSearchParams(window.location.hash.slice(1)).get("access_token");
+        const refreshToken = searchParams.get("refresh_token") ||
+                            new URLSearchParams(window.location.hash.slice(1)).get("refresh_token");
+        const type = searchParams.get("type") ||
+                     new URLSearchParams(window.location.hash.slice(1)).get("type");
+        const error_code = searchParams.get("error_code") ||
+                          new URLSearchParams(window.location.hash.slice(1)).get("error_code");
+        const error_description = searchParams.get("error_description") ||
+                                 new URLSearchParams(window.location.hash.slice(1)).get("error_description");
 
         console.log("Reset password params:", {
           accessToken: !!accessToken,
