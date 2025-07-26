@@ -204,7 +204,7 @@ const ActivityLog = () => {
       total: activities.length,
       purchases: activities.filter(a => a.type === "purchase").length,
       sales: activities.filter(a => a.type === "sale").length,
-      listings: activities.filter(a => a.type === "listing_created").length,
+      listings: userBooks.length, // Show actual user books count
       pending: pendingCommits.length,
     };
     return summary;
