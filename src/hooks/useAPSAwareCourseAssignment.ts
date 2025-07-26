@@ -149,9 +149,19 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
           isValid: true,
         };
 
-        // Save to session storage
+        // Save to localStorage (persistent storage)
         setUserProfile(profile);
-        return true;
+
+        // Verify persistence
+        const saved = localStorage.getItem("userAPSProfile");
+        const persisted = !!saved;
+        console.log("💾 [APS Debug] Profile saved:", {
+          persisted,
+          totalAPS: profile.totalAPS,
+          subjectCount: profile.subjects.length
+        });
+
+        return persisted;
       } catch (error) {
         console.error("Error updating user subjects:", error);
         setError("Failed to update subjects. Please try again.");
