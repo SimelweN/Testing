@@ -34,6 +34,7 @@ import OrderManagementView from "@/components/orders/OrderManagementView";
 import OrderNotificationSystem from "@/components/notifications/OrderNotificationSystem";
 import EnhancedOrderCommitButton from "@/components/orders/EnhancedOrderCommitButton";
 import { clearAllTestData, clearAllUserData, clearAllData } from "@/utils/clearTestData";
+import { safeDeleteAllNotifications } from "@/utils/notificationDeletionHelper";
 
 const ActivityLog = () => {
   const { user, profile } = useAuth();
