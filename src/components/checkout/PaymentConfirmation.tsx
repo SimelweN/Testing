@@ -410,8 +410,8 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
     </div>
 
     <div class="footer">
-      <p><strong>This is your official receipt from ReBooked Marketplace.</strong><br>
-      Keep this email for your records.</p>
+      <p><strong>This is an automated message from ReBooked Marketplace.</strong><br>
+      Please do not reply to this email.</p>
       <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
       Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
       <p>T&Cs apply. <em>"Pre-Loved Pages, New Adventures"</em></p>
