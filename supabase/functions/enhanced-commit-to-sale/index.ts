@@ -45,14 +45,17 @@ serve(async (req) => {
       }
     );
 
-    const { order_id, seller_id, delivery_method, locker_id, use_locker_api }: CommitRequest = await req.json();
+    const requestBody = await req.json();
+    console.log('📥 Raw request body:', requestBody);
 
-    console.log('🚀 Enhanced commit request:', { 
-      order_id, 
-      seller_id, 
-      delivery_method, 
-      locker_id, 
-      use_locker_api 
+    const { order_id, seller_id, delivery_method, locker_id, use_locker_api }: CommitRequest = requestBody;
+
+    console.log('🚀 Enhanced commit request parsed:', {
+      order_id,
+      seller_id,
+      delivery_method,
+      locker_id,
+      use_locker_api
     });
 
     // Validate required fields
