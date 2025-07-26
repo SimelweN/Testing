@@ -196,9 +196,15 @@ const ResetPassword = () => {
                   <li>3. You'll be brought back here to set a new password</li>
                 </ol>
               </div>
-              <p className="text-gray-500 text-sm">
+              <p className="text-gray-500 text-sm mb-4">
                 Redirecting you to request a reset email...
               </p>
+              <Button
+                onClick={() => navigate("/forgot-password")}
+                className="w-full"
+              >
+                Request Password Reset Email
+              </Button>
             </div>
           </div>
         </div>
