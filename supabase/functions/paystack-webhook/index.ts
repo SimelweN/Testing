@@ -234,9 +234,19 @@ async function handleSuccessfulPayment(supabase: any, data: any) {
       });
 
       if (orderResponse.ok) {
-        console.log('Order created successfully from webhook');
+        const orderResult = await orderResponse.json();
+        console.log('Order created successfully from webhook:', {
+          status: orderResponse.status,
+          order_data: orderResult
+        });
       } else {
-        console.error('Failed to create order from webhook');
+        const errorText = await orderResponse.text();
+        console.error('Failed to create order from webhook:', {
+          status: orderResponse.status,
+          statusText: orderResponse.statusText,
+          error_response: errorText
+        });
+        throw new Error(`Order creation failed: ${orderResponse.status} - ${errorText}`);
       }
     }
   } catch (error) {
