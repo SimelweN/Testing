@@ -136,6 +136,12 @@ serve(async (req) => {
         
       default:
         console.log(`Unhandled webhook event: ${event}`);
+        return jsonResponse({
+          success: false,
+          error: "UNHANDLED_EVENT",
+          event,
+          message: `Event type '${event}' is not supported by this webhook handler`
+        }, { status: 400 });
     }
 
     return jsonResponse({
