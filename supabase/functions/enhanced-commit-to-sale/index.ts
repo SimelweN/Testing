@@ -197,7 +197,7 @@ serve(async (req) => {
       .update(updateData)
       .eq('id', order_id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (updateError) {
       console.error('❌ Failed to update order:', updateError);
