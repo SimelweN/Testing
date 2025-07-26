@@ -39,7 +39,7 @@ export class ApiErrorHandler {
         shouldLogout: false
       };
     } catch (error) {
-      console.error(`[ApiErrorHandler] Unexpected error in ${context}:`, error instanceof Error ? error.message : String(error));
+      console.error(`[ApiErrorHandler] Unexpected error in ${context}:`, error instanceof Error ? error.message : (typeof error === 'object' ? JSON.stringify(error, null, 2) : String(error)));
       
       const errorDetails: ApiErrorDetails = {
         message: error instanceof Error ? error.message : "Unknown error occurred",
