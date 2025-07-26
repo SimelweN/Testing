@@ -223,10 +223,11 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
-                      <Route
+                      {/* DISABLED - Locker functionality removed */}
+                      {/* <Route
                         path="/lockers"
                         element={<LockerSearchPage />}
-                      />
+                      /> */}
 
                                             {/* Admin Routes */}
                       <Route
