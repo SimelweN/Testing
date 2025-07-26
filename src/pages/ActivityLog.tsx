@@ -195,8 +195,12 @@ const ActivityLog = () => {
           return activity.type === "sale";
         case "listings":
           return ["listing_created", "listing_updated", "listing_deleted"].includes(activity.type);
-        case "social":
-          return ["rating_given", "rating_received", "wishlist_added", "wishlist_removed"].includes(activity.type);
+        case "orders":
+          return ["purchase", "sale"].includes(activity.type);
+        case "notifications":
+          return ["rating_received", "wishlist_added"].includes(activity.type);
+        case "commits":
+          return ["sale", "purchase"].includes(activity.type);
         default:
           return true;
       }
