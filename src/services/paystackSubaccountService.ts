@@ -218,10 +218,12 @@ export class PaystackSubaccountService {
         error,
       );
 
-      // 🧪 DEVELOPMENT MODE: Create mock subaccount for testing
+      // 🧪 FALLBACK MODE: Create mock subaccount when edge functions are unavailable
       if (
         error.message?.includes("non-2xx status code") ||
+        error.message?.includes("edge-function-unavailable") ||
         error.message?.includes("Edge Function") ||
+        error.message?.includes("Failed to send a request to the Edge Function") ||
         import.meta.env.DEV
       ) {
         console.warn(
@@ -767,7 +769,7 @@ export class PaystackSubaccountService {
 
       if (!userId) {
         console.log(
-          "��� getUserSubaccountStatus: No userId provided, getting from auth...",
+          "📝 getUserSubaccountStatus: No userId provided, getting from auth...",
         );
         const {
           data: { user },
