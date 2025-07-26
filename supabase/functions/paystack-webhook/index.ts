@@ -291,9 +291,21 @@ async function handleFailedPayment(supabase: any, data: any) {
 
 async function handleSuccessfulTransfer(supabase: any, data: any) {
   const { transfer_code, reference } = data;
-  
+
   try {
-    await supabase
+    // Check for duplicate webhook processing
+    const { data: existingTransfer } = await supabase
+      .from('seller_payments')
+      .select('status, webhook_processed_at')
+      .eq('transfer_code', transfer_code)
+      .single();
+
+    if (existingTransfer?.status === 'success' && existingTransfer?.webhook_processed_at) {
+      console.log(`Duplicate successful transfer webhook for transfer_code: ${transfer_code}, skipping`);
+      return;
+    }
+
+    const { error: updateError } = await supabase
       .from('seller_payments')
       .update({
         status: 'success',
@@ -301,8 +313,14 @@ async function handleSuccessfulTransfer(supabase: any, data: any) {
         paystack_webhook_data: data
       })
       .eq('transfer_code', transfer_code);
+
+    if (updateError) {
+      console.error('Failed to update seller payment:', updateError);
+      throw new Error(`Database update failed: ${updateError.message}`);
+    }
   } catch (error) {
     console.error('Error handling successful transfer:', error);
+    throw error;
   }
 }
 
