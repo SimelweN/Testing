@@ -76,7 +76,7 @@ export const getNotifications = async (
           .eq("user_id", userId)
           .order("created_at", { ascending: false })
           .limit(50) // Limit to 50 notifications for performance
-          .abortSignal(currentFetchController.signal);
+          .abortSignal(currentFetchController?.signal);
 
         return await Promise.race([queryPromise, timeoutPromise]);
       },
