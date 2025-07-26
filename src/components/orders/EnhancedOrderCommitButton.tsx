@@ -88,11 +88,18 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
   // const loadLockers = async () => { ... }
 
   const handleCommit = async () => {
+    // Check order status before attempting commit
+    if (orderStatus && orderStatus !== 'pending_commit') {
+      console.error('❌ Cannot commit order with status:', orderStatus);
+      toast.error(`Cannot commit order. Order status is "${orderStatus}" but should be "pending_commit"`);
+      return;
+    }
+
     setIsCommitting(true);
     setIsDialogOpen(false);
 
     try {
-      console.log(`🚀 Committing to sale for order: ${orderId} with delivery method: ${deliveryMethod}`);
+      console.log(`🚀 Committing to sale for order: ${orderId} with delivery method: ${deliveryMethod}, current status: ${orderStatus}`);
 
       // Prepare the commit data with delivery method
       const commitData = {
