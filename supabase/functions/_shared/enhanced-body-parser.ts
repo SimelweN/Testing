@@ -57,7 +57,8 @@ export async function enhancedParseBody<T = any>(req: Request): Promise<Enhanced
     };
 
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const { getErrorMessage } = await import('./error-utils.ts');
+    const errorMessage = getErrorMessage(error);
     
     console.error(`❌ Enhanced body parsing failed:`, {
       error: errorMessage,
