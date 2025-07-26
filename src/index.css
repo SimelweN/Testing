@@ -91,17 +91,22 @@ body {
 /* Toast Notification Styles - Subtle and Non-intrusive */
 [data-sonner-toaster] {
   position: fixed !important;
-  z-index: 50 !important;
+  z-index: 9999 !important;
   pointer-events: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
 }
 
 /* Mobile: Top right, smaller and subtle */
 @media (max-width: 768px) {
   [data-sonner-toaster] {
-    top: 20px !important;
+    top: 16px !important;
     right: 16px !important;
     left: auto !important;
+    bottom: auto !important;
     transform: none !important;
+    max-width: calc(100vw - 32px) !important;
   }
 }
 
@@ -111,7 +116,9 @@ body {
     top: 20px !important;
     right: 20px !important;
     left: auto !important;
+    bottom: auto !important;
     transform: none !important;
+    max-width: 400px !important;
   }
 }
 
