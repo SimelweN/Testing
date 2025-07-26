@@ -37,7 +37,7 @@ import OrderNotificationSystem from "@/components/notifications/OrderNotificatio
 import EnhancedOrderCommitButton from "@/components/orders/EnhancedOrderCommitButton";
 
 const ActivityLog = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, initError } = useAuth();
   const navigate = useNavigate();
   const {
     commitBook,
