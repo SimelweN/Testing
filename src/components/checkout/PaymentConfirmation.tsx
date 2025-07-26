@@ -155,9 +155,9 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
         body: JSON.stringify({
           to: user.email,
           from: "noreply@rebookedsolutions.co.za",
-          subject: "🎉 Payment Confirmed - Order Processing",
+          subject: "🎉 Payment Confirmed - Your Custom Receipt from ReBooked Marketplace",
           html: generateBuyerConfirmationEmail(order, paymentData),
-          text: `Payment Confirmed!\n\nYour order has been confirmed and is being processed.\n\nOrder ID: ${order.id}\nPayment Reference: ${paymentData.payment_reference}\nTotal: R${paymentData.total_paid}\n\nYou'll receive updates as your order progresses.\n\nReBooked Solutions`,
+          text: `Payment Confirmed - Your Custom Receipt\n\n✅ Your payment has been successfully processed!\n\nORDER SUMMARY:\nOrder ID: ${order.id}\nPayment Reference: ${paymentData.payment_reference}\nBook: ${paymentData.book_title}\nTotal Paid: R${paymentData.total_paid.toFixed(2)}\nDelivery Method: ${paymentData.delivery_method}\n\nWHAT HAPPENS NEXT (Step-by-Step):\n\n1. SELLER NOTIFICATION (Right Now)\n   The seller has been automatically notified of your order.\n\n2. SELLER COMMITMENT (Within 48 Hours)\n   The seller has exactly 48 hours to commit to fulfilling your order.\n   If they don't respond, you'll get an automatic full refund.\n\n3. COURIER PICKUP (Same Day as Commitment)\n   Once seller commits, we arrange courier pickup immediately.\n\n4. SHIPPING & TRACKING (1-2 Days After Pickup)\n   You'll receive tracking details via email and SMS.\n\n5. DELIVERY (2-3 Business Days)\n   Expected delivery: 2-3 business days after pickup.\n\nTOTAL TIMEFRAME: 3-5 business days from now to delivery\n\nTrack your order: https://rebookedsolutions.co.za/orders/${order.id}\n\nThis is your official receipt from ReBooked Marketplace.\n\nFor assistance: support@rebookedsolutions.co.za\nReBooked Marketplace - "Pre-Loved Pages, New Adventures"`,
         }),
       });
 
