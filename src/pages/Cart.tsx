@@ -104,15 +104,17 @@ const Cart = () => {
         </Alert>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Cart Items - Grouped by Seller */}
+          {/* Cart Items - Single Seller */}
           <div className="lg:col-span-2 space-y-6">
-            {Object.entries(sellerTotals).map(([sellerId, seller]) => {
+            {/* Get the first (and only) seller */}
+            {(() => {
+              const [sellerId, seller] = Object.entries(sellerTotals)[0];
               const sellerItems = items.filter(
                 (item) => item.sellerId === sellerId,
               );
 
               return (
-                <Card key={sellerId} className="border-2 border-book-200">
+                <Card className="border-2 border-book-200">
                   <CardHeader className="bg-book-50 rounded-t-lg">
                     <div className="flex justify-between items-center">
                       <div>
@@ -173,7 +175,7 @@ const Cart = () => {
                     <div className="border-t pt-3 mt-3">
                       <div className="flex justify-between items-center">
                         <span className="font-medium">
-                          Subtotal for this seller:
+                          Subtotal:
                         </span>
                         <span className="font-bold text-book-600">
                           R{seller.total.toFixed(2)}
@@ -187,14 +189,13 @@ const Cart = () => {
                         • Platform fee: R{seller.commission.toFixed(2)} (10%)
                       </div>
                       <div className="text-xs text-orange-600 mt-2">
-                        📦 Delivery charges will be calculated separately per
-                        seller at checkout
+                        📦 Delivery charges will be calculated at checkout
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               );
-            })}
+            })()}
           </div>
 
           {/* Order Summary */}
