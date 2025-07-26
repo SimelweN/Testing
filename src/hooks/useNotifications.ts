@@ -58,11 +58,13 @@ class NotificationManager {
     // If we already have a subscription for this user, don't create another
     if (
       this.subscribingRef ||
-      (this.subscriptionRef && this.currentUserId === userId)
+      (this.subscriptionRef && this.currentUserId === userId && this.connectionStatus === 'connected')
     ) {
       console.log(
         "[NotificationManager] Subscription already exists for user:",
         userId,
+        "status:",
+        this.connectionStatus,
       );
       return;
     }
@@ -80,6 +82,13 @@ class NotificationManager {
 
     this.currentUserId = userId;
     this.subscribingRef = true;
+    this.connectionStatus = 'connecting';
+
+    // Clear any pending reconnect timeout
+    if (this.reconnectTimeoutId) {
+      clearTimeout(this.reconnectTimeoutId);
+      this.reconnectTimeoutId = null;
+    }
 
     const channelName = `notifications_${userId}_${Date.now()}`;
     console.log(
@@ -87,6 +96,8 @@ class NotificationManager {
       userId,
       "channel:",
       channelName,
+      "attempt:",
+      this.reconnectAttempts + 1,
     );
 
     try {
@@ -114,11 +125,30 @@ class NotificationManager {
 
       channel.subscribe((status) => {
         console.log("[NotificationManager] Subscription status:", status);
+
         if (status === "SUBSCRIBED") {
           this.subscribingRef = false;
-        } else if (status === "CHANNEL_ERROR" || status === "CLOSED") {
+          this.connectionStatus = 'connected';
+          this.reconnectAttempts = 0; // Reset retry counter on success
+          console.log("[NotificationManager] ✅ Successfully connected to realtime");
+        } else if (status === "CHANNEL_ERROR") {
+          console.error("[NotificationManager] ❌ Channel error occurred");
+          this.connectionStatus = 'error';
           this.subscriptionRef = null;
           this.subscribingRef = false;
+          this.scheduleReconnect(userId, refreshCallback);
+        } else if (status === "CLOSED") {
+          console.warn("[NotificationManager] 🔌 Connection closed");
+          this.connectionStatus = 'disconnected';
+          this.subscriptionRef = null;
+          this.subscribingRef = false;
+          this.scheduleReconnect(userId, refreshCallback);
+        } else if (status === "TIMED_OUT") {
+          console.warn("[NotificationManager] ⏱️ Connection timed out");
+          this.connectionStatus = 'error';
+          this.subscriptionRef = null;
+          this.subscribingRef = false;
+          this.scheduleReconnect(userId, refreshCallback);
         }
       });
 
@@ -128,9 +158,39 @@ class NotificationManager {
         "[NotificationManager] Error setting up subscription:",
         error,
       );
+      this.connectionStatus = 'error';
       this.subscriptionRef = null;
       this.subscribingRef = false;
+      this.scheduleReconnect(userId, refreshCallback);
     }
+  }
+
+  private scheduleReconnect(userId: string, refreshCallback: () => Promise<void>) {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.error(
+        "[NotificationManager] 🚫 Max reconnection attempts reached, giving up",
+      );
+      this.connectionStatus = 'error';
+      return;
+    }
+
+    this.reconnectAttempts++;
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 30000); // Max 30s delay
+
+    console.log(
+      `[NotificationManager] 🔄 Scheduling reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
+    );
+
+    this.reconnectTimeoutId = setTimeout(() => {
+      if (this.currentUserId === userId) {
+        console.log("[NotificationManager] 🔄 Attempting to reconnect...");
+        this.setupSubscription(userId, refreshCallback);
+      }
+    }, delay);
+  }
+
+  getConnectionStatus(): string {
+    return this.connectionStatus;
   }
 
   cleanup() {
