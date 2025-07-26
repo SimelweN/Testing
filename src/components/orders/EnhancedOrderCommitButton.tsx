@@ -367,22 +367,27 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
           </div>
         </div>
 
-        <AlertDialogFooter className="mt-6">
-          <AlertDialogCancel disabled={isCommitting}>Cancel</AlertDialogCancel>
+        <AlertDialogFooter className="mt-6 flex-col sm:flex-row gap-2 sm:gap-0">
+          <AlertDialogCancel
+            disabled={isCommitting}
+            className="w-full sm:w-auto text-sm sm:text-base min-h-[44px]"
+          >
+            Cancel
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleCommit}
             disabled={isCommitting || !isFormValid}
-            className="bg-green-600 hover:bg-green-700"
+            className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-sm sm:text-base min-h-[44px]"
           >
             {isCommitting ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Committing...
+                <Loader2 className="w-4 h-4 mr-2 animate-spin flex-shrink-0" />
+                <span>Committing...</span>
               </>
             ) : (
               <>
-                <CheckCircle className="w-4 w-4 mr-2" />
-                Commit with Home Pick-Up
+                <CheckCircle className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span className="truncate">Commit with Home Pick-Up</span>
               </>
             )}
           </AlertDialogAction>
