@@ -94,7 +94,7 @@ serve(async (req) => {
       `)
       .eq('id', order_id)
       .eq('seller_id', seller_id)
-      .single();
+      .maybeSingle();
 
     if (orderError || !order) {
       console.error('❌ Order not found or access denied:', orderError);
