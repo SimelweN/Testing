@@ -219,23 +219,43 @@ const ModernAddressTab = ({
                 </div>
               ) : editMode === "pickup" || editMode === "both" ? (
                 <div className="space-y-4">
-                  <GoogleMapsAddressAutocomplete
-                    label="Pickup Address"
-                    required
-                    onAddressSelect={handlePickupAddressChange}
-                    defaultValue={
-                      pickupAddress
-                        ? {
-                            formattedAddress: `${pickupAddress.street}, ${pickupAddress.city}, ${pickupAddress.province}, ${pickupAddress.postalCode}`,
-                            street: pickupAddress.street,
-                            city: pickupAddress.city,
-                            province: pickupAddress.province,
-                            postalCode: pickupAddress.postalCode,
-                            country: pickupAddress.country,
-                          }
-                        : undefined
-                    }
-                  />
+                  {useManualInput ? (
+                    <ManualAddressInput
+                      label="Pickup Address"
+                      required
+                      onAddressSelect={handlePickupAddressChange}
+                      defaultValue={
+                        pickupAddress
+                          ? {
+                              formattedAddress: `${pickupAddress.street}, ${pickupAddress.city}, ${pickupAddress.province}, ${pickupAddress.postalCode}`,
+                              street: pickupAddress.street,
+                              city: pickupAddress.city,
+                              province: pickupAddress.province,
+                              postalCode: pickupAddress.postalCode,
+                              country: pickupAddress.country,
+                            }
+                          : undefined
+                      }
+                    />
+                  ) : (
+                    <GoogleMapsAddressAutocomplete
+                      label="Pickup Address"
+                      required
+                      onAddressSelect={handlePickupAddressChange}
+                      defaultValue={
+                        pickupAddress
+                          ? {
+                              formattedAddress: `${pickupAddress.street}, ${pickupAddress.city}, ${pickupAddress.province}, ${pickupAddress.postalCode}`,
+                              street: pickupAddress.street,
+                              city: pickupAddress.city,
+                              province: pickupAddress.province,
+                              postalCode: pickupAddress.postalCode,
+                              country: pickupAddress.country,
+                            }
+                          : undefined
+                      }
+                    />
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-8">
