@@ -140,7 +140,15 @@ Time: ${new Date().toISOString()}
           <AlertDescription>{config.description}</AlertDescription>
         </Alert>
 
-
+        {/* Error details for debugging (development only) */}
+        {process.env.NODE_ENV === "development" && errorObj.details && (
+          <div className="text-xs text-gray-500 p-3 bg-gray-50 rounded-md">
+            <strong>Debug Info:</strong>
+            <pre className="mt-1 overflow-auto">
+              {JSON.stringify(errorObj.details, null, 2)}
+            </pre>
+          </div>
+        )}
 
         {/* Action buttons */}
         <div className="flex flex-wrap gap-2">
