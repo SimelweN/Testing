@@ -255,7 +255,12 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
       setLastSearchResults(null);
       setError(null);
 
-      console.log("✅ APS Profile cleared from localStorage");
+      // Verify clearing worked
+      const stillExists = localStorage.getItem("userAPSProfile");
+      console.log("🗑️ [APS Debug] Profile cleared:", {
+        cleared: !stillExists,
+        wasCleared: stillExists === null
+      });
 
       // Trigger global state reset event
       window.dispatchEvent(new CustomEvent("apsProfileCleared"));
