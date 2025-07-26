@@ -194,6 +194,12 @@ class NotificationManager {
   }
 
   cleanup() {
+    // Clear any pending reconnect timeout
+    if (this.reconnectTimeoutId) {
+      clearTimeout(this.reconnectTimeoutId);
+      this.reconnectTimeoutId = null;
+    }
+
     if (this.subscriptionRef) {
       try {
         this.subscriptionRef.unsubscribe();
@@ -207,6 +213,8 @@ class NotificationManager {
     this.subscribingRef = false;
     this.currentUserId = null;
     this.notifications = [];
+    this.connectionStatus = 'disconnected';
+    this.reconnectAttempts = 0;
   }
 }
 
