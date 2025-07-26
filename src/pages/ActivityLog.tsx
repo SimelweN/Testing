@@ -268,11 +268,16 @@ const ActivityLog = () => {
             </div>
           </div>
 
-          {error && (
+          {(error || initError) && (
             <Alert className="mb-6 border-red-200 bg-red-50">
               <AlertCircle className="h-4 w-4 text-red-600" />
               <AlertDescription className="text-red-700">
-                {error}
+                {error || initError}
+                {initError?.includes("Network connectivity") && (
+                  <div className="mt-2 text-sm">
+                    Please check your internet connection and try refreshing the page.
+                  </div>
+                )}
               </AlertDescription>
             </Alert>
           )}
