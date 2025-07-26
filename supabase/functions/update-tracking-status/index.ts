@@ -269,6 +269,12 @@ Deno.serve(async (req) => {
 
             // Send email notifications based on status
             await sendStatusChangeEmails(supabase, order, newStatus)
+
+            // Automatically create recipient for payout when delivered
+            if (newStatus === 'delivered') {
+              console.log(`🏦 Order delivered - creating recipient for payout: ${order.order_id}`)
+              await createRecipientForPayout(supabase, order)
+            }
           }
         } else {
           updateResults.push({
