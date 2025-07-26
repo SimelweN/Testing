@@ -314,11 +314,22 @@ export class BankingService {
         details: bankingDetails
       });
 
+      // Check if user has any valid banking setup (not just active)
+      // For listing books, having banking details with subaccount is sufficient
       const hasBankingSetup = !!(
         bankingDetails &&
         bankingDetails.subaccount_code &&
-        bankingDetails.status === "active"
+        (bankingDetails.status === "active" || bankingDetails.status === "pending")
       );
+
+      console.log("🏦 [Banking Setup Check] Banking validation:", {
+        userId,
+        hasBankingDetails: !!bankingDetails,
+        hasSubaccountCode: !!bankingDetails?.subaccount_code,
+        currentStatus: bankingDetails?.status,
+        isValidStatus: bankingDetails?.status === "active" || bankingDetails?.status === "pending",
+        finalResult: hasBankingSetup
+      });
 
       // Check pickup address (from user profile)
       const { data: profile } = await supabase
