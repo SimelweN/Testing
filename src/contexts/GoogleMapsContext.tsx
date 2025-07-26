@@ -105,11 +105,13 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({
 
   const value: GoogleMapsContextType = {
     isLoaded: shouldLoadMaps && isLoaded,
-    loadError: shouldLoadMaps
+    loadError: shouldLoadMaps && loadError
       ? loadError
-      : new Error(
+      : !shouldLoadMaps
+      ? new Error(
           "Google Maps is disabled. Please configure VITE_GOOGLE_MAPS_API_KEY in your environment variables."
-        ),
+        )
+      : undefined,
   };
 
   // Log helpful message in development if API key is missing or invalid
