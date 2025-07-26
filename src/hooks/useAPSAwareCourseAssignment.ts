@@ -72,6 +72,20 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
     null,
   );
 
+  // Debug logging to verify persistence
+  useEffect(() => {
+    const stored = localStorage.getItem("userAPSProfile");
+    console.log("🔍 [APS Debug] Initial load check:", {
+      hasStoredData: !!stored,
+      userProfile: !!userProfile,
+      storedLength: stored?.length || 0
+    });
+
+    if (stored && !userProfile) {
+      console.warn("⚠️ [APS Debug] LocalStorage has data but hook doesn't - potential sync issue");
+    }
+  }, [userProfile]);
+
   // Component state
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
