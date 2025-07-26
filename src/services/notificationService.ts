@@ -49,12 +49,21 @@ export const getNotifications = async (
   }
 
   // Cancel any ongoing request
-  if (currentFetchController) {
-    currentFetchController.abort();
+  if (currentFetchController && !currentFetchController.signal.aborted) {
+    try {
+      currentFetchController.abort();
+    } catch (abortError) {
+      console.warn("Error aborting previous request:", abortError);
+    }
   }
 
   // Create new controller for this request
-  currentFetchController = new AbortController();
+  try {
+    currentFetchController = new AbortController();
+  } catch (controllerError) {
+    console.warn("Error creating AbortController:", controllerError);
+    currentFetchController = null;
+  }
 
   try {
     // Use enhanced error handling for the API call
