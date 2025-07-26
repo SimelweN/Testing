@@ -159,32 +159,28 @@ serve(async (req) => {
             );
           }
 
-          // Parse request body if not already parsed for health check
+          // Parse request body
           let requestBody;
-          if (body) {
-            requestBody = body;
-          } else {
-            try {
-              requestBody = await req.json();
-            } catch (error) {
-              return new Response(
-                JSON.stringify({
-                  success: false,
-                  error: "INVALID_JSON_PAYLOAD",
-                  details: {
-                    error_message: error.message,
-                    message: "Request body must be valid JSON",
-                  },
-                }),
-                {
-                  status: 400,
-                  headers: {
-                    ...corsHeaders,
-                    "Content-Type": "application/json",
-                  },
+          try {
+            requestBody = await req.json();
+          } catch (error) {
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: "INVALID_JSON_PAYLOAD",
+                details: {
+                  error_message: error.message,
+                  message: "Request body must be valid JSON",
                 },
-              );
-            }
+              }),
+              {
+                status: 400,
+                headers: {
+                  ...corsHeaders,
+                  "Content-Type": "application/json",
+                },
+              },
+            );
           }
           return await handleCreateSubaccount(requestBody, user, supabase);
         } else {
