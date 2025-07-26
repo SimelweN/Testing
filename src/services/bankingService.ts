@@ -468,7 +468,13 @@ export class BankingService {
         setupCompletionPercentage,
       };
     } catch (error) {
-      console.error("Error checking seller requirements:", error);
+      console.error("Error checking seller requirements:", JSON.stringify(error, null, 2));
+
+      // If it's a connection error, still return false but don't log as error
+      if (error instanceof Error && error.message?.includes("Connection error")) {
+        console.log("Connection issue while checking seller requirements, will retry on next check");
+      }
+
       return {
         hasBankingSetup: false,
         hasPickupAddress: false,
