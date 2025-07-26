@@ -81,8 +81,8 @@ const GoogleMapsAddressAutocomplete: React.FC<
       const autocomplete = new window.google.maps.places.Autocomplete(
         inputRef.current,
         {
-          types: ["address"],
-          componentRestrictions: { country: "ZA" }, // South Africa only
+          types: ["geocode"], // only show addresses (like the example)
+          componentRestrictions: { country: "za" }, // restrict to South Africa (lowercase like example)
           fields: ["formatted_address", "geometry", "address_components"],
         },
       );
