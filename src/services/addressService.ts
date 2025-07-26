@@ -138,11 +138,8 @@ export const getUserAddresses = async (userId: string) => {
     console.log("Successfully fetched address data:", data);
     return data;
   } catch (error) {
-    console.error("Error in getUserAddresses:", {
-      error: error instanceof Error ? error.message : String(error),
+    safelog("Error in getUserAddresses", error, {
       userId,
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
     });
 
     // Handle network errors specifically
