@@ -69,7 +69,7 @@ export async function saveAPSProfile(
 
     // ✅ VERIFY SAVE SUCCESS
     const verification = localStorage.getItem(APS_STORAGE_KEY);
-    console.log("🔍 Profile saved and verified:", !!verification);
+    console.log("���� Profile saved and verified:", !!verification);
 
     if (user) {
       try {
@@ -142,8 +142,8 @@ export function loadAPSProfile(): UserAPSProfile | null {
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     });
-    // Clear corrupted data
-    localStorage.removeItem(APS_STORAGE_KEY);
+    // Don't automatically clear data on parsing errors - preserve for manual review
+    // User can explicitly clear via "Clear APS Profile" button if needed
     return null;
   }
 }
