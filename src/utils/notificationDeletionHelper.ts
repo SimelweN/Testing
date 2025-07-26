@@ -50,7 +50,6 @@ export const safeDeleteAllNotifications = async (): Promise<boolean> => {
 
   try {
     // Get all notification IDs first (safer than bulk delete)
-    const { supabase } = await import("@/lib/supabase");
     const { data: notifications, error: fetchError } = await supabase
       .from("notifications")
       .select("id")
