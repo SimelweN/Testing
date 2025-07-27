@@ -114,6 +114,15 @@ const ActivityLog = () => {
     }
   }, [user, refreshPendingCommits]);
 
+  // Update timer every minute to keep countdown accurate
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(timer);
+  }, []);
+
   const getActivityIcon = (type: string) => {
     switch (type) {
       case "purchase":
