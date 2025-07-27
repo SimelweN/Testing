@@ -54,16 +54,18 @@ const Checkout: React.FC = () => {
 
   // Add additional effect to refresh cart data when localStorage changes
   useEffect(() => {
-    if (id === "cart") {
+    const isCartCheckout = location.pathname === '/checkout-cart' || id === "cart";
+
+    if (isCartCheckout) {
       const handleStorageChange = () => {
-        console.log('Cart localStorage changed, refreshing checkout...');
+        console.log('🛒 CHECKOUT: Cart localStorage changed, refreshing checkout...');
         loadCartData();
       };
 
       window.addEventListener('storage', handleStorageChange);
       return () => window.removeEventListener('storage', handleStorageChange);
     }
-  }, [id]);
+  }, [id, location.pathname]);
 
   const loadCartData = async () => {
     try {
