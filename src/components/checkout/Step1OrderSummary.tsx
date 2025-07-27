@@ -36,7 +36,14 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
             sellerId: parsedData.sellerId,
             sellerName: parsedData.sellerName,
             itemCount: parsedData.items?.length,
-            timestamp: new Date(parsedData.timestamp).toLocaleTimeString()
+            timestamp: new Date(parsedData.timestamp).toLocaleTimeString(),
+            items: parsedData.items?.map(item => ({
+              title: item.title,
+              author: item.author,
+              price: item.price,
+              imageUrl: item.imageUrl,
+              hasImage: !!item.imageUrl
+            }))
           });
           setCartData(parsedData);
           return;
