@@ -41,8 +41,28 @@ const Cart = () => {
   const activeCart = getActiveCart();
 
   const handleCheckout = async (sellerId?: string) => {
-    const cartToCheckout = sellerId ? sellerCarts.find(cart => cart.sellerId === sellerId) : null;
-    const itemsToCheckout = cartToCheckout ? cartToCheckout.items : items;
+    let cartToCheckout = null;
+    let itemsToCheckout = [];
+    let actualSellerId = sellerId;
+
+    if (sellerId) {
+      // Explicit seller cart checkout
+      cartToCheckout = sellerCarts.find(cart => cart.sellerId === sellerId);
+      if (!cartToCheckout) {
+        toast.error("Selected cart not found");
+        return;
+      }
+      itemsToCheckout = cartToCheckout.items;
+      actualSellerId = cartToCheckout.sellerId;
+    } else {
+      // Legacy cart checkout (items array)
+      if (items.length === 0) {
+        toast.error("Cart is empty");
+        return;
+      }
+      itemsToCheckout = items;
+      actualSellerId = items[0]?.sellerId;
+    }
 
     if (itemsToCheckout.length === 0) {
       toast.error("Selected cart is empty");
@@ -58,19 +78,23 @@ const Cart = () => {
         // Multiple items from same seller - store cart data and navigate to cart checkout
         const checkoutCartData = {
           items: itemsToCheckout,
-          sellerId: sellerId || itemsToCheckout[0].sellerId,
+          sellerId: actualSellerId,
           sellerName: cartToCheckout?.sellerName || (Object.values(getSellerTotals())[0]?.sellerName),
           totalPrice: cartToCheckout?.totalPrice || getTotalPrice(),
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          cartType: sellerId ? 'seller-cart' : 'legacy-cart' // Add identifier
         };
 
-        // Store cart data for checkout
+        // Use a unique key that includes seller info to avoid conflicts
+        const storageKey = `checkoutCart_${actualSellerId}_${Date.now()}`;
         localStorage.setItem('checkoutCart', JSON.stringify(checkoutCartData));
+        localStorage.setItem('activeCheckoutKey', storageKey); // Store which cart is being checked out
 
         toast.success(`Proceeding to checkout with ${itemsToCheckout.length} books from ${checkoutCartData.sellerName}`);
         navigate('/checkout/cart');
       }
     } catch (error) {
+      console.error("Checkout error:", error);
       toast.error("Failed to proceed to checkout");
     } finally {
       setIsProcessing(false);
