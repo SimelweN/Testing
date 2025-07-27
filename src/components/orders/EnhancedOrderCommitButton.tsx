@@ -104,58 +104,45 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
 
       let data, error;
 
-      // Try enhanced function first, fallback to original if it doesn't exist
+      // Use the basic commit-to-sale function directly
       try {
-        console.log("📞 Attempting enhanced-commit-to-sale function...");
+        console.log("📞 Using commit-to-sale function...");
+
+        // Use basic commit data for the original function
+        const basicCommitData = {
+          order_id: orderId,
+          seller_id: sellerId,
+        };
+
         const result = await supabase.functions.invoke(
-          "enhanced-commit-to-sale",
+          "commit-to-sale",
           {
-            body: commitData,
+            body: basicCommitData,
           },
         );
         data = result.data;
         error = result.error;
-      } catch (enhancedError) {
-        console.warn("⚠️ Enhanced function not available, trying original function:", enhancedError);
 
-        try {
-          // Fallback to original commit function with basic data
-          const basicCommitData = {
-            order_id: orderId,
-            seller_id: sellerId,
-          };
+      } catch (originalError) {
+        console.warn("⚠️ Commit function failed, using fallback service:", originalError);
 
-          const result = await supabase.functions.invoke(
-            "commit-to-sale",
-            {
-              body: basicCommitData,
-            },
-          );
-          data = result.data;
-          error = result.error;
+        // Final fallback to direct database service
+        const fallbackResult = await FallbackCommitService.commitToSale({
+          order_id: orderId,
+          seller_id: sellerId,
+          delivery_method: deliveryMethod,
+          // DISABLED - Locker ID removed
+        });
 
-          // DISABLED - Locker-specific messaging removed
-        } catch (originalError) {
-          console.warn("⚠️ Original function also failed, using fallback service:", originalError);
+        if (fallbackResult.success) {
+          data = fallbackResult.data;
+          error = null;
 
-          // Final fallback to direct database service
-          const fallbackResult = await FallbackCommitService.commitToSale({
-            order_id: orderId,
-            seller_id: sellerId,
-            delivery_method: deliveryMethod,
-            // DISABLED - Locker ID removed
+          toast.info("🔄 Using offline commit mode - some features may be limited", {
+            duration: 5000,
           });
-
-          if (fallbackResult.success) {
-            data = fallbackResult.data;
-            error = null;
-
-            toast.info("🔄 Using offline commit mode - some features may be limited", {
-              duration: 5000,
-            });
-          } else {
-            throw new Error(fallbackResult.error || "All commit methods failed");
-          }
+        } else {
+          throw new Error(fallbackResult.error || "All commit methods failed");
         }
       }
 
