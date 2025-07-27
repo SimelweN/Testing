@@ -17,9 +17,7 @@ const Checkout: React.FC = () => {
   useEffect(() => {
     // Handle cart checkout vs single book checkout
     if (id === "cart") {
-      // This is a cart checkout, we should get the cart items from state or localStorage
-      // For now, redirect to proper cart handling
-      navigate("/cart");
+      loadCartData();
       return;
     }
 
