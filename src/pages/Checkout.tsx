@@ -44,7 +44,7 @@ const Checkout: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Get cart data from localStorage
+      // Get cart data from localStorage - use the most recent one
       const cartDataStr = localStorage.getItem('checkoutCart');
       if (!cartDataStr) {
         setError("No cart data found. Please return to your cart and try again.");
@@ -68,25 +68,35 @@ const Checkout: React.FC = () => {
         return;
       }
 
-      console.log("Cart checkout data loaded:", parsedCartData);
+      console.log("Cart checkout data loaded:", {
+        sellerId: parsedCartData.sellerId,
+        sellerName: parsedCartData.sellerName,
+        itemCount: parsedCartData.items.length,
+        totalPrice: parsedCartData.totalPrice,
+        cartType: parsedCartData.cartType || 'unknown'
+      });
+
       setCartData(parsedCartData);
 
-      // For now, we'll use the first book for the checkout flow
-      // but the cart data will be available for showing all items
+      // Create a CheckoutBook from the first cart item but with cart totals
       const firstItem = parsedCartData.items[0];
 
-      // Create a CheckoutBook from the first cart item
+      // Create a CheckoutBook that represents the entire cart
       const checkoutBook: CheckoutBook = {
         id: firstItem.bookId,
-        title: firstItem.title,
-        author: firstItem.author,
+        title: parsedCartData.items.length > 1
+          ? `${parsedCartData.items.length} Books from ${parsedCartData.sellerName}`
+          : firstItem.title,
+        author: parsedCartData.items.length > 1
+          ? "Multiple Authors"
+          : firstItem.author,
         price: parsedCartData.totalPrice, // Use total price of all items
-        condition: "Unknown", // We'll need to get this from the database
-        seller_id: firstItem.sellerId,
-        seller_name: firstItem.sellerName,
+        condition: "Various", // Multiple books may have different conditions
+        seller_id: parsedCartData.sellerId,
+        seller_name: parsedCartData.sellerName,
         seller: {
-          id: firstItem.sellerId,
-          name: firstItem.sellerName,
+          id: parsedCartData.sellerId,
+          name: parsedCartData.sellerName,
           email: "",
           hasAddress: true,
           hasSubaccount: true,
