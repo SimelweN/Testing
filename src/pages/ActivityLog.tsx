@@ -506,7 +506,7 @@ const ActivityLog = () => {
                     const timeRemaining = Math.max(
                       0,
                       Math.floor(
-                        (new Date(commit.expiresAt).getTime() - new Date().getTime()) /
+                        (new Date(commit.expiresAt).getTime() - currentTime.getTime()) /
                         (1000 * 60 * 60),
                       ),
                     );
