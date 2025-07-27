@@ -111,7 +111,7 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {isCartCheckout ? (
+          {isCartCheckout && cartData ? (
             <div className="space-y-4">
               {cartData.items.map((item: any, index: number) => (
                 <div key={item.id || index} className={`flex flex-col sm:flex-row gap-3 sm:gap-4 ${index > 0 ? 'pt-4 border-t' : ''}`}>
