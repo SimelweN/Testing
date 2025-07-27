@@ -42,7 +42,9 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
 
     try {
       setLoading(true);
+      console.log("🔍 Checking banking requirements for user:", user.id);
       const status = await BankingService.checkBankingRequirements(user.id);
+      console.log("📊 Banking status result:", status);
       setBankingStatus(status);
       onCanProceed(status.canListBooks);
     } catch (error) {
@@ -143,7 +145,11 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
 
             <div className="flex items-center gap-3 p-3 bg-white rounded-lg border">
               <div className="flex-shrink-0">
-                <MapPin className="h-5 w-5 text-gray-400" />
+                {bankingStatus.hasPickupAddress ? (
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                ) : (
+                  <AlertTriangle className="h-5 w-5 text-orange-600" />
+                )}
               </div>
               <div className="flex-1">
                 <h4 className="font-medium">Pickup Address</h4>
@@ -152,12 +158,22 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
                 </p>
               </div>
               <div className="flex-shrink-0">
-                <Badge
-                  variant="outline"
-                  className="border-gray-500 text-gray-700"
-                >
-                  Check Profile
-                </Badge>
+                {bankingStatus.hasPickupAddress ? (
+                  <Badge
+                    variant="default"
+                    className="bg-green-100 text-green-800"
+                  >
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Complete
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="border-red-500 text-red-700"
+                  >
+                    Missing
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
@@ -182,18 +198,26 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
               onClick={() => navigate("/profile")}
-              className="bg-book-600 hover:bg-book-700 flex-1"
+              className="bg-book-600 hover:bg-book-700 flex-1 btn-mobile"
             >
-              <CreditCard className="h-4 w-4 mr-2" />
-              Set Up Banking & Address
-              <ArrowRight className="h-4 w-4 ml-2" />
+              <CreditCard className="btn-mobile-icon" />
+              <span className="btn-mobile-text">Set Up Banking & Address</span>
+              <ArrowRight className="btn-mobile-icon" />
             </Button>
             <Button
               variant="outline"
               onClick={() => navigate("/books")}
-              className="flex-1"
+              className="flex-1 btn-mobile"
             >
-              Browse Books Instead
+              <span className="btn-mobile-text">Browse Books Instead</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={checkRequirements}
+              disabled={loading}
+              className="sm:w-auto btn-mobile"
+            >
+              <span className="btn-mobile-text">Refresh Status</span>
             </Button>
           </div>
 

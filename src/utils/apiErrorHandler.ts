@@ -39,7 +39,7 @@ export class ApiErrorHandler {
         shouldLogout: false
       };
     } catch (error) {
-      console.error(`[ApiErrorHandler] Unexpected error in ${context}:`, error instanceof Error ? error.message : String(error));
+      console.error(`[ApiErrorHandler] Unexpected error in ${context}:`, error instanceof Error ? error.message : (typeof error === 'object' ? JSON.stringify(error, null, 2) : String(error)));
       
       const errorDetails: ApiErrorDetails = {
         message: error instanceof Error ? error.message : "Unknown error occurred",
@@ -77,12 +77,12 @@ export class ApiErrorHandler {
       details: error.details
     };
 
-    console.error(`[ApiErrorHandler] Error in ${context}:`, {
+    console.error(`[ApiErrorHandler] Error in ${context}:`, JSON.stringify({
       code: errorDetails.code,
       message: errorDetails.message,
       statusCode: errorDetails.statusCode,
       hint: errorDetails.hint
-    });
+    }, null, 2));
 
     // Determine if this is a retry-able error
     const needsRetry = this.isRetryableError(errorDetails);

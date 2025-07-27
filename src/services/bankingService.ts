@@ -16,24 +16,64 @@ export class BankingService {
    */
   static async getUserBankingDetails(
     userId: string,
+    retryCount = 0,
   ): Promise<BankingSubaccount | null> {
     try {
-      console.log("Fetching banking details for user:", userId);
+      console.log("Fetching banking details for user:", userId, "attempt:", retryCount + 1);
 
-      const { data, error } = await supabase
-        .from("banking_subaccounts")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("status", "active")
-        .single();
+      // Add timeout to prevent hanging requests
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
+      );
+
+      const fetchQuery = async () => {
+        // First check if user has ANY banking records (regardless of status)
+        const { data: allRecords, error: allError } = await supabase
+          .from("banking_subaccounts")
+          .select("*")
+          .eq("user_id", userId);
+
+        console.log("🔍 [Banking Debug] All banking records for user:", {
+          userId,
+          records: allRecords,
+          count: allRecords?.length || 0
+        });
+
+        return await supabase
+          .from("banking_subaccounts")
+          .select("*")
+          .eq("user_id", userId)
+          .eq("status", "active")
+          .single();
+      };
+
+      const { data, error } = await Promise.race([fetchQuery(), timeout]) as any;
 
       if (error) {
-        // No record found is expected for users without banking setup
+        // No active record found - let's check for any record
         if (error.code === "PGRST116") {
-          console.log(
-            "No banking details found for user - this is normal for new users",
-          );
-          return null;
+          console.log("No active banking record found, checking for any record...");
+
+          // Try to get any banking record (regardless of status)
+          const { data: anyRecord, error: anyError } = await supabase
+            .from("banking_subaccounts")
+            .select("*")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single();
+
+          if (anyError) {
+            if (anyError.code === "PGRST116") {
+              console.log("No banking details found for user - this is normal for new users");
+              return null;
+            }
+            console.error("Error fetching any banking record:", anyError);
+            return null;
+          }
+
+          console.log("🔍 Found banking record with status:", anyRecord?.status);
+          return anyRecord;
         }
 
         // Check if table doesn't exist
@@ -52,7 +92,15 @@ export class BankingService {
           details: error.details,
           hint: error.hint,
           userId,
+          fullError: JSON.stringify(error, null, 2),
         });
+
+        // Handle network/connection errors more gracefully
+        if (error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError")) {
+          console.log("Network error detected, user may be offline or database unreachable");
+          throw new Error("Connection error - please check your internet and try again");
+        }
+
         throw new Error(
           `Database error: ${error.message || "Failed to fetch banking details"}`,
         );
@@ -61,6 +109,20 @@ export class BankingService {
       return data;
     } catch (error) {
       if (error instanceof Error) {
+        // Handle timeout errors with retry
+        if (error.message === 'Request timeout' && retryCount < 2) {
+          console.log(`Request timeout, retrying... (${retryCount + 1}/3)`);
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+          return this.getUserBankingDetails(userId, retryCount + 1);
+        }
+
+        // Handle network errors with retry
+        if ((error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError")) && retryCount < 2) {
+          console.log(`Network error, retrying... (${retryCount + 1}/3)`);
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+          return this.getUserBankingDetails(userId, retryCount + 1);
+        }
+
         // Check for table doesn't exist error
         if (
           error.message?.includes("does not exist") ||
@@ -71,10 +133,31 @@ export class BankingService {
             "Banking system not properly configured. Please contact support.",
           );
         }
+
         console.error("Error fetching banking details:", error.message);
+
+        // If it's a network error after retries, give user-friendly message
+        if (error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError") || error.message === 'Request timeout') {
+          throw new Error("Connection error - please check your internet and try again");
+        }
+
         throw error;
       } else {
-        console.error("Unknown error fetching banking details:", error);
+        console.error("Unknown error fetching banking details:", JSON.stringify(error, null, 2));
+
+        // Handle network errors
+        if (typeof error === 'object' && error !== null && 'message' in error) {
+          const errorMessage = (error as any).message;
+          if ((errorMessage?.includes("Failed to fetch") || errorMessage?.includes("NetworkError")) && retryCount < 2) {
+            console.log(`Network error, retrying... (${retryCount + 1}/3)`);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+            return this.getUserBankingDetails(userId, retryCount + 1);
+          }
+          if (errorMessage?.includes("Failed to fetch") || errorMessage?.includes("NetworkError")) {
+            throw new Error("Connection error - please check your internet and try again");
+          }
+        }
+
         throw new Error(
           "An unknown error occurred while fetching banking details",
         );
@@ -294,9 +377,30 @@ export class BankingService {
     try {
       // Check banking setup - must have banking details AND subaccount code
       const bankingDetails = await this.getUserBankingDetails(userId);
+      console.log("🏦 [Banking Debug] Banking details:", {
+        userId,
+        hasBankingDetails: !!bankingDetails,
+        hasSubaccountCode: !!bankingDetails?.subaccount_code,
+        bankingStatus: bankingDetails?.status,
+        details: bankingDetails
+      });
+
+      // Check if user has any valid banking setup (not just active)
+      // For listing books, having banking details with subaccount is sufficient
       const hasBankingSetup = !!(
-        bankingDetails && bankingDetails.subaccount_code
+        bankingDetails &&
+        bankingDetails.subaccount_code &&
+        (bankingDetails.status === "active" || bankingDetails.status === "pending")
       );
+
+      console.log("🏦 [Banking Setup Check] Banking validation:", {
+        userId,
+        hasBankingDetails: !!bankingDetails,
+        hasSubaccountCode: !!bankingDetails?.subaccount_code,
+        currentStatus: bankingDetails?.status,
+        isValidStatus: bankingDetails?.status === "active" || bankingDetails?.status === "pending",
+        finalResult: hasBankingSetup
+      });
 
       // Check pickup address (from user profile)
       const { data: profile } = await supabase
@@ -323,6 +427,19 @@ export class BankingService {
           pickupAddr.province &&
           pickupAddr.postalCode
         );
+
+        console.log("📍 [Address Debug] Pickup address validation:", {
+          userId,
+          hasAddress: !!profile?.pickup_address,
+          hasStreetField: !!streetField,
+          hasCity: !!pickupAddr.city,
+          hasProvince: !!pickupAddr.province,
+          hasPostalCode: !!pickupAddr.postalCode,
+          isValid: hasPickupAddress,
+          address: pickupAddr
+        });
+      } else {
+        console.log("📍 [Address Debug] No pickup address found for user:", userId);
       }
 
       // Check active books
@@ -351,7 +468,13 @@ export class BankingService {
         setupCompletionPercentage,
       };
     } catch (error) {
-      console.error("Error checking seller requirements:", error);
+      console.error("Error checking seller requirements:", JSON.stringify(error, null, 2));
+
+      // If it's a connection error, still return false but don't log as error
+      if (error instanceof Error && error.message?.includes("Connection error")) {
+        console.log("Connection issue while checking seller requirements, will retry on next check");
+      }
+
       return {
         hasBankingSetup: false,
         hasPickupAddress: false,
@@ -459,6 +582,7 @@ export class BankingService {
 
       const status: BankingRequirementsStatus = {
         hasBankingInfo: requirements.hasBankingSetup,
+        hasPickupAddress: requirements.hasPickupAddress,
         isVerified: bankingDetails?.status === "active",
         canListBooks: requirements.canReceivePayments,
         missingRequirements,
@@ -466,12 +590,24 @@ export class BankingService {
 
       return status;
     } catch (error) {
-      console.error("Error checking banking requirements:", error);
+      console.error("Error checking banking requirements:", JSON.stringify(error, null, 2));
+
+      // Provide more specific error messages based on error type
+      let missingRequirements = ["Unable to verify requirements"];
+      if (error instanceof Error) {
+        if (error.message?.includes("Connection error")) {
+          missingRequirements = ["Connection error - please check your internet and try again"];
+        } else if (error.message?.includes("Banking system not properly configured")) {
+          missingRequirements = ["Banking system not available - please contact support"];
+        }
+      }
+
       return {
         hasBankingInfo: false,
+        hasPickupAddress: false,
         isVerified: false,
         canListBooks: false,
-        missingRequirements: ["Unable to verify requirements"],
+        missingRequirements,
       };
     }
   }

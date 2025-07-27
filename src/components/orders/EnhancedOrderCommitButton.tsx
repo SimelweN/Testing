@@ -243,10 +243,10 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
       <Button
         variant="outline"
         disabled
-        className={`${className} cursor-not-allowed opacity-60`}
+        className={`${className} cursor-not-allowed opacity-60 min-h-[44px] px-3 sm:px-4 text-sm sm:text-base`}
       >
-        <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
-        Already Committed
+        <CheckCircle className="w-4 h-4 mr-1 sm:mr-2 text-green-600 flex-shrink-0" />
+        <span className="truncate">Already Committed</span>
       </Button>
     );
   }
@@ -257,29 +257,29 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
         <Button
           variant="default"
           disabled={disabled || isCommitting}
-          className={`${className} bg-green-600 hover:bg-green-700 text-white`}
+          className={`${className} bg-green-600 hover:bg-green-700 text-white min-h-[44px] px-3 sm:px-4 text-sm sm:text-base`}
         >
           {isCommitting ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Committing...
+              <Loader2 className="w-4 h-4 mr-1 sm:mr-2 animate-spin flex-shrink-0" />
+              <span className="truncate">Committing...</span>
             </>
           ) : (
             <>
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Commit to Sale
+              <CheckCircle className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <span className="truncate">Commit to Sale</span>
             </>
           )}
         </Button>
       </AlertDialogTrigger>
 
-      <AlertDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <AlertDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-0 w-[calc(100vw-2rem)] sm:w-full">
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-amber-500" />
-            Commit to Sale - Enhanced Options
+          <AlertDialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+            <span className="line-clamp-2 sm:line-clamp-none">Commit to Sale - Enhanced Options</span>
           </AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogDescription className="text-sm sm:text-base">
             You are about to commit to selling <strong>"{bookTitle}"</strong> to {buyerName}.
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -288,30 +288,32 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
           {/* Pre-commit Checklist */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Package className="w-5 h-5" />
-                Pre-Commit Checklist
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <Package className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span className="text-sm sm:text-base">Pre-Commit Checklist</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-start space-x-3">
-                <Checkbox 
+                <Checkbox
                   id="packaged-securely"
                   checked={isPackagedSecurely}
                   onCheckedChange={(checked) => setIsPackagedSecurely(checked as boolean)}
+                  className="mt-1 flex-shrink-0"
                 />
-                <Label htmlFor="packaged-securely" className="text-sm leading-relaxed">
+                <Label htmlFor="packaged-securely" className="text-xs sm:text-sm leading-relaxed cursor-pointer">
                   I confirm this item is packaged securely (e.g., padded envelope or sturdy box).
                 </Label>
               </div>
-              
+
               <div className="flex items-start space-x-3">
-                <Checkbox 
+                <Checkbox
                   id="can-fulfill"
                   checked={canFulfillOrder}
                   onCheckedChange={(checked) => setCanFulfillOrder(checked as boolean)}
+                  className="mt-1 flex-shrink-0"
                 />
-                <Label htmlFor="can-fulfill" className="text-sm leading-relaxed">
+                <Label htmlFor="can-fulfill" className="text-xs sm:text-sm leading-relaxed cursor-pointer">
                   I commit to fulfilling this order and understand my obligations.
                 </Label>
               </div>
@@ -321,21 +323,21 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
           {/* Delivery Method Selection */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <MapPin className="w-5 h-5" />
-                Choose Delivery Method
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span className="text-sm sm:text-base">Choose Delivery Method</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               {/* SIMPLIFIED - Only home delivery available, locker functionality disabled */}
               <div className="space-y-4">
-                <div className="flex items-start space-x-3 p-4 border rounded-lg bg-blue-50 border-blue-200">
+                <div className="flex items-start space-x-3 p-3 sm:p-4 border rounded-lg bg-blue-50 border-blue-200">
                   <div className="flex-1">
-                    <Label className="flex items-center gap-2 font-medium">
-                      <Home className="w-4 h-4" />
-                      Home Pick-Up (Courier Collection)
+                    <Label className="flex items-center gap-2 font-medium text-sm sm:text-base">
+                      <Home className="w-4 h-4 flex-shrink-0" />
+                      <span>Home Pick-Up (Courier Collection)</span>
                     </Label>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1">
                       Our courier will collect the book from your address at a scheduled time.
                     </p>
                   </div>
@@ -346,10 +348,10 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
 
           {/* Standard Information */}
           <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-            <h4 className="font-semibold text-blue-800 mb-2">
+            <h4 className="font-semibold text-blue-800 mb-2 text-sm sm:text-base">
               What happens after commitment:
             </h4>
-            <ul className="text-sm text-blue-700 space-y-1">
+            <ul className="text-xs sm:text-sm text-blue-700 space-y-1">
               <li>• Courier pickup will be automatically scheduled</li>
               <li>• You'll receive pickup details via email</li>
               <li>• You must be available during pickup time window</li>
@@ -358,29 +360,34 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
           </div>
 
           <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
-            <p className="text-sm text-amber-700">
-              <strong>Important:</strong> Once committed, you are obligated to fulfill this order. 
+            <p className="text-xs sm:text-sm text-amber-700">
+              <strong>Important:</strong> Once committed, you are obligated to fulfill this order.
               Failure to complete the pickup may result in penalties.
             </p>
           </div>
         </div>
 
-        <AlertDialogFooter className="mt-6">
-          <AlertDialogCancel disabled={isCommitting}>Cancel</AlertDialogCancel>
+        <AlertDialogFooter className="mt-6 flex-col sm:flex-row gap-2 sm:gap-0">
+          <AlertDialogCancel
+            disabled={isCommitting}
+            className="w-full sm:w-auto text-sm sm:text-base min-h-[44px]"
+          >
+            Cancel
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleCommit}
             disabled={isCommitting || !isFormValid}
-            className="bg-green-600 hover:bg-green-700"
+            className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-sm sm:text-base min-h-[44px]"
           >
             {isCommitting ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Committing...
+                <Loader2 className="w-4 h-4 mr-2 animate-spin flex-shrink-0" />
+                <span>Committing...</span>
               </>
             ) : (
               <>
-                <CheckCircle className="w-4 w-4 mr-2" />
-                Commit with Home Pick-Up
+                <CheckCircle className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span className="truncate">Commit with Home Pick-Up</span>
               </>
             )}
           </AlertDialogAction>

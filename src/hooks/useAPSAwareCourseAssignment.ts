@@ -51,7 +51,7 @@ function useLocalStorage<T>(key: string, initialValue: T) {
         setStoredValue(valueToStore);
 
         if (valueToStore === null || valueToStore === undefined) {
-          sessionStorage.removeItem(key);
+          localStorage.removeItem(key);
         } else {
           localStorage.setItem(key, JSON.stringify(valueToStore));
         }
@@ -66,17 +66,61 @@ function useLocalStorage<T>(key: string, initialValue: T) {
 }
 
 export function useAPSAwareCourseAssignment(universityId?: string) {
-  // Temporary user APS profile (session only)
+  // Persistent user APS profile (localStorage)
   const [userProfile, setUserProfile] = useLocalStorage<UserAPSProfile | null>(
     "userAPSProfile",
     null,
   );
+
+  // Debug logging to verify persistence
+  useEffect(() => {
+    const stored = localStorage.getItem("userAPSProfile");
+    console.log("🔍 [APS Debug] Initial load check:", {
+      hasStoredData: !!stored,
+      userProfile: !!userProfile,
+      storedLength: stored?.length || 0
+    });
+
+    if (stored && !userProfile) {
+      console.warn("⚠️ [APS Debug] LocalStorage has data but hook doesn't - potential sync issue");
+    }
+  }, [userProfile]);
 
   // Component state
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastSearchResults, setLastSearchResults] =
     useState<CoursesForUniversityResult | null>(null);
+
+  // Listen for cross-tab storage changes and APS profile cleared events
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "userAPSProfile" && e.newValue !== e.oldValue) {
+        try {
+          const newProfile = e.newValue ? JSON.parse(e.newValue) : null;
+          setUserProfile(newProfile);
+          console.log("🔄 APS Profile synced from another tab");
+        } catch (error) {
+          console.warn("Error parsing APS profile from storage:", error);
+        }
+      }
+    };
+
+    const handleAPSCleared = () => {
+      setUserProfile(null);
+      setLastSearchResults(null);
+      setError(null);
+      console.log("🧹 APS Profile cleared - component state reset");
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("apsProfileCleared", handleAPSCleared);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("apsProfileCleared", handleAPSCleared);
+    };
+  }, [setUserProfile]);
 
   /**
    * Update user's APS subjects and recalculate profile
@@ -105,9 +149,19 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
           isValid: true,
         };
 
-        // Save to session storage
+        // Save to localStorage (persistent storage)
         setUserProfile(profile);
-        return true;
+
+        // Verify persistence
+        const saved = localStorage.getItem("userAPSProfile");
+        const persisted = !!saved;
+        console.log("💾 [APS Debug] Profile saved:", {
+          persisted,
+          totalAPS: profile.totalAPS,
+          subjectCount: profile.subjects.length
+        });
+
+        return persisted;
       } catch (error) {
         console.error("Error updating user subjects:", error);
         setError("Failed to update subjects. Please try again.");
@@ -201,7 +255,12 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
       setLastSearchResults(null);
       setError(null);
 
-      console.log("✅ APS Profile cleared from localStorage");
+      // Verify clearing worked
+      const stillExists = localStorage.getItem("userAPSProfile");
+      console.log("🗑️ [APS Debug] Profile cleared:", {
+        cleared: !stillExists,
+        wasCleared: stillExists === null
+      });
 
       // Trigger global state reset event
       window.dispatchEvent(new CustomEvent("apsProfileCleared"));

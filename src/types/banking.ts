@@ -187,6 +187,7 @@ export interface SellerRequirements {
 
 export interface BankingRequirementsStatus {
   hasBankingInfo: boolean;
+  hasPickupAddress: boolean;
   isVerified: boolean;
   canListBooks: boolean;
   missingRequirements: string[];

@@ -91,17 +91,22 @@ body {
 /* Toast Notification Styles - Subtle and Non-intrusive */
 [data-sonner-toaster] {
   position: fixed !important;
-  z-index: 50 !important;
+  z-index: 9999 !important;
   pointer-events: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
 }
 
 /* Mobile: Top right, smaller and subtle */
 @media (max-width: 768px) {
   [data-sonner-toaster] {
-    top: 20px !important;
+    top: 16px !important;
     right: 16px !important;
     left: auto !important;
+    bottom: auto !important;
     transform: none !important;
+    max-width: calc(100vw - 32px) !important;
   }
 }
 
@@ -111,7 +116,9 @@ body {
     top: 20px !important;
     right: 20px !important;
     left: auto !important;
+    bottom: auto !important;
     transform: none !important;
+    max-width: 400px !important;
   }
 }
 
@@ -119,19 +126,23 @@ body {
   pointer-events: auto !important;
   transform: none !important;
   position: relative !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* Mobile specific toast adjustments - Smaller and subtle */
 @media (max-width: 768px) {
   [data-sonner-toaster] [data-sonner-toast] {
-    min-width: 240px !important;
-    max-width: calc(100vw - 32px) !important;
+    min-width: 280px !important;
+    max-width: 100% !important;
     margin: 0 0 8px 0 !important;
     border-radius: 8px !important;
     padding: 10px 12px !important;
     font-size: 13px !important;
     line-height: 1.3 !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    background: white !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
   }
 
   [data-sonner-toaster] [data-sonner-toast] [data-title] {
@@ -402,6 +413,83 @@ body {
     @apply min-h-[44px] min-w-[44px];
   }
 
+  /* Mobile-responsive button improvements */
+  .btn-mobile {
+    @apply min-h-[44px] px-3 sm:px-4 py-2 text-sm sm:text-base;
+    @apply flex items-center justify-center gap-1 sm:gap-2;
+    @apply overflow-hidden;
+  }
+
+  .btn-mobile-icon {
+    @apply w-4 h-4 flex-shrink-0;
+  }
+
+  .btn-mobile-text {
+    @apply truncate max-w-[200px] sm:max-w-none;
+  }
+
+  /* Button group mobile layouts */
+  .btn-group-mobile {
+    @apply flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto;
+  }
+
+  .btn-group-mobile .btn-mobile {
+    @apply w-full sm:w-auto;
+  }
+
+  /* Small button mobile fixes */
+  .btn-sm-mobile {
+    @apply min-h-[40px] px-2 sm:px-3 py-1 text-xs sm:text-sm;
+    @apply flex items-center justify-center gap-1;
+  }
+
+  /* Form button mobile optimization */
+  .btn-form-mobile {
+    @apply w-full min-h-[48px] px-4 py-3 text-base;
+    @apply font-medium rounded-lg transition-colors;
+  }
+
+  /* Icon-only button mobile optimization */
+  .btn-icon-mobile {
+    @apply min-w-[44px] min-h-[44px] p-2;
+    @apply flex items-center justify-center;
+  }
+
+  /* Global button mobile improvements */
+  @media (max-width: 768px) {
+    /* Ensure all buttons meet minimum touch target */
+    button:not(.btn-exception) {
+      min-height: 44px !important;
+      min-width: 44px !important;
+      padding: 8px 12px !important;
+      font-size: 14px !important;
+    }
+
+    /* Size variants for mobile */
+    button[data-size="sm"]:not(.btn-exception) {
+      min-height: 40px !important;
+      min-width: 40px !important;
+      padding: 6px 10px !important;
+      font-size: 13px !important;
+    }
+
+    button[data-size="lg"]:not(.btn-exception) {
+      min-height: 48px !important;
+      padding: 12px 16px !important;
+      font-size: 16px !important;
+    }
+
+    /* Icon spacing in buttons */
+    button svg:not(:only-child) {
+      margin-right: 4px !important;
+    }
+
+    /* Button text should not wrap awkwardly */
+    button {
+      white-space: nowrap !important;
+    }
+  }
+
   /* Safe area for mobile devices */
   .safe-area-top {
     padding-top: env(safe-area-inset-top);
@@ -552,4 +640,14 @@ html {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Hide scrollbar for mobile tabs */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
 }

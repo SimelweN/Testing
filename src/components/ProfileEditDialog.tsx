@@ -68,7 +68,7 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
         return;
       }
 
-      toast.success("Profile updated successfully");
+      toast.success("Profile updated successfully! Refreshing...");
 
       // Log profile update activity
       try {
@@ -83,11 +83,10 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
 
       onClose();
 
-      // Page reload disabled to prevent blanking issues
-
-      // setTimeout(() => {
-      //   window.location.reload();
-      // }, 100);
+      // Force refresh to update the auth context with new profile data
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error("Failed to update profile:", {
         message: error instanceof Error ? error.message : String(error),

@@ -49,12 +49,21 @@ export const getNotifications = async (
   }
 
   // Cancel any ongoing request
-  if (currentFetchController) {
-    currentFetchController.abort();
+  if (currentFetchController && !currentFetchController.signal.aborted) {
+    try {
+      currentFetchController.abort();
+    } catch (abortError) {
+      console.warn("Error aborting previous request:", abortError);
+    }
   }
 
   // Create new controller for this request
-  currentFetchController = new AbortController();
+  try {
+    currentFetchController = new AbortController();
+  } catch (controllerError) {
+    console.warn("Error creating AbortController:", controllerError);
+    currentFetchController = null;
+  }
 
   try {
     // Use enhanced error handling for the API call
@@ -63,20 +72,31 @@ export const getNotifications = async (
         // Create timeout promise
         const timeoutPromise = new Promise<never>((_, reject) =>
           setTimeout(() => {
-            if (currentFetchController) {
+            if (currentFetchController && !currentFetchController.signal.aborted) {
               currentFetchController.abort();
             }
             reject(new Error("Request timeout"));
           }, 4000),
         );
 
-        const queryPromise = supabase
-          .from("notifications")
-          .select("*")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(50) // Limit to 50 notifications for performance
-          .abortSignal(currentFetchController.signal);
+        let queryPromise;
+        if (currentFetchController?.signal) {
+          queryPromise = supabase
+            .from("notifications")
+            .select("*")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(50) // Limit to 50 notifications for performance
+            .abortSignal(currentFetchController.signal);
+        } else {
+          // Fallback without AbortController
+          queryPromise = supabase
+            .from("notifications")
+            .select("*")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(50);
+        }
 
         return await Promise.race([queryPromise, timeoutPromise]);
       },

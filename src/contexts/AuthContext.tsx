@@ -313,15 +313,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         console.log("🔄 [AuthContext] Initializing auth...");
 
-        // Get current session
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
+        // Get current session with retry logic for network failures
+        let sessionResult;
+        let retryCount = 0;
+        const maxRetries = 3;
+
+        while (retryCount < maxRetries) {
+          try {
+            sessionResult = await supabase.auth.getSession();
+            break; // Success, exit retry loop
+          } catch (networkError) {
+            retryCount++;
+            console.warn(`Auth retry ${retryCount}/${maxRetries}:`, networkError);
+
+            if (retryCount >= maxRetries) {
+              // Handle network failure gracefully
+              if (networkError instanceof TypeError && networkError.message.includes('Failed to fetch')) {
+                console.warn("Network connectivity issues detected, continuing in offline mode");
+                setInitError("Network connectivity issues - some features may be limited");
+                setUser(null);
+                setSession(null);
+                setProfile(null);
+                setAuthInitialized(true);
+                setIsLoading(false);
+                return;
+              }
+              throw networkError;
+            }
+
+            // Wait before retrying (exponential backoff)
+            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount - 1)));
+          }
+        }
+
+        if (!sessionResult) {
+          throw new Error("Failed to get session after retries");
+        }
+
+        const { data: { session }, error } = sessionResult;
 
         if (error && !error.message.includes("code verifier")) {
-          console.error("Auth initialization error:", error);
-          setInitError(error.message);
+          // Handle specific network-related errors gracefully
+          if (error.message?.includes('Failed to fetch') ||
+              error.message?.includes('NetworkError') ||
+              error.message?.includes('fetch')) {
+            console.warn("Network error during auth initialization, continuing without session");
+            setInitError("Network connectivity issues - some features may be limited");
+          } else {
+            console.error("Auth initialization error:", error);
+            setInitError(error.message);
+          }
         }
 
         await handleAuthStateChange(session);
@@ -330,9 +371,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         console.log("✅ [AuthContext] Auth initialized");
       } catch (error) {
         console.error("Auth initialization failed:", error);
-        setInitError(
-          getErrorMessage(error, "Failed to initialize authentication"),
-        );
+        const errorMessage = getErrorMessage(error, "Failed to initialize authentication");
+
+        // For network errors, provide a more user-friendly message
+        if (errorMessage.includes('Failed to fetch') ||
+            errorMessage.includes('NetworkError') ||
+            errorMessage.includes('fetch')) {
+          setInitError("Network connectivity issues - some features may be limited");
+          setUser(null);
+          setSession(null);
+          setProfile(null);
+        } else {
+          setInitError(errorMessage);
+        }
+
+        setAuthInitialized(true);
         setIsLoading(false);
       }
     };
