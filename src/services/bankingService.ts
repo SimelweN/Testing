@@ -402,7 +402,13 @@ export class BankingService {
         hasSubaccountCode: !!bankingDetails?.subaccount_code,
         currentStatus: bankingDetails?.status,
         isValidStatus: bankingDetails?.status === "active" || bankingDetails?.status === "pending",
-        finalResult: hasBankingSetup
+        finalResult: hasBankingSetup,
+        detailedBreakdown: {
+          step1_hasBankingDetails: !!bankingDetails,
+          step2_hasSubaccountCode: !!bankingDetails?.subaccount_code,
+          step3_validStatus: bankingDetails?.status === "active" || bankingDetails?.status === "pending",
+          allStepsPass: hasBankingSetup
+        }
       });
 
       // Check pickup address (from user profile)
@@ -462,6 +468,17 @@ export class BankingService {
       const setupCompletionPercentage = Math.round(
         (completedCount / requirements.length) * 100,
       );
+
+      console.log("📊 [Final Requirements Summary]:", {
+        userId,
+        requirements: {
+          hasBankingSetup,
+          hasPickupAddress,
+          hasActiveBooks,
+          canReceivePayments
+        },
+        progress: `${completedCount}/${requirements.length} (${setupCompletionPercentage}%)`
+      });
 
       return {
         hasBankingSetup,
