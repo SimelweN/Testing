@@ -443,13 +443,22 @@ export class BankingService {
                            bankingDetails?.subaccount_id ||
                            profileData?.subaccount_code;
 
-      // Enhanced banking setup detection - also check profile preferences
-      const hasBankingSetup = !!(
-        (bankingDetails &&
+      // Enhanced banking setup detection - check multiple sources
+      // 1. Banking table with proper status and subaccount
+      const hasBankingFromTable = !!(
+        bankingDetails &&
         subaccountCode &&
-        (bankingDetails.status === "active" || bankingDetails.status === "pending")) ||
-        (profileData?.preferences?.banking_setup_complete && profileData?.subaccount_code)
+        (bankingDetails.status === "active" || bankingDetails.status === "pending")
       );
+
+      // 2. Profile preferences (immediate fallback)
+      const hasBankingFromProfile = !!(
+        profileData?.preferences?.banking_setup_complete &&
+        profileData?.subaccount_code
+      );
+
+      // 3. Final banking setup status
+      const hasBankingSetup = hasBankingFromTable || hasBankingFromProfile;
 
       console.log("🏦 [Banking Setup Check] Banking validation:", {
         userId,
@@ -459,10 +468,17 @@ export class BankingService {
         currentStatus: bankingDetails?.status,
         isValidStatus: bankingDetails?.status === "active" || bankingDetails?.status === "pending",
         finalResult: hasBankingSetup,
+        sources: {
+          fromBankingTable: hasBankingFromTable,
+          fromProfile: hasBankingFromProfile,
+          combined: hasBankingSetup
+        },
         detailedBreakdown: {
           step1_hasBankingDetails: !!bankingDetails,
           step2_hasSubaccountCode: !!subaccountCode,
           step3_validStatus: bankingDetails?.status === "active" || bankingDetails?.status === "pending",
+          step4_profileSetup: !!profileData?.preferences?.banking_setup_complete,
+          step5_profileSubaccount: !!profileData?.subaccount_code,
           allStepsPass: hasBankingSetup
         }
       });
