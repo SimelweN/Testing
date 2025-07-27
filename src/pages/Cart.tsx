@@ -100,7 +100,10 @@ const Cart = () => {
         });
 
         toast.success(`Proceeding to checkout with ${itemsToCheckout.length} books from ${checkoutCartData.sellerName}`);
-        navigate('/checkout/cart');
+
+        // Add timestamp to force fresh navigation
+        const timestamp = Date.now();
+        navigate(`/checkout/cart?t=${timestamp}`);
       }
     } catch (error) {
       console.error("Checkout error:", error);
