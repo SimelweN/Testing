@@ -59,37 +59,37 @@ const FAQ = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-4xl mx-auto">
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold text-book-800">Frequently Asked Questions</CardTitle>
-            <p className="text-gray-600 mt-2">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <Card className="max-w-4xl mx-auto w-full">
+          <CardHeader className="text-center px-4 sm:px-6">
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-book-800">Frequently Asked Questions</CardTitle>
+            <p className="text-gray-600 mt-2 text-sm sm:text-base">
               Find answers to common questions about using ReBooked Solutions
             </p>
           </CardHeader>
-          <CardContent>
-            <Accordion type="single" collapsible className="w-full space-y-4">
+          <CardContent className="px-4 sm:px-6">
+            <Accordion type="single" collapsible className="w-full space-y-2 sm:space-y-4">
               {faqs.map((faq, index) => (
-                <AccordionItem key={index} value={`item-${index}`} className="border border-gray-200 rounded-lg px-4">
-                  <AccordionTrigger className="text-left hover:no-underline py-4">
-                    <span className="font-medium text-book-800">{faq.question}</span>
+                <AccordionItem key={index} value={`item-${index}`} className="border border-gray-200 rounded-lg px-3 sm:px-4">
+                  <AccordionTrigger className="text-left hover:no-underline py-3 sm:py-4 min-h-[44px] [&>svg]:w-4 [&>svg]:h-4">
+                    <span className="font-medium text-book-800 text-sm sm:text-base pr-2">{faq.question}</span>
                   </AccordionTrigger>
-                  <AccordionContent className="pb-4">
-                    <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+                  <AccordionContent className="pb-3 sm:pb-4">
+                    <p className="text-gray-700 leading-relaxed text-sm sm:text-base">{faq.answer}</p>
                   </AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>
 
-            <div className="mt-12 text-center p-6 bg-book-50 rounded-lg border border-book-200">
-              <h3 className="text-xl font-semibold text-book-800 mb-2">Still have questions?</h3>
-              <p className="text-gray-600 mb-4">
+            <div className="mt-8 sm:mt-12 text-center p-4 sm:p-6 bg-book-50 rounded-lg border border-book-200">
+              <h3 className="text-lg sm:text-xl font-semibold text-book-800 mb-2">Still have questions?</h3>
+              <p className="text-gray-600 mb-4 text-sm sm:text-base">
                 If you couldn't find the answer you're looking for, feel free to contact our support team.
               </p>
               <Link to="/contact">
-                <Button className="bg-book-600 hover:bg-book-700">
+                <Button className="bg-book-600 hover:bg-book-700 min-h-[44px] px-4 py-2">
                   <MessageCircle className="mr-2 h-4 w-4" />
-                  Contact Support
+                  <span className="text-sm sm:text-base">Contact Support</span>
                 </Button>
               </Link>
             </div>
