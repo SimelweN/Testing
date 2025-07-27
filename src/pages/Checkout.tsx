@@ -15,6 +15,14 @@ const Checkout: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Handle cart checkout vs single book checkout
+    if (id === "cart") {
+      // This is a cart checkout, we should get the cart items from state or localStorage
+      // For now, redirect to proper cart handling
+      navigate("/cart");
+      return;
+    }
+
     if (!id) {
       setError("No book ID provided");
       setLoading(false);
@@ -22,7 +30,7 @@ const Checkout: React.FC = () => {
     }
 
     loadBookData();
-  }, [id]);
+  }, [id, navigate]);
 
   const loadBookData = async () => {
     try {
