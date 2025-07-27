@@ -308,8 +308,19 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
 
         await fetchProfiles();
       } catch (profileFetchError) {
+        // Log error with proper formatting to prevent [object Object]
+        console.error('Critical exception in profile fetching:', {
+          message: profileFetchError instanceof Error ? profileFetchError.message : String(profileFetchError),
+          stack: profileFetchError instanceof Error ? profileFetchError.stack : undefined,
+          sellerIds,
+          timestamp: new Date().toISOString()
+        });
+
         logDetailedError("Critical exception in profile fetching", {
-          error: profileFetchError,
+          error: {
+            message: profileFetchError instanceof Error ? profileFetchError.message : String(profileFetchError),
+            stack: profileFetchError instanceof Error ? profileFetchError.stack : undefined
+          },
           sellerIds,
           timestamp: new Date().toISOString()
         });
