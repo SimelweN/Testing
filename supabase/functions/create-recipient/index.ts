@@ -120,35 +120,84 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Get seller banking details from banking_subaccounts table
     console.log('Fetching banking subaccount for seller:', sellerId);
-    
-    // First try to find by user_id
-    let { data: bankingDetails, error: bankingError } = await supabase
+
+    // First check if banking details exist
+    let { data: bankingRecord, error: bankingError } = await supabase
       .from('banking_subaccounts')
       .select('*')
       .eq('user_id', sellerId)
+      .eq('status', 'active')
       .maybeSingle();
-    
+
     // If not found by user_id, get the first available record for demo
-    if (!bankingDetails) {
+    if (!bankingRecord) {
       console.log('No banking subaccount found for user_id, getting first available record for demo');
       const { data: demoData, error: demoError } = await supabase
         .from('banking_subaccounts')
         .select('*')
+        .eq('status', 'active')
         .limit(1)
         .single();
-      
-      bankingDetails = demoData;
+
+      bankingRecord = demoData;
       bankingError = demoError;
     }
-    
-    console.log('Banking subaccount query result:', { data: bankingDetails, error: bankingError });
 
-    if (bankingError || !bankingDetails) {
+    console.log('Banking subaccount query result:', { data: bankingRecord, error: bankingError });
+
+    if (bankingError || !bankingRecord) {
       console.error('Banking subaccount not found:', bankingError);
       return new Response(JSON.stringify({ error: 'Seller banking subaccount not found' }), {
         status: 404,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       });
+    }
+
+    // Decrypt banking details if they are encrypted
+    let bankingDetails;
+    if (bankingRecord.encrypted_account_number && bankingRecord.encrypted_bank_code) {
+      console.log('Banking details are encrypted, calling decrypt function');
+
+      // Call the decrypt-banking-details function
+      const decryptResponse = await fetch(`${supabaseUrl}/functions/v1/decrypt-banking-details`, {
+        method: 'POST',
+        headers: {
+          'Authorization': req.headers.get('Authorization') || `Bearer ${supabaseServiceKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!decryptResponse.ok) {
+        console.error('Failed to decrypt banking details');
+        return new Response(JSON.stringify({ error: 'Failed to decrypt banking details' }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        });
+      }
+
+      const decryptResult = await decryptResponse.json();
+      if (!decryptResult.success) {
+        console.error('Decryption failed:', decryptResult.error);
+        return new Response(JSON.stringify({ error: 'Banking details decryption failed' }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        });
+      }
+
+      // Use decrypted data with original record structure
+      bankingDetails = {
+        ...bankingRecord,
+        account_number: decryptResult.data.account_number,
+        bank_code: decryptResult.data.bank_code,
+        bank_name: decryptResult.data.bank_name,
+        business_name: decryptResult.data.business_name
+      };
+
+      console.log('Successfully decrypted banking details for recipient creation');
+    } else {
+      // Banking details are not encrypted (legacy data)
+      console.log('Banking details are not encrypted, using directly');
+      bankingDetails = bankingRecord;
     }
 
     // Calculate payment breakdown from completed orders
@@ -232,19 +281,19 @@ const handler = async (req: Request): Promise<Response> => {
       order_details: orderDetails
     };
 
-    if (bankingDetails.recipient_code) {
-      console.log('Recipient already exists:', bankingDetails.recipient_code);
+    if (bankingRecord.recipient_code) {
+      console.log('Recipient already exists:', bankingRecord.recipient_code);
 
       return new Response(JSON.stringify({
         success: true,
-        recipient_code: bankingDetails.recipient_code,
+        recipient_code: bankingRecord.recipient_code,
         message: 'Recipient already exists - Ready for manual payment',
         already_existed: true,
         payment_breakdown: paymentBreakdown,
         seller_info: {
           name: bankingDetails.business_name,
-          email: bankingDetails.email,
-          account_number: bankingDetails.account_number.slice(-4).padStart(bankingDetails.account_number.length, '*'),
+          email: bankingRecord.email,
+          account_number: bankingDetails.account_number ? bankingDetails.account_number.slice(-4).padStart(bankingDetails.account_number.length, '*') : '****',
           bank_name: bankingDetails.bank_name
         }
       }), {
@@ -280,8 +329,8 @@ const handler = async (req: Request): Promise<Response> => {
         payment_breakdown: paymentBreakdown,
         seller_info: {
           name: bankingDetails.business_name,
-          email: bankingDetails.email,
-          account_number: bankingDetails.account_number.slice(-4).padStart(bankingDetails.account_number.length, '*'),
+          email: bankingRecord.email,
+          account_number: bankingDetails.account_number ? bankingDetails.account_number.slice(-4).padStart(bankingDetails.account_number.length, '*') : '****',
           bank_name: bankingDetails.bank_name
         },
         instructions: 'Recipient created successfully. You can now manually process payment using this recipient code.'
