@@ -7,6 +7,7 @@ export interface CheckoutAddress {
   postal_code: string;
   country: string;
   phone?: string;
+  additional_info?: string;
 }
 
 export interface CheckoutBook {
