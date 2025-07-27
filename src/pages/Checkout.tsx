@@ -39,6 +39,70 @@ const Checkout: React.FC = () => {
     loadBookData();
   }, [id, navigate]);
 
+  const loadCartData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Get cart data from localStorage
+      const cartDataStr = localStorage.getItem('checkoutCart');
+      if (!cartDataStr) {
+        setError("No cart data found. Please return to your cart and try again.");
+        setLoading(false);
+        return;
+      }
+
+      const parsedCartData: CartCheckoutData = JSON.parse(cartDataStr);
+
+      // Validate cart data is recent (within 1 hour)
+      const oneHourAgo = Date.now() - (60 * 60 * 1000);
+      if (parsedCartData.timestamp < oneHourAgo) {
+        setError("Cart session expired. Please return to your cart and try again.");
+        setLoading(false);
+        return;
+      }
+
+      if (!parsedCartData.items || parsedCartData.items.length === 0) {
+        setError("Cart is empty. Please add items to your cart.");
+        setLoading(false);
+        return;
+      }
+
+      console.log("Cart checkout data loaded:", parsedCartData);
+      setCartData(parsedCartData);
+
+      // For now, we'll use the first book for the checkout flow
+      // but the cart data will be available for showing all items
+      const firstItem = parsedCartData.items[0];
+
+      // Create a CheckoutBook from the first cart item
+      const checkoutBook: CheckoutBook = {
+        id: firstItem.bookId,
+        title: firstItem.title,
+        author: firstItem.author,
+        price: parsedCartData.totalPrice, // Use total price of all items
+        condition: "Unknown", // We'll need to get this from the database
+        seller_id: firstItem.sellerId,
+        seller_name: firstItem.sellerName,
+        seller: {
+          id: firstItem.sellerId,
+          name: firstItem.sellerName,
+          email: "",
+          hasAddress: true,
+          hasSubaccount: true,
+          isReadyForOrders: true,
+        },
+      };
+
+      setBook(checkoutBook);
+    } catch (err) {
+      console.error("Error loading cart data:", err);
+      setError("Failed to load cart data. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const loadBookData = async () => {
     try {
       setLoading(true);
