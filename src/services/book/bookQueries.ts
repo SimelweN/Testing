@@ -302,8 +302,8 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
         console.warn("Profile fetching failed completely, books will be returned without seller information");
       }
 
-      // Combine books with profile data
-      const books: Book[] = booksData.map((book: any) => {
+      // Combine valid books with profile data
+      const books: Book[] = validBooks.map((book: any) => {
         const profile = profilesMap.get(book.seller_id);
         const bookData: BookQueryResult = {
           ...book,
