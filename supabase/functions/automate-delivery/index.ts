@@ -5,7 +5,7 @@ import { testFunction } from "../_mock-data/edge-function-tester.ts";
 import { parseRequestBody } from "../_shared/safe-body-parser.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -15,7 +15,7 @@ serve(async (req) => {
   // 🧪 TEST MODE: Check if this is a test request with mock data
   const testResult = await testFunction("automate-delivery", req);
   if (testResult.isTest) {
-    return testResult.response;
+    return testResult.response!;
   }
 
   try {
@@ -210,7 +210,7 @@ serve(async (req) => {
     } catch (logError) {
       console.warn(
         "Failed to log automation activity (table may not exist):",
-        logError.message,
+        logError?.message,
       );
       // Don't fail for logging errors
     }
