@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapPin, CheckCircle } from "lucide-react";
 
@@ -13,6 +14,7 @@ export interface AddressData {
   province: string;
   postalCode: string;
   country: string;
+  additional_info?: string;
 }
 
 interface ManualAddressInputProps {
@@ -47,13 +49,14 @@ const ManualAddressInput: React.FC<ManualAddressInputProps> = ({
   const [city, setCity] = useState(defaultValue?.city || "");
   const [province, setProvince] = useState(defaultValue?.province || "");
   const [postalCode, setPostalCode] = useState(defaultValue?.postalCode || "");
+  const [additionalInfo, setAdditionalInfo] = useState(defaultValue?.additional_info || "");
   const [isValid, setIsValid] = useState(false);
 
   // Check if address is complete
   useEffect(() => {
     const complete = street.trim() && city.trim() && province && postalCode.trim();
     setIsValid(!!complete);
-    
+
     if (complete) {
       const addressData: AddressData = {
         formattedAddress: `${street.trim()}, ${city.trim()}, ${province}, ${postalCode.trim()}, South Africa`,
@@ -62,10 +65,11 @@ const ManualAddressInput: React.FC<ManualAddressInputProps> = ({
         province,
         postalCode: postalCode.trim(),
         country: "South Africa",
+        additional_info: additionalInfo.trim() || undefined,
       };
       onAddressSelect(addressData);
     }
-  }, [street, city, province, postalCode, onAddressSelect]);
+  }, [street, city, province, postalCode, additionalInfo, onAddressSelect]);
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -144,6 +148,24 @@ const ManualAddressInput: React.FC<ManualAddressInputProps> = ({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Additional Information */}
+            <div>
+              <Label htmlFor="additional_info" className="text-sm font-medium">
+                Additional Information (Optional)
+              </Label>
+              <Textarea
+                id="additional_info"
+                placeholder="e.g., Building entrance details, security gate code, special instructions..."
+                value={additionalInfo}
+                onChange={(e) => setAdditionalInfo(e.target.value)}
+                rows={3}
+                className="mt-1"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Include any helpful details for pickup/delivery (gate codes, building access, etc.)
+              </p>
             </div>
           </div>
 
