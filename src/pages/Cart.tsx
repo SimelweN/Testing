@@ -70,11 +70,27 @@ const Cart = () => {
     }
 
     setIsProcessing(true);
+
+    console.log('🛒 CHECKOUT DEBUG:', {
+      sellerId,
+      cartToCheckout: cartToCheckout ? {
+        sellerId: cartToCheckout.sellerId,
+        sellerName: cartToCheckout.sellerName,
+        itemCount: cartToCheckout.items.length
+      } : null,
+      itemsToCheckout: itemsToCheckout.map(item => ({
+        bookId: item.bookId,
+        title: item.title,
+        price: item.price
+      })),
+      itemCount: itemsToCheckout.length
+    });
+
     try {
-      if (itemsToCheckout.length === 1) {
-        // Single item checkout
-        navigate(`/checkout/${itemsToCheckout[0].bookId}`);
-      } else {
+      // Always use cart checkout for multiple items, regardless of source
+      if (itemsToCheckout.length > 1) {
+        console.log('🛒 Multiple items detected, using cart checkout');
+
         // Multiple items from same seller - store cart data and navigate to cart checkout
         const checkoutCartData = {
           items: itemsToCheckout,
@@ -82,8 +98,10 @@ const Cart = () => {
           sellerName: cartToCheckout?.sellerName || (Object.values(getSellerTotals())[0]?.sellerName),
           totalPrice: cartToCheckout?.totalPrice || getTotalPrice(),
           timestamp: Date.now(),
-          cartType: sellerId ? 'seller-cart' : 'legacy-cart' // Add identifier
+          cartType: sellerId ? 'seller-cart' : 'legacy-cart'
         };
+
+        console.log('🛒 Storing cart data:', checkoutCartData);
 
         // Clear any previous checkout data to prevent conflicts
         localStorage.removeItem('checkoutCart');
@@ -92,18 +110,19 @@ const Cart = () => {
         // Store the new cart data
         localStorage.setItem('checkoutCart', JSON.stringify(checkoutCartData));
 
-        console.log('Starting checkout for seller:', {
-          sellerId: actualSellerId,
-          sellerName: checkoutCartData.sellerName,
-          itemCount: itemsToCheckout.length,
-          items: itemsToCheckout.map(item => ({ id: item.bookId, title: item.title }))
-        });
-
         toast.success(`Proceeding to checkout with ${itemsToCheckout.length} books from ${checkoutCartData.sellerName}`);
 
         // Add timestamp to force fresh navigation
         const timestamp = Date.now();
         navigate(`/checkout/cart?t=${timestamp}`);
+
+      } else if (itemsToCheckout.length === 1) {
+        console.log('🛒 Single item detected, using single book checkout');
+        // Single item checkout
+        navigate(`/checkout/${itemsToCheckout[0].bookId}`);
+      } else {
+        console.log('🛒 No items to checkout');
+        toast.error("No items to checkout");
       }
     } catch (error) {
       console.error("Checkout error:", error);
