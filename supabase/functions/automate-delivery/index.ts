@@ -99,17 +99,12 @@ serve(async (req) => {
       };
     }
 
-    // Step 3: Create shipment with selected courier
+    // Step 2: Create shipment with Courier Guy
     let shipmentResult = null;
     if (selectedQuote) {
       try {
-        const shipmentFunction =
-          selectedQuote.courier === "courier-guy"
-            ? "courier-guy-shipment"
-            : "fastway-shipment";
-
         const shipmentResponse = await fetch(
-          `${SUPABASE_URL}/functions/v1/${shipmentFunction}`,
+          `${SUPABASE_URL}/functions/v1/courier-guy-shipment`,
           {
             method: "POST",
             headers: {
