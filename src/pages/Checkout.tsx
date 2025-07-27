@@ -124,6 +124,7 @@ const Checkout: React.FC = () => {
           : firstItem.author,
         price: parsedCartData.totalPrice, // Use total price of all items
         condition: "Various", // Multiple books may have different conditions
+        image_url: firstItem.imageUrl || firstItem.image_url || "/placeholder.svg", // Include image from first item
         seller_id: parsedCartData.sellerId,
         seller_name: parsedCartData.sellerName,
         seller: {
@@ -135,6 +136,12 @@ const Checkout: React.FC = () => {
           isReadyForOrders: true,
         },
       };
+
+      console.log('📦 CHECKOUT: Created checkout book:', {
+        ...checkoutBook,
+        hasImage: !!checkoutBook.image_url,
+        imageUrl: checkoutBook.image_url
+      });
 
       setBook(checkoutBook);
     } catch (err) {
