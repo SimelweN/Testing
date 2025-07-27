@@ -52,37 +52,74 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="w-5 h-5" />
-            Book Details
+            {isCartCheckout ? `Books in Your Order (${cartData.items.length})` : 'Book Details'}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            {book.image_url && (
-              <img
-                src={book.image_url}
-                alt={book.title}
-                className="w-20 h-24 sm:w-24 sm:h-32 object-cover rounded-lg border mx-auto sm:mx-0 flex-shrink-0"
-                onError={(e) => {
-                  e.currentTarget.src = "/placeholder.svg";
-                }}
-              />
-            )}
-            <div className="flex-1 text-center sm:text-left">
-              <h3 className="text-base sm:text-lg font-semibold mb-2">{book.title}</h3>
-              <p className="text-sm sm:text-base text-gray-600 mb-2">by {book.author}</p>
-              <div className="flex items-center justify-center sm:justify-start gap-2 mb-3 flex-wrap">
-                <Badge variant="outline" className="text-xs sm:text-sm">{book.condition}</Badge>
-                {book.isbn && (
-                  <span className="text-xs sm:text-sm text-gray-500">
-                    ISBN: {book.isbn}
+          {isCartCheckout ? (
+            <div className="space-y-4">
+              {cartData.items.map((item: any, index: number) => (
+                <div key={item.id || index} className={`flex flex-col sm:flex-row gap-3 sm:gap-4 ${index > 0 ? 'pt-4 border-t' : ''}`}>
+                  {item.imageUrl && (
+                    <img
+                      src={item.imageUrl}
+                      alt={item.title}
+                      className="w-16 h-20 sm:w-20 sm:h-26 object-cover rounded-lg border mx-auto sm:mx-0 flex-shrink-0"
+                      onError={(e) => {
+                        e.currentTarget.src = "/placeholder.svg";
+                      }}
+                    />
+                  )}
+                  <div className="flex-1 text-center sm:text-left">
+                    <h3 className="text-sm sm:text-base font-semibold mb-1">{item.title}</h3>
+                    <p className="text-xs sm:text-sm text-gray-600 mb-2">by {item.author}</p>
+                    <div className="text-lg sm:text-xl font-bold text-green-600">
+                      R{item.price.toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="border-t pt-4 mt-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold">Total Amount:</span>
+                  <span className="text-xl sm:text-2xl font-bold text-green-600">
+                    R{cartData.totalPrice.toFixed(2)}
                   </span>
-                )}
-              </div>
-              <div className="text-xl sm:text-2xl font-bold text-green-600">
-                R{book.price.toFixed(2)}
+                </div>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                  {cartData.items.length} books from {cartData.sellerName}
+                </p>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              {book.image_url && (
+                <img
+                  src={book.image_url}
+                  alt={book.title}
+                  className="w-20 h-24 sm:w-24 sm:h-32 object-cover rounded-lg border mx-auto sm:mx-0 flex-shrink-0"
+                  onError={(e) => {
+                    e.currentTarget.src = "/placeholder.svg";
+                  }}
+                />
+              )}
+              <div className="flex-1 text-center sm:text-left">
+                <h3 className="text-base sm:text-lg font-semibold mb-2">{book.title}</h3>
+                <p className="text-sm sm:text-base text-gray-600 mb-2">by {book.author}</p>
+                <div className="flex items-center justify-center sm:justify-start gap-2 mb-3 flex-wrap">
+                  <Badge variant="outline" className="text-xs sm:text-sm">{book.condition}</Badge>
+                  {book.isbn && (
+                    <span className="text-xs sm:text-sm text-gray-500">
+                      ISBN: {book.isbn}
+                    </span>
+                  )}
+                </div>
+                <div className="text-xl sm:text-2xl font-bold text-green-600">
+                  R{book.price.toFixed(2)}
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
