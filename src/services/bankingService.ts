@@ -36,7 +36,8 @@ export class BankingService {
         console.log("🔍 [Banking Debug] All banking records for user:", {
           userId,
           records: allRecords,
-          count: allRecords?.length || 0
+          count: allRecords?.length || 0,
+          rawRecords: JSON.stringify(allRecords, null, 2)
         });
 
         // Try to get active or pending banking record (both are valid for listings)
@@ -380,6 +381,14 @@ export class BankingService {
     try {
       // Check banking setup - must have banking details AND subaccount code
       const bankingDetails = await this.getUserBankingDetails(userId);
+
+      // Also check user profile for subaccount_code (fallback check)
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("subaccount_code, preferences")
+        .eq("id", userId)
+        .single();
+
       console.log("🏦 [Banking Debug] Banking details:", {
         userId,
         hasBankingDetails: !!bankingDetails,
@@ -389,6 +398,9 @@ export class BankingService {
         allFields: bankingDetails ? Object.keys(bankingDetails) : [],
         subaccountCodeValue: bankingDetails?.subaccount_code,
         subaccountFieldExists: 'subaccount_code' in (bankingDetails || {}),
+        profileSubaccountCode: profileData?.subaccount_code,
+        profilePreferences: profileData?.preferences,
+        bankingSetupComplete: profileData?.preferences?.banking_setup_complete,
         alternativeFields: {
           subaccount_id: bankingDetails?.subaccount_id,
           paystack_subaccount_code: bankingDetails?.paystack_subaccount_code,
@@ -402,12 +414,15 @@ export class BankingService {
       const subaccountCode = bankingDetails?.subaccount_code ||
                            bankingDetails?.paystack_subaccount_code ||
                            bankingDetails?.account_code ||
-                           bankingDetails?.subaccount_id;
+                           bankingDetails?.subaccount_id ||
+                           profileData?.subaccount_code;
 
+      // Enhanced banking setup detection - also check profile preferences
       const hasBankingSetup = !!(
-        bankingDetails &&
+        (bankingDetails &&
         subaccountCode &&
-        (bankingDetails.status === "active" || bankingDetails.status === "pending")
+        (bankingDetails.status === "active" || bankingDetails.status === "pending")) ||
+        (profileData?.preferences?.banking_setup_complete && profileData?.subaccount_code)
       );
 
       console.log("🏦 [Banking Setup Check] Banking validation:", {
