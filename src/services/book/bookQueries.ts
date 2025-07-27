@@ -241,8 +241,8 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
       return [];
     }
 
-    // Get unique seller IDs
-    const sellerIds = [...new Set(booksData.map((book) => book.seller_id))];
+    // Get unique seller IDs from valid books only
+    const sellerIds = [...new Set(validBooks.map((book) => book.seller_id))];
 
       // Fetch seller profiles separately with error handling
       let profilesMap = new Map();
