@@ -415,33 +415,33 @@ const NotificationsNew = () => {
 
         {/* Welcome Message for First-Time Users */}
         {showWelcome && (
-          <Alert className="mb-8 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
-            <Gift className="h-5 w-5 text-purple-600" />
+          <Alert className="mb-6 sm:mb-8 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
+            <Gift className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 flex-shrink-0" />
             <AlertDescription>
-              <div className="flex items-start justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-purple-900 mb-2">
+                  <h3 className="font-semibold text-purple-900 mb-2 text-sm sm:text-base">
                     🎉 Welcome to ReBooked Solutions!
                   </h3>
-                  <p className="text-purple-800 mb-3">
+                  <p className="text-purple-800 mb-3 text-sm sm:text-base leading-relaxed">
                     You've joined South Africa's leading textbook marketplace!
                     We've prepared some helpful notifications to get you
                     started.
                   </p>
                   <Button
                     onClick={markWelcomeAsSeen}
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    className="bg-purple-600 hover:bg-purple-700 text-white w-full sm:w-auto"
                     size="sm"
                   >
                     <Check className="h-4 w-4 mr-2" />
-                    Got it, let's explore!
+                    <span className="text-sm">Got it, let's explore!</span>
                   </Button>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={markWelcomeAsSeen}
-                  className="text-purple-600 hover:bg-purple-100"
+                  className="text-purple-600 hover:bg-purple-100 self-end sm:self-start min-h-[44px] min-w-[44px]"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -520,17 +520,21 @@ const NotificationsNew = () => {
                 key={category.id}
                 className={`${colorClasses[category.color as keyof typeof colorClasses]} border-2`}
               >
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3">
-                    {category.icon}
-                    <div>
-                      <div className="text-lg">{category.title}</div>
-                      <div className="text-sm font-normal text-gray-600">
-                        {category.description}
+                <CardHeader className="px-4 sm:px-6">
+                  <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-1">
+                      <div className="flex-shrink-0">
+                        {category.icon}
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-base sm:text-lg font-semibold">{category.title}</div>
+                        <div className="text-xs sm:text-sm font-normal text-gray-600">
+                          {category.description}
+                        </div>
                       </div>
                     </div>
                     {category.notifications.length > 0 && (
-                      <Badge variant="secondary">
+                      <Badge variant="secondary" className="self-start sm:self-auto">
                         {category.notifications.length}
                       </Badge>
                     )}
@@ -547,20 +551,22 @@ const NotificationsNew = () => {
                       {category.notifications.map((notification) => (
                         <div
                           key={notification.id}
-                          className={`p-4 rounded-lg border transition-all ${
+                          className={`p-3 sm:p-4 rounded-lg border transition-all ${
                             notification.read
                               ? "bg-white border-gray-200"
                               : "bg-white border-blue-300 shadow-md"
                           }`}
                         >
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start gap-3 flex-1">
-                              {getNotificationIcon(notification.type)}
-                              <div className="flex-1">
-                                <h4 className="font-semibold text-gray-900 mb-1">
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0">
+                            <div className="flex items-start gap-2 sm:gap-3 flex-1">
+                              <div className="flex-shrink-0 mt-0.5">
+                                {getNotificationIcon(notification.type)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base line-clamp-2">
                                   {notification.title}
                                 </h4>
-                                <p className="text-gray-700 text-sm whitespace-pre-line mb-2">
+                                <p className="text-gray-700 text-xs sm:text-sm whitespace-pre-line mb-2 leading-relaxed">
                                   {notification.message}
                                 </p>
                                 <div className="text-xs text-gray-500">
@@ -568,7 +574,7 @@ const NotificationsNew = () => {
                                 </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 ml-4">
+                            <div className="flex items-center justify-end gap-1 sm:gap-2 sm:ml-4 self-end sm:self-start">
                               {!notification.read && (
                                 <Button
                                   variant="ghost"
@@ -576,7 +582,7 @@ const NotificationsNew = () => {
                                   onClick={() =>
                                     markAsRead(category.id, notification.id)
                                   }
-                                  className="text-blue-600 hover:bg-blue-100"
+                                  className="text-blue-600 hover:bg-blue-100 min-h-[44px] min-w-[44px] p-2"
                                 >
                                   <Check className="h-4 w-4" />
                                 </Button>
@@ -590,7 +596,7 @@ const NotificationsNew = () => {
                                     notification.id,
                                   )
                                 }
-                                className="text-gray-500 hover:bg-gray-100"
+                                className="text-gray-500 hover:bg-gray-100 min-h-[44px] min-w-[44px] p-2"
                               >
                                 <X className="h-4 w-4" />
                               </Button>
