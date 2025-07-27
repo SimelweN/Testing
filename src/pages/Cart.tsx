@@ -85,10 +85,19 @@ const Cart = () => {
           cartType: sellerId ? 'seller-cart' : 'legacy-cart' // Add identifier
         };
 
-        // Use a unique key that includes seller info to avoid conflicts
-        const storageKey = `checkoutCart_${actualSellerId}_${Date.now()}`;
+        // Clear any previous checkout data to prevent conflicts
+        localStorage.removeItem('checkoutCart');
+        localStorage.removeItem('activeCheckoutKey');
+
+        // Store the new cart data
         localStorage.setItem('checkoutCart', JSON.stringify(checkoutCartData));
-        localStorage.setItem('activeCheckoutKey', storageKey); // Store which cart is being checked out
+
+        console.log('Starting checkout for seller:', {
+          sellerId: actualSellerId,
+          sellerName: checkoutCartData.sellerName,
+          itemCount: itemsToCheckout.length,
+          items: itemsToCheckout.map(item => ({ id: item.bookId, title: item.title }))
+        });
 
         toast.success(`Proceeding to checkout with ${itemsToCheckout.length} books from ${checkoutCartData.sellerName}`);
         navigate('/checkout/cart');
