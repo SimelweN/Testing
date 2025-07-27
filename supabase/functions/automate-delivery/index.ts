@@ -61,79 +61,43 @@ serve(async (req) => {
       );
     }
 
-    // Step 1: Get quotes from both couriers
-    let quotes = [];
+    // Step 1: Get quote from Courier Guy
+    let selectedQuote = null;
     try {
-      const [courierGuyQuote, fastwayQuote] = await Promise.allSettled([
-        fetch(`${SUPABASE_URL}/functions/v1/courier-guy-quote`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-          },
-          body: JSON.stringify({
-            fromAddress: seller_address,
-            toAddress: buyer_address,
-            weight: weight || 1,
-            serviceType: "standard",
-          }),
+      const courierGuyResponse = await fetch(`${SUPABASE_URL}/functions/v1/courier-guy-quote`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+        },
+        body: JSON.stringify({
+          fromAddress: seller_address,
+          toAddress: buyer_address,
+          weight: weight || 1,
+          serviceType: "standard",
         }),
-        fetch(`${SUPABASE_URL}/functions/v1/fastway-quote`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-          },
-          body: JSON.stringify({
-            fromAddress: seller_address,
-            toAddress: buyer_address,
-            weight: weight || 1,
-            serviceType: "standard",
-          }),
-        }),
-      ]);
+      });
 
-      if (courierGuyQuote.status === "fulfilled") {
-        try {
-          const cgData = await courierGuyQuote.value.json();
-          if (cgData.success && cgData.quotes) {
-            quotes.push(...cgData.quotes);
-          }
-        } catch (e) {
-          console.warn("Failed to parse courier guy response:", e);
-        }
-      }
-
-      if (fastwayQuote.status === "fulfilled") {
-        try {
-          const fwData = await fastwayQuote.value.json();
-          if (fwData.success && fwData.quotes) {
-            quotes.push(...fwData.quotes);
-          }
-        } catch (e) {
-          console.warn("Failed to parse fastway response:", e);
-        }
+      const cgData = await courierGuyResponse.json();
+      if (cgData.success && cgData.quotes && cgData.quotes.length > 0) {
+        // Use the first/cheapest quote from Courier Guy
+        selectedQuote = cgData.quotes[0];
       }
     } catch (quoteError) {
-      console.error("Failed to get quotes:", quoteError);
+      console.error("Failed to get Courier Guy quote:", quoteError);
     }
 
     // Add fallback quote if no quotes received
-    if (quotes.length === 0) {
-      console.warn("No quotes received, adding fallback quote");
-      quotes.push({
+    if (!selectedQuote) {
+      console.warn("No quotes received from Courier Guy, using fallback quote");
+      selectedQuote = {
         service_name: "Standard Delivery",
         price: 95.0,
         estimated_days: 3,
         service_code: "STANDARD",
         courier: "courier-guy",
-      });
+      };
     }
-
-    // Step 2: Select best quote (cheapest available)
-    const selectedQuote = quotes.reduce((best, current) =>
-      current.price < best.price ? current : best,
-    );
 
     // Step 3: Create shipment with selected courier
     let shipmentResult = null;
