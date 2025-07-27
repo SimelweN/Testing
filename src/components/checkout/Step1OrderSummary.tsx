@@ -20,25 +20,57 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
   onCancel,
   loading = false,
 }) => {
-  // Check for cart data from localStorage
-  const getCartData = () => {
+  // Use useState to make cart data reactive
+  const [cartData, setCartData] = useState(null);
+
+  // Function to load cart data from localStorage
+  const loadCartData = () => {
     try {
       const cartDataStr = localStorage.getItem('checkoutCart');
       if (cartDataStr) {
-        const cartData = JSON.parse(cartDataStr);
+        const parsedData = JSON.parse(cartDataStr);
         // Validate cart data is recent (within 1 hour)
         const oneHourAgo = Date.now() - (60 * 60 * 1000);
-        if (cartData.timestamp && cartData.timestamp > oneHourAgo) {
-          return cartData;
+        if (parsedData.timestamp && parsedData.timestamp > oneHourAgo) {
+          console.log('Loading cart data in Step1OrderSummary:', {
+            sellerId: parsedData.sellerId,
+            sellerName: parsedData.sellerName,
+            itemCount: parsedData.items?.length,
+            timestamp: new Date(parsedData.timestamp).toLocaleTimeString()
+          });
+          setCartData(parsedData);
+          return;
         }
       }
     } catch (error) {
       console.error("Error parsing cart data:", error);
     }
-    return null;
+    setCartData(null);
   };
 
-  const cartData = getCartData();
+  // Load cart data on component mount and when localStorage changes
+  useEffect(() => {
+    loadCartData();
+
+    // Listen for storage events to detect cart changes
+    const handleStorageChange = (e) => {
+      if (e.key === 'checkoutCart') {
+        console.log('Cart data changed, reloading...');
+        loadCartData();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also check for changes every 100ms for same-tab updates
+    const interval = setInterval(loadCartData, 100);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
+
   const isCartCheckout = cartData && cartData.items && cartData.items.length > 1;
   return (
     <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6 px-4 sm:px-0">
