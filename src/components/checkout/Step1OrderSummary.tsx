@@ -44,7 +44,12 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
     <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6 px-4 sm:px-0">
       <div className="text-center mb-4 sm:mb-8">
         <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-2">Order Summary</h1>
-        <p className="text-sm sm:text-base text-gray-600">Review your book purchase details</p>
+        <p className="text-sm sm:text-base text-gray-600">
+          {isCartCheckout
+            ? `Review your ${cartData.items.length} books from ${cartData.sellerName}`
+            : "Review your book purchase details"
+          }
+        </p>
       </div>
 
       {/* Book Details Card */}
