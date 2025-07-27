@@ -20,6 +20,26 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
   onCancel,
   loading = false,
 }) => {
+  // Check for cart data from localStorage
+  const getCartData = () => {
+    try {
+      const cartDataStr = localStorage.getItem('checkoutCart');
+      if (cartDataStr) {
+        const cartData = JSON.parse(cartDataStr);
+        // Validate cart data is recent (within 1 hour)
+        const oneHourAgo = Date.now() - (60 * 60 * 1000);
+        if (cartData.timestamp && cartData.timestamp > oneHourAgo) {
+          return cartData;
+        }
+      }
+    } catch (error) {
+      console.error("Error parsing cart data:", error);
+    }
+    return null;
+  };
+
+  const cartData = getCartData();
+  const isCartCheckout = cartData && cartData.items && cartData.items.length > 1;
   return (
     <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6 px-4 sm:px-0">
       <div className="text-center mb-4 sm:mb-8">
