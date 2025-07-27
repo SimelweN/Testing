@@ -322,10 +322,10 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
   if (!user) {
     return (
-      <div className="max-w-2xl mx-auto mt-8">
+      <div className="max-w-2xl mx-auto mt-4 sm:mt-8 px-4">
         <Alert>
           <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
+          <AlertDescription className="text-sm sm:text-base">
             Please log in to continue with your purchase.
           </AlertDescription>
         </Alert>
@@ -335,10 +335,10 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
   if (checkoutState.loading) {
     return (
-      <div className="max-w-2xl mx-auto mt-8">
+      <div className="max-w-2xl mx-auto mt-4 sm:mt-8 px-4">
         <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-600">Initializing checkout...</p>
+          <div className="animate-spin w-6 h-6 sm:w-8 sm:h-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600 text-sm sm:text-base">Initializing checkout...</p>
         </div>
       </div>
     );
@@ -346,31 +346,32 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
   if (checkoutState.error) {
     return (
-      <div className="max-w-2xl mx-auto mt-8">
+      <div className="max-w-2xl mx-auto mt-4 sm:mt-8 px-4">
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{checkoutState.error}</AlertDescription>
+          <AlertDescription className="text-sm sm:text-base">{checkoutState.error}</AlertDescription>
         </Alert>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="text-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">
-              Step {checkoutState.step.current}: {getStepTitle()}
+        <div className="mb-6 sm:mb-8">
+          <div className="text-center mb-3 sm:mb-4">
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-900 px-2">
+              <span className="hidden sm:inline">Step {checkoutState.step.current}: {getStepTitle()}</span>
+              <span className="sm:hidden">{getStepTitle()}</span>
             </h1>
           </div>
-          <Progress value={getProgressValue()} className="h-2" />
-          <div className="flex justify-between mt-2 text-xs text-gray-500">
-            <span>Order Summary</span>
-            <span>Delivery</span>
-            <span>Payment</span>
-            <span>Complete</span>
+          <Progress value={getProgressValue()} className="h-2 mx-2 sm:mx-0" />
+          <div className="flex justify-between mt-2 text-xs sm:text-sm text-gray-500 px-2 sm:px-0">
+            <span className="text-center flex-1">Summary</span>
+            <span className="text-center flex-1">Delivery</span>
+            <span className="text-center flex-1">Payment</span>
+            <span className="text-center flex-1">Complete</span>
           </div>
         </div>
 
