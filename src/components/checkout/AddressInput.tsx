@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -47,6 +48,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
     province: initialAddress.province || "",
     postal_code: initialAddress.postal_code || "",
     country: "South Africa",
+    additional_info: initialAddress.additional_info || "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -90,6 +92,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
       province: address.province.trim(),
       postal_code: address.postal_code.trim(),
       country: "South Africa",
+      additional_info: address.additional_info?.trim() || "",
     };
 
     onAddressSubmit(cleanAddress);
@@ -191,6 +194,22 @@ const AddressInput: React.FC<AddressInputProps> = ({
                 </p>
               )}
             </div>
+          </div>
+
+          {/* Additional Information */}
+          <div>
+            <Label htmlFor="additional_info">Additional Information (Optional)</Label>
+            <Textarea
+              id="additional_info"
+              value={address.additional_info}
+              onChange={(e) => handleInputChange("additional_info", e.target.value)}
+              placeholder="e.g., Building entrance details, security gate code, special delivery instructions..."
+              rows={3}
+              className="min-h-[80px] text-sm sm:text-base"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Include any helpful details for pickup/delivery (gate codes, building access, etc.)
+            </p>
           </div>
 
           {/* Save to Profile Option */}
