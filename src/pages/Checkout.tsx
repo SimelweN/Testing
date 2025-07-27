@@ -25,8 +25,14 @@ const Checkout: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Reset state when component mounts/changes
+    setBook(null);
+    setCartData(null);
+    setError(null);
+
     // Handle cart checkout vs single book checkout
     if (id === "cart") {
+      console.log('Loading cart checkout...');
       loadCartData();
       return;
     }
@@ -39,6 +45,19 @@ const Checkout: React.FC = () => {
 
     loadBookData();
   }, [id, navigate]);
+
+  // Add additional effect to refresh cart data when localStorage changes
+  useEffect(() => {
+    if (id === "cart") {
+      const handleStorageChange = () => {
+        console.log('Cart localStorage changed, refreshing checkout...');
+        loadCartData();
+      };
+
+      window.addEventListener('storage', handleStorageChange);
+      return () => window.removeEventListener('storage', handleStorageChange);
+    }
+  }, [id]);
 
   const loadCartData = async () => {
     try {
