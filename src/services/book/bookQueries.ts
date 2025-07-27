@@ -256,8 +256,23 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
               .in("id", sellerIds);
 
             if (profilesError) {
+              // Log error with proper formatting to prevent [object Object]
+              console.error('Error fetching profiles:', {
+                message: profilesError.message || 'Unknown error',
+                code: profilesError.code || 'NO_CODE',
+                details: profilesError.details || 'No details',
+                hint: profilesError.hint || 'No hint',
+                sellerIds: sellerIds.length,
+                retryCount,
+                timestamp: new Date().toISOString()
+              });
+
               logDetailedError("Error fetching profiles", {
-                error: profilesError,
+                error: {
+                  message: profilesError.message,
+                  code: profilesError.code,
+                  details: profilesError.details
+                },
                 sellerIds: sellerIds.length,
                 retryCount,
                 timestamp: new Date().toISOString()
@@ -274,7 +289,7 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
                 return fetchProfiles(retryCount + 1);
               }
 
-              console.warn(`Continuing without profile data due to error: ${profilesError.message}`);
+              console.warn(`Continuing without profile data due to error: ${profilesError.message || 'Unknown error'}`);
             } else if (profilesData) {
               profilesData.forEach((profile) => {
                 profilesMap.set(profile.id, profile);
