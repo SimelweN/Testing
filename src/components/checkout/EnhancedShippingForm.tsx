@@ -37,6 +37,7 @@ const shippingSchema = z.object({
   province: z.string().min(1, "Province is required"),
   postal_code: z.string().min(3, "Valid postal code is required"),
   special_instructions: z.string().optional(),
+  additional_info: z.string().optional(),
 });
 
 type ShippingFormData = z.infer<typeof shippingSchema>;
@@ -119,6 +120,7 @@ const EnhancedShippingForm: React.FC<EnhancedShippingFormProps> = ({
       province: "",
       postal_code: "",
       special_instructions: "",
+      additional_info: "",
     },
   });
 
@@ -213,6 +215,7 @@ const EnhancedShippingForm: React.FC<EnhancedShippingFormProps> = ({
     setValue("city", address.city || "");
     setValue("province", address.province || "");
     setValue("postal_code", address.postalCode || address.postal_code || "");
+    setValue("additional_info", address.additional_info || "");
   };
 
   const getDeliveryQuotes = async () => {
@@ -340,6 +343,7 @@ const EnhancedShippingForm: React.FC<EnhancedShippingFormProps> = ({
               city: data.city,
               province: data.province,
               postalCode: data.postal_code,
+              additional_info: data.additional_info,
             },
           })
           .eq("id", user.id);
@@ -585,6 +589,21 @@ const EnhancedShippingForm: React.FC<EnhancedShippingFormProps> = ({
                     )}
                   </div>
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="additional_info">
+                  Additional Information (Optional)
+                </Label>
+                <Textarea
+                  id="additional_info"
+                  {...register("additional_info")}
+                  placeholder="e.g., Building entrance details, security gate code, access instructions..."
+                  rows={3}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Include any helpful details for pickup/delivery (gate codes, building access, etc.)
+                </p>
               </div>
 
               <div>

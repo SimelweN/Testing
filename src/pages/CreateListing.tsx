@@ -180,6 +180,13 @@ const CreateListing = () => {
       return;
     }
 
+    // Check banking requirements
+    if (!canProceedWithBanking) {
+      toast.error("❌ Please complete banking setup and address verification before listing your book.");
+      navigate("/profile");
+      return;
+    }
+
     if (!validateForm()) {
       const firstErrorField = Object.keys(errors)[0];
       if (firstErrorField) {
@@ -456,10 +463,11 @@ const CreateListing = () => {
                   isSubmitting ||
                   isCheckingAddress ||
                   canListBooks === false ||
+                  !canProceedWithBanking ||
                   !sellerPolicyAccepted
                 }
                 className={`w-full transition-all duration-200 font-semibold ${
-                  canListBooks === false || !sellerPolicyAccepted
+                  canListBooks === false || !canProceedWithBanking || !sellerPolicyAccepted
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-book-600 hover:bg-book-700 hover:shadow-lg active:scale-[0.98]"
                 } text-white ${
@@ -478,6 +486,8 @@ const CreateListing = () => {
                   </>
                 ) : canListBooks === false ? (
                   "❌ Pickup Address Required"
+                ) : !canProceedWithBanking ? (
+                  "❌ Banking Setup Required"
                 ) : !sellerPolicyAccepted ? (
                   "Accept Policy to Continue"
                 ) : (

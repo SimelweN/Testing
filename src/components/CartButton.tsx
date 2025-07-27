@@ -1,13 +1,14 @@
-
 import { ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
 import { useNavigate } from 'react-router-dom';
 
 const CartButton = () => {
-  const { getTotalItems } = useCart();
+  const { getTotalItems, sellerCarts } = useCart();
   const navigate = useNavigate();
-  const itemCount = getTotalItems();
+  const legacyItemCount = getTotalItems();
+  const sellerCartItemCount = sellerCarts.reduce((total, cart) => total + cart.items.length, 0);
+  const itemCount = legacyItemCount + sellerCartItemCount;
 
   return (
     <Button

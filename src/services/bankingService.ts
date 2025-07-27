@@ -39,20 +39,23 @@ export class BankingService {
           count: allRecords?.length || 0
         });
 
+        // Try to get active or pending banking record (both are valid for listings)
         return await supabase
           .from("banking_subaccounts")
           .select("*")
           .eq("user_id", userId)
-          .eq("status", "active")
+          .in("status", ["active", "pending"])
+          .order("created_at", { ascending: false })
+          .limit(1)
           .single();
       };
 
       const { data, error } = await Promise.race([fetchQuery(), timeout]) as any;
 
       if (error) {
-        // No active record found - let's check for any record
+        // No active/pending record found - let's check for any record
         if (error.code === "PGRST116") {
-          console.log("No active banking record found, checking for any record...");
+          console.log("No active/pending banking record found, checking for any record...");
 
           // Try to get any banking record (regardless of status)
           const { data: anyRecord, error: anyError } = await supabase
@@ -382,24 +385,45 @@ export class BankingService {
         hasBankingDetails: !!bankingDetails,
         hasSubaccountCode: !!bankingDetails?.subaccount_code,
         bankingStatus: bankingDetails?.status,
-        details: bankingDetails
+        details: bankingDetails,
+        allFields: bankingDetails ? Object.keys(bankingDetails) : [],
+        subaccountCodeValue: bankingDetails?.subaccount_code,
+        subaccountFieldExists: 'subaccount_code' in (bankingDetails || {}),
+        alternativeFields: {
+          subaccount_id: bankingDetails?.subaccount_id,
+          paystack_subaccount_code: bankingDetails?.paystack_subaccount_code,
+          account_code: bankingDetails?.account_code
+        }
       });
 
       // Check if user has any valid banking setup (not just active)
       // For listing books, having banking details with subaccount is sufficient
+      // Check multiple possible subaccount field names for flexibility
+      const subaccountCode = bankingDetails?.subaccount_code ||
+                           bankingDetails?.paystack_subaccount_code ||
+                           bankingDetails?.account_code ||
+                           bankingDetails?.subaccount_id;
+
       const hasBankingSetup = !!(
         bankingDetails &&
-        bankingDetails.subaccount_code &&
+        subaccountCode &&
         (bankingDetails.status === "active" || bankingDetails.status === "pending")
       );
 
       console.log("🏦 [Banking Setup Check] Banking validation:", {
         userId,
         hasBankingDetails: !!bankingDetails,
-        hasSubaccountCode: !!bankingDetails?.subaccount_code,
+        hasSubaccountCode: !!subaccountCode,
+        subaccountCodeValue: subaccountCode,
         currentStatus: bankingDetails?.status,
         isValidStatus: bankingDetails?.status === "active" || bankingDetails?.status === "pending",
-        finalResult: hasBankingSetup
+        finalResult: hasBankingSetup,
+        detailedBreakdown: {
+          step1_hasBankingDetails: !!bankingDetails,
+          step2_hasSubaccountCode: !!subaccountCode,
+          step3_validStatus: bankingDetails?.status === "active" || bankingDetails?.status === "pending",
+          allStepsPass: hasBankingSetup
+        }
       });
 
       // Check pickup address (from user profile)
@@ -459,6 +483,17 @@ export class BankingService {
       const setupCompletionPercentage = Math.round(
         (completedCount / requirements.length) * 100,
       );
+
+      console.log("📊 [Final Requirements Summary]:", {
+        userId,
+        requirements: {
+          hasBankingSetup,
+          hasPickupAddress,
+          hasActiveBooks,
+          canReceivePayments
+        },
+        progress: `${completedCount}/${requirements.length} (${setupCompletionPercentage}%)`
+      });
 
       return {
         hasBankingSetup,

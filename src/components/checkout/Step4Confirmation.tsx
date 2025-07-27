@@ -30,6 +30,10 @@ const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
     // Send confirmation email
     sendConfirmationEmail();
 
+    // Clean up cart checkout data since order is complete
+    localStorage.removeItem('checkoutCart');
+    localStorage.removeItem('activeCheckoutKey');
+
     // Show success toast
     toast.success("Payment successful! 🎉", {
       description:

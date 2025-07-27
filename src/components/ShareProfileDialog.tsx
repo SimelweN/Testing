@@ -112,16 +112,16 @@ const ShareProfileDialog = ({
                 <DialogHeader>
           <DialogTitle className="flex items-center">
             <Share2 className="h-5 w-5 text-book-600 mr-2" />
-            Share {isOwnProfile ? "Your" : `${userName}'s`} ReBooked Campus Mini Page
+            Share {isOwnProfile ? "Your" : `${userName}'s`} ReBooked Mini Page
           </DialogTitle>
                     <DialogDescription>
             {isOwnProfile ? (
               <div className="space-y-2">
-                <div>🚀 Share your ReBooked Campus mini page to sell your books faster!</div>
+                <div>🚀 Share your ReBooked Mini page to sell your books faster!</div>
                 <div className="text-sm text-gray-600">Post it on social media, send to classmates, or share in study groups - the more people see your books, the quicker they'll sell.</div>
               </div>
             ) : (
-              <>Help {userName} sell their books by sharing their ReBooked Campus mini page!</>
+              <>Help {userName} sell their books by sharing their ReBooked Mini page!</>
             )}
           </DialogDescription>
         </DialogHeader>

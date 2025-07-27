@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { CheckoutBook } from "@/types/checkout";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,19 +7,39 @@ import CheckoutFlow from "@/components/checkout/CheckoutFlow";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Loader2 } from "lucide-react";
 
+interface CartCheckoutData {
+  items: any[];
+  sellerId: string;
+  sellerName: string;
+  totalPrice: number;
+  timestamp: number;
+  cartType?: string;
+}
+
 const Checkout: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
   const [book, setBook] = useState<CheckoutBook | null>(null);
+  const [cartData, setCartData] = useState<CartCheckoutData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Reset state when component mounts/changes
+    setBook(null);
+    setCartData(null);
+    setError(null);
+
     // Handle cart checkout vs single book checkout
-    if (id === "cart") {
-      // This is a cart checkout, we should get the cart items from state or localStorage
-      // For now, redirect to proper cart handling
-      navigate("/cart");
+    const isCartCheckout = location.pathname === '/checkout-cart' || id === "cart";
+
+    if (isCartCheckout) {
+      const timestamp = searchParams.get('t');
+      console.log('🛒 CHECKOUT: Loading cart checkout with timestamp:', timestamp);
+      console.log('🛒 CHECKOUT: Route info:', { pathname: location.pathname, id });
+      loadCartData();
       return;
     }
 
@@ -30,7 +50,107 @@ const Checkout: React.FC = () => {
     }
 
     loadBookData();
-  }, [id, navigate]);
+  }, [id, navigate, searchParams]);
+
+  // Add additional effect to refresh cart data when localStorage changes
+  useEffect(() => {
+    const isCartCheckout = location.pathname === '/checkout-cart' || id === "cart";
+
+    if (isCartCheckout) {
+      const handleStorageChange = () => {
+        console.log('🛒 CHECKOUT: Cart localStorage changed, refreshing checkout...');
+        loadCartData();
+      };
+
+      window.addEventListener('storage', handleStorageChange);
+      return () => window.removeEventListener('storage', handleStorageChange);
+    }
+  }, [id, location.pathname]);
+
+  const loadCartData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      console.log('🔍 CHECKOUT: Loading cart data...');
+
+      // Get cart data from localStorage - use the most recent one
+      const cartDataStr = localStorage.getItem('checkoutCart');
+      if (!cartDataStr) {
+        console.log('❌ CHECKOUT: No cart data found in localStorage');
+        setError("No cart data found. Please return to your cart and try again.");
+        setLoading(false);
+        return;
+      }
+
+      console.log('📦 CHECKOUT: Raw cart data from localStorage:', cartDataStr);
+      const parsedCartData: CartCheckoutData = JSON.parse(cartDataStr);
+
+      // Validate cart data is recent (within 1 hour)
+      const oneHourAgo = Date.now() - (60 * 60 * 1000);
+      if (parsedCartData.timestamp < oneHourAgo) {
+        setError("Cart session expired. Please return to your cart and try again.");
+        setLoading(false);
+        return;
+      }
+
+      if (!parsedCartData.items || parsedCartData.items.length === 0) {
+        setError("Cart is empty. Please add items to your cart.");
+        setLoading(false);
+        return;
+      }
+
+      console.log("Cart checkout data loaded:", {
+        sellerId: parsedCartData.sellerId,
+        sellerName: parsedCartData.sellerName,
+        itemCount: parsedCartData.items.length,
+        totalPrice: parsedCartData.totalPrice,
+        cartType: parsedCartData.cartType || 'unknown'
+      });
+
+      setCartData(parsedCartData);
+
+      // Create a CheckoutBook from the first cart item but with cart totals
+      const firstItem = parsedCartData.items[0];
+
+      // Create a CheckoutBook that represents the entire cart
+      const checkoutBook: CheckoutBook = {
+        id: firstItem.bookId,
+        title: parsedCartData.items.length > 1
+          ? `${parsedCartData.items.length} Books from ${parsedCartData.sellerName}`
+          : firstItem.title,
+        author: parsedCartData.items.length > 1
+          ? "Multiple Authors"
+          : firstItem.author,
+        price: parsedCartData.totalPrice, // Use total price of all items
+        condition: "Various", // Multiple books may have different conditions
+        image_url: firstItem.imageUrl || firstItem.image_url || "/placeholder.svg", // Include image from first item
+        seller_id: parsedCartData.sellerId,
+        seller_name: parsedCartData.sellerName,
+        seller: {
+          id: parsedCartData.sellerId,
+          name: parsedCartData.sellerName,
+          email: "",
+          hasAddress: true,
+          hasSubaccount: true,
+          isReadyForOrders: true,
+        },
+      };
+
+      console.log('📦 CHECKOUT: Created checkout book:', {
+        ...checkoutBook,
+        hasImage: !!checkoutBook.image_url,
+        imageUrl: checkoutBook.image_url
+      });
+
+      setBook(checkoutBook);
+    } catch (err) {
+      console.error("Error loading cart data:", err);
+      setError("Failed to load cart data. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadBookData = async () => {
     try {

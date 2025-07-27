@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { useGoogleMaps } from "@/contexts/GoogleMapsContext";
 
@@ -16,6 +17,7 @@ export interface AddressData {
   country: string;
   latitude?: number;
   longitude?: number;
+  additional_info?: string;
 }
 
 interface GoogleMapsAddressAutocompleteProps {
@@ -62,6 +64,7 @@ const GoogleMapsAddressAutocomplete: React.FC<
     null,
   );
   const [inputValue, setInputValue] = useState("");
+  const [additionalInfo, setAdditionalInfo] = useState("");
   const [isLoading, setIsLoading] = useState(!mapsLoaded);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -148,6 +151,7 @@ const GoogleMapsAddressAutocomplete: React.FC<
           country: "South Africa",
           latitude: location.lat(),
           longitude: location.lng(),
+          additional_info: additionalInfo.trim() || undefined,
         };
 
         setSelectedAddress(addressData);
@@ -181,6 +185,9 @@ const GoogleMapsAddressAutocomplete: React.FC<
     if (defaultValue?.formattedAddress) {
       setInputValue(defaultValue.formattedAddress);
       setSelectedAddress(defaultValue as AddressData);
+    }
+    if (defaultValue?.additional_info) {
+      setAdditionalInfo(defaultValue.additional_info);
     }
 
     return () => {
@@ -287,6 +294,7 @@ const GoogleMapsAddressAutocomplete: React.FC<
                     province: "",
                     postalCode: "",
                     country: "South Africa",
+                    additional_info: additionalInfo.trim() || undefined,
                   };
                   setSelectedAddress(manualAddress);
                   onAddressSelect(manualAddress);
@@ -326,6 +334,37 @@ const GoogleMapsAddressAutocomplete: React.FC<
           />
           <p className="text-xs text-gray-500 mt-2">
             Start typing your address and select from the suggestions
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Additional Information */}
+      <Card>
+        <CardContent className="p-4">
+          <Label htmlFor="additional_info" className="text-sm font-medium mb-2 block">
+            Additional Information (Optional)
+          </Label>
+          <Textarea
+            id="additional_info"
+            placeholder="e.g., Building entrance details, security gate code, special instructions..."
+            value={additionalInfo}
+            onChange={(e) => {
+              setAdditionalInfo(e.target.value);
+              // Update selected address with new additional info
+              if (selectedAddress) {
+                const updatedAddress = {
+                  ...selectedAddress,
+                  additional_info: e.target.value.trim() || undefined,
+                };
+                setSelectedAddress(updatedAddress);
+                onAddressSelect(updatedAddress);
+              }
+            }}
+            rows={3}
+            className="text-base"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Include any helpful details for pickup/delivery (gate codes, building access, etc.)
           </p>
         </CardContent>
       </Card>

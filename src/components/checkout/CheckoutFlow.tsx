@@ -272,6 +272,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         city: address.city,
         province: address.province,
         postalCode: address.postal_code,
+        additional_info: address.additional_info,
       };
 
       await saveSimpleUserAddresses(
