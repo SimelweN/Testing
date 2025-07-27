@@ -78,6 +78,29 @@ export async function addNotification(data: CreateNotificationData): Promise<boo
   return NotificationService.createNotification(data);
 }
 
+/**
+ * Mark a notification as read
+ */
+export async function markNotificationAsRead(notificationId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('id', notificationId);
+
+    if (error) {
+      console.error('Failed to mark notification as read:', error);
+      return false;
+    }
+
+    console.log(`📖 Marked notification ${notificationId} as read`);
+    return true;
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    return false;
+  }
+}
+
 export class NotificationService {
   /**
    * Create a notification for a user
