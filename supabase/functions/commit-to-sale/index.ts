@@ -383,6 +383,52 @@ serve(async (req) => {
       // Don't fail the commit for email errors
     }
 
+    // Create database notifications
+    try {
+      // Notify buyer
+      if (buyer?.id) {
+        await supabase
+          .from('notifications')
+          .insert({
+            user_id: buyer.id,
+            type: 'purchase',
+            title: 'Order Confirmed - Pickup Scheduled',
+            message: `Great news! ${seller?.name || "The seller"} has confirmed your order and is preparing your book(s) for delivery. Estimated delivery: 2-3 business days.`,
+            metadata: {
+              order_id: order_id,
+              book_titles: (order.items || []).map((item: any) => item.title || "Book").join(", "),
+              seller_name: seller?.name || "Seller"
+            },
+            priority: 'medium',
+            read: false,
+            created_at: new Date().toISOString(),
+          });
+      }
+
+      // Notify seller
+      if (seller?.id) {
+        await supabase
+          .from('notifications')
+          .insert({
+            user_id: seller.id,
+            type: 'commit',
+            title: 'Order Commitment Confirmed',
+            message: `You've successfully committed to sell your book(s). The buyer has been notified and pickup has been scheduled. A courier will contact you within 24 hours.`,
+            metadata: {
+              order_id: order_id,
+              book_titles: (order.items || []).map((item: any) => item.title || "Book").join(", "),
+              buyer_name: buyer?.name || "Customer"
+            },
+            priority: 'medium',
+            read: false,
+            created_at: new Date().toISOString(),
+          });
+      }
+    } catch (notificationError) {
+      console.error("Failed to create database notifications:", notificationError);
+      // Don't fail the commit for notification errors
+    }
+
                 return jsonResponse({
         message: "Order committed successfully",
         order_id,

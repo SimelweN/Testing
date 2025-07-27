@@ -15,7 +15,7 @@ const DEV_FALLBACKS = {
 };
 
 export const ENV = {
-  NODE_ENV: import.meta.env.NODE_ENV || "development",
+  NODE_ENV: import.meta.env.NODE_ENV || "production",
   VITE_SUPABASE_URL: getEnvVar(
     "VITE_SUPABASE_URL",
     import.meta.env.PROD ? "" : DEV_FALLBACKS.VITE_SUPABASE_URL,

@@ -55,6 +55,7 @@ const ActivityLog = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingBooks, setIsLoadingBooks] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   const loadActivities = useCallback(async () => {
     if (!user) {
@@ -112,6 +113,15 @@ const ActivityLog = () => {
       });
     }
   }, [user, refreshPendingCommits]);
+
+  // Update timer every minute to keep countdown accurate
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(timer);
+  }, []);
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -496,7 +506,7 @@ const ActivityLog = () => {
                     const timeRemaining = Math.max(
                       0,
                       Math.floor(
-                        (new Date(commit.expiresAt).getTime() - new Date().getTime()) /
+                        (new Date(commit.expiresAt).getTime() - currentTime.getTime()) /
                         (1000 * 60 * 60),
                       ),
                     );

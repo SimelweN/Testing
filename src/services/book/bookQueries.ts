@@ -90,11 +90,17 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
 
         const fetchBooksOperation = async (retryCount = 0): Promise<any[]> => {
       try {
-        // First get books - temporarily remove sold filter to see ALL books
+        // Get books with seller profile to check pickup address
         let query = supabase
           .from("books")
-          .select("*")
-          // .eq("sold", false)  // Temporarily commented out to see all books
+          .select(`
+            *,
+            seller_profile:profiles!seller_id(
+              id,
+              pickup_address
+            )
+          `)
+          .eq("sold", false)  // Only show available books
           .order("created_at", { ascending: false });
 
         // Apply filters if provided
@@ -199,8 +205,44 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
       return [];
     }
 
-    // Get unique seller IDs
-    const sellerIds = [...new Set(booksData.map((book) => book.seller_id))];
+    // Filter books by seller pickup address validity
+    const validBooks = booksData.filter((book) => {
+      const sellerProfile = book.seller_profile;
+      if (!sellerProfile?.pickup_address) {
+        console.log(`🚫 Filtering out book "${book.title}" - seller has no pickup address`);
+        return false;
+      }
+
+      const pickupAddr = sellerProfile.pickup_address;
+
+      // Validate pickup address has required fields
+      const streetField = pickupAddr.streetAddress || pickupAddr.street;
+      const isValidAddress = !!(
+        pickupAddr &&
+        typeof pickupAddr === "object" &&
+        streetField &&
+        pickupAddr.city &&
+        pickupAddr.province &&
+        pickupAddr.postalCode
+      );
+
+      if (!isValidAddress) {
+        console.log(`🚫 Filtering out book "${book.title}" - seller has incomplete pickup address`);
+        return false;
+      }
+
+      return true;
+    });
+
+    console.log(`📦 Filtered ${booksData.length} books down to ${validBooks.length} with valid pickup addresses`);
+
+    if (validBooks.length === 0) {
+      console.log("No books with valid seller pickup addresses found");
+      return [];
+    }
+
+    // Get unique seller IDs from valid books only
+    const sellerIds = [...new Set(validBooks.map((book) => book.seller_id))];
 
       // Fetch seller profiles separately with error handling
       let profilesMap = new Map();
@@ -214,8 +256,23 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
               .in("id", sellerIds);
 
             if (profilesError) {
+              // Log error with proper formatting to prevent [object Object]
+              console.error('Error fetching profiles:', {
+                message: profilesError.message || 'Unknown error',
+                code: profilesError.code || 'NO_CODE',
+                details: profilesError.details || 'No details',
+                hint: profilesError.hint || 'No hint',
+                sellerIds: sellerIds.length,
+                retryCount,
+                timestamp: new Date().toISOString()
+              });
+
               logDetailedError("Error fetching profiles", {
-                error: profilesError,
+                error: {
+                  message: profilesError.message,
+                  code: profilesError.code,
+                  details: profilesError.details
+                },
                 sellerIds: sellerIds.length,
                 retryCount,
                 timestamp: new Date().toISOString()
@@ -232,7 +289,7 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
                 return fetchProfiles(retryCount + 1);
               }
 
-              console.warn(`Continuing without profile data due to error: ${profilesError.message}`);
+              console.warn(`Continuing without profile data due to error: ${profilesError.message || 'Unknown error'}`);
             } else if (profilesData) {
               profilesData.forEach((profile) => {
                 profilesMap.set(profile.id, profile);
@@ -251,8 +308,19 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
 
         await fetchProfiles();
       } catch (profileFetchError) {
+        // Log error with proper formatting to prevent [object Object]
+        console.error('Critical exception in profile fetching:', {
+          message: profileFetchError instanceof Error ? profileFetchError.message : String(profileFetchError),
+          stack: profileFetchError instanceof Error ? profileFetchError.stack : undefined,
+          sellerIds,
+          timestamp: new Date().toISOString()
+        });
+
         logDetailedError("Critical exception in profile fetching", {
-          error: profileFetchError,
+          error: {
+            message: profileFetchError instanceof Error ? profileFetchError.message : String(profileFetchError),
+            stack: profileFetchError instanceof Error ? profileFetchError.stack : undefined
+          },
           sellerIds,
           timestamp: new Date().toISOString()
         });
@@ -260,8 +328,8 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
         console.warn("Profile fetching failed completely, books will be returned without seller information");
       }
 
-      // Combine books with profile data
-      const books: Book[] = booksData.map((book: any) => {
+      // Combine valid books with profile data
+      const books: Book[] = validBooks.map((book: any) => {
         const profile = profilesMap.get(book.seller_id);
         const bookData: BookQueryResult = {
           ...book,
@@ -331,7 +399,27 @@ export const getBookById = async (id: string): Promise<Book | null> => {
         if (bookError.code === "PGRST116") {
           return null; // Book not found
         }
-        logDetailedError("Error fetching book", bookError);
+
+        // Log error with proper formatting to prevent [object Object]
+        console.error('Error fetching book:', {
+          message: bookError.message || 'Unknown error',
+          code: bookError.code || 'NO_CODE',
+          details: bookError.details || 'No details',
+          hint: bookError.hint || 'No hint',
+          bookId: id,
+          timestamp: new Date().toISOString()
+        });
+
+        logDetailedError("Error fetching book", {
+          error: {
+            message: bookError.message,
+            code: bookError.code,
+            details: bookError.details
+          },
+          bookId: id,
+          timestamp: new Date().toISOString()
+        });
+
         throw new Error(
           `Failed to fetch book: ${bookError.message || "Unknown database error"}`,
         );
@@ -399,7 +487,22 @@ export const getBookById = async (id: string): Promise<Book | null> => {
     // Use retry logic for network resilience
     return await retryWithConnection(fetchBookOperation, 2, 1000);
   } catch (error) {
-    logDetailedError("Error in getBookById", error);
+    // Log error with proper formatting to prevent [object Object]
+    console.error('Error in getBookById:', {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      bookId: id,
+      timestamp: new Date().toISOString()
+    });
+
+    logDetailedError("Error in getBookById", {
+      error: {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      },
+      bookId: id,
+      timestamp: new Date().toISOString()
+    });
 
     if (
       error instanceof Error &&

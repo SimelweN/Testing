@@ -109,11 +109,11 @@ const AddressInput: React.FC<AddressInputProps> = ({
   };
 
   return (
-    <Card>
+    <Card className="mx-4 sm:mx-0">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MapPin className="w-5 h-5" />
-          {title}
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span className="text-sm sm:text-base">{title}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -126,7 +126,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
               value={address.street}
               onChange={(e) => handleInputChange("street", e.target.value)}
               placeholder="e.g. 123 Main Street, Apartment 4B"
-              className={errors.street ? "border-red-500" : ""}
+              className={`min-h-[44px] text-sm sm:text-base ${errors.street ? "border-red-500" : ""}`}
             />
             {errors.street && (
               <p className="text-sm text-red-600 mt-1">{errors.street}</p>
@@ -141,7 +141,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
               value={address.city}
               onChange={(e) => handleInputChange("city", e.target.value)}
               placeholder="e.g. Cape Town"
-              className={errors.city ? "border-red-500" : ""}
+              className={`min-h-[44px] text-sm sm:text-base ${errors.city ? "border-red-500" : ""}`}
             />
             {errors.city && (
               <p className="text-sm text-red-600 mt-1">{errors.city}</p>
@@ -149,7 +149,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
           </div>
 
           {/* Province and Postal Code */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="province">Province *</Label>
               <Select
@@ -157,7 +157,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
                 onValueChange={(value) => handleInputChange("province", value)}
               >
                 <SelectTrigger
-                  className={errors.province ? "border-red-500" : ""}
+                  className={`min-h-[44px] text-sm sm:text-base ${errors.province ? "border-red-500" : ""}`}
                 >
                   <SelectValue placeholder="Select province" />
                 </SelectTrigger>
@@ -183,7 +183,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
                   handleInputChange("postal_code", e.target.value)
                 }
                 placeholder="e.g. 7500"
-                className={errors.postal_code ? "border-red-500" : ""}
+                className={`min-h-[44px] text-sm sm:text-base ${errors.postal_code ? "border-red-500" : ""}`}
               />
               {errors.postal_code && (
                 <p className="text-sm text-red-600 mt-1">
@@ -213,7 +213,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
           <div className="pt-4">
             <Button
               type="submit"
-              className="w-full flex items-center gap-2"
+              className="w-full flex items-center gap-2 min-h-[44px] text-sm sm:text-base"
               disabled={loading}
             >
               {loading ? (

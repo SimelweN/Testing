@@ -37,12 +37,24 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
     }
   }, [user]);
 
-  const checkRequirements = async () => {
+  const checkRequirements = async (forceRefresh = false) => {
     if (!user) return;
 
     try {
       setLoading(true);
-      console.log("🔍 Checking banking requirements for user:", user.id);
+      console.log("🔍 Checking banking requirements for user:", user.id, forceRefresh ? "(forced refresh)" : "");
+
+      // Force refresh banking details if needed
+      if (forceRefresh) {
+        // Clear any cached banking data by calling refresh first
+        try {
+          const freshBankingDetails = await BankingService.getUserBankingDetails(user.id);
+          console.log("🔄 Fresh banking details:", freshBankingDetails);
+        } catch (refreshError) {
+          console.log("Note: Could not refresh banking details, proceeding with check...");
+        }
+      }
+
       const status = await BankingService.checkBankingRequirements(user.id);
       console.log("📊 Banking status result:", status);
       setBankingStatus(status);
@@ -213,11 +225,13 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
             </Button>
             <Button
               variant="outline"
-              onClick={checkRequirements}
+              onClick={() => checkRequirements(true)}
               disabled={loading}
               className="sm:w-auto btn-mobile"
             >
-              <span className="btn-mobile-text">Refresh Status</span>
+              <span className="btn-mobile-text">
+                {loading ? "Checking..." : "Refresh Status"}
+              </span>
             </Button>
           </div>
 

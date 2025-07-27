@@ -240,12 +240,12 @@ const BursaryListing = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-4 sm:px-0">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold text-book-800">
+        <h2 className="text-2xl sm:text-3xl font-bold text-book-800">
           Bursary Opportunities
         </h2>
-        <p className="text-gray-600 max-w-2xl mx-auto">
+        <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto px-2">
           Find financial assistance for your studies with comprehensive bursary
           listings from government, corporate sponsors, and educational
           institutions.
@@ -254,13 +254,13 @@ const BursaryListing = () => {
 
       {/* Search and Filters */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
             <div>
-              <CardTitle className="text-lg">
+              <CardTitle className="text-lg sm:text-xl">
                 Find Your Perfect Bursary
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm sm:text-base">
                 Use the filters below to find bursaries that match your needs
                 and eligibility.
               </CardDescription>
@@ -270,10 +270,10 @@ const BursaryListing = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 min-h-[44px] w-full sm:w-auto"
                 >
                   <Info className="h-4 w-4" />
-                  Info
+                  <span className="text-sm">Info</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
@@ -390,20 +390,20 @@ const BursaryListing = () => {
             </Dialog>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-4 sm:px-6">
           {/* Search Bar */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder="Search bursaries by name, provider, or description..."
+              placeholder="Search bursaries..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 min-h-[44px] text-sm sm:text-base"
             />
           </div>
 
           {/* Filter Controls */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             <Select
               value={filters.fieldOfStudy || "all"}
               onValueChange={(value) =>
@@ -466,7 +466,7 @@ const BursaryListing = () => {
           </div>
 
           {/* Advanced Filters Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
             {/* Minimum Marks */}
             <div className="space-y-2">
               <label className="text-sm font-medium">
@@ -549,13 +549,13 @@ const BursaryListing = () => {
             </Select>
 
             {/* Clear Filters */}
-            <Button variant="outline" onClick={clearFilters} className="w-full">
+            <Button variant="outline" onClick={clearFilters} className="w-full min-h-[44px] text-sm sm:text-base">
               Clear All Filters
             </Button>
           </div>
 
           {/* Special Criteria Checkboxes */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="financial-need"
@@ -650,8 +650,8 @@ const BursaryListing = () => {
       )}
 
       {/* Results Summary */}
-      <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-        <span className="text-sm text-gray-600">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-50 p-3 sm:p-4 rounded-lg space-y-2 sm:space-y-0">
+        <span className="text-sm sm:text-base text-gray-600">
           Found <strong>{filteredBursaries.length}</strong> bursaries matching
           your criteria
           {(filters.studyLevel === "grade-11" ||
@@ -670,7 +670,7 @@ const BursaryListing = () => {
       </div>
 
       {/* Bursary Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {filteredBursaries.map((bursary) => {
           const applicationStatus = getApplicationStatus(
             bursary.applicationDeadline,
@@ -687,17 +687,17 @@ const BursaryListing = () => {
                   : ""
               }`}
             >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
+              <CardHeader className="pb-3 px-4 sm:px-6">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
                   <div className="flex-1">
-                    <CardTitle className="text-lg font-semibold text-book-800">
+                    <CardTitle className="text-base sm:text-lg font-semibold text-book-800 leading-tight">
                       {bursary.name}
                     </CardTitle>
-                    <CardDescription className="text-gray-600 font-medium mt-1">
+                    <CardDescription className="text-sm sm:text-base text-gray-600 font-medium mt-1">
                       {bursary.provider}
                     </CardDescription>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {(bursary.studyLevel?.includes("grade-11") ||
                       bursary.studyLevel?.includes("matric")) && (
                       <Badge
@@ -722,17 +722,17 @@ const BursaryListing = () => {
                 </div>
 
                 {/* Amount */}
-                <div className="flex items-center gap-2 text-lg font-semibold text-green-600 mt-2">
-                  <DollarSign className="h-5 w-5" />
-                  {bursary.amount}
+                <div className="flex items-center gap-2 text-base sm:text-lg font-semibold text-green-600 mt-2">
+                  <DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="text-sm sm:text-base">{bursary.amount}</span>
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-4">
-                <p className="text-sm text-gray-600">{bursary.description}</p>
+              <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6">
+                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{bursary.description}</p>
 
                 {/* Key Details */}
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-gray-500" />
                     <span className="text-gray-600">Deadline:</span>
@@ -784,14 +784,14 @@ const BursaryListing = () => {
                   onClick={() =>
                     setExpandedBursary(isExpanded ? null : bursary.id)
                   }
-                  className="w-full"
+                  className="w-full min-h-[44px] text-sm sm:text-base"
                 >
                   {isExpanded ? "Show Less" : "View Details & Requirements"}
                 </Button>
 
                 {/* Expanded Details */}
                 {isExpanded && (
-                  <div className="space-y-4 pt-4 border-t">
+                  <div className="space-y-3 sm:space-y-4 pt-3 sm:pt-4 border-t">
                     {/* Eligibility Criteria */}
                     <div>
                       <h4 className="font-medium text-gray-800 mb-2 flex items-center gap-2">
@@ -803,10 +803,10 @@ const BursaryListing = () => {
                       {(bursary.studyLevel?.includes("grade-11") ||
                         bursary.studyLevel?.includes("matric")) && (
                         <div className="bg-blue-50 p-3 rounded-lg mb-3 border border-blue-200">
-                          <h5 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                          <h5 className="font-semibold text-blue-800 mb-2 flex items-center gap-2 text-sm sm:text-base">
                             🎓 High School Student Requirements:
                           </h5>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                          <div className="grid grid-cols-1 gap-2 text-sm">
                             {bursary.requirements?.academicRequirement && (
                               <div className="flex items-center gap-2">
                                 <span className="font-medium text-blue-700">
@@ -940,17 +940,17 @@ const BursaryListing = () => {
       </div>
 
       {filteredBursaries.length === 0 && (
-        <div className="text-center py-12">
+        <div className="text-center py-8 sm:py-12 px-4">
           <div className="text-gray-400 mb-4">
-            <Search className="h-12 w-12 mx-auto" />
+            <Search className="h-10 w-10 sm:h-12 sm:w-12 mx-auto" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
             No bursaries found
           </h3>
-          <p className="text-gray-600 mb-4">
+          <p className="text-sm sm:text-base text-gray-600 mb-4">
             Try adjusting your search terms or filters to find more bursaries.
           </p>
-          <Button variant="outline" onClick={clearFilters}>
+          <Button variant="outline" onClick={clearFilters} className="min-h-[44px]">
             Clear All Filters
           </Button>
         </div>
