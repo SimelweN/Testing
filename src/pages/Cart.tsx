@@ -91,7 +91,11 @@ const Cart = () => {
       const forceCartCheckout = sellerId !== undefined; // User clicked "Checkout This Cart"
 
       if (itemsToCheckout.length > 1 || forceCartCheckout) {
-        console.log('🛒 Multiple items detected, using cart checkout');
+        console.log('🛒 Using cart checkout:', {
+          reason: itemsToCheckout.length > 1 ? 'multiple items' : 'explicit cart checkout',
+          itemCount: itemsToCheckout.length,
+          forceCartCheckout
+        });
 
         // Multiple items from same seller - store cart data and navigate to cart checkout
         const checkoutCartData = {
