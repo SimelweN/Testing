@@ -11,8 +11,20 @@ import { ArrowLeft, Trash2, Info } from "lucide-react";
 import { toast } from "sonner";
 
 const Cart = () => {
-  const { items, removeFromCart, clearCart, getTotalPrice, getSellerTotals } =
-    useCart();
+  const {
+    items,
+    removeFromCart,
+    clearCart,
+    getTotalPrice,
+    getSellerTotals,
+    sellerCarts,
+    removeFromSellerCart,
+    clearSellerCart,
+    getTotalCarts,
+    getActiveCart,
+    setActiveCart,
+    activeCartId
+  } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -24,23 +36,29 @@ const Cart = () => {
 
   const sellerTotals = getSellerTotals();
   const totalPrice = getTotalPrice();
+  const totalCarts = getTotalCarts();
+  const hasMultipleCarts = totalCarts > 1;
+  const activeCart = getActiveCart();
 
-  const handleCheckout = async () => {
-    if (items.length === 0) {
-      toast.error("Your cart is empty");
+  const handleCheckout = async (sellerId?: string) => {
+    const cartToCheckout = sellerId ? sellerCarts.find(cart => cart.sellerId === sellerId) : null;
+    const itemsToCheckout = cartToCheckout ? cartToCheckout.items : items;
+
+    if (itemsToCheckout.length === 0) {
+      toast.error("Selected cart is empty");
       return;
     }
 
     setIsProcessing(true);
     try {
-      // For now, redirect to single book checkout for first item
-      // TODO: Implement proper multi-book cart checkout
-      if (items.length === 1) {
-        navigate(`/checkout/${items[0].id}`);
+      // For single item, go directly to checkout
+      if (itemsToCheckout.length === 1) {
+        navigate(`/checkout/${itemsToCheckout[0].bookId}`);
       } else {
-        // For multiple items, we'll handle each separately for now
-        toast.info("Processing multiple items - checking out first book");
-        navigate(`/checkout/${items[0].id}`);
+        // For multiple items from same seller, checkout first item
+        // TODO: Implement proper multi-book cart checkout for same seller
+        toast.info(`Processing ${itemsToCheckout.length} items from ${cartToCheckout?.sellerName || 'seller'} - checking out first book`);
+        navigate(`/checkout/${itemsToCheckout[0].bookId}`);
       }
     } catch (error) {
       toast.error("Failed to proceed to checkout");
@@ -49,7 +67,7 @@ const Cart = () => {
     }
   };
 
-  if (items.length === 0) {
+  if (items.length === 0 && sellerCarts.length === 0) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-8">
@@ -101,29 +119,40 @@ const Cart = () => {
           </Button>
         </div>
 
-        {/* Single-Seller Policy Info */}
-        <Alert className="border-blue-200 bg-blue-50 mb-6">
-          <Info className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            <strong>Single-Seller Cart Policy:</strong> You can only purchase books from one seller at a time.
-            This ensures faster delivery and avoids double delivery charges, as each seller ships from a different location.
-            Complete your current purchase, then start a new cart for books from other sellers.
-          </AlertDescription>
-        </Alert>
+        {/* Multi-Cart Policy Info */}
+        {hasMultipleCarts ? (
+          <Alert className="border-orange-200 bg-orange-50 mb-6">
+            <Info className="h-4 w-4 text-orange-600" />
+            <AlertDescription className="text-orange-800">
+              <strong>Multiple Seller Carts:</strong> You have books from {totalCarts} different sellers.
+              You can only checkout one seller at a time to ensure proper delivery coordination.
+              Choose which seller's cart to checkout first below.
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <Alert className="border-blue-200 bg-blue-50 mb-6">
+            <Info className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              <strong>Single-Seller Cart:</strong> All items are from the same seller, ensuring
+              faster delivery and no double delivery charges.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Cart Items - Single Seller */}
+          {/* Cart Items - Multiple Sellers or Single Seller */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Get the first (and only) seller */}
-            {(() => {
+
+            {/* Legacy single cart */}
+            {items.length > 0 && (() => {
               const [sellerId, seller] = Object.entries(sellerTotals)[0];
               const sellerItems = items.filter(
                 (item) => item.sellerId === sellerId,
               );
 
               return (
-                <Card className="border-2 border-book-200">
-                  <CardHeader className="bg-book-50 rounded-t-lg">
+                <Card className={`border-2 ${!hasMultipleCarts ? 'border-book-200' : 'border-gray-200'}`}>
+                  <CardHeader className={`${!hasMultipleCarts ? 'bg-book-50' : 'bg-gray-50'} rounded-t-lg`}>
                     <div className="flex justify-between items-center">
                       <div>
                         <CardTitle className="text-lg">
@@ -133,14 +162,25 @@ const Cart = () => {
                           {sellerItems.length} item(s)
                         </p>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate(`/seller/${sellerId}`)}
-                        className="text-book-600 border-book-600 hover:bg-book-50"
-                      >
-                        Visit Store
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/seller/${sellerId}`)}
+                          className="text-book-600 border-book-600 hover:bg-book-50"
+                        >
+                          Visit Store
+                        </Button>
+                        {hasMultipleCarts && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleCheckout()}
+                            className="bg-book-600 hover:bg-book-700"
+                          >
+                            Checkout This Cart
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="p-4 space-y-4">
@@ -204,6 +244,106 @@ const Cart = () => {
                 </Card>
               );
             })()}
+
+            {/* Multi-seller carts */}
+            {sellerCarts.map((cart) => (
+              <Card
+                key={cart.sellerId}
+                className={`border-2 ${activeCartId === cart.sellerId ? 'border-book-200 bg-book-25' : 'border-gray-200'}`}
+              >
+                <CardHeader className={`${activeCartId === cart.sellerId ? 'bg-book-50' : 'bg-gray-50'} rounded-t-lg`}>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        {cart.sellerName}'s Store
+                        {activeCartId === cart.sellerId && (
+                          <span className="text-xs bg-book-600 text-white px-2 py-1 rounded-full">
+                            Active
+                          </span>
+                        )}
+                      </CardTitle>
+                      <p className="text-sm text-gray-600">
+                        {cart.items.length} item(s) • R{cart.totalPrice.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/seller/${cart.sellerId}`)}
+                        className="text-book-600 border-book-600 hover:bg-book-50"
+                      >
+                        Visit Store
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => handleCheckout(cart.sellerId)}
+                        className="bg-book-600 hover:bg-book-700"
+                      >
+                        Checkout This Cart
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 space-y-4">
+                  {cart.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex gap-4 p-3 bg-gray-50 rounded-lg"
+                    >
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-16 h-20 md:w-20 md:h-28 object-cover rounded flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm md:text-base truncate">
+                          {item.title}
+                        </h3>
+                        <p className="text-gray-600 text-xs md:text-sm truncate">
+                          by {item.author}
+                        </p>
+                        <p className="font-bold text-book-600 mt-2 text-sm md:text-base">
+                          R{item.price}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end justify-between">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFromSellerCart(cart.sellerId, item.bookId)}
+                          className="p-2"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <div className="text-xs text-gray-500">Qty: 1</div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Seller Subtotal */}
+                  <div className="border-t pt-3 mt-3">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">
+                        Subtotal:
+                      </span>
+                      <span className="font-bold text-book-600">
+                        R{cart.totalPrice.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-600 mt-1">
+                      • Seller receives: R{(cart.totalPrice * 0.9).toFixed(2)} (90%)
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      • Platform fee: R{(cart.totalPrice * 0.1).toFixed(2)} (10%)
+                    </div>
+                    <div className="text-xs text-orange-600 mt-2">
+                      📦 Delivery charges will be calculated at checkout
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
           {/* Order Summary */}
