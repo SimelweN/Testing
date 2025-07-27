@@ -154,12 +154,12 @@ serve(async (req) => {
       }
     }
 
-    // Step 5: Log automation activity (optional table)
+    // Step 4: Log automation activity (optional table)
     try {
       await supabase.from("delivery_automation_log").insert({
         order_id,
-        quotes_received: quotes.length,
-        selected_courier: selectedQuote?.courier,
+        quotes_received: 1,
+        selected_courier: "courier-guy",
         delivery_cost: selectedQuote?.price,
         shipment_created: !!shipmentResult?.success,
         tracking_number: shipmentResult?.tracking_number,
@@ -178,8 +178,8 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         automation_status: shipmentResult?.success ? "complete" : "partial",
-        quotes_received: quotes.length,
-        selected_courier: selectedQuote?.courier,
+        quotes_received: 1,
+        selected_courier: "courier-guy",
         delivery_cost: selectedQuote?.price,
         tracking_number: shipmentResult?.tracking_number,
         shipment_created: !!shipmentResult?.success,
