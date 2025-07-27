@@ -120,7 +120,7 @@ const Cart = () => {
 
         // Add timestamp to force fresh navigation
         const timestamp = Date.now();
-        navigate(`/checkout/cart?t=${timestamp}`);
+        navigate(`/checkout-cart?t=${timestamp}`);
 
       } else if (itemsToCheckout.length === 1) {
         console.log('🛒 Single item detected, using single book checkout');
