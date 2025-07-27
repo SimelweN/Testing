@@ -176,6 +176,14 @@ function App() {
                         }
                       />
                       <Route
+                        path="/checkout-cart"
+                        element={
+                          <ProtectedRoute>
+                            <Checkout />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
                         path="/notifications"
                         element={
                           <ProtectedRoute>
