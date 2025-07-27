@@ -487,7 +487,22 @@ export const getBookById = async (id: string): Promise<Book | null> => {
     // Use retry logic for network resilience
     return await retryWithConnection(fetchBookOperation, 2, 1000);
   } catch (error) {
-    logDetailedError("Error in getBookById", error);
+    // Log error with proper formatting to prevent [object Object]
+    console.error('Error in getBookById:', {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      bookId: id,
+      timestamp: new Date().toISOString()
+    });
+
+    logDetailedError("Error in getBookById", {
+      error: {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      },
+      bookId: id,
+      timestamp: new Date().toISOString()
+    });
 
     if (
       error instanceof Error &&
