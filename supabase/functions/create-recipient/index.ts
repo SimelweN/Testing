@@ -400,8 +400,8 @@ const handler = async (req: Request): Promise<Response> => {
       payment_breakdown: paymentBreakdown,
       seller_info: {
         name: bankingDetails.business_name,
-        email: bankingDetails.email,
-        account_number: bankingDetails.account_number.slice(-4).padStart(bankingDetails.account_number.length, '*'),
+        email: bankingRecord.email,
+        account_number: bankingDetails.account_number ? bankingDetails.account_number.slice(-4).padStart(bankingDetails.account_number.length, '*') : '****',
         bank_name: bankingDetails.bank_name
       },
       instructions: 'Recipient created successfully. You can now manually process payment using this recipient code.',
