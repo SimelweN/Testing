@@ -399,7 +399,27 @@ export const getBookById = async (id: string): Promise<Book | null> => {
         if (bookError.code === "PGRST116") {
           return null; // Book not found
         }
-        logDetailedError("Error fetching book", bookError);
+
+        // Log error with proper formatting to prevent [object Object]
+        console.error('Error fetching book:', {
+          message: bookError.message || 'Unknown error',
+          code: bookError.code || 'NO_CODE',
+          details: bookError.details || 'No details',
+          hint: bookError.hint || 'No hint',
+          bookId: id,
+          timestamp: new Date().toISOString()
+        });
+
+        logDetailedError("Error fetching book", {
+          error: {
+            message: bookError.message,
+            code: bookError.code,
+            details: bookError.details
+          },
+          bookId: id,
+          timestamp: new Date().toISOString()
+        });
+
         throw new Error(
           `Failed to fetch book: ${bookError.message || "Unknown database error"}`,
         );
