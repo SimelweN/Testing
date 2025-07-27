@@ -60,7 +60,7 @@ const Checkout: React.FC = () => {
       const { data: bookData, error: bookError } = await supabase
         .from("books")
         .select("*")
-        .eq("id", id)
+        .eq("id", cleanBookId)
         .single();
 
       if (bookError) {
