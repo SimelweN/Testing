@@ -57,6 +57,14 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
 
       const status = await BankingService.checkBankingRequirements(user.id);
       console.log("📊 Banking status result:", status);
+
+      // If banking is still missing but user claims they just added it, try one more time
+      if (!status.hasBankingInfo && !forceRefresh) {
+        console.log("🔄 Banking not detected, trying forced refresh...");
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+        return checkRequirements(true);
+      }
+
       setBankingStatus(status);
       onCanProceed(status.canListBooks);
     } catch (error) {
@@ -203,6 +211,11 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
                     ),
                   )}
                 </ul>
+                {!bankingStatus.hasBankingInfo && (
+                  <div className="mt-2 p-2 bg-blue-50 rounded text-sm text-blue-700">
+                    💡 Just added your banking details? Click "Refresh Status" below to update.
+                  </div>
+                )}
               </AlertDescription>
             </Alert>
           )}
