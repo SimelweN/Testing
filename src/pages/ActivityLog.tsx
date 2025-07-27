@@ -55,6 +55,7 @@ const ActivityLog = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingBooks, setIsLoadingBooks] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   const loadActivities = useCallback(async () => {
     if (!user) {
