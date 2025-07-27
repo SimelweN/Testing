@@ -41,7 +41,7 @@ export class BankingService {
         });
 
         // Try to get active or pending banking record (both are valid for listings)
-        return await supabase
+        const query = await supabase
           .from("banking_subaccounts")
           .select("*")
           .eq("user_id", userId)
@@ -49,6 +49,32 @@ export class BankingService {
           .order("created_at", { ascending: false })
           .limit(1)
           .single();
+
+        // If table doesn't exist or has issues, also check user profile for subaccount_code
+        if (query.error && query.error.code === "42P01") {
+          console.log("⚠️ Banking table not available, checking profile for subaccount...");
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("subaccount_code, preferences")
+            .eq("id", userId)
+            .single();
+
+          if (profileData?.subaccount_code) {
+            // Return a mock banking record if profile has subaccount
+            return {
+              data: {
+                user_id: userId,
+                subaccount_code: profileData.subaccount_code,
+                status: 'active',
+                business_name: profileData.preferences?.business_name || 'User Business',
+                bank_name: profileData.preferences?.bank_details?.bank_name || 'Bank'
+              },
+              error: null
+            };
+          }
+        }
+
+        return query;
       };
 
       const { data, error } = await Promise.race([fetchQuery(), timeout]) as any;
