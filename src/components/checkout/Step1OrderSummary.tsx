@@ -125,11 +125,19 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
                       alt={item.title || "Book cover"}
                       className="w-full h-full object-cover rounded-lg border"
                       onError={(e) => {
-                        console.log('Image failed to load for:', item.title, 'URL:', item.imageUrl);
+                        console.log('❌ Cart item image failed to load:', {
+                          title: item.title,
+                          imageUrl: item.imageUrl,
+                          image_url: item.image_url,
+                          currentSrc: e.currentTarget.src
+                        });
                         e.currentTarget.src = "/placeholder.svg";
                       }}
-                      onLoad={() => {
-                        console.log('Image loaded successfully for:', item.title);
+                      onLoad={(e) => {
+                        console.log('✅ Cart item image loaded successfully:', {
+                          title: item.title,
+                          src: e.currentTarget.src
+                        });
                       }}
                     />
                   </div>
