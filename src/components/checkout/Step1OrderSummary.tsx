@@ -97,16 +97,20 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
             <div className="space-y-4">
               {cartData.items.map((item: any, index: number) => (
                 <div key={item.id || index} className={`flex flex-col sm:flex-row gap-3 sm:gap-4 ${index > 0 ? 'pt-4 border-t' : ''}`}>
-                  {item.imageUrl && (
+                  <div className="w-16 h-20 sm:w-20 sm:h-26 flex-shrink-0 mx-auto sm:mx-0">
                     <img
-                      src={item.imageUrl}
-                      alt={item.title}
-                      className="w-16 h-20 sm:w-20 sm:h-26 object-cover rounded-lg border mx-auto sm:mx-0 flex-shrink-0"
+                      src={item.imageUrl || item.image_url || "/placeholder.svg"}
+                      alt={item.title || "Book cover"}
+                      className="w-full h-full object-cover rounded-lg border"
                       onError={(e) => {
+                        console.log('Image failed to load for:', item.title, 'URL:', item.imageUrl);
                         e.currentTarget.src = "/placeholder.svg";
                       }}
+                      onLoad={() => {
+                        console.log('Image loaded successfully for:', item.title);
+                      }}
                     />
-                  )}
+                  </div>
                   <div className="flex-1 text-center sm:text-left">
                     <h3 className="text-sm sm:text-base font-semibold mb-1">{item.title}</h3>
                     <p className="text-xs sm:text-sm text-gray-600 mb-2">by {item.author}</p>
