@@ -135,11 +135,16 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
           <div className="space-y-3">
             <div>
               <p className="font-medium">
-                {book.seller_name || "Anonymous Seller"}
+                {isCartCheckout ? cartData.sellerName : (book.seller_name || "Anonymous Seller")}
               </p>
               <p className="text-sm text-gray-600">
-                Seller ID: {book.seller_id}
+                Seller ID: {isCartCheckout ? cartData.sellerId : book.seller_id}
               </p>
+              {isCartCheckout && (
+                <p className="text-sm text-blue-600 mt-1">
+                  ✅ All {cartData.items.length} books are from this seller
+                </p>
+              )}
             </div>
 
             {sellerAddress && (
