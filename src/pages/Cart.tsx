@@ -33,7 +33,15 @@ const Cart = () => {
 
     setIsProcessing(true);
     try {
-      navigate("/checkout/cart", { state: { cartItems: items } });
+      // For now, redirect to single book checkout for first item
+      // TODO: Implement proper multi-book cart checkout
+      if (items.length === 1) {
+        navigate(`/checkout/${items[0].id}`);
+      } else {
+        // For multiple items, we'll handle each separately for now
+        toast.info("Processing multiple items - checking out first book");
+        navigate(`/checkout/${items[0].id}`);
+      }
     } catch (error) {
       toast.error("Failed to proceed to checkout");
     } finally {
