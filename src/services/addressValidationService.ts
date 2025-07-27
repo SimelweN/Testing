@@ -23,10 +23,10 @@ export const validateAddress = (address: Address): boolean => {
 
 export const canUserListBooks = async (userId: string): Promise<boolean> => {
   try {
-    // Check if user has addresses set up (addresses_same indicates address setup completion)
+    // Check if user has valid pickup address
     const { data, error } = await supabase
       .from("profiles")
-      .select("addresses_same")
+      .select("pickup_address, addresses_same")
       .eq("id", userId)
       .single();
 
@@ -35,8 +35,41 @@ export const canUserListBooks = async (userId: string): Promise<boolean> => {
       return false;
     }
 
-    // User can list books if they have completed address setup
-    return data?.addresses_same !== null;
+    // Must have completed address setup AND have valid pickup address
+    if (data?.addresses_same === null) {
+      console.log(`📍 User ${userId} has not completed address setup`);
+      return false;
+    }
+
+    if (!data?.pickup_address) {
+      console.log(`📍 User ${userId} has no pickup address`);
+      return false;
+    }
+
+    // Validate pickup address content
+    const pickupAddr = data.pickup_address as any;
+    const streetField = pickupAddr.streetAddress || pickupAddr.street;
+    const isValidAddress = !!(
+      pickupAddr &&
+      typeof pickupAddr === "object" &&
+      streetField &&
+      pickupAddr.city &&
+      pickupAddr.province &&
+      pickupAddr.postalCode
+    );
+
+    if (!isValidAddress) {
+      console.log(`📍 User ${userId} has incomplete pickup address:`, {
+        hasStreet: !!streetField,
+        hasCity: !!pickupAddr.city,
+        hasProvince: !!pickupAddr.province,
+        hasPostalCode: !!pickupAddr.postalCode
+      });
+      return false;
+    }
+
+    console.log(`✅ User ${userId} can list books - valid pickup address`);
+    return true;
   } catch (error) {
     safeLogError("Error in canUserListBooks", error, { userId });
     return false;
