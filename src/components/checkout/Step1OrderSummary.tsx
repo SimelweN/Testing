@@ -79,6 +79,17 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
   }, []);
 
   const isCartCheckout = cartData && cartData.items && cartData.items.length > 1;
+
+  console.log('🔍 Step1OrderSummary cart detection:', {
+    hasCartData: !!cartData,
+    cartItems: cartData?.items?.length || 0,
+    isCartCheckout,
+    cartData: cartData ? {
+      sellerId: cartData.sellerId,
+      sellerName: cartData.sellerName,
+      itemCount: cartData.items.length
+    } : null
+  });
   return (
     <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6 px-4 sm:px-0">
       <div className="text-center mb-4 sm:mb-8">
