@@ -21,10 +21,10 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
   loading = false,
 }) => {
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Order Summary</h1>
-        <p className="text-gray-600">Review your book purchase details</p>
+    <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6 px-4 sm:px-0">
+      <div className="text-center mb-4 sm:mb-8">
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-2">Order Summary</h1>
+        <p className="text-sm sm:text-base text-gray-600">Review your book purchase details</p>
       </div>
 
       {/* Book Details Card */}
@@ -36,29 +36,29 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             {book.image_url && (
               <img
                 src={book.image_url}
                 alt={book.title}
-                className="w-24 h-32 object-cover rounded-lg border"
+                className="w-20 h-24 sm:w-24 sm:h-32 object-cover rounded-lg border mx-auto sm:mx-0 flex-shrink-0"
                 onError={(e) => {
                   e.currentTarget.src = "/placeholder.svg";
                 }}
               />
             )}
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold mb-2">{book.title}</h3>
-              <p className="text-gray-600 mb-2">by {book.author}</p>
-              <div className="flex items-center gap-2 mb-3">
-                <Badge variant="outline">{book.condition}</Badge>
+            <div className="flex-1 text-center sm:text-left">
+              <h3 className="text-base sm:text-lg font-semibold mb-2">{book.title}</h3>
+              <p className="text-sm sm:text-base text-gray-600 mb-2">by {book.author}</p>
+              <div className="flex items-center justify-center sm:justify-start gap-2 mb-3 flex-wrap">
+                <Badge variant="outline" className="text-xs sm:text-sm">{book.condition}</Badge>
                 {book.isbn && (
-                  <span className="text-sm text-gray-500">
+                  <span className="text-xs sm:text-sm text-gray-500">
                     ISBN: {book.isbn}
                   </span>
                 )}
               </div>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-xl sm:text-2xl font-bold text-green-600">
                 R{book.price.toFixed(2)}
               </div>
             </div>
