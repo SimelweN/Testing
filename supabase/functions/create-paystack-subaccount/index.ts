@@ -1,6 +1,65 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+// Encryption utilities
+async function encryptData(data: string, key: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(key.slice(0, 32).padEnd(32, '0'));
+  const dataArray = encoder.encode(data);
+  
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'AES-GCM' },
+    false,
+    ['encrypt']
+  );
+  
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encrypted = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    cryptoKey,
+    dataArray
+  );
+  
+  // Combine IV and encrypted data
+  const combined = new Uint8Array(iv.length + encrypted.byteLength);
+  combined.set(iv);
+  combined.set(new Uint8Array(encrypted), iv.length);
+  
+  return btoa(String.fromCharCode(...combined));
+}
+
+async function decryptData(encryptedData: string, key: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  const keyData = encoder.encode(key.slice(0, 32).padEnd(32, '0'));
+  
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'AES-GCM' },
+    false,
+    ['decrypt']
+  );
+  
+  // Decode base64 and extract IV and encrypted data
+  const combined = new Uint8Array(
+    atob(encryptedData).split('').map(char => char.charCodeAt(0))
+  );
+  
+  const iv = combined.slice(0, 12);
+  const encrypted = combined.slice(12);
+  
+  const decrypted = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv },
+    cryptoKey,
+    encrypted
+  );
+  
+  return decoder.decode(decrypted);
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -232,7 +291,19 @@ serve(async (req) => {
       }
     }
 
-    // Step 6: Store in banking_subaccounts table for record keeping
+    // Step 6: Generate encryption key and encrypt sensitive data
+    const { data: encryptionKeyResult } = await supabase
+      .rpc('generate_encryption_key_hash', { user_id: user.id });
+    
+    const encryptionKey = encryptionKeyResult || user.id;
+    
+    // Encrypt sensitive banking details
+    const encryptedAccountNumber = await encryptData(account_number, encryptionKey);
+    const encryptedBankCode = await encryptData(bank_code, encryptionKey);
+    
+    console.log('Storing encrypted banking details for user:', user.id);
+    
+    // Step 7: Store in banking_subaccounts table with encrypted data
     // Always use upsert to ensure record exists with proper user_id
     const { data: subaccountData, error: subaccountError } = await supabase
       .from('banking_subaccounts')
@@ -241,8 +312,11 @@ serve(async (req) => {
         business_name,
         email,
         bank_name,
-        bank_code,
-        account_number,
+        bank_code: null, // Clear unencrypted values
+        account_number: null, // Clear unencrypted values
+        encrypted_bank_code: encryptedBankCode,
+        encrypted_account_number: encryptedAccountNumber,
+        encryption_key_hash: encryptionKey,
         subaccount_code: subaccount_code,
         paystack_response: paystackData,
         status: 'active',
@@ -261,7 +335,7 @@ serve(async (req) => {
       console.log('Successfully stored banking subaccount in database:', subaccountData);
     }
 
-    // Step 7: Update user profile with subaccount_code  
+    // Step 8: Update user profile with subaccount_code  
     const updatedPreferences = {
       ...(existingProfile?.preferences || {}),
       subaccount_code: subaccount_code,
@@ -269,8 +343,8 @@ serve(async (req) => {
       business_name: business_name,
       bank_details: {
         bank_name,
-        account_number: account_number.slice(-4), // Store only last 4 digits for security
-        bank_code
+        account_number_masked: `****${account_number.slice(-4)}`, // Store only masked version
+        // Do not store bank_code or full account_number unencrypted
       }
     };
 
@@ -289,7 +363,7 @@ serve(async (req) => {
       // Don't fail the request if profile update fails, subaccount is still created
     }
 
-    // Step 8: Update all user's books with the subaccount_code
+    // Step 9: Update all user's books with the subaccount_code
     const { error: booksUpdateError } = await supabase
       .from('books')
       .update({ subaccount_code: subaccount_code })
