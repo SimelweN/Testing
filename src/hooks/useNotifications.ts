@@ -253,6 +253,7 @@ export const useNotifications = (): NotificationHookReturn => {
   const [hasError, setHasError] = useState(false);
   const [lastError, setLastError] = useState<string | undefined>();
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const subscriptionRetryRef = useRef<NodeJS.Timeout | null>(null);
   const retryCountRef = useRef(0);
   const isInitialLoadRef = useRef(true);
   const refreshingRef = useRef(false); // Prevent concurrent refreshes
