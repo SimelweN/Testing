@@ -39,20 +39,23 @@ export class BankingService {
           count: allRecords?.length || 0
         });
 
+        // Try to get active or pending banking record (both are valid for listings)
         return await supabase
           .from("banking_subaccounts")
           .select("*")
           .eq("user_id", userId)
-          .eq("status", "active")
+          .in("status", ["active", "pending"])
+          .order("created_at", { ascending: false })
+          .limit(1)
           .single();
       };
 
       const { data, error } = await Promise.race([fetchQuery(), timeout]) as any;
 
       if (error) {
-        // No active record found - let's check for any record
+        // No active/pending record found - let's check for any record
         if (error.code === "PGRST116") {
-          console.log("No active banking record found, checking for any record...");
+          console.log("No active/pending banking record found, checking for any record...");
 
           // Try to get any banking record (regardless of status)
           const { data: anyRecord, error: anyError } = await supabase
