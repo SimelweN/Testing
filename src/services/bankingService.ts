@@ -398,9 +398,15 @@ export class BankingService {
 
       // Check if user has any valid banking setup (not just active)
       // For listing books, having banking details with subaccount is sufficient
+      // Check multiple possible subaccount field names for flexibility
+      const subaccountCode = bankingDetails?.subaccount_code ||
+                           bankingDetails?.paystack_subaccount_code ||
+                           bankingDetails?.account_code ||
+                           bankingDetails?.subaccount_id;
+
       const hasBankingSetup = !!(
         bankingDetails &&
-        bankingDetails.subaccount_code &&
+        subaccountCode &&
         (bankingDetails.status === "active" || bankingDetails.status === "pending")
       );
 
