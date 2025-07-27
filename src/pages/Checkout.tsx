@@ -13,6 +13,7 @@ interface CartCheckoutData {
   sellerName: string;
   totalPrice: number;
   timestamp: number;
+  cartType?: string;
 }
 
 const Checkout: React.FC = () => {
