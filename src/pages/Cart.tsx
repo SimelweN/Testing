@@ -51,14 +51,24 @@ const Cart = () => {
 
     setIsProcessing(true);
     try {
-      // For single item, go directly to checkout
       if (itemsToCheckout.length === 1) {
+        // Single item checkout
         navigate(`/checkout/${itemsToCheckout[0].bookId}`);
       } else {
-        // For multiple items from same seller, checkout first item
-        // TODO: Implement proper multi-book cart checkout for same seller
-        toast.info(`Processing ${itemsToCheckout.length} items from ${cartToCheckout?.sellerName || 'seller'} - checking out first book`);
-        navigate(`/checkout/${itemsToCheckout[0].bookId}`);
+        // Multiple items from same seller - store cart data and navigate to cart checkout
+        const checkoutCartData = {
+          items: itemsToCheckout,
+          sellerId: sellerId || itemsToCheckout[0].sellerId,
+          sellerName: cartToCheckout?.sellerName || (Object.values(getSellerTotals())[0]?.sellerName),
+          totalPrice: cartToCheckout?.totalPrice || getTotalPrice(),
+          timestamp: Date.now()
+        };
+
+        // Store cart data for checkout
+        localStorage.setItem('checkoutCart', JSON.stringify(checkoutCartData));
+
+        toast.success(`Proceeding to checkout with ${itemsToCheckout.length} books from ${checkoutCartData.sellerName}`);
+        navigate('/checkout/cart');
       }
     } catch (error) {
       toast.error("Failed to proceed to checkout");
