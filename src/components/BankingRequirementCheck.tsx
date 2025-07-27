@@ -240,10 +240,10 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
               variant="outline"
               onClick={() => checkRequirements(true)}
               disabled={loading}
-              className="sm:w-auto btn-mobile"
+              className="sm:w-auto btn-mobile bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
             >
               <span className="btn-mobile-text">
-                {loading ? "Checking..." : "Refresh Status"}
+                {loading ? "Checking..." : "🔄 Refresh Status"}
               </span>
             </Button>
           </div>
