@@ -81,7 +81,8 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
     };
   }, []);
 
-  const isCartCheckout = cartData && cartData.items && cartData.items.length > 1;
+  // For debugging: show cart checkout if cart data exists (even for single item)
+  const isCartCheckout = cartData && cartData.items && cartData.items.length >= 1;
 
   console.log('🔍 Step1OrderSummary cart detection:', {
     hasCartData: !!cartData,
