@@ -7,10 +7,19 @@ import CheckoutFlow from "@/components/checkout/CheckoutFlow";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Loader2 } from "lucide-react";
 
+interface CartCheckoutData {
+  items: any[];
+  sellerId: string;
+  sellerName: string;
+  totalPrice: number;
+  timestamp: number;
+}
+
 const Checkout: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [book, setBook] = useState<CheckoutBook | null>(null);
+  const [cartData, setCartData] = useState<CartCheckoutData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
