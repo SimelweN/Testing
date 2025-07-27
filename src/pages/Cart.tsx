@@ -351,64 +351,124 @@ const Cart = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg md:text-xl">
-                  Order Summary
+                  {hasMultipleCarts ? 'Multiple Carts Summary' : 'Order Summary'}
                 </CardTitle>
                 <p className="text-sm text-gray-600">
-                  Single-seller checkout from {Object.values(sellerTotals)[0]?.sellerName}
+                  {hasMultipleCarts
+                    ? `${totalCarts} separate carts from different sellers`
+                    : `Single-seller checkout from ${Object.values(sellerTotals)[0]?.sellerName || (sellerCarts[0]?.sellerName)}`
+                  }
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-green-50 p-3 rounded-lg">
-                  <h4 className="font-medium text-green-900 mb-2">
-                    ✅ Benefits of single-seller checkout:
-                  </h4>
-                  <ul className="text-xs text-green-800 space-y-1">
-                    <li>• Faster delivery from one location</li>
-                    <li>• Single delivery fee (no double charges)</li>
-                    <li>• One tracking number to follow</li>
-                    <li>• Simpler order management</li>
-                  </ul>
-                </div>
+                {hasMultipleCarts ? (
+                  <>
+                    <div className="bg-orange-50 p-3 rounded-lg">
+                      <h4 className="font-medium text-orange-900 mb-2">
+                        🛒 Multiple Seller Carts:
+                      </h4>
+                      <div className="space-y-2">
+                        {/* Legacy cart */}
+                        {items.length > 0 && Object.entries(sellerTotals).map(([sellerId, seller]) => (
+                          <div key={sellerId} className="flex justify-between items-center text-xs">
+                            <span>{seller.sellerName}</span>
+                            <span className="font-medium">R{seller.total.toFixed(2)}</span>
+                          </div>
+                        ))}
+                        {/* Seller carts */}
+                        {sellerCarts.map((cart) => (
+                          <div key={cart.sellerId} className="flex justify-between items-center text-xs">
+                            <span>{cart.sellerName}</span>
+                            <span className="font-medium">R{cart.totalPrice.toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Books subtotal:</span>
-                    <span className="text-sm">R{totalPrice.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Delivery fee:</span>
-                    <span className="text-sm text-orange-600">
-                      Calculated at checkout
-                    </span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between items-center">
-                    <span className="text-base md:text-lg font-bold">
-                      Current Total
-                    </span>
-                    <span className="text-base md:text-lg font-bold">
-                      R{totalPrice.toFixed(2)}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500 text-center">
-                    + delivery fee (shown at checkout)
-                  </p>
-                </div>
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <h4 className="font-medium text-blue-900 mb-2">
+                        📋 How to checkout:
+                      </h4>
+                      <ul className="text-xs text-blue-800 space-y-1">
+                        <li>1. Choose which seller's cart to checkout first</li>
+                        <li>2. Click "Checkout This Cart" on the desired seller</li>
+                        <li>3. Complete payment and delivery for that seller</li>
+                        <li>4. Return to checkout remaining carts</li>
+                      </ul>
+                    </div>
 
-                <Button
-                  onClick={handleCheckout}
-                  disabled={isProcessing}
-                  className="w-full bg-book-600 hover:bg-book-700 text-sm md:text-base py-2 md:py-3"
-                >
-                  {isProcessing
-                    ? "Processing..."
-                    : "Proceed to Checkout"}
-                </Button>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Total across all carts:</span>
+                        <span className="text-sm font-medium">
+                          R{(totalPrice + sellerCarts.reduce((sum, cart) => sum + cart.totalPrice, 0)).toFixed(2)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 text-center">
+                        Note: Each cart will have separate delivery fees
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="bg-green-50 p-3 rounded-lg">
+                      <h4 className="font-medium text-green-900 mb-2">
+                        ✅ Single-seller benefits:
+                      </h4>
+                      <ul className="text-xs text-green-800 space-y-1">
+                        <li>• Faster delivery from one location</li>
+                        <li>• Single delivery fee (no multiple charges)</li>
+                        <li>• One tracking number to follow</li>
+                        <li>• Simpler order management</li>
+                      </ul>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Books subtotal:</span>
+                        <span className="text-sm">
+                          R{(totalPrice + sellerCarts.reduce((sum, cart) => sum + cart.totalPrice, 0)).toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Delivery fee:</span>
+                        <span className="text-sm text-orange-600">
+                          Calculated at checkout
+                        </span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between items-center">
+                        <span className="text-base md:text-lg font-bold">
+                          Current Total
+                        </span>
+                        <span className="text-base md:text-lg font-bold">
+                          R{(totalPrice + sellerCarts.reduce((sum, cart) => sum + cart.totalPrice, 0)).toFixed(2)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 text-center">
+                        + delivery fee (shown at checkout)
+                      </p>
+                    </div>
+
+                    <Button
+                      onClick={() => handleCheckout()}
+                      disabled={isProcessing}
+                      className="w-full bg-book-600 hover:bg-book-700 text-sm md:text-base py-2 md:py-3"
+                    >
+                      {isProcessing
+                        ? "Processing..."
+                        : "Proceed to Checkout"}
+                    </Button>
+                  </>
+                )}
 
                 <div className="bg-blue-50 p-3 rounded-lg mt-4">
                   <p className="text-xs text-blue-800">
-                    💡 <strong>Want books from other sellers?</strong><br/>
-                    Complete this purchase first, then browse and add books from other sellers to a new cart.
+                    💡 <strong>Want to add more books?</strong><br/>
+                    {hasMultipleCarts
+                      ? 'Books from new sellers will create additional carts automatically.'
+                      : 'Books from other sellers will create separate carts for organized checkout.'
+                    }
                   </p>
                 </div>
               </CardContent>
