@@ -33,9 +33,12 @@ const Checkout: React.FC = () => {
     setError(null);
 
     // Handle cart checkout vs single book checkout
-    if (id === "cart") {
+    const isCartCheckout = location.pathname === '/checkout-cart' || id === "cart";
+
+    if (isCartCheckout) {
       const timestamp = searchParams.get('t');
-      console.log('Loading cart checkout with timestamp:', timestamp);
+      console.log('🛒 CHECKOUT: Loading cart checkout with timestamp:', timestamp);
+      console.log('🛒 CHECKOUT: Route info:', { pathname: location.pathname, id });
       loadCartData();
       return;
     }
