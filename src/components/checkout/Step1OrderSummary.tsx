@@ -170,7 +170,7 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
                     });
                     e.currentTarget.src = "/placeholder.svg";
                   }}
-                  onLoad={() => {
+                  onLoad={(e) => {
                     console.log('✅ Single book image loaded successfully:', {
                       title: book.title,
                       src: e.currentTarget.src
