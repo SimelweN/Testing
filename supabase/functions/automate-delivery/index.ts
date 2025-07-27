@@ -129,12 +129,12 @@ serve(async (req) => {
       }
     }
 
-    // Step 4: Update order with delivery information (if order exists)
+    // Step 3: Update order with delivery information (if order exists)
     if (order) {
       const updateData: any = {
         delivery_automated: true,
         delivery_automation_date: new Date().toISOString(),
-        selected_courier: selectedQuote.courier,
+        selected_courier: "courier-guy",
         delivery_cost: selectedQuote.price,
       };
 
