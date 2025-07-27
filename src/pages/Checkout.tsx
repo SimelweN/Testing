@@ -66,14 +66,18 @@ const Checkout: React.FC = () => {
       setLoading(true);
       setError(null);
 
+      console.log('🔍 CHECKOUT: Loading cart data...');
+
       // Get cart data from localStorage - use the most recent one
       const cartDataStr = localStorage.getItem('checkoutCart');
       if (!cartDataStr) {
+        console.log('❌ CHECKOUT: No cart data found in localStorage');
         setError("No cart data found. Please return to your cart and try again.");
         setLoading(false);
         return;
       }
 
+      console.log('📦 CHECKOUT: Raw cart data from localStorage:', cartDataStr);
       const parsedCartData: CartCheckoutData = JSON.parse(cartDataStr);
 
       // Validate cart data is recent (within 1 hour)
