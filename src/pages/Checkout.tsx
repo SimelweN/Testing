@@ -33,7 +33,8 @@ const Checkout: React.FC = () => {
 
     // Handle cart checkout vs single book checkout
     if (id === "cart") {
-      console.log('Loading cart checkout...');
+      const timestamp = searchParams.get('t');
+      console.log('Loading cart checkout with timestamp:', timestamp);
       loadCartData();
       return;
     }
@@ -45,7 +46,7 @@ const Checkout: React.FC = () => {
     }
 
     loadBookData();
-  }, [id, navigate]);
+  }, [id, navigate, searchParams]);
 
   // Add additional effect to refresh cart data when localStorage changes
   useEffect(() => {
