@@ -385,7 +385,15 @@ export class BankingService {
         hasBankingDetails: !!bankingDetails,
         hasSubaccountCode: !!bankingDetails?.subaccount_code,
         bankingStatus: bankingDetails?.status,
-        details: bankingDetails
+        details: bankingDetails,
+        allFields: bankingDetails ? Object.keys(bankingDetails) : [],
+        subaccountCodeValue: bankingDetails?.subaccount_code,
+        subaccountFieldExists: 'subaccount_code' in (bankingDetails || {}),
+        alternativeFields: {
+          subaccount_id: bankingDetails?.subaccount_id,
+          paystack_subaccount_code: bankingDetails?.paystack_subaccount_code,
+          account_code: bankingDetails?.account_code
+        }
       });
 
       // Check if user has any valid banking setup (not just active)
