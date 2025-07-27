@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { CheckoutBook } from "@/types/checkout";
 import { supabase } from "@/integrations/supabase/client";
