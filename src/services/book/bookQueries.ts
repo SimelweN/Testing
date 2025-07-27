@@ -95,7 +95,7 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
           .from("books")
           .select(`
             *,
-            seller_profile:profiles!books_seller_id_fkey(
+            seller_profile:profiles!seller_id(
               id,
               pickup_address
             )
