@@ -57,6 +57,9 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
 
   // Load cart data on component mount and when localStorage changes
   useEffect(() => {
+    console.log('🔍 Step1OrderSummary: Component mounted, loading cart data...');
+    console.log('🔍 Step1OrderSummary: Current URL:', window.location.href);
+    console.log('🔍 Step1OrderSummary: LocalStorage checkoutCart:', localStorage.getItem('checkoutCart'));
     loadCartData();
 
     // Listen for storage events to detect cart changes
