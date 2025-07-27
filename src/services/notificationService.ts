@@ -9,6 +9,68 @@ export interface CreateNotificationData {
   priority?: 'high' | 'medium' | 'low';
 }
 
+type Notification = {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  message: string;
+  metadata?: Record<string, any>;
+  priority: 'high' | 'medium' | 'low';
+  read: boolean;
+  created_at: string;
+};
+
+// Simple cache to store notifications for users
+const notificationCache = new Map<string, { data: Notification[]; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Get notifications for a user with caching
+ */
+export async function getNotifications(userId: string): Promise<Notification[]> {
+  try {
+    // Check cache first
+    const cached = notificationCache.get(userId);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.data;
+    }
+
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error) {
+      console.error('Error fetching notifications:', error);
+      throw error;
+    }
+
+    const notifications = data || [];
+
+    // Update cache
+    notificationCache.set(userId, {
+      data: notifications,
+      timestamp: Date.now()
+    });
+
+    return notifications;
+  } catch (error) {
+    console.error('Failed to get notifications:', error);
+    throw error;
+  }
+}
+
+/**
+ * Clear notification cache for a user
+ */
+export function clearNotificationCache(userId: string): void {
+  notificationCache.delete(userId);
+  console.log(`🗑️ Cleared notification cache for user ${userId}`);
+}
+
 export class NotificationService {
   /**
    * Create a notification for a user
