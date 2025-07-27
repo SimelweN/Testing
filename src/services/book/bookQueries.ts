@@ -205,6 +205,42 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
       return [];
     }
 
+    // Filter books by seller pickup address validity
+    const validBooks = booksData.filter((book) => {
+      const sellerProfile = book.seller_profile;
+      if (!sellerProfile?.pickup_address) {
+        console.log(`🚫 Filtering out book "${book.title}" - seller has no pickup address`);
+        return false;
+      }
+
+      const pickupAddr = sellerProfile.pickup_address;
+
+      // Validate pickup address has required fields
+      const streetField = pickupAddr.streetAddress || pickupAddr.street;
+      const isValidAddress = !!(
+        pickupAddr &&
+        typeof pickupAddr === "object" &&
+        streetField &&
+        pickupAddr.city &&
+        pickupAddr.province &&
+        pickupAddr.postalCode
+      );
+
+      if (!isValidAddress) {
+        console.log(`🚫 Filtering out book "${book.title}" - seller has incomplete pickup address`);
+        return false;
+      }
+
+      return true;
+    });
+
+    console.log(`📦 Filtered ${booksData.length} books down to ${validBooks.length} with valid pickup addresses`);
+
+    if (validBooks.length === 0) {
+      console.log("No books with valid seller pickup addresses found");
+      return [];
+    }
+
     // Get unique seller IDs
     const sellerIds = [...new Set(booksData.map((book) => book.seller_id))];
 
