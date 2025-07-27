@@ -71,6 +71,13 @@ export function clearNotificationCache(userId: string): void {
   console.log(`🗑️ Cleared notification cache for user ${userId}`);
 }
 
+/**
+ * Add a notification (wrapper around NotificationService.createNotification)
+ */
+export async function addNotification(data: CreateNotificationData): Promise<boolean> {
+  return NotificationService.createNotification(data);
+}
+
 export class NotificationService {
   /**
    * Create a notification for a user
