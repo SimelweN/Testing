@@ -158,15 +158,23 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <div className="w-20 h-24 sm:w-24 sm:h-32 flex-shrink-0 mx-auto sm:mx-0">
                 <img
-                  src={book.image_url || "/placeholder.svg"}
+                  src={book.image_url || book.imageUrl || "/placeholder.svg"}
                   alt={book.title || "Book cover"}
-                  className="w-full h-full object-cover rounded-lg border"
+                  className="w-full h-full object-cover rounded-lg border bg-gray-100"
                   onError={(e) => {
-                    console.log('Single book image failed to load:', book.title, 'URL:', book.image_url);
+                    console.log('❌ Single book image failed to load:', {
+                      title: book.title,
+                      image_url: book.image_url,
+                      imageUrl: book.imageUrl,
+                      currentSrc: e.currentTarget.src
+                    });
                     e.currentTarget.src = "/placeholder.svg";
                   }}
                   onLoad={() => {
-                    console.log('Single book image loaded successfully:', book.title);
+                    console.log('✅ Single book image loaded successfully:', {
+                      title: book.title,
+                      src: e.currentTarget.src
+                    });
                   }}
                 />
               </div>
