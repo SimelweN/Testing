@@ -90,11 +90,17 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
 
         const fetchBooksOperation = async (retryCount = 0): Promise<any[]> => {
       try {
-        // First get books - temporarily remove sold filter to see ALL books
+        // Get books with seller profile to check pickup address
         let query = supabase
           .from("books")
-          .select("*")
-          // .eq("sold", false)  // Temporarily commented out to see all books
+          .select(`
+            *,
+            seller_profile:profiles!books_seller_id_fkey(
+              id,
+              pickup_address
+            )
+          `)
+          .eq("sold", false)  // Only show available books
           .order("created_at", { ascending: false });
 
         // Apply filters if provided
