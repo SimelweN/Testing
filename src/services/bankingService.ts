@@ -413,13 +413,14 @@ export class BankingService {
       console.log("🏦 [Banking Setup Check] Banking validation:", {
         userId,
         hasBankingDetails: !!bankingDetails,
-        hasSubaccountCode: !!bankingDetails?.subaccount_code,
+        hasSubaccountCode: !!subaccountCode,
+        subaccountCodeValue: subaccountCode,
         currentStatus: bankingDetails?.status,
         isValidStatus: bankingDetails?.status === "active" || bankingDetails?.status === "pending",
         finalResult: hasBankingSetup,
         detailedBreakdown: {
           step1_hasBankingDetails: !!bankingDetails,
-          step2_hasSubaccountCode: !!bankingDetails?.subaccount_code,
+          step2_hasSubaccountCode: !!subaccountCode,
           step3_validStatus: bankingDetails?.status === "active" || bankingDetails?.status === "pending",
           allStepsPass: hasBankingSetup
         }
