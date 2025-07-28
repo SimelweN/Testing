@@ -37,6 +37,17 @@ const Verify = () => {
         console.log("🔍 Starting email verification process");
         console.log("📍 Current URL:", window.location.href);
 
+        // Extract parameters to check if we have verification tokens
+        const token = searchParams.get("token");
+        const tokenHash = searchParams.get("token_hash");
+        const type = searchParams.get("type");
+
+        // If we have verification parameters, add a delay to ensure Supabase client is ready
+        if ((token || tokenHash) && type) {
+          console.log("⏱️ Delaying verification to ensure Supabase client is ready...");
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
         // Check for backup/fallback verification first
         const email = searchParams.get("email");
         const fallback = searchParams.get("fallback");
