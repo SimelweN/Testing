@@ -76,7 +76,7 @@ const Login = () => {
         type: "signup",
         email: email.trim(),
         options: {
-          emailRedirectTo: `${window.location.origin}/verify`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 

@@ -66,18 +66,25 @@ const AuthCallback = () => {
             if (type === "signup") {
               setMessage("Email verified successfully! Welcome to ReBooked Solutions.");
               toast.success("Email verified! Welcome!");
+              // Redirect to dashboard/profile or home page after a delay
+              setTimeout(() => {
+                navigate("/", { replace: true });
+              }, 2000);
             } else if (type === "recovery") {
-              setMessage("Password reset successful! You are now logged in.");
-              toast.success("Password reset successful!");
+              setMessage("Password reset link verified! Redirecting to reset your password.");
+              toast.success("Reset link verified! Set your new password.");
+              // Redirect to reset password page after a delay
+              setTimeout(() => {
+                navigate("/reset-password", { replace: true });
+              }, 2000);
             } else {
               setMessage("Authentication successful! You are now logged in.");
               toast.success("Successfully authenticated!");
+              // Redirect to dashboard/profile or home page after a delay
+              setTimeout(() => {
+                navigate("/", { replace: true });
+              }, 2000);
             }
-
-            // Redirect to dashboard/profile or home page after a delay
-            setTimeout(() => {
-              navigate("/", { replace: true });
-            }, 2000);
             return;
           }
         }

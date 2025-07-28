@@ -28,7 +28,7 @@ export class EmailVerificationChecker {
         password: testPassword,
         options: {
           data: { name: "Test User" },
-          emailRedirectTo: `${window.location.origin}/verify`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 

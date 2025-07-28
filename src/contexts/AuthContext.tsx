@@ -130,7 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           password,
           options: {
             data: { name },
-            emailRedirectTo: `${window.location.origin}/verify` // Supabase uses this in the email link
+            emailRedirectTo: `${window.location.origin}/auth/callback` // Supabase uses this in the email link
           },
         });
 
