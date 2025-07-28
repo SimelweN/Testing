@@ -125,8 +125,9 @@ const AuthCallback = () => {
       } catch (error) {
         console.error("❌ Auth callback exception:", error);
         setStatus("error");
-        setMessage("An unexpected error occurred during authentication.");
-        toast.error("Authentication failed unexpectedly");
+        const safeErrorMsg = getSafeErrorMessage(error, "An unexpected error occurred during authentication");
+        setMessage(safeErrorMsg);
+        toast.error(`Authentication failed: ${safeErrorMsg}`);
       }
     };
 
