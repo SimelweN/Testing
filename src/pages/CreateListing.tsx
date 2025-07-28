@@ -331,22 +331,12 @@ const CreateListing = () => {
           </Alert>
         )}
 
-        <Button
-          variant="ghost"
-          onClick={() => {
-            // Check if there's history to go back to
-            if (window.history.length > 1) {
-              navigate(-1);
-            } else {
-              // If no history, navigate to home page
-              navigate("/");
-            }
-          }}
+        <BackButton
+          fallbackPath="/books"
           className={`mb-4 md:mb-6 text-book-600 hover:text-book-700 ${isMobile ? "h-10" : ""}`}
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
           {isMobile ? "" : "Back"}
-        </Button>
+        </BackButton>
 
         <BankingRequirementCheck onCanProceed={setCanProceedWithBanking}>
           <div
