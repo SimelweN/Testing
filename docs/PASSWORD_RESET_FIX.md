@@ -91,7 +91,7 @@ http://localhost:5173/reset-password
 
 ## 🧪 Testing
 
-### Test the Complete Flow
+### Test Password Reset Flow
 1. Go to `/forgot-password`
 2. Enter a valid email address
 3. Click "Send Reset Email"
@@ -101,10 +101,20 @@ http://localhost:5173/reset-password
 7. Should be redirected to `/reset-password` page
 8. Should be able to set new password successfully
 
+### Test Email Verification Flow
+1. Go to `/register`
+2. Create a new account
+3. Check email for verification link
+4. Click the verification link
+5. Should land on auth callback page with "Email verified!" message
+6. Should be redirected to homepage, logged in
+7. Account should be fully verified
+
 ### Verify Links Are Working
 - Reset link should look like: `https://yoursite.com/auth/callback?access_token=...&type=recovery&refresh_token=...`
+- Verification link should look like: `https://yoursite.com/auth/callback?access_token=...&type=signup&refresh_token=...`
 - Should NOT get 404 errors
-- Should NOT land directly on `/reset-password` without authentication
+- Should NOT land directly on target pages without authentication
 
 ## 🔍 Troubleshooting
 
