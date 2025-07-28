@@ -41,6 +41,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import Verify from "./pages/Verify";
+import VerifyDebug from "./pages/VerifyDebug";
 import AuthCallback from "./pages/AuthCallback";
 
 // Admin Pages
