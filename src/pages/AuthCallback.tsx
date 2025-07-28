@@ -270,7 +270,28 @@ const AuthCallback = () => {
                 <p className="text-gray-600 mb-6 text-sm md:text-base">
                   {message}
                 </p>
-                
+
+                {/* Debug Information for Development */}
+                {process.env.NODE_ENV === "development" && (
+                  <div className="mb-6 p-4 bg-gray-100 rounded-lg text-left text-xs">
+                    <h4 className="font-semibold mb-2">Debug Information:</h4>
+                    <div className="space-y-1 text-gray-600">
+                      <p><strong>URL:</strong> {window.location.href}</p>
+                      <p><strong>Search:</strong> {window.location.search || "none"}</p>
+                      <p><strong>Hash:</strong> {window.location.hash || "none"}</p>
+                      <p><strong>Available Params:</strong></p>
+                      <ul className="ml-4 list-disc">
+                        {Array.from(searchParams.entries()).map(([key, value]) => (
+                          <li key={key}>{key}: {value}</li>
+                        ))}
+                        {window.location.hash && Array.from(new URLSearchParams(window.location.hash.substring(1)).entries()).map(([key, value]) => (
+                          <li key={`hash-${key}`}>hash-{key}: {value}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-3">
                   <Button
                     onClick={handleRetry}
@@ -284,6 +305,16 @@ const AuthCallback = () => {
                     className="w-full"
                   >
                     Go to Homepage
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => navigate("/verify", {
+                      replace: true,
+                      state: { fromCallback: true, originalUrl: window.location.href }
+                    })}
+                    className="w-full text-sm text-gray-500"
+                  >
+                    Try Alternative Verification
                   </Button>
                 </div>
               </>
