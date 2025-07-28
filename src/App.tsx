@@ -288,6 +288,7 @@ function App() {
           </ThemeProvider>
         </QueryClientProvider>
         <Analytics />
+        <SpeedInsights />
       </NetworkErrorBoundary>
     </ErrorBoundary>
   );
