@@ -23,7 +23,16 @@ const ResetPassword = () => {
       try {
         console.log("Verifying reset password session");
 
-        // Check both URL params and hash fragments (Supabase can use either)
+        // First check if user has an active session (likely from auth callback)
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionData.session) {
+          console.log("Valid session found - user can reset password");
+          setIsValidSession(true);
+          return;
+        }
+
+        // Check both URL params and hash fragments (Supabase can use either) - for backward compatibility
         const accessToken = searchParams.get("access_token") ||
                            new URLSearchParams(window.location.hash.slice(1)).get("access_token");
         const refreshToken = searchParams.get("refresh_token") ||
@@ -56,7 +65,7 @@ const ResetPassword = () => {
         }
 
         if (accessToken && refreshToken && type === "recovery") {
-          console.log("Setting session with recovery tokens");
+          console.log("Setting session with recovery tokens (legacy flow)");
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
@@ -73,10 +82,9 @@ const ResetPassword = () => {
           console.log("Session set successfully:", data);
           setIsValidSession(true);
         } else {
-          console.log("No reset tokens found, checking if user accessed directly");
+          console.log("No valid session or reset tokens found");
 
-          // If no reset tokens, this means user accessed /reset-password directly
-          // In this case, we should redirect them to forgot-password to get the proper reset link
+          // If no reset tokens and no session, user likely accessed /reset-password directly
           console.log("No reset parameters found - user likely accessed directly");
           toast.error("Please use the reset link from your email. If you don't have one, request a new password reset.");
           setIsValidSession(false);
