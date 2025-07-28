@@ -235,7 +235,7 @@ const AuthCallback = () => {
     };
 
     handleAuthCallback();
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, authLoading, isAuthenticated]);
 
   const handleRetry = () => {
     navigate("/login", { replace: true });
