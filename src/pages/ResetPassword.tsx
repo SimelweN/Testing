@@ -92,11 +92,9 @@ const ResetPassword = () => {
           setTimeout(() => navigate("/forgot-password"), 4000);
         }
       } catch (error) {
-        console.error(
-          "Error verifying session:",
-          error instanceof Error ? error.message : String(error),
-        );
-        toast.error("Something went wrong. Please try again.");
+        console.error("Error verifying session:", error);
+        const errorMessage = getSafeErrorMessage(error, "Something went wrong. Please try again.");
+        toast.error(errorMessage);
         setIsValidSession(false);
         setTimeout(() => navigate("/forgot-password"), 3000);
       }
