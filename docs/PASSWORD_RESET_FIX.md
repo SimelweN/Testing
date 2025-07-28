@@ -17,9 +17,9 @@
 ### 2. Code Changes Made
 
 #### AuthCallback Component (`src/pages/AuthCallback.tsx`)
-- Now properly handles password reset tokens (type="recovery")
-- Redirects users to `/reset-password` page after successful authentication
-- Shows appropriate success messages for password reset verification
+- Now properly handles password reset tokens (type="recovery") → redirects to `/reset-password`
+- Properly handles email verification tokens (type="signup") → redirects to homepage
+- Shows appropriate success messages for both flows
 
 #### ForgotPassword Component (`src/pages/ForgotPassword.tsx`)
 - Updated redirect URL from `/reset-password` to `/auth/callback`
@@ -29,6 +29,14 @@
 - Enhanced to check for active sessions (from auth callback)
 - Maintains backward compatibility with direct token handling
 - Better error handling and user guidance
+
+#### Email Verification Updates
+- **AuthContext.tsx**: Updated `emailRedirectTo` from `/verify` to `/auth/callback`
+- **enhancedAuthService.ts**: Updated email verification redirects
+- **authOperations.ts**: Updated signup email redirects
+- **Login.tsx**: Updated resend verification redirects
+- **emailVerificationService.ts**: Updated verification email redirects
+- **enhancedSignupService.ts**: Updated signup verification redirects
 
 ## 🔧 Supabase Configuration Required
 
