@@ -28,7 +28,7 @@ const VerifyDebug = () => {
     }
   }, [autoTested]);
 
-  const testUrl = () => {
+  const analyzeUrl = () => {
     if (!testUrl.trim()) {
       toast.error("Please enter a URL to test");
       return;
@@ -37,7 +37,7 @@ const VerifyDebug = () => {
     try {
       const result = diagnoseVerificationUrl(testUrl);
       setDiagnostic(result);
-      
+
       if (result.isValid) {
         toast.success("URL analysis complete - no issues found!");
       } else {
