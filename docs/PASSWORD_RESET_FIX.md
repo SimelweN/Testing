@@ -41,12 +41,20 @@
 ## 🔧 Supabase Configuration Required
 
 ### Email Template Configuration
-In your Supabase dashboard, go to **Authentication → Email Templates** and update the **Reset Password** template:
+In your Supabase dashboard, go to **Authentication → Email Templates** and update the templates:
 
+#### Reset Password Template
 ```html
 <h2>Reset Your Password</h2>
 <p>Click the link below to reset your password:</p>
 <p><a href="{{ .SiteURL }}/auth/callback?access_token={{ .TokenHash }}&type=recovery&refresh_token={{ .RefreshTokenHash }}">Reset Password</a></p>
+```
+
+#### Email Confirmation Template
+```html
+<h2>Confirm Your Email</h2>
+<p>Click the link below to confirm your email address:</p>
+<p><a href="{{ .SiteURL }}/auth/callback?access_token={{ .TokenHash }}&type=signup&refresh_token={{ .RefreshTokenHash }}">Confirm Email</a></p>
 ```
 
 ### Redirect URLs
