@@ -184,15 +184,14 @@ const BookDetails = () => {
                 <BookOpen className="mr-2 h-4 w-4" />
                 Browse All Books
               </Button>
-              <Button
+              <BackButton
                 variant="outline"
-                onClick={() => navigate(-1)}
+                fallbackPath="/books"
                 className="w-full min-h-[48px]"
                 size="lg"
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
                 Go Back
-              </Button>
+              </BackButton>
             </div>
           </div>
         </div>
@@ -208,14 +207,12 @@ const BookDetails = () => {
       <div className="container mx-auto px-4 py-4 sm:py-8 max-w-6xl">
         {/* Back button */}
         <div className="mb-4 sm:mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
+          <BackButton
+            fallbackPath="/books"
             className="text-book-600 hover:bg-book-50 p-2 sm:p-3 min-h-[44px]"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">Back</span>
-          </Button>
+          </BackButton>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
