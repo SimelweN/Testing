@@ -386,11 +386,22 @@ const Login = () => {
                       disabled={isLoading}
                       title={showPassword ? "Hide password" : "Show password"}
                     >
-                      <div className="relative">
+                      <div className="relative transform-gpu">
                         {showPassword ? (
-                          <BookOpen className="h-5 w-5 text-book-500 hover:text-book-600 transition-all duration-300 ease-in-out transform hover:scale-110 book-open-animation" />
+                          <BookOpen
+                            className="h-5 w-5 text-book-500 hover:text-book-600 transition-all duration-500 ease-out transform hover:scale-110 animate-pulse"
+                            style={{
+                              filter: 'drop-shadow(0 2px 4px rgba(34, 197, 94, 0.2))',
+                              animation: 'bookOpen 0.5s ease-out'
+                            }}
+                          />
                         ) : (
-                          <Book className="h-5 w-5 text-gray-400 hover:text-book-500 transition-all duration-300 ease-in-out transform hover:scale-110 book-close-animation" />
+                          <Book
+                            className="h-5 w-5 text-gray-400 hover:text-book-500 transition-all duration-300 ease-in-out transform hover:scale-110"
+                            style={{
+                              animation: 'bookClose 0.3s ease-in-out'
+                            }}
+                          />
                         )}
                       </div>
                     </button>
