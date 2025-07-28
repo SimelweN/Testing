@@ -28,6 +28,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { markNotificationAsRead } from "@/services/notificationService";
+import { useNotifications } from "@/hooks/useNotifications";
 
 interface OrderNotification {
   id: string;
@@ -51,23 +52,40 @@ interface NotificationStats {
 
 const OrderNotificationSystem: React.FC = () => {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<OrderNotification[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { notifications: globalNotifications, isLoading } = useNotifications();
   const [selectedNotification, setSelectedNotification] =
     useState<OrderNotification | null>(null);
   const [filter, setFilter] = useState<"all" | "unread" | "actions">("all");
 
-  useEffect(() => {
-    if (user) {
-      fetchNotifications();
+  // Convert global notifications to order notifications format
+  const notifications = globalNotifications.map(notif => ({
+    id: notif.id,
+    title: notif.title || "Notification",
+    message: notif.message || "",
+    type: (notif.type as "info" | "warning" | "success" | "error") || "info",
+    read: notif.read || false,
+    created_at: notif.created_at,
+    order_id: notif.order_id,
+    action_required: notif.action_required || false,
+    action_type: notif.action_type,
+  }));
 
-      // Note: Real-time notifications are handled by the global NotificationManager
-      // in useNotifications hook to prevent duplicate subscriptions.
-      // This component will receive updates through the centralized system.
-    }
-  }, [user]);
+  useEffect(() => {
+    // Show toast for new important notifications
+    const unreadActionRequired = notifications.filter(n => !n.read && n.action_required);
+    unreadActionRequired.forEach(notification => {
+      if (notification.action_required) {
+        toast.warning(notification.title, {
+          description: notification.message,
+          duration: 6000,
+        });
+      }
+    });
+  }, [notifications]);
 
   const fetchNotifications = async () => {
+    // This function is no longer needed as we use global notifications
+    // Keeping for backward compatibility but it's a no-op
     if (!user) return;
 
     setLoading(true);
