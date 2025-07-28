@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 
 const VerifyEmail = () => {
   const navigate = useNavigate();
@@ -89,7 +90,7 @@ const VerifyEmail = () => {
 
         // Method 1: Use access_token and refresh_token (modern Supabase)
         if (accessToken && refreshToken) {
-          console.log('✅ Using access_token and refresh_token method');
+          console.log('��� Using access_token and refresh_token method');
 
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
