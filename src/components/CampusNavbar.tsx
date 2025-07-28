@@ -170,7 +170,7 @@ const CampusNavbar = () => {
 
             <Button
               variant="ghost"
-              onClick={() => handleNavigation("/study-tips")}
+              onClick={() => handleNavigation("/study-resources")}
               className={`px-2 py-2 rounded-lg transition-colors ${
                 isActive("/study-tips") || isActive("/study-resources")
                   ? "bg-book-600 text-white"
