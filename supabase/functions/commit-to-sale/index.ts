@@ -18,7 +18,7 @@ serve(async (req) => {
   // 🧪 TEST MODE: Check if this is a test request with mock data
   const testResult = await testFunction("commit-to-sale", req);
   if (testResult.isTest) {
-    return testResult.response;
+    return testResult.response!;
   }
 
     try {
@@ -93,8 +93,6 @@ serve(async (req) => {
     console.log("✅ Order validation passed, proceeding with commit");
     const order = orderCheck;
 
-
-
     // Ensure order.items is properly parsed if it's stored as JSONB
     if (order.items && typeof order.items === 'string') {
       try {
@@ -113,15 +111,15 @@ serve(async (req) => {
     // Get buyer and seller profiles separately for safety
     const { data: buyer } = await supabase
       .from("profiles")
-      .select("id, name, email, phone")
+      .select("id, name, email, phone_number")
       .eq("id", order.buyer_id)
-      .single();
+      .maybeSingle();
 
         const { data: seller } = await supabase
       .from("profiles")
-      .select("id, name, email, phone, pickup_address")
+      .select("id, name, email, phone_number, pickup_address")
       .eq("id", order.seller_id)
-      .single();
+      .maybeSingle();
 
     // Update order status to committed
     const { error: updateError } = await supabase
@@ -142,7 +140,7 @@ serve(async (req) => {
     // Validate addresses before attempting delivery automation
     const hasSellerAddress = seller?.pickup_address &&
       typeof seller.pickup_address === 'object' &&
-      seller.pickup_address.streetAddress;
+      (seller.pickup_address.streetAddress || seller.pickup_address.street);
     const hasBuyerAddress = order.shipping_address || order.delivery_address;
 
     if (!hasSellerAddress) {
@@ -153,7 +151,7 @@ serve(async (req) => {
       console.warn("Skipping delivery automation: buyer address missing");
     } else {
       try {
-        await fetch(`${SUPABASE_URL}/functions/v1/automate-delivery`, {
+        const deliveryResponse = await fetch(`${SUPABASE_URL}/functions/v1/automate-delivery`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -170,6 +168,14 @@ serve(async (req) => {
             ) || 1,
         }),
             });
+        
+        if (!deliveryResponse.ok) {
+          const errorText = await deliveryResponse.text();
+          deliveryError = new Error(`Delivery automation failed: ${deliveryResponse.status} ${errorText}`);
+        } else {
+          const deliveryResult = await deliveryResponse.json();
+          console.log("✅ Delivery automation successful:", deliveryResult);
+        }
       } catch (error) {
         deliveryError = error;
         console.error("Failed to schedule automatic delivery:", error);
@@ -381,52 +387,6 @@ serve(async (req) => {
       emailError = error;
       console.error("Failed to send notification emails:", error);
       // Don't fail the commit for email errors
-    }
-
-    // Create database notifications
-    try {
-      // Notify buyer
-      if (buyer?.id) {
-        await supabase
-          .from('notifications')
-          .insert({
-            user_id: buyer.id,
-            type: 'purchase',
-            title: 'Order Confirmed - Pickup Scheduled',
-            message: `Great news! ${seller?.name || "The seller"} has confirmed your order and is preparing your book(s) for delivery. Estimated delivery: 2-3 business days.`,
-            metadata: {
-              order_id: order_id,
-              book_titles: (order.items || []).map((item: any) => item.title || "Book").join(", "),
-              seller_name: seller?.name || "Seller"
-            },
-            priority: 'medium',
-            read: false,
-            created_at: new Date().toISOString(),
-          });
-      }
-
-      // Notify seller
-      if (seller?.id) {
-        await supabase
-          .from('notifications')
-          .insert({
-            user_id: seller.id,
-            type: 'commit',
-            title: 'Order Commitment Confirmed',
-            message: `You've successfully committed to sell your book(s). The buyer has been notified and pickup has been scheduled. A courier will contact you within 24 hours.`,
-            metadata: {
-              order_id: order_id,
-              book_titles: (order.items || []).map((item: any) => item.title || "Book").join(", "),
-              buyer_name: buyer?.name || "Customer"
-            },
-            priority: 'medium',
-            read: false,
-            created_at: new Date().toISOString(),
-          });
-      }
-    } catch (notificationError) {
-      console.error("Failed to create database notifications:", notificationError);
-      // Don't fail the commit for notification errors
     }
 
                 return jsonResponse({

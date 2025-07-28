@@ -28,6 +28,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { markNotificationAsRead } from "@/services/notificationService";
+import { useNotifications } from "@/hooks/useNotifications";
 
 interface OrderNotification {
   id: string;
@@ -51,85 +52,47 @@ interface NotificationStats {
 
 const OrderNotificationSystem: React.FC = () => {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<OrderNotification[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { notifications: globalNotifications, isLoading } = useNotifications();
   const [selectedNotification, setSelectedNotification] =
     useState<OrderNotification | null>(null);
   const [filter, setFilter] = useState<"all" | "unread" | "actions">("all");
 
+  // Convert global notifications to order notifications format
+  const notifications = globalNotifications.map(notif => ({
+    id: notif.id,
+    title: notif.title || "Notification",
+    message: notif.message || "",
+    type: (notif.type as "info" | "warning" | "success" | "error") || "info",
+    read: notif.read || false,
+    created_at: notif.created_at,
+    order_id: notif.order_id,
+    action_required: notif.action_required || false,
+    action_type: notif.action_type,
+  }));
+
   useEffect(() => {
-    if (user) {
-      fetchNotifications();
-
-      // Set up real-time notifications
-      const subscription = supabase
-        .channel("order_notifications")
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "notifications",
-            filter: `user_id=eq.${user.id}`,
-          },
-          (payload) => {
-            const newNotification = payload.new as OrderNotification;
-            setNotifications((prev) => [newNotification, ...prev]);
-
-            // Show toast for important notifications
-            if (newNotification.action_required) {
-              toast.warning(newNotification.title, {
-                description: newNotification.message,
-                duration: 6000,
-              });
-            } else {
-              toast.info(newNotification.title, {
-                description: newNotification.message,
-              });
-            }
-          },
-        )
-        .subscribe();
-
-      return () => {
-        subscription.unsubscribe();
-      };
-    }
-  }, [user]);
+    // Show toast for new important notifications
+    const unreadActionRequired = notifications.filter(n => !n.read && n.action_required);
+    unreadActionRequired.forEach(notification => {
+      if (notification.action_required) {
+        toast.warning(notification.title, {
+          description: notification.message,
+          duration: 6000,
+        });
+      }
+    });
+  }, [notifications]);
 
   const fetchNotifications = async () => {
-    if (!user) return;
-
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      if (error) {
-        console.error("Error fetching notifications:", error);
-        toast.error("Failed to load notifications");
-        return;
-      }
-
-      setNotifications(data || []);
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-      toast.error("Failed to load notifications");
-    } finally {
-      setLoading(false);
-    }
+    // This function is no longer needed as we use global notifications
+    // Keeping for backward compatibility but it's a no-op
+    return;
   };
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
       await markNotificationAsRead(notificationId);
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)),
-      );
+      // Global notification state will be updated automatically via realtime
     } catch (error) {
       console.error("Error marking notification as read:", error);
       toast.error("Failed to mark notification as read");
@@ -153,7 +116,7 @@ const OrderNotificationSystem: React.FC = () => {
 
       if (error) throw error;
 
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      // Global notification state will be updated automatically via realtime
 
       toast.success(`Marked ${unreadIds.length} notifications as read`);
     } catch (error) {
@@ -248,7 +211,7 @@ const OrderNotificationSystem: React.FC = () => {
   const stats = getStats();
   const filteredNotifications = getFilteredNotifications();
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />

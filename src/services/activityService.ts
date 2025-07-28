@@ -167,10 +167,10 @@ export class ActivityService {
 
       console.log(`🔄 Fetching activities for user: ${userId}`);
 
-      // Try to get activities from a dedicated activities table first
+      // Try to get activities from a dedicated activity_logs table first
       try {
         let activitiesQuery = supabase
-          .from("activities")
+          .from("activity_logs")
           .select("*")
           .eq("user_id", userId)
           .order("created_at", { ascending: false })
@@ -184,7 +184,7 @@ export class ActivityService {
 
         if (!error && activities && activities.length > 0) {
           console.log(
-            `✅ Found ${activities.length} activities from activities table`,
+            `✅ Found ${activities.length} activities from activity_logs table`,
           );
           return activities.map((activity) => ({
             id: activity.id,
@@ -197,9 +197,9 @@ export class ActivityService {
           }));
         }
       } catch (activitiesError) {
-        // Activities table might not exist, fall back to notifications
+        // Activity_logs table might not exist, fall back to notifications
         console.log(
-          "Activities table not available, falling back to notifications",
+          "Activity_logs table not available, falling back to notifications",
         );
       }
 

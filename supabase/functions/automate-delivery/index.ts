@@ -61,50 +61,91 @@ serve(async (req) => {
       );
     }
 
-    // Step 1: Get quote from Courier Guy
-    let selectedQuote = null;
+    // Step 1: Get quotes from both couriers
+    let quotes = [];
     try {
-      const courierGuyResponse = await fetch(`${SUPABASE_URL}/functions/v1/courier-guy-quote`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-        },
-        body: JSON.stringify({
-          fromAddress: seller_address,
-          toAddress: buyer_address,
-          weight: weight || 1,
-          serviceType: "standard",
+      const [courierGuyQuote, fastwayQuote] = await Promise.allSettled([
+        fetch(`${SUPABASE_URL}/functions/v1/courier-guy-quote`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+          },
+          body: JSON.stringify({
+            fromAddress: seller_address,
+            toAddress: buyer_address,
+            weight: weight || 1,
+            serviceType: "standard",
+          }),
         }),
-      });
+        fetch(`${SUPABASE_URL}/functions/v1/fastway-quote`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+          },
+          body: JSON.stringify({
+            fromAddress: seller_address,
+            toAddress: buyer_address,
+            weight: weight || 1,
+            serviceType: "standard",
+          }),
+        }),
+      ]);
 
-      const cgData = await courierGuyResponse.json();
-      if (cgData.success && cgData.quotes && cgData.quotes.length > 0) {
-        // Use the first/cheapest quote from Courier Guy
-        selectedQuote = cgData.quotes[0];
+      if (courierGuyQuote.status === "fulfilled") {
+        try {
+          const cgData = await courierGuyQuote.value.json();
+          if (cgData.success && cgData.quotes) {
+            quotes.push(...cgData.quotes);
+          }
+        } catch (e) {
+          console.warn("Failed to parse courier guy response:", e);
+        }
+      }
+
+      if (fastwayQuote.status === "fulfilled") {
+        try {
+          const fwData = await fastwayQuote.value.json();
+          if (fwData.success && fwData.quotes) {
+            quotes.push(...fwData.quotes);
+          }
+        } catch (e) {
+          console.warn("Failed to parse fastway response:", e);
+        }
       }
     } catch (quoteError) {
-      console.error("Failed to get Courier Guy quote:", quoteError);
+      console.error("Failed to get quotes:", quoteError);
     }
 
     // Add fallback quote if no quotes received
-    if (!selectedQuote) {
-      console.warn("No quotes received from Courier Guy, using fallback quote");
-      selectedQuote = {
+    if (quotes.length === 0) {
+      console.warn("No quotes received, adding fallback quote");
+      quotes.push({
         service_name: "Standard Delivery",
         price: 95.0,
         estimated_days: 3,
         service_code: "STANDARD",
         courier: "courier-guy",
-      };
+      });
     }
 
-    // Step 2: Create shipment with Courier Guy
+    // Step 2: Select best quote (cheapest available)
+    const selectedQuote = quotes.reduce((best, current) =>
+      current.price < best.price ? current : best,
+    );
+
+    // Step 3: Create shipment with selected courier
     let shipmentResult = null;
     if (selectedQuote) {
       try {
+        const shipmentFunction =
+          selectedQuote.courier === "courier-guy"
+            ? "courier-guy-shipment"
+            : "fastway-shipment";
+
         const shipmentResponse = await fetch(
-          `${SUPABASE_URL}/functions/v1/courier-guy-shipment`,
+          `${SUPABASE_URL}/functions/v1/${shipmentFunction}`,
           {
             method: "POST",
             headers: {
@@ -129,12 +170,12 @@ serve(async (req) => {
       }
     }
 
-    // Step 3: Update order with delivery information (if order exists)
+    // Step 4: Update order with delivery information (if order exists)
     if (order) {
       const updateData: any = {
         delivery_automated: true,
         delivery_automation_date: new Date().toISOString(),
-        selected_courier: "courier-guy",
+        selected_courier: selectedQuote.courier,
         delivery_cost: selectedQuote.price,
       };
 
@@ -154,12 +195,12 @@ serve(async (req) => {
       }
     }
 
-    // Step 4: Log automation activity (optional table)
+    // Step 5: Log automation activity (optional table)
     try {
       await supabase.from("delivery_automation_log").insert({
         order_id,
-        quotes_received: 1,
-        selected_courier: "courier-guy",
+        quotes_received: quotes.length,
+        selected_courier: selectedQuote?.courier,
         delivery_cost: selectedQuote?.price,
         shipment_created: !!shipmentResult?.success,
         tracking_number: shipmentResult?.tracking_number,
@@ -178,8 +219,8 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         automation_status: shipmentResult?.success ? "complete" : "partial",
-        quotes_received: 1,
-        selected_courier: "courier-guy",
+        quotes_received: quotes.length,
+        selected_courier: selectedQuote?.courier,
         delivery_cost: selectedQuote?.price,
         tracking_number: shipmentResult?.tracking_number,
         shipment_created: !!shipmentResult?.success,

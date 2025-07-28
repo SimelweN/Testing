@@ -19,10 +19,10 @@ class NotificationManager {
   private notifications: Notification[] = [];
   private connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error' = 'disconnected';
   private reconnectAttempts: number = 0;
-  private maxReconnectAttempts: number = 5;
+  private maxReconnectAttempts: number = 3;
   private reconnectTimeoutId: NodeJS.Timeout | null = null;
   private lastErrorTime: number = 0;
-  private errorCooldownMs: number = 30000; // 30 seconds cooldown between error batches
+  private errorCooldownMs: number = 60000; // 60 seconds cooldown between error batches
 
   static getInstance(): NotificationManager {
     if (!NotificationManager.instance) {
@@ -60,7 +60,7 @@ class NotificationManager {
     // If we already have a subscription for this user, don't create another
     if (
       this.subscribingRef ||
-      (this.subscriptionRef && this.currentUserId === userId && this.connectionStatus === 'connected')
+      (this.subscriptionRef && this.currentUserId === userId && (this.connectionStatus === 'connected' || this.connectionStatus === 'connecting'))
     ) {
       console.log(
         "[NotificationManager] Subscription already exists for user:",
@@ -92,7 +92,7 @@ class NotificationManager {
       this.reconnectTimeoutId = null;
     }
 
-    const channelName = `notifications_${userId}_${Date.now()}`;
+    const channelName = `notifications_${userId}`;
     console.log(
       "[NotificationManager] Setting up subscription for user:",
       userId,
@@ -132,7 +132,7 @@ class NotificationManager {
           this.subscribingRef = false;
           this.connectionStatus = 'connected';
           this.reconnectAttempts = 0; // Reset retry counter on success
-          console.log("[NotificationManager] ✅ Successfully connected to realtime");
+          console.log("[NotificationManager] �� Successfully connected to realtime");
         } else if (status === "CHANNEL_ERROR") {
           const now = Date.now();
           // Only log and attempt reconnection if we're not in cooldown period
@@ -144,13 +144,15 @@ class NotificationManager {
           this.subscriptionRef = null;
           this.subscribingRef = false;
 
-          // Only schedule reconnect if not in cooldown
+          // Only schedule reconnect if not in cooldown and not too many attempts
           if (now - this.lastErrorTime <= this.errorCooldownMs && this.reconnectAttempts < this.maxReconnectAttempts) {
             setTimeout(() => {
               if (this.currentUserId === userId && this.connectionStatus === 'error') {
                 this.scheduleReconnect(userId, refreshCallback);
               }
             }, 5000);
+          } else if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+            console.warn("[NotificationManager] 🔕 Max reconnection attempts reached, notifications temporarily disabled");
           }
         } else if (status === "CLOSED") {
           console.warn("[NotificationManager] 🔌 Connection closed");
