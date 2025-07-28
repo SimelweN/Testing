@@ -5,6 +5,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom book animation for password visibility toggle */
+@keyframes bookOpen {
+  0% {
+    transform: perspective(400px) rotateY(0deg) scale(1);
+  }
+  50% {
+    transform: perspective(400px) rotateY(-15deg) scale(1.05);
+  }
+  100% {
+    transform: perspective(400px) rotateY(0deg) scale(1);
+  }
+}
+
+@keyframes bookClose {
+  0% {
+    transform: perspective(400px) rotateY(0deg) scale(1);
+  }
+  50% {
+    transform: perspective(400px) rotateY(15deg) scale(1.05);
+  }
+  100% {
+    transform: perspective(400px) rotateY(0deg) scale(1);
+  }
+}
+
+.book-open-animation {
+  animation: bookOpen 0.4s ease-in-out;
+}
+
+.book-close-animation {
+  animation: bookClose 0.4s ease-in-out;
+}
+
 /* Line clamp utilities */
 .line-clamp-1 {
   overflow: hidden;
