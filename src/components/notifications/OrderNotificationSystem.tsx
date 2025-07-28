@@ -211,7 +211,7 @@ const OrderNotificationSystem: React.FC = () => {
   const stats = getStats();
   const filteredNotifications = getFilteredNotifications();
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
