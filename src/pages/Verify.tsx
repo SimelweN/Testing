@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import AuthVerificationTester from "@/components/AuthVerificationTester";
 import { EmailVerificationService } from "@/services/emailVerificationService";
 import { supabase } from "@/integrations/supabase/client";
 import { BackupEmailService } from "@/utils/backupEmailService";
