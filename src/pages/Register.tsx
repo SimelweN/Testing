@@ -234,7 +234,7 @@ const Register = () => {
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder="••••••��•"
                       className="pl-10 pr-10"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -248,9 +248,9 @@ const Register = () => {
                     >
                       <div className="relative">
                         {showPassword ? (
-                          <BookOpen className="h-5 w-5 text-book-500 hover:text-book-600 transition-all duration-300 ease-in-out transform hover:scale-110" />
+                          <BookOpen className="h-5 w-5 text-book-500 hover:text-book-600 transition-all duration-300 ease-in-out transform hover:scale-110 book-open-animation" />
                         ) : (
-                          <Book className="h-5 w-5 text-gray-400 hover:text-book-500 transition-all duration-300 ease-in-out transform hover:scale-110" />
+                          <Book className="h-5 w-5 text-gray-400 hover:text-book-500 transition-all duration-300 ease-in-out transform hover:scale-110 book-close-animation" />
                         )}
                       </div>
                     </button>
@@ -280,9 +280,9 @@ const Register = () => {
                     >
                       <div className="relative">
                         {showConfirmPassword ? (
-                          <BookOpen className="h-5 w-5 text-book-500 hover:text-book-600 transition-all duration-300 ease-in-out transform hover:scale-110" />
+                          <BookOpen className="h-5 w-5 text-book-500 hover:text-book-600 transition-all duration-300 ease-in-out transform hover:scale-110 book-open-animation" />
                         ) : (
-                          <Book className="h-5 w-5 text-gray-400 hover:text-book-500 transition-all duration-300 ease-in-out transform hover:scale-110" />
+                          <Book className="h-5 w-5 text-gray-400 hover:text-book-500 transition-all duration-300 ease-in-out transform hover:scale-110 book-close-animation" />
                         )}
                       </div>
                     </button>
