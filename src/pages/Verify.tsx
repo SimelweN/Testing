@@ -37,6 +37,17 @@ const Verify = () => {
         console.log("🔍 Starting email verification process");
         console.log("📍 Current URL:", window.location.href);
 
+        // Extract parameters to check if we have verification tokens
+        const token = searchParams.get("token");
+        const tokenHash = searchParams.get("token_hash");
+        const type = searchParams.get("type");
+
+        // If we have verification parameters, add a delay to ensure Supabase client is ready
+        if ((token || tokenHash) && type) {
+          console.log("⏱️ Delaying verification to ensure Supabase client is ready...");
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
         // Check for backup/fallback verification first
         const email = searchParams.get("email");
         const fallback = searchParams.get("fallback");
@@ -296,16 +307,20 @@ const Verify = () => {
 
                     {hasVerificationParams() && (
                       <div className="mb-4">
-                        <p className="text-sm text-gray-600 mb-3">
-                          Verification parameters detected. Try manual
-                          verification:
-                        </p>
+                        <div className="mb-4 p-4 bg-book-50 rounded-lg border border-book-200">
+                          <h5 className="font-semibold text-book-800 mb-2">
+                            Welcome to ReBooked Solutions!
+                          </h5>
+                          <p className="text-sm text-book-700">
+                            We've detected your verification link. Click the button below to complete your email verification and start your journey with us.
+                          </p>
+                        </div>
                         <Button
                           onClick={handleManualVerification}
-                          className="w-full mb-3"
+                          className="w-full mb-3 bg-book-600 hover:bg-book-700"
                         >
                           <Mail className="h-4 w-4 mr-2" />
-                          Verify Manually
+                          Let's Begin
                         </Button>
                       </div>
                     )}
