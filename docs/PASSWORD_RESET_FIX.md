@@ -74,12 +74,20 @@ http://localhost:5173/reset-password
 
 ## 🔄 How It Works Now
 
+### Password Reset Flow
 1. **User requests reset**: Goes to `/forgot-password` and enters email
 2. **Email sent**: Supabase sends email with link to `/auth/callback?access_token=...&type=recovery`
 3. **User clicks link**: Lands on `/auth/callback` page
 4. **Authentication**: AuthCallback component verifies tokens and sets session
 5. **Redirect**: User is redirected to `/reset-password` with valid session
 6. **Password reset**: User can now set new password successfully
+
+### Email Verification Flow
+1. **User registers**: Creates account, email verification required
+2. **Email sent**: Supabase sends email with link to `/auth/callback?access_token=...&type=signup`
+3. **User clicks link**: Lands on `/auth/callback` page
+4. **Authentication**: AuthCallback component verifies tokens and sets session
+5. **Redirect**: User is redirected to homepage, fully verified and logged in
 
 ## 🧪 Testing
 
