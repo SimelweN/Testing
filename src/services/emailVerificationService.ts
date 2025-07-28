@@ -387,7 +387,7 @@ export class EmailVerificationService {
         type: "signup",
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/verify`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
