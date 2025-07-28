@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 import { Lock, Loader2, BookOpen, Book, CheckCircle, XCircle } from "lucide-react";
 
 const ResetPassword = () => {
@@ -91,11 +92,9 @@ const ResetPassword = () => {
           setTimeout(() => navigate("/forgot-password"), 4000);
         }
       } catch (error) {
-        console.error(
-          "Error verifying session:",
-          error instanceof Error ? error.message : String(error),
-        );
-        toast.error("Something went wrong. Please try again.");
+        console.error("Error verifying session:", error);
+        const errorMessage = getSafeErrorMessage(error, "Something went wrong. Please try again.");
+        toast.error(errorMessage);
         setIsValidSession(false);
         setTimeout(() => navigate("/forgot-password"), 3000);
       }
@@ -156,12 +155,8 @@ const ResetPassword = () => {
       await supabase.auth.signOut();
       navigate("/login", { replace: true });
     } catch (error: unknown) {
-      console.error(
-        "Password reset error:",
-        error instanceof Error ? error.message : String(error),
-      );
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to update password";
+      console.error("Password reset error:", error);
+      const errorMessage = getSafeErrorMessage(error, "Failed to update password");
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 
 const VerifyEmail = () => {
   const navigate = useNavigate();
@@ -168,7 +169,7 @@ const VerifyEmail = () => {
       } catch (error) {
         console.error('❌ Email verification error:', error);
         setStatus('error');
-        setMessage(`Email verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setMessage(`Email verification failed: ${getSafeErrorMessage(error, 'Unknown error')}`);
       }
     };
 

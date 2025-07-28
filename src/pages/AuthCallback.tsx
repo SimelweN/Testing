@@ -5,6 +5,7 @@ import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
@@ -37,8 +38,9 @@ const AuthCallback = () => {
         if (error) {
           console.error("❌ Auth callback error:", error, error_description);
           setStatus("error");
-          setMessage(error_description || error);
-          toast.error(`Authentication failed: ${error_description || error}`);
+          const safeErrorMsg = getSafeErrorMessage(error_description || error, 'Authentication failed');
+          setMessage(safeErrorMsg);
+          toast.error(`Authentication failed: ${safeErrorMsg}`);
           return;
         }
 
@@ -123,8 +125,9 @@ const AuthCallback = () => {
       } catch (error) {
         console.error("❌ Auth callback exception:", error);
         setStatus("error");
-        setMessage("An unexpected error occurred during authentication.");
-        toast.error("Authentication failed unexpectedly");
+        const safeErrorMsg = getSafeErrorMessage(error, "An unexpected error occurred during authentication");
+        setMessage(safeErrorMsg);
+        toast.error(`Authentication failed: ${safeErrorMsg}`);
       }
     };
 

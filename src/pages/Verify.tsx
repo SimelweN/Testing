@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { EmailVerificationService } from "@/services/emailVerificationService";
 import { supabase } from "@/integrations/supabase/client";
 import { BackupEmailService } from "@/utils/backupEmailService";
+import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 
 const Verify = () => {
   const navigate = useNavigate();
@@ -144,14 +145,10 @@ const Verify = () => {
           }
         }
       } catch (error: unknown) {
-        console.error(
-          "❌ Email verification exception:",
-          error instanceof Error ? error.message : String(error),
-        );
+        console.error("❌ Email verification exception:", error);
         setStatus("error");
 
-        const errorMessage =
-          error?.message || "Unexpected error during verification";
+        const errorMessage = getSafeErrorMessage(error, "Unexpected error during verification");
         setMessage(errorMessage);
         toast.error(errorMessage);
       }
@@ -225,12 +222,8 @@ const Verify = () => {
         toast.error("Verification did not return a session");
       }
     } catch (error: unknown) {
-      console.error(
-        "❌ Exception during manual verification:",
-        error instanceof Error ? error.message : String(error),
-      );
-      const errorMessage =
-        error instanceof Error ? error.message : "Manual verification failed";
+      console.error("❌ Exception during manual verification:", error);
+      const errorMessage = getSafeErrorMessage(error, "Manual verification failed");
       toast.error(`Manual verification failed: ${errorMessage}`);
     }
   };
