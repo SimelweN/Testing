@@ -5,6 +5,7 @@ import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
