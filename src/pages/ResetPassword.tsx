@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Lock, Loader2, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
+import { Lock, Loader2, BookOpen, Book, CheckCircle, XCircle } from "lucide-react";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
