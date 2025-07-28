@@ -300,7 +300,6 @@ const Register = () => {
                     I agree to the{" "}
                     <Link
                       to="/policies"
-                      target="_blank"
                       className="text-book-600 hover:text-book-800 underline"
                     >
                       Terms & Conditions and Privacy Policy
