@@ -23,23 +23,8 @@ import CourierGuyTracker from "@/components/courier-guy/CourierGuyTracker";
 const InformativeShippingDashboard = () => {
   const [activeTab, setActiveTab] = useState<"process" | "track">("process");
 
-  // Mock data for recent shipments
-  const recentShipments = [
-    {
-      id: "CG123456789",
-      status: "delivered",
-      recipient: "John Smith",
-      date: "2024-01-15",
-      estimatedDelivery: "2024-01-16",
-    },
-    {
-      id: "CG987654321",
-      status: "in_transit",
-      recipient: "Sarah Johnson",
-      date: "2024-01-14",
-      estimatedDelivery: "2024-01-17",
-    },
-  ];
+  // No demo data - recent shipments will be loaded from actual user orders
+  const recentShipments: any[] = [];
 
   const shippingProcess = [
     {
