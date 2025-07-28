@@ -145,14 +145,10 @@ const Verify = () => {
           }
         }
       } catch (error: unknown) {
-        console.error(
-          "❌ Email verification exception:",
-          error instanceof Error ? error.message : String(error),
-        );
+        console.error("❌ Email verification exception:", error);
         setStatus("error");
 
-        const errorMessage =
-          error?.message || "Unexpected error during verification";
+        const errorMessage = getSafeErrorMessage(error, "Unexpected error during verification");
         setMessage(errorMessage);
         toast.error(errorMessage);
       }
