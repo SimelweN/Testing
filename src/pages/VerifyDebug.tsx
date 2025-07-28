@@ -22,7 +22,7 @@ const VerifyDebug = () => {
     if (currentUrl.includes('?') || currentUrl.includes('#')) {
       setTestUrl(currentUrl);
       if (!autoTested) {
-        testUrl();
+        analyzeUrl();
         setAutoTested(true);
       }
     }
