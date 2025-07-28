@@ -17,8 +17,8 @@ import {
   Key,
   UserPlus,
   RefreshCw,
-  Eye,
-  EyeOff,
+  BookOpen,
+  Book,
 } from "lucide-react";
 
 const Login = () => {
@@ -381,15 +381,18 @@ const Login = () => {
                     />
                     <button
                       type="button"
-                      className="absolute inset-y-0 right-0 flex items-center pr-3"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 group"
                       onClick={() => setShowPassword(!showPassword)}
                       disabled={isLoading}
+                      title={showPassword ? "Hide password" : "Show password"}
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                      ) : (
-                        <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                      )}
+                      <div className="relative">
+                        {showPassword ? (
+                          <BookOpen className="h-5 w-5 text-book-500 hover:text-book-600 transition-all duration-300 ease-in-out transform hover:scale-110" />
+                        ) : (
+                          <Book className="h-5 w-5 text-gray-400 hover:text-book-500 transition-all duration-300 ease-in-out transform hover:scale-110" />
+                        )}
+                      </div>
                     </button>
                   </div>
                 </div>
