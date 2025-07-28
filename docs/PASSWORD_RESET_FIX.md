@@ -1,7 +1,8 @@
-# Password Reset Fix Guide
+# Password Reset & Email Verification Fix Guide
 
-## 🚨 Problem Fixed
-The website's password reset functionality was not working because users were getting 404 errors when clicking reset links.
+## 🚨 Problems Fixed
+1. **Password reset functionality** was not working because users were getting 404 errors when clicking reset links
+2. **Email verification functionality** was experiencing the same issue - users getting 404s when clicking verification links
 
 ## ✅ Solution Implemented
 
