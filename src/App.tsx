@@ -41,6 +41,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import Verify from "./pages/Verify";
+import VerifyDebug from "./pages/VerifyDebug";
 import AuthCallback from "./pages/AuthCallback";
 
 // Admin Pages
@@ -137,6 +138,7 @@ function App() {
                       />
                       <Route path="/verify" element={<Verify />} />
                       <Route path="/verify/*" element={<VerifyEmail />} />
+                      <Route path="/verify-debug" element={<VerifyDebug />} />
                       <Route path="/auth/callback" element={<AuthCallback />} />
 
                       {/* Protected User Routes */}
