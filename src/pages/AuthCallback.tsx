@@ -6,14 +6,30 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
 
+  // Check if user is already authenticated and redirect them
   useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      console.log("🔄 User already authenticated, redirecting from auth callback");
+      toast.success("You are already logged in!");
+      navigate("/", { replace: true });
+      return;
+    }
+  }, [isAuthenticated, authLoading, navigate]);
+
+  useEffect(() => {
+    // Don't process auth callback if user is already authenticated or auth is still loading
+    if (authLoading || isAuthenticated) {
+      return;
+    }
     const handleAuthCallback = async () => {
       try {
         console.log("🔍 Processing auth callback");
@@ -219,7 +235,7 @@ const AuthCallback = () => {
     };
 
     handleAuthCallback();
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, authLoading, isAuthenticated]);
 
   const handleRetry = () => {
     navigate("/login", { replace: true });
