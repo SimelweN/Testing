@@ -98,7 +98,7 @@ const VerifyDebug = () => {
                   Current URL
                 </Button>
                 <Button
-                  onClick={testUrl}
+                  onClick={analyzeUrl}
                   disabled={!testUrl.trim()}
                 >
                   Analyze
