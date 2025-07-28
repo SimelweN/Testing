@@ -61,39 +61,9 @@ const OrderNotificationSystem: React.FC = () => {
     if (user) {
       fetchNotifications();
 
-      // Set up real-time notifications
-      const subscription = supabase
-        .channel("order_notifications")
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "notifications",
-            filter: `user_id=eq.${user.id}`,
-          },
-          (payload) => {
-            const newNotification = payload.new as OrderNotification;
-            setNotifications((prev) => [newNotification, ...prev]);
-
-            // Show toast for important notifications
-            if (newNotification.action_required) {
-              toast.warning(newNotification.title, {
-                description: newNotification.message,
-                duration: 6000,
-              });
-            } else {
-              toast.info(newNotification.title, {
-                description: newNotification.message,
-              });
-            }
-          },
-        )
-        .subscribe();
-
-      return () => {
-        subscription.unsubscribe();
-      };
+      // Note: Real-time notifications are handled by the global NotificationManager
+      // in useNotifications hook to prevent duplicate subscriptions.
+      // This component will receive updates through the centralized system.
     }
   }, [user]);
 
