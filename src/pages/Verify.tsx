@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { EmailVerificationService } from "@/services/emailVerificationService";
 import { supabase } from "@/integrations/supabase/client";
 import { BackupEmailService } from "@/utils/backupEmailService";
+import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 
 const Verify = () => {
   const navigate = useNavigate();
