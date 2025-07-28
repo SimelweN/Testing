@@ -378,10 +378,13 @@ const Verify = () => {
                     Go to Home Page
                   </Button>
                 </div>
+
+                {/* Comprehensive Troubleshooting Guide */}
+                <div className="mt-8">
+                  <VerificationTroubleshootingGuide />
+                </div>
               </>
             )}
-
-
           </div>
         </div>
       </div>
