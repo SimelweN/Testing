@@ -53,11 +53,16 @@ export const supabase = createClient<Database>(
       },
       // Add heartbeat to keep connections alive
       heartbeatIntervalMs: 30000,
-      // Reconnection settings
+      // Reconnection settings with limited attempts
       reconnectAfterMs: (retries) => {
-        // Exponential backoff: 1s, 2s, 4s, 8s, then 10s max
-        const delay = Math.min(1000 * Math.pow(2, retries), 10000);
-        console.log(`[Supabase] Reconnecting in ${delay}ms (attempt ${retries + 1})`);
+        // Stop attempting after 3 retries to prevent endless loops
+        if (retries >= 3) {
+          console.log(`[Supabase] Max reconnection attempts reached (${retries + 1}), stopping`);
+          return null; // Stop reconnecting
+        }
+        // Exponential backoff: 2s, 5s, 10s
+        const delay = Math.min(2000 * Math.pow(2, retries), 10000);
+        console.log(`[Supabase] Reconnecting in ${delay}ms (attempt ${retries + 1}/3)`);
         return delay;
       },
       // Increase timeout for slower connections
