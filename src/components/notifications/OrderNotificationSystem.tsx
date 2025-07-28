@@ -86,38 +86,13 @@ const OrderNotificationSystem: React.FC = () => {
   const fetchNotifications = async () => {
     // This function is no longer needed as we use global notifications
     // Keeping for backward compatibility but it's a no-op
-    if (!user) return;
-
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      if (error) {
-        console.error("Error fetching notifications:", error);
-        toast.error("Failed to load notifications");
-        return;
-      }
-
-      setNotifications(data || []);
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-      toast.error("Failed to load notifications");
-    } finally {
-      setLoading(false);
-    }
+    return;
   };
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
       await markNotificationAsRead(notificationId);
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)),
-      );
+      // Global notification state will be updated automatically via realtime
     } catch (error) {
       console.error("Error marking notification as read:", error);
       toast.error("Failed to mark notification as read");
@@ -141,7 +116,7 @@ const OrderNotificationSystem: React.FC = () => {
 
       if (error) throw error;
 
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      // Global notification state will be updated automatically via realtime
 
       toast.success(`Marked ${unreadIds.length} notifications as read`);
     } catch (error) {
