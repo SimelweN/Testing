@@ -7,8 +7,12 @@
 ## ✅ Solution Implemented
 
 ### 1. Updated Authentication Flow
-- **Before**: Reset emails linked directly to `/reset-password`
-- **After**: Reset emails now link to `/auth/callback` which handles authentication first, then redirects to `/reset-password`
+- **Before**:
+  - Reset emails linked directly to `/reset-password`
+  - Verification emails linked directly to `/verify`
+- **After**:
+  - Reset emails now link to `/auth/callback` which handles authentication first, then redirects to `/reset-password`
+  - Verification emails now link to `/auth/callback` which handles authentication first, then redirects to homepage
 
 ### 2. Code Changes Made
 
