@@ -38,8 +38,9 @@ const AuthCallback = () => {
         if (error) {
           console.error("❌ Auth callback error:", error, error_description);
           setStatus("error");
-          setMessage(error_description || error);
-          toast.error(`Authentication failed: ${error_description || error}`);
+          const safeErrorMsg = getSafeErrorMessage(error_description || error, 'Authentication failed');
+          setMessage(safeErrorMsg);
+          toast.error(`Authentication failed: ${safeErrorMsg}`);
           return;
         }
 
