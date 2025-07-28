@@ -22,6 +22,7 @@ import {
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [errorType, setErrorType] = useState<
@@ -369,7 +370,7 @@ const Login = () => {
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="•••��••••"
+                      placeholder="••••••••"
                       className="pl-10 pr-10 h-12 border-gray-300 focus:border-book-500 focus:ring-book-500 rounded-lg"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
