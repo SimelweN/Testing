@@ -107,13 +107,14 @@ serve(async (req) => {
 
     // Get book details and verify availability
     console.log('📚 Fetching book details...');
-    const { data: book, error: bookError } = await supabase
+    const { data: books, error: bookError } = await supabase
       .from("books")
-      .select("*")
+      .select("id,title,author,price,seller_id,sold,condition,category,image_url,created_at,updated_at")
       .eq("id", book_id)
       .eq("seller_id", seller_id)
-      .eq("sold", false)
-      .single();
+      .eq("sold", false);
+
+    const book = books && books.length > 0 ? books[0] : null;
 
     if (bookError || !book) {
       console.error('❌ Book not available:', bookError?.message);
@@ -131,28 +132,25 @@ serve(async (req) => {
 
     console.log('✅ Book found:', book.title, 'by', book.author);
 
-    // Validate amount exactly matches book price
-    const bookPrice = parseFloat(book.price);
-    if (amount !== bookPrice) {
-      console.error('❌ Amount mismatch:', { expected: bookPrice, provided: amount });
+    // Validate amount matches book price
+    if (Math.abs(amount - parseFloat(book.price)) > 0.01) {
+      console.error('❌ Amount mismatch:', { expected: book.price, provided: amount });
       return jsonResponse({
         success: false,
         error: "AMOUNT_MISMATCH",
         details: {
-          expected: bookPrice,
+          expected_amount: parseFloat(book.price),
           provided_amount: amount,
-          message: "Amount must exactly match book price"
+          message: "Amount does not match book price"
         },
       }, { status: 400 });
     }
 
-    console.log('✅ Amount validation passed:', { book_price: bookPrice, provided_amount: amount });
-
     // Get buyer and seller profiles
     console.log('👥 Fetching user profiles...');
     const [{ data: buyer, error: buyerError }, { data: seller, error: sellerError }] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", buyer_id).single(),
-      supabase.from("profiles").select("*").eq("id", seller_id).single()
+      supabase.from("profiles").select("id, name, email, phone_number, pickup_address, subaccount_code").eq("id", buyer_id).maybeSingle(),
+      supabase.from("profiles").select("id, name, email, phone_number, pickup_address, subaccount_code").eq("id", seller_id).maybeSingle()
     ]);
 
     if (buyerError || !buyer) {
@@ -232,12 +230,12 @@ serve(async (req) => {
           book_id,
           title: book.title,
           author: book.author,
-          price: parseFloat(book.price), // Keep original book price
+          price: amount,
           condition: book.condition,
           seller_id
         }],
-        amount: Math.round(amount * 100), // Total amount in cents (book + delivery)
-        total_amount: amount, // Total amount including delivery
+        amount: Math.round(amount * 100), // Convert to cents
+        total_amount: amount,
         status: "pending_commit",
         payment_status: "paid",
         payment_reference: finalPaymentRef,
@@ -255,7 +253,7 @@ serve(async (req) => {
       .single();
 
     if (orderError) {
-      console.error('❌ Order creation failed:', orderError.message);
+      console.error('�� Order creation failed:', orderError.message);
       
       // Rollback book sale if order creation fails
       console.log('🔄 Rolling back book sale...');
@@ -363,4 +361,4 @@ serve(async (req) => {
       },
     }, { status: 500 });
   }
-})
+});
