@@ -17,6 +17,8 @@ import {
   Key,
   UserPlus,
   RefreshCw,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 const Login = () => {
