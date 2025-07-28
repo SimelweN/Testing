@@ -6,6 +6,7 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
