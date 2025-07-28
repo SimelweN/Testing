@@ -155,12 +155,8 @@ const ResetPassword = () => {
       await supabase.auth.signOut();
       navigate("/login", { replace: true });
     } catch (error: unknown) {
-      console.error(
-        "Password reset error:",
-        error instanceof Error ? error.message : String(error),
-      );
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to update password";
+      console.error("Password reset error:", error);
+      const errorMessage = getSafeErrorMessage(error, "Failed to update password");
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
