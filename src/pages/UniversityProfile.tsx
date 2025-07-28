@@ -6,6 +6,7 @@ import {
   useSearchParams,
   useNavigate,
 } from "react-router-dom";
+import BackButton from "@/components/ui/BackButton";
 import { ALL_SOUTH_AFRICAN_UNIVERSITIES } from "@/constants/universities/index";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -138,13 +139,15 @@ const UniversityProfile: React.FC = () => {
         <div className="bg-gradient-to-b from-book-100 via-book-50 to-white border-b border-book-200">
           <div className="container mx-auto px-6 py-8">
             {/* Back Navigation */}
-            <Link
-              to="/university-info"
-              className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors mb-8 group"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-              <span className="font-medium">Back to Universities</span>
-            </Link>
+            <div className="mb-8">
+              <BackButton
+                fallbackPath="/university-info"
+                className="text-gray-600 hover:text-gray-900 transition-colors group p-0"
+                variant="ghost"
+              >
+                <span className="font-medium">Back to Universities</span>
+              </BackButton>
+            </div>
 
             {/* University Header - Mobile Optimized */}
             <div className="grid lg:grid-cols-4 gap-6 lg:gap-8">

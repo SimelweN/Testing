@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Lock, Loader2, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
+import { Lock, Loader2, BookOpen, Book, CheckCircle, XCircle } from "lucide-react";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -255,14 +255,17 @@ const ResetPassword = () => {
                     />
                     <button
                       type="button"
-                      className="absolute inset-y-0 right-0 flex items-center pr-3"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 group"
                       onClick={() => setShowPassword(!showPassword)}
+                      title={showPassword ? "Hide password" : "Show password"}
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-5 w-5 text-gray-400" />
-                      ) : (
-                        <Eye className="h-5 w-5 text-gray-400" />
-                      )}
+                      <div className="relative">
+                        {showPassword ? (
+                          <BookOpen className="h-5 w-5 text-book-500 hover:text-book-600 transition-all duration-300 ease-in-out transform hover:scale-110 book-open-animation" />
+                        ) : (
+                          <Book className="h-5 w-5 text-gray-400 hover:text-book-500 transition-all duration-300 ease-in-out transform hover:scale-110 book-close-animation" />
+                        )}
+                      </div>
                     </button>
                   </div>
 
@@ -299,16 +302,19 @@ const ResetPassword = () => {
                     />
                     <button
                       type="button"
-                      className="absolute inset-y-0 right-0 flex items-center pr-3"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 group"
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
+                      title={showConfirmPassword ? "Hide password" : "Show password"}
                     >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-5 w-5 text-gray-400" />
-                      ) : (
-                        <Eye className="h-5 w-5 text-gray-400" />
-                      )}
+                      <div className="relative">
+                        {showConfirmPassword ? (
+                          <BookOpen className="h-5 w-5 text-book-500 hover:text-book-600 transition-all duration-300 ease-in-out transform hover:scale-110 book-open-animation" />
+                        ) : (
+                          <Book className="h-5 w-5 text-gray-400 hover:text-book-500 transition-all duration-300 ease-in-out transform hover:scale-110 book-close-animation" />
+                        )}
+                      </div>
                     </button>
                   </div>
 

@@ -36,11 +36,12 @@ export class BankingService {
         console.log("🔍 [Banking Debug] All banking records for user:", {
           userId,
           records: allRecords,
-          count: allRecords?.length || 0
+          count: allRecords?.length || 0,
+          rawRecords: JSON.stringify(allRecords, null, 2)
         });
 
         // Try to get active or pending banking record (both are valid for listings)
-        return await supabase
+        const query = await supabase
           .from("banking_subaccounts")
           .select("*")
           .eq("user_id", userId)
@@ -48,6 +49,32 @@ export class BankingService {
           .order("created_at", { ascending: false })
           .limit(1)
           .single();
+
+        // If table doesn't exist or has issues, also check user profile for subaccount_code
+        if (query.error && query.error.code === "42P01") {
+          console.log("⚠️ Banking table not available, checking profile for subaccount...");
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("subaccount_code, preferences")
+            .eq("id", userId)
+            .single();
+
+          if (profileData?.subaccount_code) {
+            // Return a mock banking record if profile has subaccount
+            return {
+              data: {
+                user_id: userId,
+                subaccount_code: profileData.subaccount_code,
+                status: 'active',
+                business_name: profileData.preferences?.business_name || 'User Business',
+                bank_name: profileData.preferences?.bank_details?.bank_name || 'Bank'
+              },
+              error: null
+            };
+          }
+        }
+
+        return query;
       };
 
       const { data, error } = await Promise.race([fetchQuery(), timeout]) as any;
@@ -380,6 +407,14 @@ export class BankingService {
     try {
       // Check banking setup - must have banking details AND subaccount code
       const bankingDetails = await this.getUserBankingDetails(userId);
+
+      // Also check user profile for subaccount_code (fallback check)
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("subaccount_code, preferences")
+        .eq("id", userId)
+        .single();
+
       console.log("🏦 [Banking Debug] Banking details:", {
         userId,
         hasBankingDetails: !!bankingDetails,
@@ -389,6 +424,9 @@ export class BankingService {
         allFields: bankingDetails ? Object.keys(bankingDetails) : [],
         subaccountCodeValue: bankingDetails?.subaccount_code,
         subaccountFieldExists: 'subaccount_code' in (bankingDetails || {}),
+        profileSubaccountCode: profileData?.subaccount_code,
+        profilePreferences: profileData?.preferences,
+        bankingSetupComplete: profileData?.preferences?.banking_setup_complete,
         alternativeFields: {
           subaccount_id: bankingDetails?.subaccount_id,
           paystack_subaccount_code: bankingDetails?.paystack_subaccount_code,
@@ -402,13 +440,25 @@ export class BankingService {
       const subaccountCode = bankingDetails?.subaccount_code ||
                            bankingDetails?.paystack_subaccount_code ||
                            bankingDetails?.account_code ||
-                           bankingDetails?.subaccount_id;
+                           bankingDetails?.subaccount_id ||
+                           profileData?.subaccount_code;
 
-      const hasBankingSetup = !!(
+      // Enhanced banking setup detection - check multiple sources
+      // 1. Banking table with proper status and subaccount
+      const hasBankingFromTable = !!(
         bankingDetails &&
         subaccountCode &&
         (bankingDetails.status === "active" || bankingDetails.status === "pending")
       );
+
+      // 2. Profile preferences (immediate fallback)
+      const hasBankingFromProfile = !!(
+        profileData?.preferences?.banking_setup_complete &&
+        profileData?.subaccount_code
+      );
+
+      // 3. Final banking setup status
+      const hasBankingSetup = hasBankingFromTable || hasBankingFromProfile;
 
       console.log("🏦 [Banking Setup Check] Banking validation:", {
         userId,
@@ -418,10 +468,17 @@ export class BankingService {
         currentStatus: bankingDetails?.status,
         isValidStatus: bankingDetails?.status === "active" || bankingDetails?.status === "pending",
         finalResult: hasBankingSetup,
+        sources: {
+          fromBankingTable: hasBankingFromTable,
+          fromProfile: hasBankingFromProfile,
+          combined: hasBankingSetup
+        },
         detailedBreakdown: {
           step1_hasBankingDetails: !!bankingDetails,
           step2_hasSubaccountCode: !!subaccountCode,
           step3_validStatus: bankingDetails?.status === "active" || bankingDetails?.status === "pending",
+          step4_profileSetup: !!profileData?.preferences?.banking_setup_complete,
+          step5_profileSubaccount: !!profileData?.subaccount_code,
           allStepsPass: hasBankingSetup
         }
       });

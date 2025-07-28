@@ -17,11 +17,14 @@ import {
   Key,
   UserPlus,
   RefreshCw,
+  BookOpen,
+  Book,
 } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [errorType, setErrorType] = useState<
@@ -368,14 +371,40 @@ const Login = () => {
                     </div>
                     <Input
                       id="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
-                      className="pl-10 h-12 border-gray-300 focus:border-book-500 focus:ring-book-500 rounded-lg"
+                      className="pl-10 pr-10 h-12 border-gray-300 focus:border-book-500 focus:ring-book-500 rounded-lg"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       disabled={isLoading}
                     />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 group"
+                      onClick={() => setShowPassword(!showPassword)}
+                      disabled={isLoading}
+                      title={showPassword ? "Hide password" : "Show password"}
+                    >
+                      <div className="relative transform-gpu">
+                        {showPassword ? (
+                          <BookOpen
+                            className="h-5 w-5 text-book-500 hover:text-book-600 transition-all duration-500 ease-out transform hover:scale-110 animate-pulse"
+                            style={{
+                              filter: 'drop-shadow(0 2px 4px rgba(34, 197, 94, 0.2))',
+                              animation: 'bookOpen 0.5s ease-out'
+                            }}
+                          />
+                        ) : (
+                          <Book
+                            className="h-5 w-5 text-gray-400 hover:text-book-500 transition-all duration-300 ease-in-out transform hover:scale-110"
+                            style={{
+                              animation: 'bookClose 0.3s ease-in-out'
+                            }}
+                          />
+                        )}
+                      </div>
+                    </button>
                   </div>
                 </div>
 

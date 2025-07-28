@@ -43,6 +43,7 @@ FUNCTIONS=(
     "create-paystack-subaccount"
     "create-recipient"
     "debug-email-template"
+    "decrypt-banking-details"
     "decline-commit"
     "fastway-quote"
     "fastway-shipment"

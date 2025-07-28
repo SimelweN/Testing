@@ -13,6 +13,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { BankingService } from "@/services/bankingService";
+import { PaystackSubaccountService } from "@/services/paystackSubaccountService";
 import type { BankingRequirementsStatus } from "@/types/banking";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -55,8 +56,36 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
         }
       }
 
-      const status = await BankingService.checkBankingRequirements(user.id);
-      console.log("📊 Banking status result:", status);
+      // Use the SAME logic as BankingSetup page that successfully detects banking details
+      console.log("📞 Banking requirement check: Calling getUserSubaccountStatus (same as working BankingSetup page)...");
+      const subaccountStatus = await PaystackSubaccountService.getUserSubaccountStatus(user.id);
+      console.log("✅ Banking requirement check: Got subaccount status:", subaccountStatus);
+
+      // Also check pickup address separately
+      const requirements = await BankingService.getSellerRequirements(user.id);
+      console.log("📍 Address check result:", requirements);
+
+      // Build status using the SAME working logic as BankingSetup page
+      const status: BankingRequirementsStatus = {
+        hasBankingInfo: subaccountStatus.hasSubaccount,  // Use the WORKING logic
+        hasPickupAddress: requirements.hasPickupAddress,
+        isVerified: subaccountStatus.hasSubaccount,  // If subaccount exists, it's verified
+        canListBooks: subaccountStatus.hasSubaccount && requirements.hasPickupAddress,
+        missingRequirements: [
+          ...(subaccountStatus.hasSubaccount ? [] : ["Banking details required for payments"]),
+          ...(requirements.hasPickupAddress ? [] : ["Pickup address required for book collection"])
+        ]
+      };
+
+      console.log("📊 Final banking status (using working BankingSetup logic):", status);
+
+      // If banking is still missing but user claims they just added it, try one more time
+      if (!status.hasBankingInfo && !forceRefresh) {
+        console.log("🔄 Banking not detected, trying forced refresh...");
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+        return checkRequirements(true);
+      }
+
       setBankingStatus(status);
       onCanProceed(status.canListBooks);
     } catch (error) {
@@ -203,6 +232,11 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
                     ),
                   )}
                 </ul>
+                {!bankingStatus.hasBankingInfo && (
+                  <div className="mt-2 p-2 bg-blue-50 rounded text-sm text-blue-700">
+                    💡 Just added your banking details? Click "Refresh Status" below to update.
+                  </div>
+                )}
               </AlertDescription>
             </Alert>
           )}
@@ -227,10 +261,10 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
               variant="outline"
               onClick={() => checkRequirements(true)}
               disabled={loading}
-              className="sm:w-auto btn-mobile"
+              className="sm:w-auto btn-mobile bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
             >
               <span className="btn-mobile-text">
-                {loading ? "Checking..." : "Refresh Status"}
+                {loading ? "Checking..." : "🔄 Refresh Status"}
               </span>
             </Button>
           </div>

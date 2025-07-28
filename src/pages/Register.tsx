@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Mail, Lock, User, Loader2 } from "lucide-react";
+import { Mail, Lock, User, Loader2, BookOpen, Book } from "lucide-react";
 import { BackupEmailService } from "@/utils/backupEmailService";
 
 
@@ -16,6 +16,8 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -231,13 +233,27 @@ const Register = () => {
                     </div>
                     <Input
                       id="password"
-                      type="password"
-                      placeholder="��•••••••"
-                      className="pl-10"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••��•"
+                      className="pl-10 pr-10"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
                     />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 group"
+                      onClick={() => setShowPassword(!showPassword)}
+                      title={showPassword ? "Hide password" : "Show password"}
+                    >
+                      <div className="relative">
+                        {showPassword ? (
+                          <BookOpen className="h-5 w-5 text-book-500 hover:text-book-600 transition-all duration-300 ease-in-out transform hover:scale-110 book-open-animation" />
+                        ) : (
+                          <Book className="h-5 w-5 text-gray-400 hover:text-book-500 transition-all duration-300 ease-in-out transform hover:scale-110 book-close-animation" />
+                        )}
+                      </div>
+                    </button>
                   </div>
                 </div>
 
@@ -249,13 +265,27 @@ const Register = () => {
                     </div>
                     <Input
                       id="confirmPassword"
-                      type="password"
+                      type={showConfirmPassword ? "text" : "password"}
                       placeholder="••••••••"
-                      className="pl-10"
+                      className="pl-10 pr-10"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
                     />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 group"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      title={showConfirmPassword ? "Hide password" : "Show password"}
+                    >
+                      <div className="relative">
+                        {showConfirmPassword ? (
+                          <BookOpen className="h-5 w-5 text-book-500 hover:text-book-600 transition-all duration-300 ease-in-out transform hover:scale-110 book-open-animation" />
+                        ) : (
+                          <Book className="h-5 w-5 text-gray-400 hover:text-book-500 transition-all duration-300 ease-in-out transform hover:scale-110 book-close-animation" />
+                        )}
+                      </div>
+                    </button>
                   </div>
                 </div>
 
@@ -276,7 +306,6 @@ const Register = () => {
                     I agree to the{" "}
                     <Link
                       to="/policies"
-                      target="_blank"
                       className="text-book-600 hover:text-book-800 underline"
                     >
                       Terms & Conditions and Privacy Policy

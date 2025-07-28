@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import BackButton from "@/components/ui/BackButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -92,7 +93,7 @@ const BankingSetup: React.FC = () => {
   };
 
   const handleBack = () => {
-    navigate(-1);
+    navigate("/profile");
   };
 
   const handleEditBanking = () => {

@@ -126,7 +126,7 @@ const CampusNavbar = () => {
 
             <Button
               variant="ghost"
-              onClick={() => handleNavigation("/study-tips")}
+              onClick={() => handleNavigation("/study-resources")}
               className={`px-3 py-2 rounded-lg font-medium transition-colors text-sm ${
                 isActive("/study-tips") || isActive("/study-resources")
                   ? "bg-book-50 text-book-600"
@@ -170,7 +170,7 @@ const CampusNavbar = () => {
 
             <Button
               variant="ghost"
-              onClick={() => handleNavigation("/study-tips")}
+              onClick={() => handleNavigation("/study-resources")}
               className={`px-2 py-2 rounded-lg transition-colors ${
                 isActive("/study-tips") || isActive("/study-resources")
                   ? "bg-book-600 text-white"
@@ -255,7 +255,7 @@ const CampusNavbar = () => {
 
               <Button
                 variant="ghost"
-                onClick={() => handleNavigation("/study-tips")}
+                onClick={() => handleNavigation("/study-resources")}
                 className="flex items-center justify-start px-4 py-3 w-full text-left rounded-lg font-medium transition-colors hover:bg-book-50 hover:text-book-600"
               >
                 <Lightbulb className="w-4 h-4 mr-3" />
