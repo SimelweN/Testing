@@ -90,7 +90,7 @@ const VerifyEmail = () => {
 
         // Method 1: Use access_token and refresh_token (modern Supabase)
         if (accessToken && refreshToken) {
-          console.log('��� Using access_token and refresh_token method');
+          console.log('✅ Using access_token and refresh_token method');
 
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
@@ -169,7 +169,7 @@ const VerifyEmail = () => {
       } catch (error) {
         console.error('❌ Email verification error:', error);
         setStatus('error');
-        setMessage(`Email verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setMessage(`Email verification failed: ${getSafeErrorMessage(error, 'Unknown error')}`);
       }
     };
 
