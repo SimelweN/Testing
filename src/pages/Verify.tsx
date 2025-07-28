@@ -296,16 +296,20 @@ const Verify = () => {
 
                     {hasVerificationParams() && (
                       <div className="mb-4">
-                        <p className="text-sm text-gray-600 mb-3">
-                          Verification parameters detected. Try manual
-                          verification:
-                        </p>
+                        <div className="mb-4 p-4 bg-book-50 rounded-lg border border-book-200">
+                          <h5 className="font-semibold text-book-800 mb-2">
+                            Welcome to ReBooked Solutions!
+                          </h5>
+                          <p className="text-sm text-book-700">
+                            We've detected your verification link. Click the button below to complete your email verification and start your journey with us.
+                          </p>
+                        </div>
                         <Button
                           onClick={handleManualVerification}
-                          className="w-full mb-3"
+                          className="w-full mb-3 bg-book-600 hover:bg-book-700"
                         >
                           <Mail className="h-4 w-4 mr-2" />
-                          Verify Manually
+                          Let's Begin
                         </Button>
                       </div>
                     )}
