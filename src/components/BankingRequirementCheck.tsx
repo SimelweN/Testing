@@ -13,6 +13,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { BankingService } from "@/services/bankingService";
+import { PaystackSubaccountService } from "@/services/paystackSubaccountService";
 import type { BankingRequirementsStatus } from "@/types/banking";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -55,8 +56,28 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
         }
       }
 
-      const status = await BankingService.checkBankingRequirements(user.id);
-      console.log("📊 Banking status result:", status);
+      // Use the SAME logic as BankingSetup page that successfully detects banking details
+      console.log("📞 Banking requirement check: Calling getUserSubaccountStatus (same as working BankingSetup page)...");
+      const subaccountStatus = await PaystackSubaccountService.getUserSubaccountStatus(user.id);
+      console.log("✅ Banking requirement check: Got subaccount status:", subaccountStatus);
+
+      // Also check pickup address separately
+      const requirements = await BankingService.getSellerRequirements(user.id);
+      console.log("📍 Address check result:", requirements);
+
+      // Build status using the SAME working logic as BankingSetup page
+      const status: BankingRequirementsStatus = {
+        hasBankingInfo: subaccountStatus.hasSubaccount,  // Use the WORKING logic
+        hasPickupAddress: requirements.hasPickupAddress,
+        isVerified: subaccountStatus.hasSubaccount,  // If subaccount exists, it's verified
+        canListBooks: subaccountStatus.hasSubaccount && requirements.hasPickupAddress,
+        missingRequirements: [
+          ...(subaccountStatus.hasSubaccount ? [] : ["Banking details required for payments"]),
+          ...(requirements.hasPickupAddress ? [] : ["Pickup address required for book collection"])
+        ]
+      };
+
+      console.log("📊 Final banking status (using working BankingSetup logic):", status);
 
       // If banking is still missing but user claims they just added it, try one more time
       if (!status.hasBankingInfo && !forceRefresh) {
