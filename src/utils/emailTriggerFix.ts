@@ -544,17 +544,43 @@ export class EmailTriggerFix {
   async forceProcessAllPendingEmails(): Promise<{ success: boolean; message: string; details?: any }> {
     try {
       console.log('🔄 Force processing all pending emails...');
-      
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/process-mail-queue`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`
-        },
-        body: JSON.stringify({})
-      });
 
-      const result = await response.json();
+      let response: Response;
+      let result: any;
+
+      try {
+        response = await fetch(`${supabase.supabaseUrl}/functions/v1/process-mail-queue`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`
+          },
+          body: JSON.stringify({})
+        });
+      } catch (fetchError) {
+        return {
+          success: false,
+          message: 'Cannot reach mail queue processor - edge function not deployed',
+          details: {
+            error: fetchError instanceof Error ? fetchError.message : 'Network error',
+            suggestion: 'Deploy the process-mail-queue edge function first'
+          }
+        };
+      }
+
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        return {
+          success: false,
+          message: 'Mail queue processor returned invalid response',
+          details: {
+            status: response.status,
+            statusText: response.statusText,
+            error: 'Invalid JSON response'
+          }
+        };
+      }
 
       if (!response.ok) {
         return {
