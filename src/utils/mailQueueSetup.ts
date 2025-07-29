@@ -140,7 +140,7 @@ export class MailQueueSetup {
       return {
         success: true,
         message: 'Successfully inserted and cleaned up test email',
-        details: { insertionWorking: true }
+        details: { insertionWorking: true, authenticatedUser: user.id }
       };
 
     } catch (error) {
