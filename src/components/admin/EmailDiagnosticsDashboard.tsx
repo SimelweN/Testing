@@ -343,11 +343,26 @@ export const EmailDiagnosticsDashboard: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8">
+                <div className="text-center py-8 space-y-4">
                   <Button onClick={runTriggerTests}>
                     <MessageSquare className="mr-2 h-4 w-4" />
                     Run Email Trigger Tests
                   </Button>
+
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      onClick={debugEmailSubjects}
+                      variant="outline"
+                      disabled={debuggingSubjects}
+                    >
+                      {debuggingSubjects ? (
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <FileText className="mr-2 h-4 w-4" />
+                      )}
+                      Debug Email Subjects
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardContent>
