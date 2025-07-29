@@ -12,17 +12,17 @@ type Notification = Database["public"]["Tables"]["notifications"]["Row"];
 // Global singleton state for notifications to prevent multiple subscriptions
 class NotificationManager {
   private static instance: NotificationManager;
-  private subscriptionRef: { unsubscribe: () => void } | null = null;
+  private subscriptionRef: any = null;
   private subscribingRef: boolean = false;
   private currentUserId: string | null = null;
   private listeners: Set<(notifications: Notification[]) => void> = new Set();
   private notifications: Notification[] = [];
   private connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error' = 'disconnected';
   private reconnectAttempts: number = 0;
-  private maxReconnectAttempts: number = 3;
+  private maxReconnectAttempts: number = 2; // Reduced attempts
   private reconnectTimeoutId: NodeJS.Timeout | null = null;
-  private lastErrorTime: number = 0;
-  private errorCooldownMs: number = 60000; // 60 seconds cooldown between error batches
+  private isDestroyed: boolean = false; // Circuit breaker flag
+  private cleanupInProgress: boolean = false; // Prevent cleanup recursion
 
   static getInstance(): NotificationManager {
     if (!NotificationManager.instance) {
