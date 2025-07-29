@@ -1937,6 +1937,10 @@ const Developer = () => {
               <EmailTemplateDashboard />
             </TabsContent>
 
+            <TabsContent value="email-diagnostics">
+              <EmailDiagnosticPanel />
+            </TabsContent>
+
             {/* Test Results */}
             {testResults.length > 0 && (
               <Card>
