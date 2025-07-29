@@ -179,6 +179,25 @@ export const EmailDiagnosticsDashboard: React.FC = () => {
     }
   };
 
+  const debugEmailSubjects = async () => {
+    setDebuggingSubjects(true);
+    try {
+      const result = await emailTriggerFix.debugEmailSubjects();
+      setSubjectDebugResult(result);
+
+      if (result.success) {
+        toast.success(`Found ${result.details?.totalEmails || 0} recent emails to analyze`);
+      } else {
+        toast.error('Failed to debug email subjects');
+      }
+    } catch (error) {
+      console.error('Subject debug error:', error);
+      toast.error('Failed to debug email subjects');
+    } finally {
+      setDebuggingSubjects(false);
+    }
+  };
+
   const getStatusIcon = (result: EmailDiagnosticResult) => {
     if (result.success) {
       return <CheckCircle className="h-5 w-5 text-green-500" />;
