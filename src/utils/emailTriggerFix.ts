@@ -744,6 +744,62 @@ export class EmailTriggerFix {
       };
     }
   }
+
+  async debugEmailSubjects(): Promise<{ success: boolean; message: string; details?: any }> {
+    try {
+      console.log('🔍 Debugging actual email subjects in mail_queue...');
+
+      const recentDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+      // Get all recent emails with their subjects
+      const { data: recentEmails, error } = await supabase
+        .from('mail_queue')
+        .select('id, subject, created_at, status, user_id')
+        .gte('created_at', recentDate)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) {
+        return {
+          success: false,
+          message: 'Failed to fetch recent emails',
+          details: { error: error.message }
+        };
+      }
+
+      // Group by subject for analysis
+      const subjectGroups = {};
+      recentEmails?.forEach(email => {
+        const subject = email.subject;
+        if (!subjectGroups[subject]) {
+          subjectGroups[subject] = 0;
+        }
+        subjectGroups[subject]++;
+      });
+
+      return {
+        success: true,
+        message: `Found ${recentEmails?.length || 0} recent emails`,
+        details: {
+          totalEmails: recentEmails?.length || 0,
+          subjectGroups,
+          allSubjects: recentEmails?.map(e => e.subject) || [],
+          recentEmailSamples: recentEmails?.slice(0, 10).map(e => ({
+            subject: e.subject,
+            created_at: e.created_at,
+            status: e.status
+          })) || []
+        }
+      };
+
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Exception while debugging email subjects',
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
+      };
+    }
+  }
 }
 
 export const emailTriggerFix = new EmailTriggerFix();
