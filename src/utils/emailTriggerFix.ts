@@ -41,7 +41,7 @@ export class EmailTriggerFix {
 
   private async testMailQueueAccess(): Promise<EmailTriggerTest> {
     try {
-      console.log('�� Testing mail_queue table access...');
+      console.log('📋 Testing mail_queue table access...');
       
       const { data, error } = await supabase
         .from('mail_queue')
@@ -315,13 +315,19 @@ export class EmailTriggerFix {
             problemIdentified,
             ...correlationDetails
           },
-          fix: problemIdentified ? [
-            'CRITICAL: Orders are being created but emails are NOT being queued',
-            'This indicates the create-order function is failing to insert into mail_queue',
-            'Run the improved mail_queue RLS policy SQL script immediately',
-            'Check create-order function logs for RLS policy violations',
-            'Verify mail_queue table exists with proper permissions'
-          ] : []
+          fix: problemIdentified ?
+            correlationDetails.emailsForRecentBuyers > 0 ? [
+              'Emails are being queued for recent buyers, but subject search may need refinement',
+              'Check if email subjects match expected patterns',
+              'Order creation emails may be using different subject lines than expected',
+              'Review actual email subjects in mail_queue table'
+            ] : [
+              'CRITICAL: Orders are being created but emails are NOT being queued',
+              'This indicates the create-order function is failing to insert into mail_queue',
+              'Run the improved mail_queue RLS policy SQL script immediately',
+              'Check create-order function logs for RLS policy violations',
+              'Verify mail_queue table exists with proper permissions'
+            ] : []
         };
       }
 
