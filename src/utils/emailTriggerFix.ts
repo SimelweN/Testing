@@ -26,8 +26,11 @@ export class EmailTriggerFix {
     
     // 4. Test order creation email triggers
     tests.push(await this.testOrderCreationEmailTriggers());
-    
-    // 5. Test commit email triggers
+
+    // 5. Test direct email queue insertion
+    tests.push(await this.testEmailQueueInsertion());
+
+    // 6. Test commit email triggers
     tests.push(await this.testCommitEmailTriggers());
     
     // 6. Check for stuck emails
