@@ -53,7 +53,17 @@ export function EmailDiagnosticPanel() {
   const processMailQueue = async () => {
     setIsRunning(true);
     try {
-      const result = await EmailDiagnostics.processMailQueue();
+      // Process mail queue by calling the edge function directly
+      const response = await fetch(`${window.location.origin}/functions/v1/process-mail-queue`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const result = await response.json();
+      const diagnosticResult = {
+        success: response.ok,
+        message: result.message || 'Mail queue processed',
+        details: result
+      };
       setDiagnosticResults(prev => [...prev, result]);
     } catch (error) {
       console.error('Mail queue processing error:', error);
