@@ -503,7 +503,8 @@ serve(async (req) => {
 </html>`;
 
     // Add buyer email to mail queue
-    await supabase.from("mail_queue").insert({
+    console.log("📧 Adding buyer email to mail queue...");
+    const { error: buyerEmailError } = await supabase.from("mail_queue").insert({
       user_id: finalBuyerId,
       email: finalBuyerEmail,
       subject: "🎉 Order Confirmed - Thank You!",
@@ -511,6 +512,13 @@ serve(async (req) => {
       status: "pending",
       created_at: new Date().toISOString()
     });
+
+    if (buyerEmailError) {
+      console.error("❌ Failed to queue buyer email:", buyerEmailError);
+      // Continue execution but log the error for monitoring
+    } else {
+      console.log("✅ Buyer email queued successfully");
+    }
 
     // Add seller notification emails to mail queue
     for (const order of createdOrders) {
