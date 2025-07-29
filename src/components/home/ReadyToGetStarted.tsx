@@ -4,7 +4,17 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const ReadyToGetStarted = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+
+  // Defensive auth handling with fallback
+  let isAuthenticated = false;
+  try {
+    const auth = useAuth();
+    isAuthenticated = auth.isAuthenticated;
+  } catch (error) {
+    console.warn("Auth context not available in ReadyToGetStarted, using default values");
+    // Fallback to unauthenticated state if auth context is not available
+    isAuthenticated = false;
+  }
 
   return (
     <section className="py-16 sm:py-20 bg-gradient-to-r from-book-600 to-book-700">
