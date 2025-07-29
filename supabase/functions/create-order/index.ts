@@ -650,7 +650,8 @@ serve(async (req) => {
         .single();
 
       if (sellerProfile?.email) {
-        await supabase.from("mail_queue").insert({
+        console.log(`📧 Adding seller email to mail queue for order ${order.id}...`);
+        const { error: sellerEmailError } = await supabase.from("mail_queue").insert({
           user_id: order.seller_id,
           email: sellerProfile.email,
           subject: "📚 New Order - Action Required (48 hours)",
@@ -658,6 +659,15 @@ serve(async (req) => {
           status: "pending",
           created_at: new Date().toISOString()
         });
+
+        if (sellerEmailError) {
+          console.error(`❌ Failed to queue seller email for order ${order.id}:`, sellerEmailError);
+          // Continue execution but log the error for monitoring
+        } else {
+          console.log(`✅ Seller email queued successfully for order ${order.id}`);
+        }
+      } else {
+        console.warn(`⚠️ No seller email found for order ${order.id}, seller ID: ${order.seller_id}`);
       }
     }
 
