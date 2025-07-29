@@ -11,7 +11,27 @@ interface AdminProtectedRouteProps {
 const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({
   children,
 }) => {
-  const { isAuthenticated, isAdmin, isLoading, user } = useAuth();
+  // Defensive auth handling with fallback
+  let isAuthenticated = false;
+  let isAdmin = false;
+  let isLoading = true;
+  let user = null;
+
+  try {
+    const auth = useAuth();
+    isAuthenticated = auth.isAuthenticated;
+    isAdmin = auth.isAdmin;
+    isLoading = auth.isLoading;
+    user = auth.user;
+  } catch (error) {
+    console.warn("Auth context not available in AdminProtectedRoute, redirecting to login");
+    // Fallback to unauthenticated state and redirect
+    isAuthenticated = false;
+    isAdmin = false;
+    isLoading = false;
+    user = null;
+  }
+
   const navigate = useNavigate();
   const [hasChecked, setHasChecked] = useState(false);
   const [checkTimeout, setCheckTimeout] = useState<NodeJS.Timeout | null>(null);
