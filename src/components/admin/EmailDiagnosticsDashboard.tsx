@@ -261,6 +261,7 @@ export const EmailDiagnosticsDashboard: React.FC = () => {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="triggers">Email Triggers</TabsTrigger>
           <TabsTrigger value="tests">Component Tests</TabsTrigger>
           <TabsTrigger value="queue">Mail Queue</TabsTrigger>
           <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
