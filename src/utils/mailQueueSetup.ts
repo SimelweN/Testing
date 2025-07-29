@@ -286,24 +286,33 @@ export class MailQueueSetup {
 
       const problemIdentified = results.recentOrders > 0 && results.recentEmails === 0;
       
+      const overallSuccess = results.tableCheck.success &&
+                           (results.insertionCheck.success || results.rlsBypassCheck.success);
+
       return {
-        success: results.tableCheck.success && results.insertionCheck.success,
-        message: problemIdentified 
+        success: overallSuccess,
+        message: problemIdentified
           ? `Problem confirmed: ${results.recentOrders} recent orders but ${results.recentEmails} emails queued`
-          : results.tableCheck.success 
+          : overallSuccess
             ? 'Mail queue system appears to be working'
-            : 'Mail queue table needs to be created',
+            : 'Mail queue table needs to be created or has RLS issues',
         details: {
           ...results,
           problemIdentified,
           recommendations: problemIdentified ? [
+            'RLS policies may be blocking email insertion from edge functions',
+            'Run the improved RLS policy SQL script',
             'Check create-order function error logs',
-            'Verify mail_queue insert operations in create-order function',
-            'Test order creation flow manually'
-          ] : results.tableCheck.success ? [
+            'Verify mail_queue insert operations in create-order function'
+          ] : !results.insertionCheck.success && results.rlsBypassCheck.success ? [
+            'Table works but RLS policies are too restrictive',
+            'Update RLS policies to allow service role access',
+            'Run the improved RLS policy SQL script'
+          ] : overallSuccess ? [
             'Mail queue system is properly set up'
           ] : [
-            'Create mail_queue table using SQL script'
+            'Create mail_queue table using SQL script',
+            'Set up proper RLS policies'
           ]
         }
       };
