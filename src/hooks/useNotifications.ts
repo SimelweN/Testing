@@ -57,18 +57,23 @@ class NotificationManager {
   }
 
   setupSubscription(userId: string, refreshCallback: () => Promise<void>) {
-    // If we already have a subscription for this user, don't create another
-    if (
-      this.subscribingRef ||
-      (this.subscriptionRef && this.currentUserId === userId && (this.connectionStatus === 'connected' || this.connectionStatus === 'connecting'))
-    ) {
-      console.log(
-        "[NotificationManager] Subscription already exists for user:",
-        userId,
-        "status:",
-        this.connectionStatus,
-      );
+    // Enhanced subscription guard - prevent multiple subscriptions more strictly
+    if (this.subscribingRef) {
+      console.log("[NotificationManager] Already subscribing, ignoring request for user:", userId);
       return;
+    }
+
+    if (this.subscriptionRef && this.currentUserId === userId) {
+      // Check if existing subscription is still valid
+      if (this.connectionStatus === 'connected' || this.connectionStatus === 'connecting') {
+        console.log(
+          "[NotificationManager] Valid subscription already exists for user:",
+          userId,
+          "status:",
+          this.connectionStatus,
+        );
+        return;
+      }
     }
 
     // Clean up any existing subscription for a different user
@@ -103,6 +108,18 @@ class NotificationManager {
     );
 
     try {
+      // Check for existing channel with same name and remove it first
+      const existingChannels = (supabase as any).realtime?.channels;
+      if (existingChannels) {
+        const existingChannel = Object.values(existingChannels).find(
+          (ch: any) => ch?.topic === channelName
+        );
+        if (existingChannel) {
+          console.log('[NotificationManager] Removing existing channel with same name');
+          supabase.removeChannel(existingChannel as any);
+        }
+      }
+
       const channel = supabase.channel(channelName);
 
       channel.on(
@@ -126,7 +143,7 @@ class NotificationManager {
       );
 
       channel.subscribe((status) => {
-        console.log("[NotificationManager] Subscription status:", status);
+        console.log(`[NotificationManager] Channel ${channelName} status:`, status);
 
         if (status === "SUBSCRIBED") {
           this.subscribingRef = false;
@@ -141,6 +158,14 @@ class NotificationManager {
             this.lastErrorTime = now;
           }
           this.connectionStatus = 'error';
+          // Clean up the failed subscription
+          if (this.subscriptionRef) {
+            try {
+              supabase.removeChannel(this.subscriptionRef);
+            } catch (cleanupError) {
+              console.warn('[NotificationManager] Error during channel cleanup:', cleanupError);
+            }
+          }
           this.subscriptionRef = null;
           this.subscribingRef = false;
 
@@ -157,12 +182,26 @@ class NotificationManager {
         } else if (status === "CLOSED") {
           console.warn("[NotificationManager] 🔌 Connection closed");
           this.connectionStatus = 'disconnected';
+          if (this.subscriptionRef) {
+            try {
+              supabase.removeChannel(this.subscriptionRef);
+            } catch (cleanupError) {
+              console.warn('[NotificationManager] Error during closed channel cleanup:', cleanupError);
+            }
+          }
           this.subscriptionRef = null;
           this.subscribingRef = false;
           this.scheduleReconnect(userId, refreshCallback);
         } else if (status === "TIMED_OUT") {
           console.warn("[NotificationManager] ⏱️ Connection timed out");
           this.connectionStatus = 'error';
+          if (this.subscriptionRef) {
+            try {
+              supabase.removeChannel(this.subscriptionRef);
+            } catch (cleanupError) {
+              console.warn('[NotificationManager] Error during timeout channel cleanup:', cleanupError);
+            }
+          }
           this.subscriptionRef = null;
           this.subscribingRef = false;
           this.scheduleReconnect(userId, refreshCallback);
@@ -213,6 +252,8 @@ class NotificationManager {
   }
 
   cleanup() {
+    console.log('[NotificationManager] Starting cleanup...');
+
     // Clear any pending reconnect timeout
     if (this.reconnectTimeoutId) {
       clearTimeout(this.reconnectTimeoutId);
@@ -221,7 +262,8 @@ class NotificationManager {
 
     if (this.subscriptionRef) {
       try {
-        this.subscriptionRef.unsubscribe();
+        // Use removeChannel instead of unsubscribe for better cleanup
+        supabase.removeChannel(this.subscriptionRef);
         console.log("[NotificationManager] Cleaned up subscription");
       } catch (error) {
         console.error("[NotificationManager] Error during cleanup:", error);
@@ -229,11 +271,14 @@ class NotificationManager {
         this.subscriptionRef = null;
       }
     }
+
     this.subscribingRef = false;
     this.currentUserId = null;
     this.notifications = [];
     this.connectionStatus = 'disconnected';
     this.reconnectAttempts = 0;
+
+    console.log('[NotificationManager] Cleanup completed');
   }
 }
 
