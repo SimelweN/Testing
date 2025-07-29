@@ -189,25 +189,36 @@ export class EmailTriggerFix {
   private async testOrderCreationEmailTriggers(): Promise<EmailTriggerTest> {
     try {
       console.log('📦 Testing order creation email triggers...');
-      
-      // Check if create-order function exists by testing it
-      const testResponse = await fetch(`${supabase.supabaseUrl}/functions/v1/create-order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`
-        },
-        body: JSON.stringify({ test: true })
-      });
 
-      if (testResponse.status === 404) {
+      // Check if create-order function exists (simple OPTIONS request)
+      try {
+        const testResponse = await fetch(`${supabase.supabaseUrl}/functions/v1/create-order`, {
+          method: 'OPTIONS',
+          headers: {
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`
+          }
+        });
+
+        if (testResponse.status === 404) {
+          return {
+            name: 'Order Creation Email Triggers',
+            success: false,
+            message: 'create-order function not deployed',
+            fix: [
+              'Deploy create-order function: supabase functions deploy create-order',
+              'Verify all edge functions are deployed'
+            ]
+          };
+        }
+      } catch (error) {
         return {
           name: 'Order Creation Email Triggers',
           success: false,
-          message: 'create-order function not deployed',
+          message: 'Cannot reach create-order function',
+          details: { error: error instanceof Error ? error.message : 'Unknown error' },
           fix: [
-            'Deploy create-order function: supabase functions deploy create-order',
-            'Verify all edge functions are deployed'
+            'Check if create-order function is deployed',
+            'Verify edge function URLs are accessible'
           ]
         };
       }
