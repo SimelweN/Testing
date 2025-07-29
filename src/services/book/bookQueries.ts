@@ -78,9 +78,10 @@ const logDetailedError = (context: string, error: unknown) => {
   // Use safe error logging to prevent [object Object] issues
   safeLogError(`BookQueries - ${context}`, error);
 
-  // Also log to our error utility (but don't spam it)
+  // Also log to our error utility with safe message extraction (but don't spam it)
   if (logError && bookQueryErrorCount <= 3) {
-    logError(context, error);
+    const safeMessage = error instanceof Error ? error.message : String(error);
+    logError(context, new Error(safeMessage));
   }
 };
 
