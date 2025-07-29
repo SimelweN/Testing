@@ -28,6 +28,8 @@ export const EmailDiagnosticsDashboard: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [testEmail, setTestEmail] = useState('');
   const [recentEmails, setRecentEmails] = useState<EmailDiagnosticResult | null>(null);
+  const [triggerTests, setTriggerTests] = useState<EmailTriggerTest[] | null>(null);
+  const [processingEmails, setProcessingEmails] = useState(false);
 
   useEffect(() => {
     runDiagnostics();
