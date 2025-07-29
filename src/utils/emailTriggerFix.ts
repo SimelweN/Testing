@@ -317,7 +317,7 @@ export class EmailTriggerFix {
           .from('mail_queue')
           .select('id, subject, status, created_at')
           .gte('created_at', recentOrderDate)
-          .or('subject.ilike.%Order Confirmed%,subject.ilike.%New Order%,subject.ilike.%Action Required%,subject.ilike.%order%,subject.ilike.%purchase%');
+          .or('subject.ilike.%Order Confirmed%,subject.ilike.%New Order%,subject.ilike.%Action Required%,subject.ilike.%order%,subject.ilike.%purchase%,subject.ilike.%Thank You%');
 
         // If we can't access mail_queue, that's the problem
         if (emailError) {
@@ -360,7 +360,7 @@ export class EmailTriggerFix {
               .from('mail_queue')
               .select('id, subject, status, created_at')
               .gte('created_at', recentOrderDate)
-              .or('subject.ilike.%Order Confirmed - Thank You%,subject.ilike.%New Order - Action Required%');
+              .or('subject.ilike.%Order Confirmed - Thank You%,subject.ilike.%New Order - Action Required%,subject.ilike.%🎉 Order Confirmed%,subject.ilike.%📚 New Order%');
 
             // Get actual email subjects for debugging
             const { data: actualEmailSubjects } = await supabase
