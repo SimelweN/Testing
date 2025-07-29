@@ -94,7 +94,7 @@ export function EmailDiagnosticPanel() {
   };
 
   const exportResults = () => {
-    const report = EmailDiagnostics.formatDiagnosticResults(diagnosticResults);
+    const report = JSON.stringify(diagnosticResults, null, 2);
     const blob = new Blob([report], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
