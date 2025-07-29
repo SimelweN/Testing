@@ -25,28 +25,58 @@ CREATE INDEX IF NOT EXISTS idx_mail_queue_user_id ON mail_queue(user_id);
 -- 3. Enable Row Level Security
 ALTER TABLE mail_queue ENABLE ROW LEVEL SECURITY;
 
--- 4. Drop existing policies if they exist (to recreate them)
+-- 4. Fix mail_queue RLS policies to allow proper email functionality
+-- Drop existing policies
+DROP POLICY IF EXISTS "Service role can manage all emails" ON mail_queue;
 DROP POLICY IF EXISTS "Users can insert their own emails" ON mail_queue;
 DROP POLICY IF EXISTS "Users can view their own emails" ON mail_queue;
-DROP POLICY IF EXISTS "Service role can manage all emails" ON mail_queue;
+DROP POLICY IF EXISTS "System can insert emails" ON mail_queue;
+DROP POLICY IF EXISTS "System can update email status" ON mail_queue;
 
--- 5. Create policies for proper access
+-- 5. Create new policies that allow proper email queue functionality
+
+-- Allow authenticated users to insert emails for themselves
 CREATE POLICY "Users can insert their own emails"
-ON mail_queue FOR INSERT 
-TO authenticated
-WITH CHECK (auth.uid() = user_id);
+ON mail_queue
+FOR INSERT
+WITH CHECK (
+  auth.uid() IS NOT NULL AND
+  (user_id = auth.uid() OR user_id IS NULL)
+);
 
-CREATE POLICY "Users can view their own emails"
-ON mail_queue FOR SELECT 
-TO authenticated
-USING (auth.uid() = user_id);
-
--- 6. CRITICAL: Service role policy for edge functions
+-- Allow service role (edge functions) to manage all emails
 CREATE POLICY "Service role can manage all emails"
-ON mail_queue FOR ALL 
-TO service_role
-USING (true)
-WITH CHECK (true);
+ON mail_queue
+FOR ALL
+USING (auth.role() = 'service_role');
+
+-- Allow edge functions to insert emails (for system-generated emails)
+CREATE POLICY "System can insert emails"
+ON mail_queue
+FOR INSERT
+WITH CHECK (
+  auth.role() = 'service_role' OR
+  auth.uid() IS NULL OR
+  (auth.uid() IS NOT NULL AND (user_id = auth.uid() OR user_id IS NULL))
+);
+
+-- Users can view their own emails
+CREATE POLICY "Users can view their own emails"
+ON mail_queue
+FOR SELECT
+USING (
+  auth.uid() = user_id OR
+  auth.role() = 'service_role'
+);
+
+-- Allow system to update email status
+CREATE POLICY "System can update email status"
+ON mail_queue
+FOR UPDATE
+USING (
+  auth.role() = 'service_role' OR
+  (auth.uid() IS NOT NULL AND auth.uid() = user_id)
+);
 
 -- 7. Grant proper permissions to service role
 GRANT ALL ON mail_queue TO service_role;
