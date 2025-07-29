@@ -237,7 +237,7 @@ export class EmailTriggerFix {
         // Check if any emails were queued for recent orders
         const recentOrderDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(); // Last 24 hours
 
-        const { data: emailsFromOrders, error: emailError } = await supabase
+        let { data: emailsFromOrders, error: emailError } = await supabase
           .from('mail_queue')
           .select('id, subject, status, created_at')
           .gte('created_at', recentOrderDate)
