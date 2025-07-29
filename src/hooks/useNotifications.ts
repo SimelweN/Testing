@@ -9,7 +9,7 @@ import { Database } from "@/integrations/supabase/types";
 
 type Notification = Database["public"]["Tables"]["notifications"]["Row"];
 
-// Global singleton state for notifications to prevent multiple subscriptions
+// Simplified global singleton to prevent multiple subscriptions
 class NotificationManager {
   private static instance: NotificationManager;
   private subscriptionRef: any = null;
@@ -22,7 +22,6 @@ class NotificationManager {
   private maxReconnectAttempts: number = 2; // Reduced attempts
   private reconnectTimeoutId: NodeJS.Timeout | null = null;
   private isDestroyed: boolean = false; // Circuit breaker flag
-  private cleanupInProgress: boolean = false; // Prevent cleanup recursion
 
   static getInstance(): NotificationManager {
     if (!NotificationManager.instance) {
@@ -57,6 +56,12 @@ class NotificationManager {
   }
 
   setupSubscription(userId: string, refreshCallback: () => Promise<void>) {
+    // Circuit breaker - prevent operations if destroyed
+    if (this.isDestroyed) {
+      console.log('[NotificationManager] Manager is destroyed, ignoring setup request');
+      return;
+    }
+
     // Enhanced subscription guard - prevent multiple subscriptions more strictly
     if (this.subscribingRef) {
       console.log("[NotificationManager] Already subscribing, ignoring request for user:", userId);
@@ -76,6 +81,13 @@ class NotificationManager {
       }
     }
 
+    // Max attempts exceeded - abort
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.warn("[NotificationManager] 🔕 Max reconnection attempts reached, notifications disabled");
+      this.connectionStatus = 'error';
+      return;
+    }
+
     // Clean up any existing subscription for a different user
     if (this.subscriptionRef && this.currentUserId !== userId) {
       console.log(
@@ -84,7 +96,7 @@ class NotificationManager {
         "to",
         userId,
       );
-      this.cleanup();
+      this.safeCleanup();
     }
 
     this.currentUserId = userId;
@@ -97,7 +109,7 @@ class NotificationManager {
       this.reconnectTimeoutId = null;
     }
 
-    const channelName = `notifications_${userId}`;
+    const channelName = `notifications_${userId}_${Date.now()}`; // Add timestamp to ensure uniqueness
     console.log(
       "[NotificationManager] Setting up subscription for user:",
       userId,
@@ -108,18 +120,6 @@ class NotificationManager {
     );
 
     try {
-      // Check for existing channel with same name and remove it first
-      const existingChannels = (supabase as any).realtime?.channels;
-      if (existingChannels) {
-        const existingChannel = Object.values(existingChannels).find(
-          (ch: any) => ch?.topic === channelName
-        );
-        if (existingChannel) {
-          console.log('[NotificationManager] Removing existing channel with same name');
-          supabase.removeChannel(existingChannel as any);
-        }
-      }
-
       const channel = supabase.channel(channelName);
 
       channel.on(
@@ -149,62 +149,19 @@ class NotificationManager {
           this.subscribingRef = false;
           this.connectionStatus = 'connected';
           this.reconnectAttempts = 0; // Reset retry counter on success
-          console.log("[NotificationManager] �� Successfully connected to realtime");
-        } else if (status === "CHANNEL_ERROR") {
-          const now = Date.now();
-          // Only log and attempt reconnection if we're not in cooldown period
-          if (now - this.lastErrorTime > this.errorCooldownMs) {
-            console.warn("[NotificationManager] ⚠️ Channel connection issue (notifications may be delayed)");
-            this.lastErrorTime = now;
-          }
+          console.log("[NotificationManager] 🔔 Successfully connected to realtime");
+        } else if (status === "CHANNEL_ERROR" || status === "CLOSED" || status === "TIMED_OUT") {
+          console.warn(`[NotificationManager] 🔌 Connection ${status.toLowerCase()}`);
           this.connectionStatus = 'error';
-          // Clean up the failed subscription
-          if (this.subscriptionRef) {
-            try {
-              supabase.removeChannel(this.subscriptionRef);
-            } catch (cleanupError) {
-              console.warn('[NotificationManager] Error during channel cleanup:', cleanupError);
-            }
-          }
-          this.subscriptionRef = null;
           this.subscribingRef = false;
-
-          // Only schedule reconnect if not in cooldown and not too many attempts
-          if (now - this.lastErrorTime <= this.errorCooldownMs && this.reconnectAttempts < this.maxReconnectAttempts) {
-            setTimeout(() => {
-              if (this.currentUserId === userId && this.connectionStatus === 'error') {
-                this.scheduleReconnect(userId, refreshCallback);
-              }
-            }, 5000);
-          } else if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-            console.warn("[NotificationManager] 🔕 Max reconnection attempts reached, notifications temporarily disabled");
+          this.safeCleanup();
+          
+          // Only attempt reconnect if not exceeded max attempts and not destroyed
+          if (this.reconnectAttempts < this.maxReconnectAttempts && !this.isDestroyed) {
+            this.scheduleReconnect(userId, refreshCallback);
+          } else {
+            console.warn("[NotificationManager] 🔕 Notifications temporarily disabled due to connection issues");
           }
-        } else if (status === "CLOSED") {
-          console.warn("[NotificationManager] 🔌 Connection closed");
-          this.connectionStatus = 'disconnected';
-          if (this.subscriptionRef) {
-            try {
-              supabase.removeChannel(this.subscriptionRef);
-            } catch (cleanupError) {
-              console.warn('[NotificationManager] Error during closed channel cleanup:', cleanupError);
-            }
-          }
-          this.subscriptionRef = null;
-          this.subscribingRef = false;
-          this.scheduleReconnect(userId, refreshCallback);
-        } else if (status === "TIMED_OUT") {
-          console.warn("[NotificationManager] ⏱️ Connection timed out");
-          this.connectionStatus = 'error';
-          if (this.subscriptionRef) {
-            try {
-              supabase.removeChannel(this.subscriptionRef);
-            } catch (cleanupError) {
-              console.warn('[NotificationManager] Error during timeout channel cleanup:', cleanupError);
-            }
-          }
-          this.subscriptionRef = null;
-          this.subscribingRef = false;
-          this.scheduleReconnect(userId, refreshCallback);
         }
       });
 
@@ -217,12 +174,17 @@ class NotificationManager {
       this.connectionStatus = 'error';
       this.subscriptionRef = null;
       this.subscribingRef = false;
-      this.scheduleReconnect(userId, refreshCallback);
+      
+      // Only attempt reconnect if not exceeded max attempts and not destroyed
+      if (this.reconnectAttempts < this.maxReconnectAttempts && !this.isDestroyed) {
+        this.scheduleReconnect(userId, refreshCallback);
+      }
     }
   }
 
   private scheduleReconnect(userId: string, refreshCallback: () => Promise<void>) {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+    // Circuit breaker checks
+    if (this.isDestroyed || this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.warn(
         "[NotificationManager] 🔕 Notifications temporarily disabled due to connection issues",
       );
@@ -231,17 +193,15 @@ class NotificationManager {
     }
 
     this.reconnectAttempts++;
-    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 30000); // Max 30s delay
+    const delay = Math.min(3000 * this.reconnectAttempts, 15000); // Simpler delay calculation
 
-    // Only log every few attempts to reduce spam
-    if (this.reconnectAttempts <= 2 || this.reconnectAttempts % 3 === 0) {
-      console.log(
-        `[NotificationManager] 🔄 Scheduling reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
-      );
-    }
+    console.log(
+      `[NotificationManager] 🔄 Scheduling reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
+    );
 
     this.reconnectTimeoutId = setTimeout(() => {
-      if (this.currentUserId === userId) {
+      // Additional checks before attempting reconnect
+      if (!this.isDestroyed && this.currentUserId === userId && this.reconnectAttempts < this.maxReconnectAttempts) {
         this.setupSubscription(userId, refreshCallback);
       }
     }, delay);
@@ -251,8 +211,21 @@ class NotificationManager {
     return this.connectionStatus;
   }
 
+  private safeCleanup() {
+    try {
+      if (this.subscriptionRef) {
+        supabase.removeChannel(this.subscriptionRef);
+        this.subscriptionRef = null;
+      }
+    } catch (error) {
+      // Ignore cleanup errors to prevent recursion
+      console.warn("[NotificationManager] Cleanup error (ignored):", error);
+    }
+  }
+
   cleanup() {
     console.log('[NotificationManager] Starting cleanup...');
+    this.isDestroyed = true; // Set circuit breaker
 
     // Clear any pending reconnect timeout
     if (this.reconnectTimeoutId) {
@@ -260,17 +233,7 @@ class NotificationManager {
       this.reconnectTimeoutId = null;
     }
 
-    if (this.subscriptionRef) {
-      try {
-        // Use removeChannel instead of unsubscribe for better cleanup
-        supabase.removeChannel(this.subscriptionRef);
-        console.log("[NotificationManager] Cleaned up subscription");
-      } catch (error) {
-        console.error("[NotificationManager] Error during cleanup:", error);
-      } finally {
-        this.subscriptionRef = null;
-      }
-    }
+    this.safeCleanup();
 
     this.subscribingRef = false;
     this.currentUserId = null;
