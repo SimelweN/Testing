@@ -1339,6 +1339,10 @@ const Developer = () => {
                 <Send className="h-4 w-4 mb-1" />
                 <span className="text-xs">Templates</span>
               </TabsTrigger>
+              <TabsTrigger value="email-diagnostics" className="flex flex-col items-center p-3">
+                <Bug className="h-4 w-4 mb-1" />
+                <span className="text-xs">Diagnostics</span>
+              </TabsTrigger>
             </TabsList>
 
             {/* Test Data Selection */}
