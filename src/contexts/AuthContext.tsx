@@ -62,10 +62,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    // More detailed error with debugging info
     console.error("useAuth hook called outside of AuthProvider context");
-    console.error("Component stack:", new Error().stack);
-    throw new Error("useAuth must be used within an AuthProvider. Make sure your component is wrapped with <AuthProvider>.");
+    console.error("This usually happens when:");
+    console.error("1. Component is rendered before AuthProvider");
+    console.error("2. Component is outside the AuthProvider tree");
+    console.error("3. AuthProvider failed to initialize");
+    throw new Error("useAuth must be used within an AuthProvider. Check your component tree structure.");
   }
   return context;
 };
