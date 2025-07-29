@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { toast } from "sonner";
+import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 
 interface ErrorHandlerOptions {
   showToast?: boolean;
@@ -31,7 +32,12 @@ export const useErrorHandler = () => {
       }
 
       if (logError) {
-        console.error(`[${context}] Error:`, error);
+        const safeMessage = getSafeErrorMessage(error);
+        console.error(`[${context}] Error: ${safeMessage}`, {
+          originalError: error,
+          context,
+          timestamp: new Date().toISOString()
+        });
       }
 
       if (showToast) {
