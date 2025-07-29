@@ -404,8 +404,8 @@ const EmailDiagnosticsDashboard: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {recentEmails.map((email) => (
-                    <div key={email.id} className="border rounded p-3">
+                  {recentEmails.map((email, index) => (
+                    <div key={email.id || `email-${index}`} className="border rounded p-3">
                       <div className="flex items-start justify-between">
                         <div>
                           <h4 className="font-medium">{email.subject}</h4>
