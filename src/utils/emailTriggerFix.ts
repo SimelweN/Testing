@@ -356,11 +356,30 @@ export class EmailTriggerFix {
               .gte('created_at', recentOrderDate);
 
             // Look specifically for create-order email subjects
-            const { data: specificOrderEmails } = await supabase
+            // Try multiple search approaches to be comprehensive
+            const { data: specificOrderEmails1 } = await supabase
               .from('mail_queue')
               .select('id, subject, status, created_at')
               .gte('created_at', recentOrderDate)
               .or('subject.ilike.%Order Confirmed - Thank You%,subject.ilike.%New Order - Action Required%,subject.ilike.%🎉 Order Confirmed%,subject.ilike.%📚 New Order%');
+
+            // Also try exact matches for known patterns
+            const { data: specificOrderEmails2 } = await supabase
+              .from('mail_queue')
+              .select('id, subject, status, created_at')
+              .gte('created_at', recentOrderDate)
+              .in('subject', [
+                '🎉 Order Confirmed - Thank You!',
+                '📚 New Order - Action Required (48 hours)'
+              ]);
+
+            // Combine results
+            const specificOrderEmails = [
+              ...(specificOrderEmails1 || []),
+              ...(specificOrderEmails2 || [])
+            ].filter((email, index, self) =>
+              index === self.findIndex(e => e.id === email.id)
+            ); // Remove duplicates
 
             // Get actual email subjects for debugging
             const { data: actualEmailSubjects } = await supabase
