@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import EmailTemplateDashboard from "@/components/admin/EmailTemplateDashboard";
+import { EmailDiagnosticPanel } from "@/components/EmailDiagnosticPanel";
 import {
   ArrowLeft,
   Play,
