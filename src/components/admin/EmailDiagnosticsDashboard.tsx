@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { emailTriggerFix, EmailTriggerTest } from '@/utils/emailTriggerFix';
+import EmailPatternDebugger from './EmailPatternDebugger';
 
 interface EmailDiagnosticsState {
   isRunning: boolean;
@@ -90,7 +91,7 @@ const EmailDiagnosticsDashboard: React.FC = () => {
       } else if (edgeFunctionIssues > 0) {
         toast.warning(`⚠️ ${edgeFunctionIssues} edge functions not deployed, ${successCount} checks passed`);
       } else {
-        toast.error(`❌ ${failureCount} issues found, ${successCount} checks passed`);
+        toast.error(`��� ${failureCount} issues found, ${successCount} checks passed`);
       }
 
     } catch (error) {
