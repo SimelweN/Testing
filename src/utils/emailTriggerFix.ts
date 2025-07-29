@@ -41,7 +41,7 @@ export class EmailTriggerFix {
 
   private async testMailQueueAccess(): Promise<EmailTriggerTest> {
     try {
-      console.log('📋 Testing mail_queue table access...');
+      console.log('�� Testing mail_queue table access...');
       
       const { data, error } = await supabase
         .from('mail_queue')
@@ -263,8 +263,8 @@ export class EmailTriggerFix {
           };
         }
 
-        const success = emailsFromOrders && emailsFromOrders.length > 0;
-        const problemIdentified = recentOrders.length > 0 && (!emailsFromOrders || emailsFromOrders.length === 0);
+        let success = emailsFromOrders && emailsFromOrders.length > 0;
+        let problemIdentified = recentOrders.length > 0 && (!emailsFromOrders || emailsFromOrders.length === 0);
 
         // Additional check: look for emails that should correlate with specific recent orders
         let correlationDetails = {};
