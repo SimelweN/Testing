@@ -267,6 +267,72 @@ export const EmailDiagnosticsDashboard: React.FC = () => {
           <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="triggers" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Email Trigger Analysis
+                </div>
+                <Button variant="outline" size="sm" onClick={runTriggerTests}>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Test All Triggers
+                </Button>
+              </CardTitle>
+              <CardDescription>
+                Deep analysis of all email triggers in the order and commit flow
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {triggerTests ? (
+                <div className="space-y-4">
+                  {triggerTests.map((test, index) => (
+                    <div key={index} className="p-4 border rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon({ success: test.success, message: test.message })}
+                          <span className="font-medium">{test.name}</span>
+                        </div>
+                        <Badge variant={test.success ? 'default' : 'destructive'}>
+                          {test.success ? 'PASS' : 'FAIL'}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-2">{test.message}</p>
+
+                      {test.details && (
+                        <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                          <pre className="text-xs overflow-auto">
+                            {JSON.stringify(test.details, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+
+                      {test.fix && test.fix.length > 0 && (
+                        <div className="mt-3">
+                          <p className="text-sm font-medium text-red-600 mb-2">How to fix:</p>
+                          <ul className="list-disc list-inside space-y-1">
+                            {test.fix.map((fixStep, fixIndex) => (
+                              <li key={fixIndex} className="text-sm text-gray-600">{fixStep}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Button onClick={runTriggerTests}>
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Run Email Trigger Tests
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
