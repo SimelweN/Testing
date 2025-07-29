@@ -286,11 +286,21 @@ export class EmailTriggerFix {
               .gte('created_at', recentOrderDate)
               .or('subject.ilike.%Order Confirmed - Thank You%,subject.ilike.%New Order - Action Required%');
 
+            // Get actual email subjects for debugging
+            const { data: actualEmailSubjects } = await supabase
+              .from('mail_queue')
+              .select('subject, created_at, status')
+              .gte('created_at', recentOrderDate)
+              .order('created_at', { ascending: false })
+              .limit(10);
+
             correlationDetails = {
               recentBuyerIds: recentBuyerIds.length,
               emailsForRecentBuyers: buyerEmails?.length || 0,
               specificOrderEmails: specificOrderEmails?.length || 0,
               specificEmailSamples: specificOrderEmails?.slice(0, 3) || [],
+              actualEmailSubjects: actualEmailSubjects?.map(e => e.subject) || [],
+              actualEmailSamples: actualEmailSubjects?.slice(0, 5) || [],
               correlation: buyerEmails?.length ? 'Some emails found for recent buyers' : 'No emails found for recent order buyers'
             };
 
