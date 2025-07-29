@@ -628,6 +628,88 @@ export class EmailTriggerFix {
       };
     }
   }
+
+  async testEmailQueueInsertion(): Promise<EmailTriggerTest> {
+    try {
+      console.log('🧪 Testing direct email queue insertion...');
+
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        return {
+          name: 'Direct Email Queue Test',
+          success: false,
+          message: 'User not authenticated for direct test',
+          details: { error: userError?.message || 'No user found' }
+        };
+      }
+
+      // Try to insert a test email directly
+      const testEmail = {
+        user_id: user.id,
+        email: 'test@emailtriggerfix.com',
+        subject: '🧪 Test - Email Queue Insertion Verification',
+        body: '<p>This is a test email to verify direct mail_queue insertion works.</p>',
+        status: 'pending',
+        created_at: new Date().toISOString()
+      };
+
+      const { error: insertError } = await supabase
+        .from('mail_queue')
+        .insert(testEmail);
+
+      if (insertError) {
+        return {
+          name: 'Direct Email Queue Test',
+          success: false,
+          message: 'Failed to insert test email into mail_queue',
+          details: { error: insertError.message },
+          fix: [
+            'RLS policies are blocking email insertion',
+            'Run the improved mail_queue RLS policy SQL script',
+            'Check if mail_queue table exists',
+            'Verify user permissions for mail_queue table'
+          ]
+        };
+      }
+
+      // Clean up test email
+      const { error: deleteError } = await supabase
+        .from('mail_queue')
+        .delete()
+        .eq('email', 'test@emailtriggerfix.com')
+        .eq('subject', '🧪 Test - Email Queue Insertion Verification');
+
+      if (deleteError) {
+        console.warn('⚠️ Failed to clean up test email:', deleteError.message);
+      }
+
+      return {
+        name: 'Direct Email Queue Test',
+        success: true,
+        message: 'Successfully inserted and cleaned up test email',
+        details: {
+          insertionWorking: true,
+          userCanInsert: true,
+          cleanupWorking: !deleteError
+        }
+      };
+
+    } catch (error) {
+      return {
+        name: 'Direct Email Queue Test',
+        success: false,
+        message: 'Exception during direct email queue test',
+        details: { error: error instanceof Error ? error.message : 'Unknown error' },
+        fix: [
+          'Check mail_queue table exists',
+          'Verify RLS policies allow authenticated users to insert emails',
+          'Check network connectivity to Supabase'
+        ]
+      };
+    }
+  }
 }
 
 export const emailTriggerFix = new EmailTriggerFix();
