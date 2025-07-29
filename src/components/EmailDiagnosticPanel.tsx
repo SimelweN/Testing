@@ -41,7 +41,7 @@ export function EmailDiagnosticPanel() {
 
     setIsRunning(true);
     try {
-      const result = await EmailDiagnostics.testEmailSending(testEmail);
+      const result = await emailDiagnosticsService.addTestEmailToQueue(testEmail);
       setDiagnosticResults(prev => [...prev, result]);
     } catch (error) {
       console.error('Email test error:', error);
