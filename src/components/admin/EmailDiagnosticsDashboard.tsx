@@ -80,7 +80,7 @@ export const EmailDiagnosticsDashboard: React.FC = () => {
 
     try {
       const result = await emailDiagnosticsService.addTestEmailToQueue(testEmail);
-      
+
       if (result.success) {
         toast.success('Test email added to queue successfully!');
         setTestEmail('');
@@ -92,6 +92,88 @@ export const EmailDiagnosticsDashboard: React.FC = () => {
     } catch (error) {
       console.error('Test email error:', error);
       toast.error('Failed to send test email');
+    }
+  };
+
+  const runTriggerTests = async () => {
+    try {
+      const tests = await emailTriggerFix.diagnoseAllEmailTriggers();
+      setTriggerTests(tests);
+
+      const failedTests = tests.filter(test => !test.success);
+      if (failedTests.length === 0) {
+        toast.success('All email triggers are working correctly!');
+      } else {
+        toast.warning(`${failedTests.length} email trigger issues found`);
+      }
+    } catch (error) {
+      console.error('Trigger test error:', error);
+      toast.error('Failed to run trigger tests');
+    }
+  };
+
+  const processStuckEmails = async () => {
+    setProcessingEmails(true);
+    try {
+      const result = await emailTriggerFix.forceProcessAllPendingEmails();
+
+      if (result.success) {
+        toast.success(result.message);
+        // Refresh diagnostics and trigger tests
+        setTimeout(() => {
+          runDiagnostics();
+          runTriggerTests();
+        }, 1000);
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      console.error('Process emails error:', error);
+      toast.error('Failed to process stuck emails');
+    } finally {
+      setProcessingEmails(false);
+    }
+  };
+
+  const sendTestOrderEmail = async () => {
+    if (!testEmail) {
+      toast.error('Please enter an email address');
+      return;
+    }
+
+    try {
+      const result = await emailTriggerFix.createTestOrderEmail(testEmail);
+
+      if (result.success) {
+        toast.success('Test order email created and queued!');
+        setTimeout(runDiagnostics, 1000);
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      console.error('Test order email error:', error);
+      toast.error('Failed to create test order email');
+    }
+  };
+
+  const sendTestCommitEmail = async () => {
+    if (!testEmail) {
+      toast.error('Please enter an email address');
+      return;
+    }
+
+    try {
+      const result = await emailTriggerFix.createTestCommitEmail(testEmail);
+
+      if (result.success) {
+        toast.success('Test commit email created and queued!');
+        setTimeout(runDiagnostics, 1000);
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      console.error('Test commit email error:', error);
+      toast.error('Failed to create test commit email');
     }
   };
 
