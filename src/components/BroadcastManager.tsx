@@ -20,8 +20,18 @@ const BroadcastManager = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [lastCheckTime, setLastCheckTime] = useState<number>(0);
 
-  // Always call useAuth - if it fails, the component will fail gracefully
-  const { user, isAuthenticated } = useAuth();
+  // Defensive auth handling with fallback
+  let user = null;
+  let isAuthenticated = false;
+
+  try {
+    const auth = useAuth();
+    user = auth.user;
+    isAuthenticated = auth.isAuthenticated;
+  } catch (error) {
+    console.warn("Auth context not available in BroadcastManager, using default values");
+    // Fallback values already set above
+  }
 
   useEffect(() => {
     // Early return if broadcasts are disabled

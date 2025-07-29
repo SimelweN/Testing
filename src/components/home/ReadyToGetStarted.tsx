@@ -1,10 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
 
 const ReadyToGetStarted = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+
+  // For now, always show "Sign Up Now" to avoid auth context dependency
+  // This component can work independently of auth state
+  const isAuthenticated = false;
 
   return (
     <section className="py-16 sm:py-20 bg-gradient-to-r from-book-600 to-book-700">

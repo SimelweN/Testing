@@ -25,7 +25,20 @@ const NotificationBadge = ({
   showErrorIndicator = true,
   allowRetry = false,
 }: NotificationBadgeProps) => {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  // Defensive auth handling with fallback
+  let isAuthenticated = false;
+  let authLoading = true;
+
+  try {
+    const auth = useAuth();
+    isAuthenticated = auth.isAuthenticated;
+    authLoading = auth.isLoading;
+  } catch (error) {
+    console.warn("Auth context not available in NotificationBadge, hiding component");
+    // Fallback to unauthenticated state
+    isAuthenticated = false;
+    authLoading = false;
+  }
 
   // Always call hooks at the top level
   const {

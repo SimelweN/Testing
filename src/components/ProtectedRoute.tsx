@@ -11,7 +11,24 @@ const ProtectedRoute = ({
   children,
   requireAuth = true,
 }: ProtectedRouteProps) => {
-  const { isAuthenticated, isLoading, initError } = useAuth();
+  // Defensive auth handling with fallback
+  let isAuthenticated = false;
+  let isLoading = true;
+  let initError = null;
+
+  try {
+    const auth = useAuth();
+    isAuthenticated = auth.isAuthenticated;
+    isLoading = auth.isLoading;
+    initError = auth.initError;
+  } catch (error) {
+    console.warn("Auth context not available in ProtectedRoute, redirecting to login");
+    // Fallback to unauthenticated state and redirect
+    isAuthenticated = false;
+    isLoading = false;
+    initError = "Auth context not available";
+  }
+
   const location = useLocation();
   const [forceRender, setForceRender] = useState(false);
 

@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import EmailTemplateDashboard from "@/components/admin/EmailTemplateDashboard";
+import { EmailDiagnosticPanel } from "@/components/EmailDiagnosticPanel";
 import {
   ArrowLeft,
   Play,
@@ -1309,7 +1310,7 @@ const Developer = () => {
         <div className="max-w-6xl mx-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             {/* Navigation Tabs */}
-            <TabsList className="grid grid-cols-3 lg:grid-cols-7 gap-2 h-auto p-1">
+            <TabsList className="grid grid-cols-3 lg:grid-cols-8 gap-2 h-auto p-1">
               <TabsTrigger value="overview" className="flex flex-col items-center p-3">
                 <Bug className="h-4 w-4 mb-1" />
                 <span className="text-xs">Overview</span>
@@ -1337,6 +1338,10 @@ const Developer = () => {
               <TabsTrigger value="email-templates" className="flex flex-col items-center p-3">
                 <Send className="h-4 w-4 mb-1" />
                 <span className="text-xs">Templates</span>
+              </TabsTrigger>
+              <TabsTrigger value="email-diagnostics" className="flex flex-col items-center p-3">
+                <Bug className="h-4 w-4 mb-1" />
+                <span className="text-xs">Diagnostics</span>
               </TabsTrigger>
             </TabsList>
 
@@ -1930,6 +1935,10 @@ const Developer = () => {
 
             <TabsContent value="email-templates">
               <EmailTemplateDashboard />
+            </TabsContent>
+
+            <TabsContent value="email-diagnostics">
+              <EmailDiagnosticPanel />
             </TabsContent>
 
             {/* Test Results */}

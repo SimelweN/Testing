@@ -20,7 +20,25 @@ import NotificationBadge from "./NotificationBadge";
 import { toast } from "sonner";
 
 const Navbar = () => {
-  const { user, logout, isAuthenticated, isLoading, profile } = useAuth();
+  // Defensive auth handling with fallback
+  let user = null;
+  let logout = async () => {};
+  let isAuthenticated = false;
+  let isLoading = false;
+  let profile = null;
+
+  try {
+    const auth = useAuth();
+    user = auth.user;
+    logout = auth.logout;
+    isAuthenticated = auth.isAuthenticated;
+    isLoading = auth.isLoading;
+    profile = auth.profile;
+  } catch (error) {
+    console.warn("Auth context not available in Navbar, using default values");
+    // Fallback values already set above
+  }
+
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
