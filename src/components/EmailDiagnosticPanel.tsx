@@ -16,9 +16,16 @@ export function EmailDiagnosticPanel() {
   const runFullDiagnostic = async () => {
     setIsRunning(true);
     try {
-      const results = await emailDiagnosticsService.runFullDiagnostics();
-      // runFullDiagnostics already includes environment check
-      setDiagnosticResults([...results, ...envResults]);
+      const status = await emailDiagnosticsService.runFullDiagnostics();
+      // Convert status to results array for display
+      const results = [
+        status.environmentVariablesCheck,
+        status.mailQueueCheck,
+        status.sendEmailFunctionCheck,
+        status.mailQueueProcessorCheck,
+        status.configurationCheck
+      ];
+      setDiagnosticResults(results);
     } catch (error) {
       console.error('Diagnostic error:', error);
     } finally {
