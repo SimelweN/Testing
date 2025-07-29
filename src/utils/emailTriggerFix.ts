@@ -233,24 +233,55 @@ export class EmailTriggerFix {
       if (recentOrders && recentOrders.length > 0) {
         // Check if any emails were queued for recent orders
         const recentOrderDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(); // Last 24 hours
-        
-        const { data: emailsFromOrders } = await supabase
+
+        const { data: emailsFromOrders, error: emailError } = await supabase
           .from('mail_queue')
           .select('id, subject, status, created_at')
           .gte('created_at', recentOrderDate)
-          .or('subject.ilike.%order%,subject.ilike.%purchase%');
+          .or('subject.ilike.%order%,subject.ilike.%purchase%,subject.ilike.%confirmed%');
+
+        // If we can't access mail_queue, that's the problem
+        if (emailError) {
+          return {
+            name: 'Order Creation Email Triggers',
+            success: false,
+            message: 'Cannot access mail_queue table',
+            details: {
+              recentOrders: recentOrders.length,
+              emailsQueued: 0,
+              emailSamples: [],
+              error: emailError.message
+            },
+            fix: [
+              'Create mail_queue table using the provided SQL script',
+              'Check if mail_queue table exists in Supabase Dashboard',
+              'Verify RLS policies allow access to mail_queue'
+            ]
+          };
+        }
+
+        const success = emailsFromOrders && emailsFromOrders.length > 0;
+        const problemIdentified = recentOrders.length > 0 && (!emailsFromOrders || emailsFromOrders.length === 0);
 
         return {
           name: 'Order Creation Email Triggers',
-          success: emailsFromOrders && emailsFromOrders.length > 0,
-          message: emailsFromOrders && emailsFromOrders.length > 0 
-            ? `Found ${emailsFromOrders.length} order-related emails in queue` 
+          success,
+          message: success
+            ? `Found ${emailsFromOrders.length} order-related emails in queue`
             : 'No order-related emails found in recent queue',
           details: {
             recentOrders: recentOrders.length,
             emailsQueued: emailsFromOrders?.length || 0,
-            emailSamples: emailsFromOrders?.slice(0, 3) || []
-          }
+            emailSamples: emailsFromOrders?.slice(0, 3) || [],
+            problemIdentified
+          },
+          fix: problemIdentified ? [
+            'Orders are being created but emails are not being queued',
+            'Check if mail_queue table exists and has proper RLS policies',
+            'Run the mail_queue setup SQL script',
+            'Verify create-order function has proper error handling',
+            'Check create-order function logs for insertion errors'
+          ] : []
         };
       }
 
