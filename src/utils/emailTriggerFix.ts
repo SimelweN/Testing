@@ -263,6 +263,27 @@ export class EmailTriggerFix {
         const success = emailsFromOrders && emailsFromOrders.length > 0;
         const problemIdentified = recentOrders.length > 0 && (!emailsFromOrders || emailsFromOrders.length === 0);
 
+        // Additional check: look for emails that should correlate with specific recent orders
+        let correlationDetails = {};
+        if (problemIdentified && recentOrders.length > 0) {
+          // Check if we can find any emails for the buyer IDs of recent orders
+          const recentBuyerIds = recentOrders.map(o => o.buyer_id).filter(Boolean);
+
+          if (recentBuyerIds.length > 0) {
+            const { data: buyerEmails } = await supabase
+              .from('mail_queue')
+              .select('id, user_id, subject, created_at')
+              .in('user_id', recentBuyerIds)
+              .gte('created_at', recentOrderDate);
+
+            correlationDetails = {
+              recentBuyerIds: recentBuyerIds.length,
+              emailsForRecentBuyers: buyerEmails?.length || 0,
+              correlation: buyerEmails?.length ? 'Some emails found for recent buyers' : 'No emails found for recent order buyers'
+            };
+          }
+        }
+
         return {
           name: 'Order Creation Email Triggers',
           success,
@@ -273,14 +294,15 @@ export class EmailTriggerFix {
             recentOrders: recentOrders.length,
             emailsQueued: emailsFromOrders?.length || 0,
             emailSamples: emailsFromOrders?.slice(0, 3) || [],
-            problemIdentified
+            problemIdentified,
+            ...correlationDetails
           },
           fix: problemIdentified ? [
-            'Orders are being created but emails are not being queued',
-            'Check if mail_queue table exists and has proper RLS policies',
-            'Run the mail_queue setup SQL script',
-            'Verify create-order function has proper error handling',
-            'Check create-order function logs for insertion errors'
+            'CRITICAL: Orders are being created but emails are NOT being queued',
+            'This indicates the create-order function is failing to insert into mail_queue',
+            'Run the improved mail_queue RLS policy SQL script immediately',
+            'Check create-order function logs for RLS policy violations',
+            'Verify mail_queue table exists with proper permissions'
           ] : []
         };
       }
