@@ -245,6 +245,7 @@ export class MailQueueSetup {
       const results = {
         tableCheck: await this.checkAndCreateMailQueueTable(),
         insertionCheck: { success: false, message: 'Skipped' } as MailQueueSetupResult,
+        rlsBypassCheck: { success: false, message: 'Skipped' } as MailQueueSetupResult,
         recentOrders: 0,
         recentEmails: 0
       };
@@ -252,6 +253,11 @@ export class MailQueueSetup {
       // Only test insertion if table exists
       if (results.tableCheck.success) {
         results.insertionCheck = await this.testMailQueueInsertion();
+
+        // If regular insertion fails, try RLS bypass test
+        if (!results.insertionCheck.success) {
+          results.rlsBypassCheck = await this.testMailQueueBypassRLS();
+        }
       }
 
       // Count recent orders
