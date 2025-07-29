@@ -191,6 +191,14 @@ const MailQueueFix: React.FC = () => {
                               )}
                             </div>
                           )}
+                          {result.details.rlsBypassCheck && result.details.rlsBypassCheck.message !== 'Skipped' && (
+                            <div>
+                              <strong>RLS Bypass Test:</strong> {result.details.rlsBypassCheck.success ? '✅ PASS' : '❌ FAIL'}
+                              {result.details.rlsBypassCheck.message && (
+                                <span className="ml-2">({result.details.rlsBypassCheck.message})</span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       )}
                       
