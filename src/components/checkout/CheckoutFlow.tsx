@@ -94,7 +94,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       }
 
       // Validate seller data from books table
-      if (!bookData.subaccount_code) {
+      if (!bookData.seller_subaccount_code) {
         throw new Error(
           "Seller payment setup is incomplete. The seller needs to set up their banking details.",
         );
