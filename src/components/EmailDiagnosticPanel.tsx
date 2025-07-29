@@ -16,8 +16,8 @@ export function EmailDiagnosticPanel() {
   const runFullDiagnostic = async () => {
     setIsRunning(true);
     try {
-      const results = await EmailDiagnostics.runFullDiagnostic();
-      const envResults = await EmailDiagnostics.checkEnvironmentVariables();
+      const results = await emailDiagnosticsService.runFullDiagnostics();
+      // runFullDiagnostics already includes environment check
       setDiagnosticResults([...results, ...envResults]);
     } catch (error) {
       console.error('Diagnostic error:', error);
