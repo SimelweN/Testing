@@ -157,7 +157,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       // Update book with complete seller data
       const updatedBook = {
         ...book,
-        seller_subaccount_code: bookData.seller_subaccount_code,
+        seller_subaccount_code: sellerSubaccountCode,
         seller: {
           id: sellerProfile?.id || bookData.seller_id,
           name: sellerProfile?.name || "Seller",
