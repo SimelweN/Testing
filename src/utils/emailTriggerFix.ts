@@ -268,7 +268,7 @@ export class EmailTriggerFix {
 
         // Additional check: look for emails that should correlate with specific recent orders
         let correlationDetails = {};
-        if (problemIdentified && recentOrders.length > 0) {
+        if (recentOrders.length > 0) {
           // Check if we can find any emails for the buyer IDs of recent orders
           const recentBuyerIds = recentOrders.map(o => o.buyer_id).filter(Boolean);
 
@@ -279,11 +279,26 @@ export class EmailTriggerFix {
               .in('user_id', recentBuyerIds)
               .gte('created_at', recentOrderDate);
 
+            // Look specifically for create-order email subjects
+            const { data: specificOrderEmails } = await supabase
+              .from('mail_queue')
+              .select('id, subject, status, created_at')
+              .gte('created_at', recentOrderDate)
+              .or('subject.ilike.%Order Confirmed - Thank You%,subject.ilike.%New Order - Action Required%');
+
             correlationDetails = {
               recentBuyerIds: recentBuyerIds.length,
               emailsForRecentBuyers: buyerEmails?.length || 0,
+              specificOrderEmails: specificOrderEmails?.length || 0,
+              specificEmailSamples: specificOrderEmails?.slice(0, 3) || [],
               correlation: buyerEmails?.length ? 'Some emails found for recent buyers' : 'No emails found for recent order buyers'
             };
+
+            // If we found emails for buyers but not in the original search, update the result
+            if (specificOrderEmails && specificOrderEmails.length > 0) {
+              emailsFromOrders = specificOrderEmails;
+              success = true;
+            }
           }
         }
 
