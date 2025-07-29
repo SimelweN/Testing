@@ -26,8 +26,11 @@ export class EmailTriggerFix {
     
     // 4. Test order creation email triggers
     tests.push(await this.testOrderCreationEmailTriggers());
-    
-    // 5. Test commit email triggers
+
+    // 5. Test direct email queue insertion
+    tests.push(await this.testEmailQueueInsertion());
+
+    // 6. Test commit email triggers
     tests.push(await this.testCommitEmailTriggers());
     
     // 6. Check for stuck emails
@@ -189,25 +192,36 @@ export class EmailTriggerFix {
   private async testOrderCreationEmailTriggers(): Promise<EmailTriggerTest> {
     try {
       console.log('📦 Testing order creation email triggers...');
-      
-      // Check if create-order function exists by testing it
-      const testResponse = await fetch(`${supabase.supabaseUrl}/functions/v1/create-order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`
-        },
-        body: JSON.stringify({ test: true })
-      });
 
-      if (testResponse.status === 404) {
+      // Check if create-order function exists (simple OPTIONS request)
+      try {
+        const testResponse = await fetch(`${supabase.supabaseUrl}/functions/v1/create-order`, {
+          method: 'OPTIONS',
+          headers: {
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`
+          }
+        });
+
+        if (testResponse.status === 404) {
+          return {
+            name: 'Order Creation Email Triggers',
+            success: false,
+            message: 'create-order function not deployed',
+            fix: [
+              'Deploy create-order function: supabase functions deploy create-order',
+              'Verify all edge functions are deployed'
+            ]
+          };
+        }
+      } catch (error) {
         return {
           name: 'Order Creation Email Triggers',
           success: false,
-          message: 'create-order function not deployed',
+          message: 'Cannot reach create-order function',
+          details: { error: error instanceof Error ? error.message : 'Unknown error' },
           fix: [
-            'Deploy create-order function: supabase functions deploy create-order',
-            'Verify all edge functions are deployed'
+            'Check if create-order function is deployed',
+            'Verify edge function URLs are accessible'
           ]
         };
       }
@@ -222,24 +236,108 @@ export class EmailTriggerFix {
       if (recentOrders && recentOrders.length > 0) {
         // Check if any emails were queued for recent orders
         const recentOrderDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(); // Last 24 hours
-        
-        const { data: emailsFromOrders } = await supabase
+
+        const { data: emailsFromOrders, error: emailError } = await supabase
           .from('mail_queue')
           .select('id, subject, status, created_at')
           .gte('created_at', recentOrderDate)
-          .or('subject.ilike.%order%,subject.ilike.%purchase%');
+          .or('subject.ilike.%Order Confirmed%,subject.ilike.%New Order%,subject.ilike.%Action Required%,subject.ilike.%order%,subject.ilike.%purchase%');
+
+        // If we can't access mail_queue, that's the problem
+        if (emailError) {
+          return {
+            name: 'Order Creation Email Triggers',
+            success: false,
+            message: 'Cannot access mail_queue table',
+            details: {
+              recentOrders: recentOrders.length,
+              emailsQueued: 0,
+              emailSamples: [],
+              error: emailError.message
+            },
+            fix: [
+              'Create mail_queue table using the provided SQL script',
+              'Check if mail_queue table exists in Supabase Dashboard',
+              'Verify RLS policies allow access to mail_queue'
+            ]
+          };
+        }
+
+        let success = emailsFromOrders && emailsFromOrders.length > 0;
+        let problemIdentified = recentOrders.length > 0 && (!emailsFromOrders || emailsFromOrders.length === 0);
+
+        // Additional check: look for emails that should correlate with specific recent orders
+        let correlationDetails = {};
+        if (recentOrders.length > 0) {
+          // Check if we can find any emails for the buyer IDs of recent orders
+          const recentBuyerIds = recentOrders.map(o => o.buyer_id).filter(Boolean);
+
+          if (recentBuyerIds.length > 0) {
+            const { data: buyerEmails } = await supabase
+              .from('mail_queue')
+              .select('id, user_id, subject, created_at')
+              .in('user_id', recentBuyerIds)
+              .gte('created_at', recentOrderDate);
+
+            // Look specifically for create-order email subjects
+            const { data: specificOrderEmails } = await supabase
+              .from('mail_queue')
+              .select('id, subject, status, created_at')
+              .gte('created_at', recentOrderDate)
+              .or('subject.ilike.%Order Confirmed - Thank You%,subject.ilike.%New Order - Action Required%');
+
+            // Get actual email subjects for debugging
+            const { data: actualEmailSubjects } = await supabase
+              .from('mail_queue')
+              .select('subject, created_at, status')
+              .gte('created_at', recentOrderDate)
+              .order('created_at', { ascending: false })
+              .limit(10);
+
+            correlationDetails = {
+              recentBuyerIds: recentBuyerIds.length,
+              emailsForRecentBuyers: buyerEmails?.length || 0,
+              specificOrderEmails: specificOrderEmails?.length || 0,
+              specificEmailSamples: specificOrderEmails?.slice(0, 3) || [],
+              actualEmailSubjects: actualEmailSubjects?.map(e => e.subject) || [],
+              actualEmailSamples: actualEmailSubjects?.slice(0, 5) || [],
+              correlation: buyerEmails?.length ? 'Some emails found for recent buyers' : 'No emails found for recent order buyers'
+            };
+
+            // If we found emails for buyers but not in the original search, update the result
+            if (specificOrderEmails && specificOrderEmails.length > 0) {
+              emailsFromOrders = specificOrderEmails;
+              success = true;
+            }
+          }
+        }
 
         return {
           name: 'Order Creation Email Triggers',
-          success: emailsFromOrders && emailsFromOrders.length > 0,
-          message: emailsFromOrders && emailsFromOrders.length > 0 
-            ? `Found ${emailsFromOrders.length} order-related emails in queue` 
+          success,
+          message: success
+            ? `Found ${emailsFromOrders.length} order-related emails in queue`
             : 'No order-related emails found in recent queue',
           details: {
             recentOrders: recentOrders.length,
             emailsQueued: emailsFromOrders?.length || 0,
-            emailSamples: emailsFromOrders?.slice(0, 3) || []
-          }
+            emailSamples: emailsFromOrders?.slice(0, 3) || [],
+            problemIdentified,
+            ...correlationDetails
+          },
+          fix: problemIdentified ?
+            correlationDetails.emailsForRecentBuyers > 0 ? [
+              'Emails are being queued for recent buyers, but subject search may need refinement',
+              'Check if email subjects match expected patterns',
+              'Order creation emails may be using different subject lines than expected',
+              'Review actual email subjects in mail_queue table'
+            ] : [
+              'CRITICAL: Orders are being created but emails are NOT being queued',
+              'This indicates the create-order function is failing to insert into mail_queue',
+              'Run the improved mail_queue RLS policy SQL script immediately',
+              'Check create-order function logs for RLS policy violations',
+              'Verify mail_queue table exists with proper permissions'
+            ] : []
         };
       }
 
@@ -560,6 +658,144 @@ export class EmailTriggerFix {
       return {
         success: false,
         message: 'Error creating test commit email',
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
+      };
+    }
+  }
+
+  async testEmailQueueInsertion(): Promise<EmailTriggerTest> {
+    try {
+      console.log('🧪 Testing direct email queue insertion...');
+
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        return {
+          name: 'Direct Email Queue Test',
+          success: false,
+          message: 'User not authenticated for direct test',
+          details: { error: userError?.message || 'No user found' }
+        };
+      }
+
+      // Try to insert a test email directly
+      const testEmail = {
+        user_id: user.id,
+        email: 'test@emailtriggerfix.com',
+        subject: '🧪 Test - Email Queue Insertion Verification',
+        body: '<p>This is a test email to verify direct mail_queue insertion works.</p>',
+        status: 'pending',
+        created_at: new Date().toISOString()
+      };
+
+      const { error: insertError } = await supabase
+        .from('mail_queue')
+        .insert(testEmail);
+
+      if (insertError) {
+        return {
+          name: 'Direct Email Queue Test',
+          success: false,
+          message: 'Failed to insert test email into mail_queue',
+          details: { error: insertError.message },
+          fix: [
+            'RLS policies are blocking email insertion',
+            'Run the improved mail_queue RLS policy SQL script',
+            'Check if mail_queue table exists',
+            'Verify user permissions for mail_queue table'
+          ]
+        };
+      }
+
+      // Clean up test email
+      const { error: deleteError } = await supabase
+        .from('mail_queue')
+        .delete()
+        .eq('email', 'test@emailtriggerfix.com')
+        .eq('subject', '🧪 Test - Email Queue Insertion Verification');
+
+      if (deleteError) {
+        console.warn('⚠️ Failed to clean up test email:', deleteError.message);
+      }
+
+      return {
+        name: 'Direct Email Queue Test',
+        success: true,
+        message: 'Successfully inserted and cleaned up test email',
+        details: {
+          insertionWorking: true,
+          userCanInsert: true,
+          cleanupWorking: !deleteError
+        }
+      };
+
+    } catch (error) {
+      return {
+        name: 'Direct Email Queue Test',
+        success: false,
+        message: 'Exception during direct email queue test',
+        details: { error: error instanceof Error ? error.message : 'Unknown error' },
+        fix: [
+          'Check mail_queue table exists',
+          'Verify RLS policies allow authenticated users to insert emails',
+          'Check network connectivity to Supabase'
+        ]
+      };
+    }
+  }
+
+  async debugEmailSubjects(): Promise<{ success: boolean; message: string; details?: any }> {
+    try {
+      console.log('🔍 Debugging actual email subjects in mail_queue...');
+
+      const recentDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+      // Get all recent emails with their subjects
+      const { data: recentEmails, error } = await supabase
+        .from('mail_queue')
+        .select('id, subject, created_at, status, user_id')
+        .gte('created_at', recentDate)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) {
+        return {
+          success: false,
+          message: 'Failed to fetch recent emails',
+          details: { error: error.message }
+        };
+      }
+
+      // Group by subject for analysis
+      const subjectGroups = {};
+      recentEmails?.forEach(email => {
+        const subject = email.subject;
+        if (!subjectGroups[subject]) {
+          subjectGroups[subject] = 0;
+        }
+        subjectGroups[subject]++;
+      });
+
+      return {
+        success: true,
+        message: `Found ${recentEmails?.length || 0} recent emails`,
+        details: {
+          totalEmails: recentEmails?.length || 0,
+          subjectGroups,
+          allSubjects: recentEmails?.map(e => e.subject) || [],
+          recentEmailSamples: recentEmails?.slice(0, 10).map(e => ({
+            subject: e.subject,
+            created_at: e.created_at,
+            status: e.status
+          })) || []
+        }
+      };
+
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Exception while debugging email subjects',
         details: { error: error instanceof Error ? error.message : 'Unknown error' }
       };
     }

@@ -30,6 +30,8 @@ export const EmailDiagnosticsDashboard: React.FC = () => {
   const [recentEmails, setRecentEmails] = useState<EmailDiagnosticResult | null>(null);
   const [triggerTests, setTriggerTests] = useState<EmailTriggerTest[] | null>(null);
   const [processingEmails, setProcessingEmails] = useState(false);
+  const [debuggingSubjects, setDebuggingSubjects] = useState(false);
+  const [subjectDebugResult, setSubjectDebugResult] = useState<any>(null);
 
   useEffect(() => {
     runDiagnostics();
@@ -174,6 +176,25 @@ export const EmailDiagnosticsDashboard: React.FC = () => {
     } catch (error) {
       console.error('Test commit email error:', error);
       toast.error('Failed to create test commit email');
+    }
+  };
+
+  const debugEmailSubjects = async () => {
+    setDebuggingSubjects(true);
+    try {
+      const result = await emailTriggerFix.debugEmailSubjects();
+      setSubjectDebugResult(result);
+
+      if (result.success) {
+        toast.success(`Found ${result.details?.totalEmails || 0} recent emails to analyze`);
+      } else {
+        toast.error('Failed to debug email subjects');
+      }
+    } catch (error) {
+      console.error('Subject debug error:', error);
+      toast.error('Failed to debug email subjects');
+    } finally {
+      setDebuggingSubjects(false);
     }
   };
 
@@ -322,11 +343,77 @@ export const EmailDiagnosticsDashboard: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8">
+                <div className="text-center py-8 space-y-4">
                   <Button onClick={runTriggerTests}>
                     <MessageSquare className="mr-2 h-4 w-4" />
                     Run Email Trigger Tests
                   </Button>
+
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      onClick={debugEmailSubjects}
+                      variant="outline"
+                      disabled={debuggingSubjects}
+                    >
+                      {debuggingSubjects ? (
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <FileText className="mr-2 h-4 w-4" />
+                      )}
+                      Debug Email Subjects
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {subjectDebugResult && (
+                <div className="mt-6 p-4 border rounded-lg bg-blue-50">
+                  <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Email Subject Debug Results
+                  </h4>
+
+                  {subjectDebugResult.success ? (
+                    <div className="space-y-3">
+                      <p className="text-sm text-green-600 font-medium">
+                        ✅ {subjectDebugResult.message}
+                      </p>
+
+                      {subjectDebugResult.details?.subjectGroups && (
+                        <div>
+                          <h5 className="font-medium text-sm mb-2">Email Subjects Found (with counts):</h5>
+                          <div className="space-y-1">
+                            {Object.entries(subjectDebugResult.details.subjectGroups).map(([subject, count]) => (
+                              <div key={subject} className="text-xs p-2 bg-white rounded border">
+                                <span className="font-mono text-blue-600">"{subject}"</span>
+                                <span className="ml-2 text-gray-500">({count} emails)</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {subjectDebugResult.details?.recentEmailSamples && (
+                        <div>
+                          <h5 className="font-medium text-sm mb-2">Recent Email Samples:</h5>
+                          <div className="space-y-1 max-h-40 overflow-y-auto">
+                            {subjectDebugResult.details.recentEmailSamples.map((email, index) => (
+                              <div key={index} className="text-xs p-2 bg-white rounded border">
+                                <div className="font-mono text-blue-600">"{email.subject}"</div>
+                                <div className="text-gray-500 mt-1">
+                                  {email.created_at} • {email.status}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-red-600">
+                      ❌ {subjectDebugResult.message}
+                    </p>
+                  )}
                 </div>
               )}
             </CardContent>

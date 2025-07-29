@@ -503,7 +503,8 @@ serve(async (req) => {
 </html>`;
 
     // Add buyer email to mail queue
-    await supabase.from("mail_queue").insert({
+    console.log("📧 Adding buyer email to mail queue...");
+    const { error: buyerEmailError } = await supabase.from("mail_queue").insert({
       user_id: finalBuyerId,
       email: finalBuyerEmail,
       subject: "🎉 Order Confirmed - Thank You!",
@@ -511,6 +512,13 @@ serve(async (req) => {
       status: "pending",
       created_at: new Date().toISOString()
     });
+
+    if (buyerEmailError) {
+      console.error("❌ Failed to queue buyer email:", buyerEmailError);
+      // Continue execution but log the error for monitoring
+    } else {
+      console.log("✅ Buyer email queued successfully");
+    }
 
     // Add seller notification emails to mail queue
     for (const order of createdOrders) {
@@ -642,7 +650,8 @@ serve(async (req) => {
         .single();
 
       if (sellerProfile?.email) {
-        await supabase.from("mail_queue").insert({
+        console.log(`📧 Adding seller email to mail queue for order ${order.id}...`);
+        const { error: sellerEmailError } = await supabase.from("mail_queue").insert({
           user_id: order.seller_id,
           email: sellerProfile.email,
           subject: "📚 New Order - Action Required (48 hours)",
@@ -650,6 +659,15 @@ serve(async (req) => {
           status: "pending",
           created_at: new Date().toISOString()
         });
+
+        if (sellerEmailError) {
+          console.error(`❌ Failed to queue seller email for order ${order.id}:`, sellerEmailError);
+          // Continue execution but log the error for monitoring
+        } else {
+          console.log(`✅ Seller email queued successfully for order ${order.id}`);
+        }
+      } else {
+        console.warn(`⚠️ No seller email found for order ${order.id}, seller ID: ${order.seller_id}`);
       }
     }
 

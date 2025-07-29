@@ -31,6 +31,7 @@ import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
 import AdminPayoutTab from "@/components/admin/AdminPayoutTab";
 import AdminUtilitiesTab from "@/components/admin/AdminUtilitiesTab";
 import EmailDiagnosticsDashboard from "@/components/admin/EmailDiagnosticsDashboard";
+import MailQueueFix from "@/components/admin/MailQueueFix";
 
 
 
@@ -667,6 +668,12 @@ const AdminDashboard = () => {
             </TabsContent>
 
             <TabsContent value="email" className="mt-0 space-y-6">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-6">
+                  <MailQueueFix />
+                </CardContent>
+              </Card>
+
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-6">
                   <EmailDiagnosticsDashboard />
