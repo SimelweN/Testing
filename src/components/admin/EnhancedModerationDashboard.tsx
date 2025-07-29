@@ -51,7 +51,12 @@ const EnhancedModerationDashboard = () => {
     "pending" | "resolved" | "dismissed" | "suspended" | "all"
   >("pending");
   const [actionReason, setActionReason] = useState("");
+  const [channelsSetup, setChannelsSetup] = useState(false);
   const { handleError } = useErrorHandler();
+
+  // Use refs to track channel subscriptions
+  const reportsChannelRef = useRef<any>(null);
+  const profilesChannelRef = useRef<any>(null);
 
   // Define functions before useEffect to avoid temporal dead zone
   const loadData = useCallback(async () => {
@@ -83,9 +88,22 @@ const EnhancedModerationDashboard = () => {
   }, [retryCount, handleError]);
 
   const setupRealtimeSubscription = useCallback(() => {
+    // Prevent multiple subscriptions
+    if (channelsSetup || reportsChannelRef.current || profilesChannelRef.current) {
+      console.log('[ModerationDashboard] Realtime subscriptions already setup, skipping');
+      return;
+    }
+
     try {
+      console.log('[ModerationDashboard] Setting up realtime subscriptions');
+      setChannelsSetup(true);
+
+      // Create unique channel names to avoid conflicts
+      const reportsChannelName = `moderation-reports-${Date.now()}`;
+      const profilesChannelName = `moderation-profiles-${Date.now()}`;
+
       const reportsChannel = supabase
-        .channel("reports-changes")
+        .channel(reportsChannelName)
         .on(
           "postgres_changes",
           {
@@ -93,15 +111,23 @@ const EnhancedModerationDashboard = () => {
             schema: "public",
             table: "reports",
           },
-          () => {
-            console.log("Reports updated, reloading...");
-            loadData();
+          (payload) => {
+            console.log("Reports updated:", payload.eventType);
+            // Debounce data loading to prevent rapid fire updates
+            setTimeout(() => loadData(), 500);
           },
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('[ModerationDashboard] Reports channel status:', status);
+          if (status === 'CHANNEL_ERROR') {
+            console.warn('[ModerationDashboard] Reports channel error - cleaning up');
+            reportsChannelRef.current = null;
+            setChannelsSetup(false);
+          }
+        });
 
       const profilesChannel = supabase
-        .channel("profiles-changes")
+        .channel(profilesChannelName)
         .on(
           "postgres_changes",
           {
@@ -109,21 +135,54 @@ const EnhancedModerationDashboard = () => {
             schema: "public",
             table: "profiles",
           },
-          () => {
-            console.log("User profiles updated, reloading...");
-            loadData();
+          (payload) => {
+            console.log("User profiles updated:", payload.eventType);
+            // Debounce data loading to prevent rapid fire updates
+            setTimeout(() => loadData(), 500);
           },
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('[ModerationDashboard] Profiles channel status:', status);
+          if (status === 'CHANNEL_ERROR') {
+            console.warn('[ModerationDashboard] Profiles channel error - cleaning up');
+            profilesChannelRef.current = null;
+            setChannelsSetup(false);
+          }
+        });
 
-      return () => {
-        supabase.removeChannel(reportsChannel);
-        supabase.removeChannel(profilesChannel);
-      };
+      // Store channel references
+      reportsChannelRef.current = reportsChannel;
+      profilesChannelRef.current = profilesChannel;
+
     } catch (error) {
-      console.warn("Failed to set up realtime subscription:", error);
+      console.warn('[ModerationDashboard] Failed to set up realtime subscription:', error);
+      setChannelsSetup(false);
     }
-  }, [loadData]);
+  }, [loadData, channelsSetup]);
+
+  const cleanupRealtimeSubscriptions = useCallback(() => {
+    console.log('[ModerationDashboard] Cleaning up realtime subscriptions');
+
+    if (reportsChannelRef.current) {
+      try {
+        supabase.removeChannel(reportsChannelRef.current);
+      } catch (error) {
+        console.warn('[ModerationDashboard] Error removing reports channel:', error);
+      }
+      reportsChannelRef.current = null;
+    }
+
+    if (profilesChannelRef.current) {
+      try {
+        supabase.removeChannel(profilesChannelRef.current);
+      } catch (error) {
+        console.warn('[ModerationDashboard] Error removing profiles channel:', error);
+      }
+      profilesChannelRef.current = null;
+    }
+
+    setChannelsSetup(false);
+  }, []);
 
   const filterData = useCallback(() => {
     if (activeTab === "suspended") {
@@ -138,14 +197,20 @@ const EnhancedModerationDashboard = () => {
   // useEffect hooks after function definitions
   useEffect(() => {
     loadData();
-    // Don't set up realtime subscription immediately to avoid overload
+
+    // Set up realtime subscription after initial load with delay to avoid overload
     const timer = setTimeout(() => {
-      loadData();
-      setupRealtimeSubscription();
+      if (!channelsSetup) {
+        setupRealtimeSubscription();
+      }
     }, 2000);
 
-    return () => clearTimeout(timer);
-  }, [loadData, setupRealtimeSubscription]);
+    // Cleanup function
+    return () => {
+      clearTimeout(timer);
+      cleanupRealtimeSubscriptions();
+    };
+  }, []); // Remove dependencies to prevent re-setup on every render
 
   useEffect(() => {
     filterData();
