@@ -88,17 +88,55 @@ export class EmailTriggerFix {
   private async testSendEmailFunction(): Promise<EmailTriggerTest> {
     try {
       console.log('📧 Testing send-email function...');
-      
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/send-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`
-        },
-        body: JSON.stringify({ test: true })
-      });
 
-      const result = await response.json();
+      let response: Response;
+      let result: any;
+
+      try {
+        response = await fetch(`${supabase.supabaseUrl}/functions/v1/send-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`
+          },
+          body: JSON.stringify({ test: true })
+        });
+      } catch (fetchError) {
+        return {
+          name: 'Send Email Function',
+          success: false,
+          message: 'Edge function not accessible - likely not deployed',
+          details: {
+            error: fetchError instanceof Error ? fetchError.message : 'Network error',
+            url: `${supabase.supabaseUrl}/functions/v1/send-email`
+          },
+          fix: [
+            'Deploy send-email edge function: supabase functions deploy send-email',
+            'Check if edge functions are enabled in Supabase project',
+            'Verify project is not on paused/free tier without edge function access'
+          ]
+        };
+      }
+
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        return {
+          name: 'Send Email Function',
+          success: false,
+          message: 'Edge function returned invalid response',
+          details: {
+            status: response.status,
+            statusText: response.statusText,
+            error: 'Invalid JSON response'
+          },
+          fix: [
+            'Check edge function logs in Supabase Dashboard',
+            'Redeploy send-email function',
+            'Verify function code is valid'
+          ]
+        };
+      }
 
       if (!response.ok) {
         const missingBrevKey = result.error?.includes('BREVO_SMTP_KEY') || 
@@ -143,17 +181,55 @@ export class EmailTriggerFix {
   private async testMailQueueProcessor(): Promise<EmailTriggerTest> {
     try {
       console.log('⚙️ Testing mail queue processor...');
-      
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/process-mail-queue`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`
-        },
-        body: JSON.stringify({})
-      });
 
-      const result = await response.json();
+      let response: Response;
+      let result: any;
+
+      try {
+        response = await fetch(`${supabase.supabaseUrl}/functions/v1/process-mail-queue`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`
+          },
+          body: JSON.stringify({})
+        });
+      } catch (fetchError) {
+        return {
+          name: 'Mail Queue Processor',
+          success: false,
+          message: 'Edge function not accessible - likely not deployed',
+          details: {
+            error: fetchError instanceof Error ? fetchError.message : 'Network error',
+            url: `${supabase.supabaseUrl}/functions/v1/process-mail-queue`
+          },
+          fix: [
+            'Deploy process-mail-queue edge function: supabase functions deploy process-mail-queue',
+            'Check if edge functions are enabled in Supabase project',
+            'Email queue will not process automatically without this function'
+          ]
+        };
+      }
+
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        return {
+          name: 'Mail Queue Processor',
+          success: false,
+          message: 'Edge function returned invalid response',
+          details: {
+            status: response.status,
+            statusText: response.statusText,
+            error: 'Invalid JSON response'
+          },
+          fix: [
+            'Check edge function logs in Supabase Dashboard',
+            'Redeploy process-mail-queue function',
+            'Verify function code is valid'
+          ]
+        };
+      }
 
       if (!response.ok) {
         return {
