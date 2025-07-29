@@ -467,6 +467,20 @@ const EmailDiagnosticsDashboard: React.FC = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="debug" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Wrench className="w-5 h-5" />
+                Email Pattern Analysis
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EmailPatternDebugger />
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
