@@ -11,27 +11,15 @@ interface LayoutProps {
 }
 
 const Layout = ({ children }: LayoutProps) => {
-  // Defensive auth handling with fallback
-  let user = null;
-  let isAdmin = false;
+  const { user } = useAuth();
 
-  try {
-    const auth = useAuth();
-    user = auth.user;
-
-    // Check if user is admin - multiple ways to detect admin status
-    isAdmin = user && (
-      user.user_metadata?.role === 'admin' ||
-      user.user_metadata?.is_admin === true ||
-      user.email?.includes('admin') ||
-      user.app_metadata?.role === 'admin'
-    );
-  } catch (error) {
-    console.warn("Auth context not available in Layout, using default values");
-    // Fallback to no user if auth context is not available
-    user = null;
-    isAdmin = false;
-  }
+  // Check if user is admin - multiple ways to detect admin status
+  const isAdmin = user && (
+    user.user_metadata?.role === 'admin' ||
+    user.user_metadata?.is_admin === true ||
+    user.email?.includes('admin') ||
+    user.app_metadata?.role === 'admin'
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 mobile-container">
