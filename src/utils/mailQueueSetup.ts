@@ -152,6 +152,92 @@ export class MailQueueSetup {
     }
   }
 
+  async testMailQueueBypassRLS(): Promise<MailQueueSetupResult> {
+    try {
+      console.log('🧪 Testing mail_queue with RLS bypass (admin test)...');
+
+      // Create a test function that bypasses RLS
+      const testFunction = `
+        CREATE OR REPLACE FUNCTION test_mail_queue_insert()
+        RETURNS TEXT
+        LANGUAGE plpgsql
+        SECURITY DEFINER
+        AS $$
+        DECLARE
+          test_id UUID;
+        BEGIN
+          -- Insert test record
+          INSERT INTO mail_queue (
+            user_id,
+            email,
+            subject,
+            body,
+            status,
+            created_at
+          ) VALUES (
+            '00000000-0000-0000-0000-000000000000',
+            'rls-bypass-test@mailqueuesetup.com',
+            'RLS Bypass Test - Mail Queue Verification',
+            '<p>This is an RLS bypass test email.</p>',
+            'pending',
+            NOW()
+          ) RETURNING id INTO test_id;
+
+          -- Clean up immediately
+          DELETE FROM mail_queue WHERE id = test_id;
+
+          RETURN 'SUCCESS: Mail queue insertion works (RLS bypassed)';
+        EXCEPTION
+          WHEN OTHERS THEN
+            RETURN 'ERROR: ' || SQLERRM;
+        END;
+        $$;
+      `;
+
+      // Execute the test function creation
+      const { error: createError } = await supabase.rpc('exec_sql', { sql: testFunction });
+
+      if (createError) {
+        return {
+          success: false,
+          message: 'Failed to create RLS bypass test function',
+          error: createError.message
+        };
+      }
+
+      // Run the test
+      const { data: testResult, error: testError } = await supabase.rpc('test_mail_queue_insert');
+
+      if (testError) {
+        return {
+          success: false,
+          message: 'RLS bypass test failed to execute',
+          error: testError.message
+        };
+      }
+
+      const success = testResult?.includes('SUCCESS');
+
+      return {
+        success,
+        message: success
+          ? 'RLS bypass test passed - table structure is correct'
+          : 'RLS bypass test failed - check table structure',
+        details: {
+          testResult,
+          rlsBypassWorking: success
+        }
+      };
+
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Exception during RLS bypass test',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
   async diagnoseProblem(): Promise<MailQueueSetupResult> {
     try {
       console.log('🔍 Diagnosing email queue problem...');
