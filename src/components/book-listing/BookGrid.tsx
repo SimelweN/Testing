@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { BookOpen, School, GraduationCap, MapPin, Clock } from "lucide-react";
 import { Book } from "@/types/book";
 import { toast } from "sonner";
+import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 
 interface BookGridProps {
   books: Book[];
@@ -30,7 +31,8 @@ const BookGrid = ({
       await onCommitBook(bookId);
       toast.success("Sale committed successfully!");
     } catch (error) {
-      console.error("Failed to commit sale:", error);
+      const errorMessage = getSafeErrorMessage(error, "Failed to commit sale");
+      console.error("Failed to commit sale:", errorMessage, { originalError: error });
       toast.error("Failed to commit sale. Please try again.");
     }
   };
