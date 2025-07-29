@@ -245,7 +245,7 @@ const EmailDiagnosticsDashboard: React.FC = () => {
       )}
 
       <Tabs defaultValue="diagnostics" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="diagnostics" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Diagnostics
@@ -261,6 +261,10 @@ const EmailDiagnosticsDashboard: React.FC = () => {
           <TabsTrigger value="recent" className="flex items-center gap-2">
             <Eye className="w-4 h-4" />
             Recent Emails
+          </TabsTrigger>
+          <TabsTrigger value="debug" className="flex items-center gap-2">
+            <Wrench className="w-4 h-4" />
+            Debug
           </TabsTrigger>
         </TabsList>
 
