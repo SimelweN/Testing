@@ -20,6 +20,7 @@ import {
   FileText
 } from 'lucide-react';
 import { emailDiagnosticsService, EmailSystemStatus, EmailDiagnosticResult } from '../../utils/emailDiagnostics';
+import { emailTriggerFix, EmailTriggerTest } from '../../utils/emailTriggerFix';
 import { toast } from 'sonner';
 
 export const EmailDiagnosticsDashboard: React.FC = () => {
