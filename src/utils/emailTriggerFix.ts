@@ -370,7 +370,9 @@ export class EmailTriggerFix {
               .gte('created_at', recentOrderDate)
               .in('subject', [
                 '🎉 Order Confirmed - Thank You!',
-                '📚 New Order - Action Required (48 hours)'
+                '📚 New Order - Action Required (48 hours)',
+                'Order Confirmed - Pickup Scheduled',
+                'Order Commitment Confirmed - Prepare for Pickup'
               ]);
 
             // Combine results
