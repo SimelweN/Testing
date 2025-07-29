@@ -30,6 +30,7 @@ import AdminResourcesTab from "@/components/admin/AdminResourcesTab";
 import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
 import AdminPayoutTab from "@/components/admin/AdminPayoutTab";
 import AdminUtilitiesTab from "@/components/admin/AdminUtilitiesTab";
+import EmailDiagnosticsDashboard from "@/components/admin/EmailDiagnosticsDashboard";
 
 
 
@@ -55,6 +56,7 @@ import {
   Code,
   Banknote,
   Wrench,
+  Mail,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -404,6 +406,13 @@ const AdminDashboard = () => {
       description: "Testing tools and database management",
     },
     {
+      value: "email",
+      label: "Email",
+      icon: Mail,
+      color: "text-blue-600",
+      description: "Email system diagnostics and monitoring",
+    },
+    {
       value: "settings",
       label: "Settings",
       icon: Settings,
@@ -653,6 +662,14 @@ const AdminDashboard = () => {
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-6">
                   <AdminUtilitiesTab />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="email" className="mt-0 space-y-6">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-6">
+                  <EmailDiagnosticsDashboard />
                 </CardContent>
               </Card>
             </TabsContent>

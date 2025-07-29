@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { EmailDiagnostics, EmailDiagnosticResult } from '@/utils/emailDiagnostics';
+import { emailDiagnosticsService, EmailDiagnosticResult } from '@/utils/emailDiagnostics';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -16,9 +16,16 @@ export function EmailDiagnosticPanel() {
   const runFullDiagnostic = async () => {
     setIsRunning(true);
     try {
-      const results = await EmailDiagnostics.runFullDiagnostic();
-      const envResults = await EmailDiagnostics.checkEnvironmentVariables();
-      setDiagnosticResults([...results, ...envResults]);
+      const status = await emailDiagnosticsService.runFullDiagnostics();
+      // Convert status to results array for display
+      const results = [
+        status.environmentVariablesCheck,
+        status.mailQueueCheck,
+        status.sendEmailFunctionCheck,
+        status.mailQueueProcessorCheck,
+        status.configurationCheck
+      ];
+      setDiagnosticResults(results);
     } catch (error) {
       console.error('Diagnostic error:', error);
     } finally {
@@ -34,7 +41,7 @@ export function EmailDiagnosticPanel() {
 
     setIsRunning(true);
     try {
-      const result = await EmailDiagnostics.testEmailSending(testEmail);
+      const result = await emailDiagnosticsService.addTestEmailToQueue(testEmail);
       setDiagnosticResults(prev => [...prev, result]);
     } catch (error) {
       console.error('Email test error:', error);
@@ -46,8 +53,18 @@ export function EmailDiagnosticPanel() {
   const processMailQueue = async () => {
     setIsRunning(true);
     try {
-      const result = await EmailDiagnostics.processMailQueue();
-      setDiagnosticResults(prev => [...prev, result]);
+      // Process mail queue by calling the edge function directly
+      const response = await fetch(`${window.location.origin}/functions/v1/process-mail-queue`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const result = await response.json();
+      const diagnosticResult = {
+        success: response.ok,
+        message: result.message || 'Mail queue processed',
+        details: result
+      };
+      setDiagnosticResults(prev => [...prev, diagnosticResult]);
     } catch (error) {
       console.error('Mail queue processing error:', error);
     } finally {
@@ -77,7 +94,7 @@ export function EmailDiagnosticPanel() {
   };
 
   const exportResults = () => {
-    const report = EmailDiagnostics.formatDiagnosticResults(diagnosticResults);
+    const report = JSON.stringify(diagnosticResults, null, 2);
     const blob = new Blob([report], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
