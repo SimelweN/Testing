@@ -8,7 +8,13 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "verify:production": "node scripts/verify-production.js",
+    "deploy:check": "npm run build && npm run verify:production"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
