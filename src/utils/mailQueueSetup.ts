@@ -93,9 +93,20 @@ export class MailQueueSetup {
   async testMailQueueInsertion(): Promise<MailQueueSetupResult> {
     try {
       console.log('🧪 Testing mail_queue insertion...');
-      
+
+      // Get current authenticated user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        return {
+          success: false,
+          message: 'User not authenticated - cannot test mail queue insertion',
+          error: userError?.message || 'No authenticated user found'
+        };
+      }
+
       const testEmail = {
-        user_id: '00000000-0000-0000-0000-000000000000', // Test UUID
+        user_id: user.id, // Use actual authenticated user ID
         email: 'test@mailqueuesetup.com',
         subject: 'Test - Mail Queue Setup Verification',
         body: '<p>This is a test email to verify mail_queue insertion works.</p>',
