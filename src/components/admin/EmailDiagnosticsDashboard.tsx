@@ -334,27 +334,50 @@ export const EmailDiagnosticsDashboard: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Send className="h-5 w-5" />
-                Send Test Email
+                Test Specific Email Types
               </CardTitle>
               <CardDescription>
-                Send a test email to verify the email system is working
+                Test the exact email types that should be triggered during order flow
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <Label htmlFor="test-email">Email Address</Label>
-                  <Input
-                    id="test-email"
-                    type="email"
-                    placeholder="test@example.com"
-                    value={testEmail}
-                    onChange={(e) => setTestEmail(e.target.value)}
-                  />
-                </div>
-                <Button onClick={sendTestEmail} className="mt-6">
+              <div className="space-y-2">
+                <Label htmlFor="test-email">Email Address</Label>
+                <Input
+                  id="test-email"
+                  type="email"
+                  placeholder="test@example.com"
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2 md:grid-cols-3">
+                <Button onClick={sendTestOrderEmail} variant="outline">
+                  <Mail className="mr-2 h-4 w-4" />
+                  Order Receipt
+                </Button>
+                <Button onClick={sendTestCommitEmail} variant="outline">
+                  <Clock className="mr-2 h-4 w-4" />
+                  Commit Request
+                </Button>
+                <Button onClick={sendTestEmail} variant="outline">
                   <Send className="mr-2 h-4 w-4" />
-                  Send Test
+                  General Test
+                </Button>
+              </div>
+              <div className="mt-4">
+                <Button onClick={processStuckEmails} disabled={processingEmails} className="w-full">
+                  {processingEmails ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Processing Emails...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Process All Pending Emails
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>
