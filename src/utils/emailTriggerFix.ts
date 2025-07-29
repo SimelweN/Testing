@@ -241,7 +241,7 @@ export class EmailTriggerFix {
           .from('mail_queue')
           .select('id, subject, status, created_at')
           .gte('created_at', recentOrderDate)
-          .or('subject.ilike.%order%,subject.ilike.%purchase%,subject.ilike.%confirmed%');
+          .or('subject.ilike.%Order Confirmed%,subject.ilike.%New Order%,subject.ilike.%Action Required%,subject.ilike.%order%,subject.ilike.%purchase%');
 
         // If we can't access mail_queue, that's the problem
         if (emailError) {
