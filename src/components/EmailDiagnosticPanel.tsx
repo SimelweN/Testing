@@ -64,7 +64,7 @@ export function EmailDiagnosticPanel() {
         message: result.message || 'Mail queue processed',
         details: result
       };
-      setDiagnosticResults(prev => [...prev, result]);
+      setDiagnosticResults(prev => [...prev, diagnosticResult]);
     } catch (error) {
       console.error('Mail queue processing error:', error);
     } finally {
