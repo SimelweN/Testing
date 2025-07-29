@@ -26,58 +26,91 @@ const validateSupabaseConfig = () => {
       `Invalid VITE_SUPABASE_URL: "${ENV.VITE_SUPABASE_URL}". Must be a valid URL.`,
     );
   }
+
+  // Validate API key format to prevent malformed keys with newlines
+  const cleanKey = ENV.VITE_SUPABASE_ANON_KEY.replace(/\s+/g, '');
+  if (cleanKey !== ENV.VITE_SUPABASE_ANON_KEY) {
+    console.warn('Supabase API key contains whitespace/newlines - cleaning it');
+  }
+
+  // Check for basic JWT structure (should have 3 parts separated by dots)
+  const keyParts = cleanKey.split('.');
+  if (keyParts.length !== 3) {
+    throw new Error(
+      'Invalid VITE_SUPABASE_ANON_KEY format. Expected JWT format with 3 parts.',
+    );
+  }
+
+  return cleanKey;
 };
 
-// Validate configuration
-validateSupabaseConfig();
+// Validate configuration and get clean API key
+const cleanApiKey = validateSupabaseConfig();
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(
-  ENV.VITE_SUPABASE_URL,
-  ENV.VITE_SUPABASE_ANON_KEY,
-  {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true,
-      flowType: "pkce",
-      // Better error handling for failed auth attempts
-      debug: import.meta.env.DEV,
-    },
-    realtime: {
-      // Enhanced WebSocket configuration for better reliability
-      params: {
-        eventsPerSecond: 10,
+// Global singleton pattern to prevent multiple client instances
+let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null;
+
+// Create or return existing Supabase client instance
+const createSupabaseClient = () => {
+  if (supabaseInstance) {
+    return supabaseInstance;
+  }
+
+  console.log('[Supabase] Creating new client instance');
+
+  supabaseInstance = createClient<Database>(
+    ENV.VITE_SUPABASE_URL,
+    cleanApiKey, // Use cleaned API key
+    {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+        flowType: "pkce",
+        // Better error handling for failed auth attempts
+        debug: import.meta.env.DEV,
       },
-      // Add heartbeat to keep connections alive
-      heartbeatIntervalMs: 30000,
-      // Reconnection settings with limited attempts
-      reconnectAfterMs: (retries) => {
-        // Stop attempting after 3 retries to prevent endless loops
-        if (retries >= 3) {
-          console.log(`[Supabase] Max reconnection attempts reached (${retries + 1}), stopping`);
-          return null; // Stop reconnecting
-        }
-        // Exponential backoff: 2s, 5s, 10s
-        const delay = Math.min(2000 * Math.pow(2, retries), 10000);
-        console.log(`[Supabase] Reconnecting in ${delay}ms (attempt ${retries + 1}/3)`);
-        return delay;
+      realtime: {
+        // Enhanced WebSocket configuration for better reliability
+        params: {
+          eventsPerSecond: 10,
+        },
+        // Add heartbeat to keep connections alive
+        heartbeatIntervalMs: 30000,
+        // Reconnection settings with limited attempts
+        reconnectAfterMs: (retries) => {
+          // Stop attempting after 3 retries to prevent endless loops
+          if (retries >= 3) {
+            console.log(`[Supabase] Max reconnection attempts reached (${retries + 1}), stopping`);
+            return null; // Stop reconnecting
+          }
+          // Exponential backoff: 2s, 5s, 10s
+          const delay = Math.min(2000 * Math.pow(2, retries), 10000);
+          console.log(`[Supabase] Reconnecting in ${delay}ms (attempt ${retries + 1}/3)`);
+          return delay;
+        },
+        // Increase timeout for slower connections
+        timeout: 20000,
+        // Log WebSocket events in development
+        logger: import.meta.env.DEV ? (level, message, ...args) => {
+          if (level === 'error' || level === 'warn') {
+            console.log(`[Supabase Realtime ${level.toUpperCase()}]`, message, ...args);
+          }
+        } : undefined,
       },
-      // Increase timeout for slower connections
-      timeout: 20000,
-      // Log WebSocket events in development
-      logger: import.meta.env.DEV ? (level, message, ...args) => {
-        if (level === 'error' || level === 'warn') {
-          console.log(`[Supabase Realtime ${level.toUpperCase()}]`, message, ...args);
-        }
-      } : undefined,
-    },
-    global: {
-      headers: {
-        'X-Client-Info': 'rebooked-marketplace',
+      global: {
+        headers: {
+          'X-Client-Info': 'rebooked-marketplace',
+        },
       },
     },
-  },
-);
+  );
+
+  return supabaseInstance;
+};
+
+// Export the singleton instance
+export const supabase = createSupabaseClient();

@@ -93,11 +93,30 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         console.warn("Could not fetch seller profile:", sellerError);
       }
 
-      // Validate seller data from books table
-      if (!bookData.subaccount_code) {
-        throw new Error(
-          "Seller payment setup is incomplete. The seller needs to set up their banking details.",
-        );
+      // Check if book has seller_subaccount_code, otherwise fall back to seller profile
+      let sellerSubaccountCode = bookData.seller_subaccount_code;
+
+      if (!sellerSubaccountCode) {
+        // Fallback: check seller's profile for subaccount
+        const { data: sellerProfile, error: sellerProfileError } = await supabase
+          .from("profiles")
+          .select("paystack_subaccount_code")
+          .eq("id", bookData.seller_id)
+          .single();
+
+        if (sellerProfileError || !sellerProfile?.paystack_subaccount_code) {
+          throw new Error(
+            "Seller payment setup is incomplete. The seller needs to set up their banking details.",
+          );
+        }
+
+        sellerSubaccountCode = sellerProfile.paystack_subaccount_code;
+
+        // Update the book with the subaccount code for future purchases
+        await supabase
+          .from("books")
+          .update({ seller_subaccount_code: sellerSubaccountCode })
+          .eq("id", bookData.id);
       }
 
       // Get seller address from profile (since book table columns don't exist yet)
@@ -138,7 +157,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       // Update book with complete seller data
       const updatedBook = {
         ...book,
-        seller_subaccount_code: bookData.subaccount_code,
+        seller_subaccount_code: sellerSubaccountCode,
         seller: {
           id: sellerProfile?.id || bookData.seller_id,
           name: sellerProfile?.name || "Seller",
