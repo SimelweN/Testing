@@ -111,19 +111,19 @@ function App() {
                     <Routes>
                       {/* Main Application Routes */}
                       <Route path="/" element={<Index />} />
-                      <Route path="/books" element={<BookListing />} />
-                      <Route path="/books/:id" element={<BookDetails />} />
+                      <Route path="/books" element={<LazyPageWrapper><BookListing /></LazyPageWrapper>} />
+                      <Route path="/books/:id" element={<LazyPageWrapper><BookDetails /></LazyPageWrapper>} />
                       <Route
                         path="/university-info"
-                        element={<UniversityInfo />}
+                        element={<LazyPageWrapper><UniversityInfo /></LazyPageWrapper>}
                       />
                       <Route
                         path="/university/:id"
-                        element={<UniversityProfile />}
+                        element={<LazyPageWrapper><UniversityProfile /></LazyPageWrapper>}
                       />
                       <Route
                         path="/study-resources"
-                        element={<StudyResources />}
+                        element={<LazyPageWrapper><StudyResources /></LazyPageWrapper>}
                       />
                       <Route
                         path="/study-tips"
@@ -131,31 +131,31 @@ function App() {
                       />
                       <Route
                         path="/seller/:sellerId"
-                        element={<SellerProfile />}
+                        element={<LazyPageWrapper><SellerProfile /></LazyPageWrapper>}
                       />
 
                       {/* Authentication Routes */}
                       <Route path="/login" element={<Login />} />
-                      <Route path="/register" element={<Register />} />
+                      <Route path="/register" element={<LazyPageWrapper><Register /></LazyPageWrapper>} />
                       <Route
                         path="/forgot-password"
-                        element={<ForgotPassword />}
+                        element={<LazyPageWrapper><ForgotPassword /></LazyPageWrapper>}
                       />
                       <Route
                         path="/reset-password"
-                        element={<ResetPassword />}
+                        element={<LazyPageWrapper><ResetPassword /></LazyPageWrapper>}
                       />
-                      <Route path="/verify" element={<Verify />} />
-                      <Route path="/verify/*" element={<VerifyEmail />} />
-                      <Route path="/verify-debug" element={<VerifyDebug />} />
-                      <Route path="/auth/callback" element={<AuthCallback />} />
+                      <Route path="/verify" element={<LazyPageWrapper><Verify /></LazyPageWrapper>} />
+                      <Route path="/verify/*" element={<LazyPageWrapper><VerifyEmail /></LazyPageWrapper>} />
+                      <Route path="/verify-debug" element={<LazyPageWrapper><VerifyDebug /></LazyPageWrapper>} />
+                      <Route path="/auth/callback" element={<LazyPageWrapper><AuthCallback /></LazyPageWrapper>} />
 
                       {/* Protected User Routes */}
                       <Route
                         path="/profile"
                         element={
                           <ProtectedRoute>
-                            <Profile />
+                            <LazyPageWrapper><Profile /></LazyPageWrapper>
                           </ProtectedRoute>
                         }
                       />
@@ -163,7 +163,7 @@ function App() {
                         path="/create-listing"
                         element={
                           <ProtectedRoute>
-                            <CreateListing />
+                            <LazyPageWrapper><CreateListing /></LazyPageWrapper>
                           </ProtectedRoute>
                         }
                       />
@@ -171,7 +171,7 @@ function App() {
                         path="/cart"
                         element={
                           <ProtectedRoute>
-                            <Cart />
+                            <LazyPageWrapper><Cart /></LazyPageWrapper>
                           </ProtectedRoute>
                         }
                       />
@@ -179,7 +179,7 @@ function App() {
                         path="/checkout"
                         element={
                           <ProtectedRoute>
-                            <Checkout />
+                            <LazyPageWrapper><Checkout /></LazyPageWrapper>
                           </ProtectedRoute>
                         }
                       />
@@ -187,7 +187,7 @@ function App() {
                         path="/checkout/:id"
                         element={
                           <ProtectedRoute>
-                            <Checkout />
+                            <LazyPageWrapper><Checkout /></LazyPageWrapper>
                           </ProtectedRoute>
                         }
                       />
@@ -195,7 +195,7 @@ function App() {
                         path="/checkout-cart"
                         element={
                           <ProtectedRoute>
-                            <Checkout />
+                            <LazyPageWrapper><Checkout /></LazyPageWrapper>
                           </ProtectedRoute>
                         }
                       />
@@ -203,7 +203,7 @@ function App() {
                         path="/notifications"
                         element={
                           <ProtectedRoute>
-                            <NotificationsNew />
+                            <LazyPageWrapper><NotificationsNew /></LazyPageWrapper>
                           </ProtectedRoute>
                         }
                       />
@@ -211,7 +211,7 @@ function App() {
                         path="/activity"
                         element={
                           <ProtectedRoute>
-                            <ActivityLog />
+                            <LazyPageWrapper><ActivityLog /></LazyPageWrapper>
                           </ProtectedRoute>
                         }
                       />
@@ -219,7 +219,7 @@ function App() {
                         path="/banking-setup"
                         element={
                           <ProtectedRoute>
-                            <BankingSetup />
+                            <LazyPageWrapper><BankingSetup /></LazyPageWrapper>
                           </ProtectedRoute>
                         }
                       />
@@ -227,7 +227,7 @@ function App() {
                         path="/user-profile"
                         element={
                           <ProtectedRoute>
-                            <UserProfile />
+                            <LazyPageWrapper><UserProfile /></LazyPageWrapper>
                           </ProtectedRoute>
                         }
                       />
@@ -235,7 +235,7 @@ function App() {
                         path="/sell"
                         element={
                           <ProtectedRoute>
-                            <CreateListing />
+                            <LazyPageWrapper><CreateListing /></LazyPageWrapper>
                           </ProtectedRoute>
                         }
                       />
@@ -243,30 +243,25 @@ function App() {
                         path="/settings"
                         element={
                           <ProtectedRoute>
-                            <Profile />
+                            <LazyPageWrapper><Profile /></LazyPageWrapper>
                           </ProtectedRoute>
                         }
                       />
-                      {/* DISABLED - Locker functionality removed */}
-                      {/* <Route
-                        path="/lockers"
-                        element={<LockerSearchPage />}
-                      /> */}
 
-                                            {/* Admin Routes */}
+                      {/* Admin Routes */}
                       <Route
                         path="/admin"
                         element={
                           <AdminProtectedRoute>
-                            <Admin />
+                            <LazyPageWrapper><Admin /></LazyPageWrapper>
                           </AdminProtectedRoute>
                         }
                       />
-                                            <Route
+                      <Route
                         path="/admin/reports"
                         element={
                           <AdminProtectedRoute>
-                            <AdminReports />
+                            <LazyPageWrapper><AdminReports /></LazyPageWrapper>
                           </AdminProtectedRoute>
                         }
                       />
@@ -274,20 +269,19 @@ function App() {
                         path="/developer"
                         element={
                           <AdminProtectedRoute>
-                            <Developer />
+                            <LazyPageWrapper><Developer /></LazyPageWrapper>
                           </AdminProtectedRoute>
                         }
                       />
 
                       {/* Support Routes */}
-                      <Route path="/contact" element={<ContactUs />} />
-                      <Route path="/faq" element={<FAQ />} />
-                      <Route path="/privacy" element={<Privacy />} />
-                      <Route path="/terms" element={<Terms />} />
-                      <Route path="/policies" element={<Policies />} />
-                      <Route path="/shipping" element={<Shipping />} />
-                                            <Route path="/report" element={<Report />} />
-
+                      <Route path="/contact" element={<LazyPageWrapper><ContactUs /></LazyPageWrapper>} />
+                      <Route path="/faq" element={<LazyPageWrapper><FAQ /></LazyPageWrapper>} />
+                      <Route path="/privacy" element={<LazyPageWrapper><Privacy /></LazyPageWrapper>} />
+                      <Route path="/terms" element={<LazyPageWrapper><Terms /></LazyPageWrapper>} />
+                      <Route path="/policies" element={<LazyPageWrapper><Policies /></LazyPageWrapper>} />
+                      <Route path="/shipping" element={<LazyPageWrapper><Shipping /></LazyPageWrapper>} />
+                      <Route path="/report" element={<LazyPageWrapper><Report /></LazyPageWrapper>} />
 
                       {/* 404 Catch All */}
                       <Route path="*" element={<Index />} />
