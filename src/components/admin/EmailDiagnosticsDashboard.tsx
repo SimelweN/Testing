@@ -57,11 +57,11 @@ const EmailDiagnosticsDashboard: React.FC = () => {
     try {
       console.log('🔍 Running comprehensive email diagnostics...');
       const results = await emailTriggerFix.diagnoseAllEmailTriggers();
-      
+
       // Determine overall status
       const hasFailures = results.some(test => !test.success);
       const hasWarnings = results.some(test => test.success && test.message.includes('warning'));
-      
+
       let overallStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
       if (hasFailures) {
         overallStatus = 'critical';
@@ -79,21 +79,45 @@ const EmailDiagnosticsDashboard: React.FC = () => {
       // Show summary toast
       const successCount = results.filter(test => test.success).length;
       const failureCount = results.length - successCount;
-      
+
+      // More detailed feedback about edge functions
+      const edgeFunctionIssues = results.filter(test =>
+        !test.success && test.message.includes('not accessible')
+      ).length;
+
       if (failureCount === 0) {
         toast.success(`✅ All ${successCount} email system checks passed!`);
+      } else if (edgeFunctionIssues > 0) {
+        toast.warning(`⚠️ ${edgeFunctionIssues} edge functions not deployed, ${successCount} checks passed`);
       } else {
         toast.error(`❌ ${failureCount} issues found, ${successCount} checks passed`);
       }
 
     } catch (error) {
       console.error('Diagnostics error:', error);
-      toast.error('Failed to run diagnostics');
-      setDiagnostics(prev => ({ 
-        ...prev, 
-        isRunning: false, 
-        overallStatus: 'critical' 
-      }));
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+      // Create a mock result to show the error
+      const errorResult = {
+        name: 'Diagnostics System',
+        success: false,
+        message: `Failed to run diagnostics: ${errorMessage}`,
+        details: { error: errorMessage },
+        fix: [
+          'Check browser console for detailed errors',
+          'Verify Supabase project is accessible',
+          'Try refreshing the page'
+        ]
+      };
+
+      setDiagnostics({
+        isRunning: false,
+        tests: [errorResult],
+        lastRun: new Date().toISOString(),
+        overallStatus: 'critical'
+      });
+
+      toast.error(`Failed to run diagnostics: ${errorMessage}`);
     }
   };
 
