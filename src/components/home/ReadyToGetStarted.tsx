@@ -5,16 +5,18 @@ import { useAuth } from "@/contexts/AuthContext";
 const ReadyToGetStarted = () => {
   const navigate = useNavigate();
 
-  // Defensive auth handling with fallback
-  let isAuthenticated = false;
-  try {
-    const auth = useAuth();
-    isAuthenticated = auth.isAuthenticated;
-  } catch (error) {
-    console.warn("Auth context not available in ReadyToGetStarted, using default values");
-    // Fallback to unauthenticated state if auth context is not available
-    isAuthenticated = false;
-  }
+  // Use optional auth context - if not available, assume unauthenticated
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    try {
+      const auth = useAuth();
+      setIsAuthenticated(auth.isAuthenticated);
+    } catch (error) {
+      // If auth context is not available, stay unauthenticated
+      setIsAuthenticated(false);
+    }
+  }, []);
 
   return (
     <section className="py-16 sm:py-20 bg-gradient-to-r from-book-600 to-book-700">
