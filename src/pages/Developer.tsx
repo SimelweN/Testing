@@ -207,7 +207,9 @@ const Developer = () => {
         }));
 
         setUsers(realUsers);
-        setSelectedBuyer(realUsers[0].id);
+        if (realUsers.length > 0) {
+          setSelectedBuyer(realUsers[0].id);
+        }
 
         // Try to find a seller (someone who has books)
         const sellerIds = [...new Set(booksData?.map(book => book.seller_id) || [])];
@@ -1622,7 +1624,7 @@ const Developer = () => {
 
                             // Show some sample locker info
                             const sampleLocker = lockers[0];
-                            console.log('📍 Sample real locker:', {
+                            console.log('���� Sample real locker:', {
                               id: sampleLocker.id,
                               name: sampleLocker.name,
                               city: sampleLocker.city,
