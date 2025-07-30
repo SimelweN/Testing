@@ -277,6 +277,20 @@ const AdminUsersTab = ({ users, onUserAction }: AdminUsersTabProps) => {
                               Activate
                             </Button>
                           )}
+
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              if (window.confirm(`Are you sure you want to permanently delete ${user.name}? This action cannot be undone and will remove all their data.`)) {
+                                onUserAction(user.id, "delete");
+                              }
+                            }}
+                            className="h-8 px-3 text-xs bg-red-600 hover:bg-red-700"
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Delete
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
