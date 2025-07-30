@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Mail, Package, Truck, Star } from 'lucide-react';
@@ -16,7 +15,7 @@ const PostListingSuccessDialog = ({
 }: PostListingSuccessDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-md mx-auto my-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center text-green-600">
             <CheckCircle className="mr-2 h-6 w-6" />
