@@ -1397,7 +1397,7 @@ const Developer = () => {
                         <SelectValue placeholder="Select a seller" />
                       </SelectTrigger>
                       <SelectContent>
-                        {users && users.length > 0 ? users.filter(user => user && user.id).map(user => (
+                        {users && users.length > 0 ? users.filter(user => user && user.id && typeof user.id === 'string').map(user => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.name} ({user.email})
                           </SelectItem>
