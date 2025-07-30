@@ -125,7 +125,9 @@ const Developer = () => {
           condition: book.book_condition || 'good'
         }));
         setBooks(realBooks);
-        setSelectedBook(realBooks[0].id);
+        if (realBooks.length > 0) {
+          setSelectedBook(realBooks[0].id);
+        }
         console.log('✅ REAL Books loaded:', realBooks.length, realBooks);
         toast.success(`✅ Loaded ${realBooks.length} REAL books from database`);
       } else {
@@ -297,7 +299,7 @@ const Developer = () => {
       const finalBookCount = booksData?.length || 0;
       const finalUserCount = usersData?.length || 0;
 
-      console.log('📊 Final data summary:', {
+      console.log('���� Final data summary:', {
         books: finalBookCount,
         users: finalUserCount,
         selectedBook,
