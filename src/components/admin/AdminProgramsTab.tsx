@@ -356,7 +356,7 @@ const AdminProgramsTab = () => {
 
       {/* Program Details Dialog */}
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-2xl max-h-[85vh] mx-auto my-auto overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{selectedProgram?.programName}</DialogTitle>
             <DialogDescription>
