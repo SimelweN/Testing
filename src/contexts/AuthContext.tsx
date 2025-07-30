@@ -174,7 +174,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           );
         }
 
-        if (errorMessage.includes("already registered")) {
+        if (errorMessage.includes("already registered") ||
+            errorMessage.includes("User already registered") ||
+            errorMessage.includes("already been registered") ||
+            errorMessage.includes("email address is already registered")) {
           throw new Error(
             "An account with this email already exists. Please try logging in instead.",
           );
