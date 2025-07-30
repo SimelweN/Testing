@@ -108,7 +108,14 @@ export class BookDeletionService {
           "BookDeletionService.deleteBookWithNotification - delete",
           deleteError,
         );
-        throw new Error(`Failed to delete book: ${deleteError.message}`);
+
+        // Handle foreign key constraint errors specifically
+        if (deleteError.code === '23503' && deleteError.message?.includes('orders_book_id_fkey')) {
+          throw new Error(`Cannot delete book: There are active orders referencing this book. Please cancel or complete these orders first before deleting the book.`);
+        }
+
+        const errorMessage = deleteError.message || String(deleteError);
+        throw new Error(`Failed to delete book: ${errorMessage}`);
       }
 
       // Send notification to the seller
@@ -135,7 +142,14 @@ export class BookDeletionService {
         reason,
         adminId,
       });
-      throw error;
+
+      // Ensure we're throwing proper error messages
+      if (error instanceof Error) {
+        throw error;
+      }
+
+      const errorMessage = typeof error === 'string' ? error : String(error);
+      throw new Error(`Book deletion failed: ${errorMessage}`);
     }
   }
 
