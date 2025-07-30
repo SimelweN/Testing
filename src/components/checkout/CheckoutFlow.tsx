@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
+import { EnhancedPurchaseEmailService } from "@/services/enhancedPurchaseEmailService";
 import {
   CheckoutState,
   CheckoutBook,
