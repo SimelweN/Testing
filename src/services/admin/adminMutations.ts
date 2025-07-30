@@ -39,7 +39,10 @@ export const deleteBookListing = async (
     );
   } catch (error) {
     console.error("Error in deleteBookListing:", error);
-    throw new Error("Failed to delete book listing");
+
+    // Return proper error message instead of generic one
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(errorMessage);
   }
 };
 
