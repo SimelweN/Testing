@@ -5,13 +5,13 @@ import { CheckCircle, Mail, Package, Truck, Star } from 'lucide-react';
 interface PostListingSuccessDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onGoToProfile: () => void;
+  onShareProfile: () => void;
 }
 
 const PostListingSuccessDialog = ({
   isOpen,
   onClose,
-  onGoToProfile
+  onShareProfile
 }: PostListingSuccessDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -65,7 +65,7 @@ const PostListingSuccessDialog = ({
           <Button variant="outline" onClick={onClose}>
             Got it
           </Button>
-          <Button onClick={onGoToProfile} className="bg-book-600 hover:bg-book-700">
+          <Button onClick={onShareProfile} className="bg-book-600 hover:bg-book-700">
             Go to Profile
           </Button>
         </DialogFooter>
