@@ -105,15 +105,19 @@ export class UserDeletionService {
         report.errors.push(`Notifications deletion error: ${error}`);
       }
 
-      // 2. Delete mail queue entries
+      // 2. Delete mail queue entries (skip if table/column doesn't exist)
       try {
         const { count: mailCount, error: mailError } = await supabase
           .from('mail_queue')
           .delete({ count: 'exact' })
           .eq('to_email', userProfile.email);
-        
+
         if (mailError) {
-          report.errors.push(`Mail queue deletion failed: ${mailError.message}`);
+          if (mailError.code === '42P01' || mailError.message.includes('does not exist')) {
+            console.warn('Mail queue table/column does not exist, skipping...');
+          } else {
+            report.errors.push(`Mail queue deletion failed: ${mailError.message}`);
+          }
         } else {
           report.deletedRecords.other += mailCount || 0;
           console.log('✅ Deleted mail queue entries:', mailCount);
