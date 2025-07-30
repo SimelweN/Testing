@@ -23,6 +23,7 @@ import {
   shouldShowPostListing,
   markPopupAsShown,
 } from "@/services/popupTrackingService";
+import { NotificationService } from "@/services/notificationService";
 import BankingRequirementCheck from "@/components/BankingRequirementCheck";
 import {
   hasCompletedFirstUpload,
@@ -233,6 +234,19 @@ const CreateListing = () => {
       }
 
       const createdBook = await createBook(bookData);
+
+      // Create success notification
+      try {
+        await NotificationService.createNotification({
+          userId: user.id,
+          type: 'listing',
+          title: 'Book Listed Successfully!',
+          message: `Your book "${bookData.title}" has been listed successfully. Students can now find and purchase your book.`,
+        });
+      } catch (notificationError) {
+        console.warn('Failed to create listing notification:', notificationError);
+      }
+
       toast.success("Your book has been listed successfully!", {
         description: "Students can now find and purchase your book.",
         duration: 5000,
