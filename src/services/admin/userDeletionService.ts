@@ -216,15 +216,19 @@ export class UserDeletionService {
         console.warn('Banking deletion skipped (table may not exist):', error);
       }
 
-      // 7. Delete sale commitments
+      // 7. Delete sale commitments - handle missing columns
       try {
         const { count: commitCount, error: commitError } = await supabase
           .from('sale_commitments')
           .delete({ count: 'exact' })
           .or(`buyer_id.eq.${userProfile.id},seller_id.eq.${userProfile.id}`);
-        
+
         if (commitError) {
-          report.errors.push(`Sale commitments deletion failed: ${commitError.message}`);
+          if (commitError.code === '42P01' || commitError.message.includes('does not exist')) {
+            console.warn('Sale commitments table/column does not exist, skipping...');
+          } else {
+            report.errors.push(`Sale commitments deletion failed: ${commitError.message}`);
+          }
         } else {
           report.deletedRecords.other += commitCount || 0;
           console.log('✅ Deleted sale commitments:', commitCount);
