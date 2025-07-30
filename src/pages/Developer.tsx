@@ -1363,7 +1363,7 @@ const Developer = () => {
                         <SelectValue placeholder="Select a book" />
                       </SelectTrigger>
                       <SelectContent>
-                        {books && books.length > 0 ? books.filter(book => book && book.id).map(book => (
+                        {books && books.length > 0 ? books.filter(book => book && book.id && typeof book.id === 'string').map(book => (
                           <SelectItem key={book.id} value={book.id}>
                             {book.title} - R{book.price} ({book.seller_name})
                           </SelectItem>
@@ -1718,7 +1718,7 @@ const Developer = () => {
                       <p>It will bypass CORS and fetch real PUDO data server-side.</p>
                     </div>
                     <p className="text-xs mt-2 text-blue-600">
-                      💡 API Docs: <a href="https://api-pudo.co.za" target="_blank" className="underline">api-pudo.co.za</a> | Console logs: F12
+                      ��� API Docs: <a href="https://api-pudo.co.za" target="_blank" className="underline">api-pudo.co.za</a> | Console logs: F12
                     </p>
                   </div>
                 </div>
