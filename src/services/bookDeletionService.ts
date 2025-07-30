@@ -331,10 +331,15 @@ export class BookDeletionService {
 
       console.log("Book deleted and notification sent successfully:", bookId);
     } catch (error) {
-      logError("BookDeletionService.deleteBookWithNotification", error, {
+      // Log error with proper serialization instead of using logError
+      console.error("[BookDeletionService.deleteBookWithNotification]", {
+        message: error instanceof Error ? error.message : String(error),
+        name: error instanceof Error ? error.name : undefined,
+        stack: error instanceof Error ? error.stack : undefined,
         bookId,
         reason,
         adminId,
+        timestamp: new Date().toISOString()
       });
 
       // Ensure we're throwing proper error messages
