@@ -69,7 +69,14 @@ export const deleteUser = async (
     return report;
   } catch (error) {
     console.error("Error in deleteUser:", error);
-    throw new Error("Failed to delete user");
+    // Return a proper error report instead of throwing
+    return {
+      success: false,
+      userId: '',
+      email: '',
+      deletedRecords: {},
+      errors: [error instanceof Error ? error.message : String(error)]
+    };
   }
 };
 
