@@ -246,6 +246,31 @@ const CreateListing = () => {
         handlePostCommitFlow();
       }
 
+      // Define post-commit flow handler
+      const handlePostCommitFlow = async () => {
+        try {
+          const hasCompleted = await hasCompletedFirstUpload(user.id);
+          if (!hasCompleted && shouldShowFirstUpload(user.id)) {
+            setShowFirstUploadDialog(true);
+          } else if (shouldShowPostListing(user.id)) {
+            setShowPostListingDialog(true);
+          } else {
+            setShowShareProfileDialog(true);
+          }
+        } catch (prefError) {
+          console.warn(
+            "Could not track first upload preference:",
+            prefError,
+          );
+          // Fallback to showing appropriate dialog
+          if (shouldShowPostListing(user.id)) {
+            setShowPostListingDialog(true);
+          } else {
+            setShowShareProfileDialog(true);
+          }
+        }
+      };
+
       // Handle first upload workflow after commit reminder
       try {
         const hasCompleted = await hasCompletedFirstUpload(user.id);
