@@ -418,7 +418,8 @@ export class UserDeletionService {
 
       return result;
     } catch (error) {
-      result.errors.push(`Search error: ${error}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      result.errors.push(`Search error: ${errorMessage}`);
       return result;
     }
   }
