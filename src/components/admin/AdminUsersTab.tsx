@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { UserX, CheckCircle, Eye, Users, UserPlus, Activity } from "lucide-react";
+import { UserX, CheckCircle, Eye, Users, UserPlus, Activity, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -23,7 +23,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AdminUsersTabProps {
   users: AdminUser[];
-  onUserAction: (userId: string, action: "suspend" | "activate") => void;
+  onUserAction: (userId: string, action: "suspend" | "activate" | "delete") => void;
 }
 
 const AdminUsersTab = ({ users, onUserAction }: AdminUsersTabProps) => {
@@ -104,6 +104,20 @@ const AdminUsersTab = ({ users, onUserAction }: AdminUsersTabProps) => {
               </Button>
             )}
           </div>
+
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => {
+              if (window.confirm(`Are you sure you want to permanently delete ${user.name}? This action cannot be undone and will remove all their data.`)) {
+                onUserAction(user.id, "delete");
+              }
+            }}
+            className="w-full mt-2"
+          >
+            <Trash2 className="h-3 w-3 mr-2" />
+            Delete User
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -263,6 +277,20 @@ const AdminUsersTab = ({ users, onUserAction }: AdminUsersTabProps) => {
                               Activate
                             </Button>
                           )}
+
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              if (window.confirm(`Are you sure you want to permanently delete ${user.name}? This action cannot be undone and will remove all their data.`)) {
+                                onUserAction(user.id, "delete");
+                              }
+                            }}
+                            className="h-8 px-3 text-xs bg-red-600 hover:bg-red-700"
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Delete
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>

@@ -17,6 +17,7 @@ import {
   updateUserStatus,
   deleteBookListing,
   sendBroadcastMessage,
+  deleteUser,
 } from "@/services/admin/adminMutations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
@@ -171,17 +172,51 @@ const AdminDashboard = () => {
 
   const handleUserAction = async (
     userId: string,
-    action: "suspend" | "activate",
+    action: "suspend" | "activate" | "delete",
   ) => {
     try {
-      const status = action === "suspend" ? "suspended" : "active";
-      await updateUserStatus(userId, status);
+      if (action === "delete") {
+        // Handle user deletion
+        toast.loading("Deleting user and all associated data...", {
+          id: `delete-${userId}`,
+          duration: 30000
+        });
 
-      setUsers(
-        users.map((user) => (user.id === userId ? { ...user, status } : user)),
-      );
+        const deletionReport = await deleteUser(userId);
 
-      toast.success(`User ${action}d successfully`);
+        if (deletionReport.success) {
+          // Remove user from local state
+          setUsers(users.filter((user) => user.id !== userId));
+
+          toast.success(
+            `User deleted successfully. Removed ${Object.values(deletionReport.deletedRecords).reduce((sum, count) => sum + count, 0)} records.`,
+            {
+              id: `delete-${userId}`,
+              duration: 6000
+            }
+          );
+
+          console.log("User deletion report:", deletionReport);
+        } else {
+          toast.error(
+            `User deletion failed: ${deletionReport.errors.join(", ")}`,
+            {
+              id: `delete-${userId}`,
+              duration: 8000
+            }
+          );
+        }
+      } else {
+        // Handle suspend/activate
+        const status = action === "suspend" ? "suspended" : "active";
+        await updateUserStatus(userId, status);
+
+        setUsers(
+          users.map((user) => (user.id === userId ? { ...user, status } : user)),
+        );
+
+        toast.success(`User ${action}d successfully`);
+      }
 
       // Reload stats to reflect the change
       try {
@@ -192,6 +227,9 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       console.error(`Error ${action}ing user:`, error);
+      if (action === "delete") {
+        toast.error("Failed to delete user", { id: `delete-${userId}` });
+      }
       handleError(error, `${action} User`);
     }
   };
