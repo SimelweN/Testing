@@ -5,12 +5,7 @@ export const createTestNotification = async (userId: string) => {
     userId,
     type: 'test',
     title: 'Test Notification',
-    message: 'This is a test notification to verify the system is working properly.',
-    priority: 'medium' as const,
-    metadata: {
-      test: true,
-      timestamp: new Date().toISOString(),
-    },
+    message: `This is a test notification to verify the system is working properly. Created at: ${new Date().toISOString()}`,
   };
 
   try {
@@ -29,10 +24,6 @@ export const createWelcomeNotification = async (userId: string) => {
     type: 'welcome',
     title: 'Welcome to ReBooked!',
     message: 'Welcome to South Africa\'s premier textbook marketplace! Start buying and selling textbooks today.',
-    priority: 'high',
-    metadata: {
-      onboarding: true,
-    },
   });
 };
 
