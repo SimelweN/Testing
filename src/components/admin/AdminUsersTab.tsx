@@ -104,6 +104,20 @@ const AdminUsersTab = ({ users, onUserAction }: AdminUsersTabProps) => {
               </Button>
             )}
           </div>
+
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => {
+              if (window.confirm(`Are you sure you want to permanently delete ${user.name}? This action cannot be undone and will remove all their data.`)) {
+                onUserAction(user.id, "delete");
+              }
+            }}
+            className="w-full mt-2"
+          >
+            <Trash2 className="h-3 w-3 mr-2" />
+            Delete User
+          </Button>
         </div>
       </CardContent>
     </Card>
