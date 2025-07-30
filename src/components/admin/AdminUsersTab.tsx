@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { UserX, CheckCircle, Eye, Users, UserPlus, Activity } from "lucide-react";
+import { UserX, CheckCircle, Eye, Users, UserPlus, Activity, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
