@@ -16,14 +16,23 @@ const AuthCallback = () => {
   const [message, setMessage] = useState("");
 
   // Check if user is already authenticated and redirect them
+  // BUT NOT for password reset flows - they need to reach the reset form
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
+      // Check if this is a password reset flow by looking at URL parameters
+      const type = searchParams.get("type") || new URLSearchParams(window.location.hash.substring(1)).get("type");
+
+      if (type === "recovery") {
+        console.log("🔐 Authenticated user in recovery flow - allowing reset password access");
+        return; // Don't redirect, let the password reset flow continue
+      }
+
       console.log("🔄 User already authenticated, redirecting from auth callback");
       toast.success("You are already logged in!");
       navigate("/", { replace: true });
       return;
     }
-  }, [isAuthenticated, authLoading, navigate]);
+  }, [isAuthenticated, authLoading, navigate, searchParams]);
 
   useEffect(() => {
     // Don't process auth callback if user is already authenticated or auth is still loading
