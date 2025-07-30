@@ -108,7 +108,7 @@ const ShareProfileDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-md mx-auto my-auto">
                 <DialogHeader>
           <DialogTitle className="flex items-center">
             <Share2 className="h-5 w-5 text-book-600 mr-2" />
