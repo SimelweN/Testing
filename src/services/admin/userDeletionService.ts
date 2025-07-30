@@ -184,9 +184,13 @@ export class UserDeletionService {
           .from('transactions')
           .delete({ count: 'exact' })
           .eq('user_id', userProfile.id);
-        
+
         if (transError) {
-          report.errors.push(`Transactions deletion failed: ${transError.message}`);
+          if (transError.code === '42P01' || transError.message.includes('does not exist')) {
+            console.warn('Transactions table/column does not exist, skipping...');
+          } else {
+            report.errors.push(`Transactions deletion failed: ${transError.message}`);
+          }
         } else {
           report.deletedRecords.transactions += transCount || 0;
           console.log('✅ Deleted transactions:', transCount);
