@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -40,7 +41,14 @@ const ProgramDetailModal: React.FC<ProgramDetailModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const navigate = useNavigate();
+
   if (!program || !university) return null;
+
+  const handleAPSCalculator = () => {
+    navigate("/university-info?tool=aps-calculator");
+    onClose(); // Close the modal after navigation
+  };
 
   // Get expected salary range based on program type
   const getSalaryRange = (programName: string): string => {
@@ -638,7 +646,10 @@ const ProgramDetailModal: React.FC<ProgramDetailModalProps> = ({
                 </a>
               </Button>
             )}
-            <Button className="bg-book-600 hover:bg-book-700 w-full">
+            <Button
+              onClick={handleAPSCalculator}
+              className="bg-book-600 hover:bg-book-700 w-full"
+            >
               <Calculator className="h-4 w-4 mr-2" />
               Calculate My APS
             </Button>
@@ -666,7 +677,10 @@ const ProgramDetailModal: React.FC<ProgramDetailModalProps> = ({
                 </a>
               </Button>
             )}
-            <Button className="bg-book-600 hover:bg-book-700">
+            <Button
+              onClick={handleAPSCalculator}
+              className="bg-book-600 hover:bg-book-700"
+            >
               <Calculator className="h-4 w-4 mr-2" />
               Calculate My APS
             </Button>
