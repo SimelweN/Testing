@@ -23,7 +23,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AdminUsersTabProps {
   users: AdminUser[];
-  onUserAction: (userId: string, action: "suspend" | "activate") => void;
+  onUserAction: (userId: string, action: "suspend" | "activate" | "delete") => void;
 }
 
 const AdminUsersTab = ({ users, onUserAction }: AdminUsersTabProps) => {
