@@ -296,7 +296,9 @@ const Developer = () => {
         if (realSellers.length > 0) {
           console.log('✅ REAL Sellers found:', realSellers.length, realSellers);
           // Set the first real seller as default
-          setSelectedSeller(realSellers[0].id);
+          if (realSellers.length > 0) {
+            setSelectedSeller(realSellers[0].id);
+          }
           toast.success(`✅ Found ${realSellers.length} REAL sellers with books`);
         }
       }
