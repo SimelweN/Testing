@@ -23,8 +23,9 @@ const AuthCallback = () => {
       const type = searchParams.get("type") || new URLSearchParams(window.location.hash.substring(1)).get("type");
 
       if (type === "recovery") {
-        console.log("🔐 Authenticated user in recovery flow - allowing reset password access");
-        return; // Don't redirect, let the password reset flow continue
+        console.log("🔐 Authenticated user in recovery flow - redirecting directly to reset password");
+        navigate("/reset-password", { replace: true });
+        return;
       }
 
       console.log("🔄 User already authenticated, redirecting from auth callback");
