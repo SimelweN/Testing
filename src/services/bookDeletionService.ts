@@ -64,6 +64,82 @@ export class BookDeletionService {
   }
 
   /**
+   * Get detailed information about what's blocking book deletion
+   */
+  static async getBookDeletionBlockers(bookId: string): Promise<{
+    activeOrders: Array<{ id: string; status: string; buyer_email: string }>;
+    saleCommitments: Array<{ id: string; status: string; user_id: string }>;
+    reports: Array<{ id: string; reason: string; created_at: string }>;
+    transactions: Array<{ id: string; status: string; amount: number }>;
+  }> {
+    try {
+      const results = {
+        activeOrders: [] as Array<{ id: string; status: string; buyer_email: string }>,
+        saleCommitments: [] as Array<{ id: string; status: string; user_id: string }>,
+        reports: [] as Array<{ id: string; reason: string; created_at: string }>,
+        transactions: [] as Array<{ id: string; status: string; amount: number }>,
+      };
+
+      // Get detailed order information
+      try {
+        const { data: orders } = await supabase
+          .from('orders')
+          .select('id, status, buyer_email')
+          .contains('items', [{ book_id: bookId }])
+          .neq('status', 'cancelled')
+          .neq('status', 'refunded');
+
+        if (orders) {
+          results.activeOrders = orders;
+        }
+      } catch (error) {
+        console.warn('Could not fetch order details:', error);
+      }
+
+      // Get sale commitments
+      const { data: commitments } = await supabase
+        .from('sale_commitments')
+        .select('id, status, user_id')
+        .eq('book_id', bookId)
+        .neq('status', 'cancelled');
+
+      if (commitments) {
+        results.saleCommitments = commitments;
+      }
+
+      // Get reports
+      const { data: reports } = await supabase
+        .from('reports')
+        .select('id, reason, created_at')
+        .eq('book_id', bookId);
+
+      if (reports) {
+        results.reports = reports;
+      }
+
+      // Get transactions
+      const { data: transactions } = await supabase
+        .from('transactions')
+        .select('id, status, amount')
+        .eq('book_id', bookId);
+
+      if (transactions) {
+        results.transactions = transactions;
+      }
+
+      return results;
+    } catch (error) {
+      console.warn('Error fetching book deletion blockers:', error);
+      return {
+        activeOrders: [],
+        saleCommitments: [],
+        reports: [],
+        transactions: [],
+      };
+    }
+  }
+
+  /**
    * Check if a book can be safely deleted (no foreign key constraints)
    */
   static async checkBookDeletionConstraints(bookId: string): Promise<{
@@ -217,10 +293,15 @@ export class BookDeletionService {
         .eq("id", bookId);
 
       if (deleteError) {
-        logError(
-          "BookDeletionService.deleteBookWithNotification - delete",
-          deleteError,
-        );
+        // Log the error with proper serialization
+        console.error("[BookDeletionService.deleteBookWithNotification - delete]", {
+          message: deleteError.message || 'Unknown error',
+          code: deleteError.code,
+          details: deleteError.details,
+          hint: deleteError.hint,
+          bookId,
+          timestamp: new Date().toISOString()
+        });
 
         // Handle foreign key constraint errors specifically
         if (deleteError.code === '23503' && deleteError.message?.includes('orders_book_id_fkey')) {
