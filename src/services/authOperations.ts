@@ -79,7 +79,10 @@ export const registerUser = async (
     let errorMessage = error.message || 'Registration failed';
 
     // Provide specific messages for common registration errors
-    if (errorMessage.includes('User already registered')) {
+    if (errorMessage.includes('User already registered') ||
+        errorMessage.includes('already registered') ||
+        errorMessage.includes('already been registered') ||
+        errorMessage.includes('email address is already registered')) {
       errorMessage = 'An account with this email already exists. Please try logging in instead.';
     } else if (errorMessage.includes('Password should be at least')) {
       errorMessage = 'Password must be at least 6 characters long.';
