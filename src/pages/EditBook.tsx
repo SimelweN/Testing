@@ -321,7 +321,7 @@ const EditBook = () => {
             </div>
 
             <div className="space-y-4">
-              <MultiImageUpload
+              <EnhancedMobileImageUpload
                 images={currentImages}
                 onImagesChange={(images) => {
                   const bookImages = images as {
