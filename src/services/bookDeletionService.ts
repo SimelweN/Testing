@@ -64,6 +64,105 @@ export class BookDeletionService {
   }
 
   /**
+   * Check if a book can be safely deleted (no foreign key constraints)
+   */
+  static async checkBookDeletionConstraints(bookId: string): Promise<{
+    canDelete: boolean;
+    blockers: string[];
+    details: {
+      activeOrders: number;
+      saleCommitments: number;
+      reports: number;
+      transactions: number;
+    };
+  }> {
+    try {
+      const blockers: string[] = [];
+      const details = {
+        activeOrders: 0,
+        saleCommitments: 0,
+        reports: 0,
+        transactions: 0,
+      };
+
+      // Check for orders with book_id (if the column exists)
+      try {
+        const { data: orders, error: ordersError } = await supabase
+          .from('orders')
+          .select('id')
+          .contains('items', [{ book_id: bookId }])
+          .neq('status', 'cancelled')
+          .neq('status', 'refunded');
+
+        if (!ordersError && orders) {
+          details.activeOrders = orders.length;
+          if (orders.length > 0) {
+            blockers.push(`${orders.length} active order(s)`);
+          }
+        }
+      } catch (orderCheckError) {
+        console.warn('Could not check orders table:', orderCheckError);
+      }
+
+      // Check for sale commitments
+      const { data: commitments, error: commitError } = await supabase
+        .from('sale_commitments')
+        .select('id')
+        .eq('book_id', bookId)
+        .neq('status', 'cancelled');
+
+      if (!commitError && commitments) {
+        details.saleCommitments = commitments.length;
+        if (commitments.length > 0) {
+          blockers.push(`${commitments.length} active sale commitment(s)`);
+        }
+      }
+
+      // Check for reports
+      const { data: reports, error: reportsError } = await supabase
+        .from('reports')
+        .select('id')
+        .eq('book_id', bookId);
+
+      if (!reportsError && reports) {
+        details.reports = reports.length;
+        // Reports don't block deletion but we track them
+      }
+
+      // Check for transactions
+      const { data: transactions, error: transError } = await supabase
+        .from('transactions')
+        .select('id')
+        .eq('book_id', bookId);
+
+      if (!transError && transactions) {
+        details.transactions = transactions.length;
+        if (transactions.length > 0) {
+          blockers.push(`${transactions.length} payment transaction(s)`);
+        }
+      }
+
+      return {
+        canDelete: blockers.length === 0,
+        blockers,
+        details,
+      };
+    } catch (error) {
+      logError('BookDeletionService.checkBookDeletionConstraints', error);
+      return {
+        canDelete: false,
+        blockers: ['Unable to verify deletion constraints'],
+        details: {
+          activeOrders: 0,
+          saleCommitments: 0,
+          reports: 0,
+          transactions: 0,
+        },
+      };
+    }
+  }
+
+  /**
    * Delete a book and send notification to seller
    */
   static async deleteBookWithNotification(
@@ -97,7 +196,21 @@ export class BookDeletionService {
         throw new Error("Book not found");
       }
 
-      // Delete the book directly
+      // Check for foreign key constraints before deletion
+      console.log('Checking deletion constraints for book:', bookId);
+      const constraintCheck = await BookDeletionService.checkBookDeletionConstraints(bookId);
+
+      if (!constraintCheck.canDelete) {
+        const blockersList = constraintCheck.blockers.join(', ');
+        throw new Error(
+          `Cannot delete book: This book is referenced by ${blockersList}. ` +
+          'Please resolve these dependencies before deleting the book.'
+        );
+      }
+
+      console.log('Book is safe to delete, proceeding...');
+
+      // Delete the book
       const { error: deleteError } = await supabase
         .from("books")
         .delete()
