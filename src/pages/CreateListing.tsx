@@ -238,14 +238,6 @@ const CreateListing = () => {
         duration: 5000,
       });
 
-      // Show commit reminder modal first (only if not shown before)
-      if (shouldShowCommitReminder(user.id)) {
-        setShowCommitReminderModal(true);
-      } else {
-        // Skip to post-listing flow if commit reminder already shown
-        handlePostCommitFlow();
-      }
-
       // Define post-commit flow handler
       const handlePostCommitFlow = async () => {
         try {
@@ -270,6 +262,14 @@ const CreateListing = () => {
           }
         }
       };
+
+      // Show commit reminder modal first (only if not shown before)
+      if (shouldShowCommitReminder(user.id)) {
+        setShowCommitReminderModal(true);
+      } else {
+        // Skip to post-listing flow if commit reminder already shown
+        handlePostCommitFlow();
+      }
 
       // Handle first upload workflow after commit reminder
       try {
