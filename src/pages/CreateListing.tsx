@@ -379,7 +379,7 @@ const CreateListing = () => {
               </div>
 
               <div>
-                <MultiImageUpload
+                <EnhancedMobileImageUpload
                   currentImages={bookImages}
                   onImagesChange={(images) =>
                     setBookImages(images as typeof bookImages)
