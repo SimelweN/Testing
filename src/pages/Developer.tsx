@@ -1283,6 +1283,15 @@ const Developer = () => {
             </div>
             <div className="flex items-center space-x-2">
               <Button
+                onClick={() => navigate("/photo-upload-demo")}
+                variant="outline"
+                size="sm"
+                className="flex items-center space-x-2"
+              >
+                <TestTube className="h-4 w-4" />
+                <span>Photo Upload Demo</span>
+              </Button>
+              <Button
                 onClick={() => navigate("/lockers")}
                 variant="outline"
                 size="sm"
