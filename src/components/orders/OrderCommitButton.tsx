@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { EnhancedCommitService } from "@/services/enhancedCommitService";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import {
   AlertDialog,
@@ -50,66 +51,47 @@ const OrderCommitButton: React.FC<OrderCommitButtonProps> = ({
     setIsDialogOpen(false);
 
     try {
-      console.log(`🚀 Committing to sale for order: ${orderId}`);
+      console.log(`🚀 Enhanced commit: Starting commit with guaranteed emails for order: ${orderId}`);
 
-      // 🚀 CALL COMMIT-TO-SALE SUPABASE EDGE FUNCTION
-      const { data, error } = await supabase.functions.invoke(
-        "commit-to-sale",
-        {
-          body: {
-            order_id: orderId,
-            seller_id: sellerId,
-          },
-        },
-      );
+      // 🔧 USE ENHANCED COMMIT SERVICE WITH EMAIL FALLBACKS
+      const result = await EnhancedCommitService.commitWithEmailFallback(orderId, sellerId);
 
-      if (error) {
-        console.error("Supabase function error:", {
-          message: error?.message || 'Unknown error',
-          code: error?.code || 'NO_CODE',
-          details: error?.details || 'No details'
-        });
-        console.error("Error details:", {
-          errorType: typeof error,
-          dataReceived: data,
-          timestamp: new Date().toISOString()
-        });
-
-        // More specific error handling for edge functions
-        let errorMessage = "Failed to call commit function";
-        if (error.message?.includes('FunctionsHttpError')) {
-          errorMessage = "Edge Function service is unavailable. This feature requires proper Supabase setup.";
-        } else if (error.message?.includes('CORS')) {
-          errorMessage = "CORS error - Edge Function configuration issue";
-        } else {
-          errorMessage = error.message || errorMessage;
-        }
-
-        throw new Error(errorMessage);
+      if (!result.success) {
+        throw new Error(result.message);
       }
 
-      if (!data?.success) {
-        console.error("Commit function returned error:", data);
-        throw new Error(data?.error || "Failed to commit to sale");
+      // Show success message with details about what worked
+      let successMessage = "✅ Sale committed successfully!";
+      if (result.edgeFunctionSuccess && result.emailsSent) {
+        successMessage = "✅ Sale committed and all emails sent successfully!";
+      } else if (result.emailsSent) {
+        successMessage = "✅ Sale committed! Emails sent via fallback system.";
+      } else {
+        successMessage = "✅ Sale committed! Emails queued for manual processing.";
       }
+
+      console.log(`✅ Enhanced commit completed:`, result);
 
       console.log("✅ Commit successful:", data);
 
-      // Show success messages with enhanced delivery info
-      toast.success("✅ Order committed successfully!", {
-        description:
-          "🚚 Delivery/shipping processes have been triggered automatically!",
+      // Show enhanced success messages with email status
+      toast.success(successMessage, {
+        description: "🚚 Delivery/shipping processes have been triggered automatically!",
         duration: 5000,
       });
 
-      toast.info(
-        "📧 Courier pickup is being scheduled. Check your email for details.",
-        {
-          description:
-            "You'll receive tracking information once the courier collects the book.",
+      // Show additional info about email delivery
+      if (result.emailsSent) {
+        toast.info("📧 Confirmation emails sent to buyer and seller", {
+          description: "Both parties have been notified of the sale commitment.",
           duration: 7000,
-        },
-      );
+        });
+      } else {
+        toast.info("📧 Emails are being processed manually", {
+          description: "Notifications will be sent shortly via our backup system.",
+          duration: 7000,
+        });
+      }
 
       toast.info(
         "🔄 Delivery automation started - this may take a few minutes to complete.",

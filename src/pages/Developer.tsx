@@ -125,7 +125,9 @@ const Developer = () => {
           condition: book.book_condition || 'good'
         }));
         setBooks(realBooks);
-        setSelectedBook(realBooks[0].id);
+        if (realBooks.length > 0) {
+          setSelectedBook(realBooks[0].id);
+        }
         console.log('✅ REAL Books loaded:', realBooks.length, realBooks);
         toast.success(`✅ Loaded ${realBooks.length} REAL books from database`);
       } else {
@@ -151,7 +153,9 @@ const Developer = () => {
             condition: 'unknown'
           }));
           setBooks(simpleBooks);
-          setSelectedBook(simpleBooks[0].id);
+          if (simpleBooks.length > 0) {
+            setSelectedBook(simpleBooks[0].id);
+          }
           toast.success(`✅ Loaded ${simpleBooks.length} books with basic info`);
         } else {
           const simpleErrorMsg = simpleBooksError?.message || simpleBooksError?.details || (simpleBooksError ? JSON.stringify(simpleBooksError, null, 2) : 'No books found');
@@ -203,7 +207,9 @@ const Developer = () => {
         }));
 
         setUsers(realUsers);
-        setSelectedBuyer(realUsers[0].id);
+        if (realUsers.length > 0) {
+          setSelectedBuyer(realUsers[0].id);
+        }
 
         // Try to find a seller (someone who has books)
         const sellerIds = [...new Set(booksData?.map(book => book.seller_id) || [])];
@@ -232,7 +238,9 @@ const Developer = () => {
             phone: '+27123456789'
           }));
           setUsers(simpleUsers);
-          setSelectedBuyer(simpleUsers[0].id);
+          if (simpleUsers.length > 0) {
+            setSelectedBuyer(simpleUsers[0].id);
+          }
           setSelectedSeller(simpleUsers[1]?.id || simpleUsers[0].id);
           toast.success(`✅ Loaded ${simpleUsers.length} users with basic info`);
         } else {
@@ -288,7 +296,9 @@ const Developer = () => {
         if (realSellers.length > 0) {
           console.log('✅ REAL Sellers found:', realSellers.length, realSellers);
           // Set the first real seller as default
-          setSelectedSeller(realSellers[0].id);
+          if (realSellers.length > 0) {
+            setSelectedSeller(realSellers[0].id);
+          }
           toast.success(`✅ Found ${realSellers.length} REAL sellers with books`);
         }
       }
@@ -1363,7 +1373,7 @@ const Developer = () => {
                         <SelectValue placeholder="Select a book" />
                       </SelectTrigger>
                       <SelectContent>
-                        {books && books.length > 0 ? books.filter(book => book && book.id).map(book => (
+                        {books && books.length > 0 ? books.filter(book => book && book.id && typeof book.id === 'string').map(book => (
                           <SelectItem key={book.id} value={book.id}>
                             {book.title} - R{book.price} ({book.seller_name})
                           </SelectItem>
@@ -1380,7 +1390,7 @@ const Developer = () => {
                         <SelectValue placeholder="Select a buyer" />
                       </SelectTrigger>
                       <SelectContent>
-                        {users && users.length > 0 ? users.filter(user => user && user.id).map(user => (
+                        {users && users.length > 0 ? users.filter(user => user && user.id && typeof user.id === 'string').map(user => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.name} ({user.email})
                           </SelectItem>
@@ -1397,7 +1407,7 @@ const Developer = () => {
                         <SelectValue placeholder="Select a seller" />
                       </SelectTrigger>
                       <SelectContent>
-                        {users && users.length > 0 ? users.filter(user => user && user.id).map(user => (
+                        {users && users.length > 0 ? users.filter(user => user && user.id && typeof user.id === 'string').map(user => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.name} ({user.email})
                           </SelectItem>
@@ -1718,7 +1728,7 @@ const Developer = () => {
                       <p>It will bypass CORS and fetch real PUDO data server-side.</p>
                     </div>
                     <p className="text-xs mt-2 text-blue-600">
-                      💡 API Docs: <a href="https://api-pudo.co.za" target="_blank" className="underline">api-pudo.co.za</a> | Console logs: F12
+                      ��� API Docs: <a href="https://api-pudo.co.za" target="_blank" className="underline">api-pudo.co.za</a> | Console logs: F12
                     </p>
                   </div>
                 </div>

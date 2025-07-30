@@ -16,14 +16,23 @@ const AuthCallback = () => {
   const [message, setMessage] = useState("");
 
   // Check if user is already authenticated and redirect them
+  // BUT NOT for password reset flows - they need to reach the reset form
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
+      // Check if this is a password reset flow by looking at URL parameters
+      const type = searchParams.get("type") || new URLSearchParams(window.location.hash.substring(1)).get("type");
+
+      if (type === "recovery") {
+        console.log("🔐 Authenticated user in recovery flow - allowing reset password access");
+        return; // Don't redirect, let the password reset flow continue
+      }
+
       console.log("🔄 User already authenticated, redirecting from auth callback");
       toast.success("You are already logged in!");
       navigate("/", { replace: true });
       return;
     }
-  }, [isAuthenticated, authLoading, navigate]);
+  }, [isAuthenticated, authLoading, navigate, searchParams]);
 
   useEffect(() => {
     // Don't process auth callback if user is already authenticated or auth is still loading
@@ -36,6 +45,12 @@ const AuthCallback = () => {
         console.log("📍 Current URL:", window.location.href);
         console.log("📍 Search params:", window.location.search);
         console.log("📍 Hash:", window.location.hash);
+
+        // Debug password reset flow specifically
+        if (type === "recovery") {
+          console.log("🔐 PASSWORD RESET FLOW DETECTED");
+          console.log("🔐 This should redirect to /reset-password after authentication");
+        }
 
         // Get tokens from URL parameters (both search params and hash)
         const access_token = searchParams.get("access_token") || new URLSearchParams(window.location.hash.substring(1)).get("access_token");
@@ -99,12 +114,12 @@ const AuthCallback = () => {
                 navigate("/", { replace: true });
               }, 2000);
             } else if (type === "recovery") {
+              console.log("🔐 Password recovery type detected (token path) - redirecting to reset password page");
               setMessage("Password reset link verified! Redirecting to reset your password.");
               toast.success("Reset link verified! Set your new password.");
-              // Redirect to reset password page after a delay
-              setTimeout(() => {
-                navigate("/reset-password", { replace: true });
-              }, 2000);
+              // Redirect to reset password page immediately for better UX
+              console.log("🔄 Navigating to /reset-password from token path");
+              navigate("/reset-password", { replace: true });
             } else {
               setMessage("Authentication successful! You are now logged in.");
               toast.success("Successfully authenticated!");
@@ -169,11 +184,12 @@ const AuthCallback = () => {
                 navigate("/", { replace: true });
               }, 2000);
             } else if (type === "recovery") {
+              console.log("🔐 Password recovery type detected (OTP path) - redirecting to reset password page");
               setMessage("Password reset link verified! Redirecting to reset your password.");
               toast.success("Reset link verified! Set your new password.");
-              setTimeout(() => {
-                navigate("/reset-password", { replace: true });
-              }, 2000);
+              // Redirect to reset password page immediately for better UX
+              console.log("🔄 Navigating to /reset-password from OTP path");
+              navigate("/reset-password", { replace: true });
             } else {
               setMessage("Email verification successful! You are now logged in.");
               toast.success("Email verified successfully!");

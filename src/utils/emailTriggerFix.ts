@@ -88,17 +88,55 @@ export class EmailTriggerFix {
   private async testSendEmailFunction(): Promise<EmailTriggerTest> {
     try {
       console.log('📧 Testing send-email function...');
-      
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/send-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`
-        },
-        body: JSON.stringify({ test: true })
-      });
 
-      const result = await response.json();
+      let response: Response;
+      let result: any;
+
+      try {
+        response = await fetch(`${supabase.supabaseUrl}/functions/v1/send-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`
+          },
+          body: JSON.stringify({ test: true })
+        });
+      } catch (fetchError) {
+        return {
+          name: 'Send Email Function',
+          success: false,
+          message: 'Edge function not accessible - likely not deployed',
+          details: {
+            error: fetchError instanceof Error ? fetchError.message : 'Network error',
+            url: `${supabase.supabaseUrl}/functions/v1/send-email`
+          },
+          fix: [
+            'Deploy send-email edge function: supabase functions deploy send-email',
+            'Check if edge functions are enabled in Supabase project',
+            'Verify project is not on paused/free tier without edge function access'
+          ]
+        };
+      }
+
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        return {
+          name: 'Send Email Function',
+          success: false,
+          message: 'Edge function returned invalid response',
+          details: {
+            status: response.status,
+            statusText: response.statusText,
+            error: 'Invalid JSON response'
+          },
+          fix: [
+            'Check edge function logs in Supabase Dashboard',
+            'Redeploy send-email function',
+            'Verify function code is valid'
+          ]
+        };
+      }
 
       if (!response.ok) {
         const missingBrevKey = result.error?.includes('BREVO_SMTP_KEY') || 
@@ -143,17 +181,55 @@ export class EmailTriggerFix {
   private async testMailQueueProcessor(): Promise<EmailTriggerTest> {
     try {
       console.log('⚙️ Testing mail queue processor...');
-      
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/process-mail-queue`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`
-        },
-        body: JSON.stringify({})
-      });
 
-      const result = await response.json();
+      let response: Response;
+      let result: any;
+
+      try {
+        response = await fetch(`${supabase.supabaseUrl}/functions/v1/process-mail-queue`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`
+          },
+          body: JSON.stringify({})
+        });
+      } catch (fetchError) {
+        return {
+          name: 'Mail Queue Processor',
+          success: false,
+          message: 'Edge function not accessible - likely not deployed',
+          details: {
+            error: fetchError instanceof Error ? fetchError.message : 'Network error',
+            url: `${supabase.supabaseUrl}/functions/v1/process-mail-queue`
+          },
+          fix: [
+            'Deploy process-mail-queue edge function: supabase functions deploy process-mail-queue',
+            'Check if edge functions are enabled in Supabase project',
+            'Email queue will not process automatically without this function'
+          ]
+        };
+      }
+
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        return {
+          name: 'Mail Queue Processor',
+          success: false,
+          message: 'Edge function returned invalid response',
+          details: {
+            status: response.status,
+            statusText: response.statusText,
+            error: 'Invalid JSON response'
+          },
+          fix: [
+            'Check edge function logs in Supabase Dashboard',
+            'Redeploy process-mail-queue function',
+            'Verify function code is valid'
+          ]
+        };
+      }
 
       if (!response.ok) {
         return {
@@ -237,11 +313,11 @@ export class EmailTriggerFix {
         // Check if any emails were queued for recent orders
         const recentOrderDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(); // Last 24 hours
 
-        const { data: emailsFromOrders, error: emailError } = await supabase
+        let { data: emailsFromOrders, error: emailError } = await supabase
           .from('mail_queue')
           .select('id, subject, status, created_at')
           .gte('created_at', recentOrderDate)
-          .or('subject.ilike.%Order Confirmed%,subject.ilike.%New Order%,subject.ilike.%Action Required%,subject.ilike.%order%,subject.ilike.%purchase%');
+          .or('subject.ilike.%Order Confirmed%,subject.ilike.%New Order%,subject.ilike.%Action Required%,subject.ilike.%order%,subject.ilike.%purchase%,subject.ilike.%Thank You%,subject.ilike.%Pickup Scheduled%,subject.ilike.%Commitment Confirmed%');
 
         // If we can't access mail_queue, that's the problem
         if (emailError) {
@@ -280,11 +356,32 @@ export class EmailTriggerFix {
               .gte('created_at', recentOrderDate);
 
             // Look specifically for create-order email subjects
-            const { data: specificOrderEmails } = await supabase
+            // Try multiple search approaches to be comprehensive
+            const { data: specificOrderEmails1 } = await supabase
               .from('mail_queue')
               .select('id, subject, status, created_at')
               .gte('created_at', recentOrderDate)
-              .or('subject.ilike.%Order Confirmed - Thank You%,subject.ilike.%New Order - Action Required%');
+              .or('subject.ilike.%Order Confirmed - Thank You%,subject.ilike.%New Order - Action Required%,subject.ilike.%🎉 Order Confirmed%,subject.ilike.%📚 New Order%');
+
+            // Also try exact matches for known patterns
+            const { data: specificOrderEmails2 } = await supabase
+              .from('mail_queue')
+              .select('id, subject, status, created_at')
+              .gte('created_at', recentOrderDate)
+              .in('subject', [
+                '🎉 Order Confirmed - Thank You!',
+                '📚 New Order - Action Required (48 hours)',
+                'Order Confirmed - Pickup Scheduled',
+                'Order Commitment Confirmed - Prepare for Pickup'
+              ]);
+
+            // Combine results
+            const specificOrderEmails = [
+              ...(specificOrderEmails1 || []),
+              ...(specificOrderEmails2 || [])
+            ].filter((email, index, self) =>
+              index === self.findIndex(e => e.id === email.id)
+            ); // Remove duplicates
 
             // Get actual email subjects for debugging
             const { data: actualEmailSubjects } = await supabase
@@ -468,17 +565,43 @@ export class EmailTriggerFix {
   async forceProcessAllPendingEmails(): Promise<{ success: boolean; message: string; details?: any }> {
     try {
       console.log('🔄 Force processing all pending emails...');
-      
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/process-mail-queue`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`
-        },
-        body: JSON.stringify({})
-      });
 
-      const result = await response.json();
+      let response: Response;
+      let result: any;
+
+      try {
+        response = await fetch(`${supabase.supabaseUrl}/functions/v1/process-mail-queue`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`
+          },
+          body: JSON.stringify({})
+        });
+      } catch (fetchError) {
+        return {
+          success: false,
+          message: 'Cannot reach mail queue processor - edge function not deployed',
+          details: {
+            error: fetchError instanceof Error ? fetchError.message : 'Network error',
+            suggestion: 'Deploy the process-mail-queue edge function first'
+          }
+        };
+      }
+
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        return {
+          success: false,
+          message: 'Mail queue processor returned invalid response',
+          details: {
+            status: response.status,
+            statusText: response.statusText,
+            error: 'Invalid JSON response'
+          }
+        };
+      }
 
       if (!response.ok) {
         return {

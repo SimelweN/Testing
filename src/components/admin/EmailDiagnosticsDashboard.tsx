@@ -1,340 +1,316 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Badge } from '../ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
+  Mail, 
+  AlertTriangle, 
   CheckCircle, 
   XCircle, 
-  AlertTriangle, 
   RefreshCw, 
-  Mail, 
-  Send, 
-  Clock, 
-  Database,
+  Play,
   Settings,
-  MessageSquare,
-  FileText
+  Database,
+  Send,
+  Clock,
+  Eye,
+  Wrench
 } from 'lucide-react';
-import { emailDiagnosticsService, EmailSystemStatus, EmailDiagnosticResult } from '../../utils/emailDiagnostics';
-import { emailTriggerFix, EmailTriggerTest } from '../../utils/emailTriggerFix';
 import { toast } from 'sonner';
+import { emailTriggerFix, EmailTriggerTest } from '@/utils/emailTriggerFix';
+import EmailPatternDebugger from './EmailPatternDebugger';
 
-export const EmailDiagnosticsDashboard: React.FC = () => {
-  const [diagnosticsStatus, setDiagnosticsStatus] = useState<EmailSystemStatus | null>(null);
-  const [loading, setLoading] = useState(false);
+interface EmailDiagnosticsState {
+  isRunning: boolean;
+  tests: EmailTriggerTest[];
+  lastRun: string | null;
+  overallStatus: 'healthy' | 'warning' | 'critical' | 'unknown';
+}
+
+interface RecentEmail {
+  id: string;
+  subject: string;
+  status: string;
+  created_at: string;
+  email: string;
+  retry_count?: number;
+}
+
+const EmailDiagnosticsDashboard: React.FC = () => {
+  const [diagnostics, setDiagnostics] = useState<EmailDiagnosticsState>({
+    isRunning: false,
+    tests: [],
+    lastRun: null,
+    overallStatus: 'unknown'
+  });
+
+  const [recentEmails, setRecentEmails] = useState<RecentEmail[]>([]);
   const [testEmail, setTestEmail] = useState('');
-  const [recentEmails, setRecentEmails] = useState<EmailDiagnosticResult | null>(null);
-  const [triggerTests, setTriggerTests] = useState<EmailTriggerTest[] | null>(null);
-  const [processingEmails, setProcessingEmails] = useState(false);
-  const [debuggingSubjects, setDebuggingSubjects] = useState(false);
-  const [subjectDebugResult, setSubjectDebugResult] = useState<any>(null);
-
-  useEffect(() => {
-    runDiagnostics();
-  }, []);
+  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
+  const [isSendingTest, setIsSendingTest] = useState(false);
 
   const runDiagnostics = async () => {
-    setLoading(true);
+    setDiagnostics(prev => ({ ...prev, isRunning: true }));
+    
     try {
-      const status = await emailDiagnosticsService.runFullDiagnostics();
-      setDiagnosticsStatus(status);
-      
-      if (status.overallStatus === 'healthy') {
-        toast.success('Email system is healthy!');
-      } else if (status.overallStatus === 'degraded') {
-        toast.warning('Email system has some issues but is partially working');
-      } else {
-        toast.error('Email system has critical issues');
+      console.log('🔍 Running comprehensive email diagnostics...');
+      const results = await emailTriggerFix.diagnoseAllEmailTriggers();
+
+      // Determine overall status
+      const hasFailures = results.some(test => !test.success);
+      const hasWarnings = results.some(test => test.success && test.message.includes('warning'));
+
+      let overallStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
+      if (hasFailures) {
+        overallStatus = 'critical';
+      } else if (hasWarnings) {
+        overallStatus = 'warning';
       }
+
+      setDiagnostics({
+        isRunning: false,
+        tests: results,
+        lastRun: new Date().toISOString(),
+        overallStatus
+      });
+
+      // Show summary toast
+      const successCount = results.filter(test => test.success).length;
+      const failureCount = results.length - successCount;
+
+      // More detailed feedback about edge functions
+      const edgeFunctionIssues = results.filter(test =>
+        !test.success && test.message.includes('not accessible')
+      ).length;
+
+      if (failureCount === 0) {
+        toast.success(`✅ All ${successCount} email system checks passed!`);
+      } else if (edgeFunctionIssues > 0) {
+        toast.warning(`⚠️ ${edgeFunctionIssues} edge functions not deployed, ${successCount} checks passed`);
+      } else {
+        toast.error(`��� ${failureCount} issues found, ${successCount} checks passed`);
+      }
+
     } catch (error) {
       console.error('Diagnostics error:', error);
-      toast.error('Failed to run diagnostics');
-    } finally {
-      setLoading(false);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+      // Create a mock result to show the error
+      const errorResult = {
+        name: 'Diagnostics System',
+        success: false,
+        message: `Failed to run diagnostics: ${errorMessage}`,
+        details: { error: errorMessage },
+        fix: [
+          'Check browser console for detailed errors',
+          'Verify Supabase project is accessible',
+          'Try refreshing the page'
+        ]
+      };
+
+      setDiagnostics({
+        isRunning: false,
+        tests: [errorResult],
+        lastRun: new Date().toISOString(),
+        overallStatus: 'critical'
+      });
+
+      toast.error(`Failed to run diagnostics: ${errorMessage}`);
     }
   };
 
   const loadRecentEmails = async () => {
     try {
-      const result = await emailDiagnosticsService.getRecentEmailLogs(50);
-      setRecentEmails(result);
-      
-      if (result.success) {
-        toast.success(`Loaded ${result.details?.emails?.length || 0} recent emails`);
-      } else {
-        toast.error(result.error || 'Failed to load emails');
+      const result = await emailTriggerFix.debugEmailSubjects();
+      if (result.success && result.details?.recentEmailSamples) {
+        setRecentEmails(result.details.recentEmailSamples);
       }
     } catch (error) {
-      console.error('Load emails error:', error);
-      toast.error('Failed to load recent emails');
+      console.error('Failed to load recent emails:', error);
     }
   };
 
-  const sendTestEmail = async () => {
-    if (!testEmail) {
-      toast.error('Please enter an email address');
-      return;
-    }
-
-    try {
-      const result = await emailDiagnosticsService.addTestEmailToQueue(testEmail);
-
-      if (result.success) {
-        toast.success('Test email added to queue successfully!');
-        setTestEmail('');
-        // Refresh the diagnostics to show updated queue status
-        setTimeout(runDiagnostics, 1000);
-      } else {
-        toast.error(result.error || 'Failed to add test email');
-      }
-    } catch (error) {
-      console.error('Test email error:', error);
-      toast.error('Failed to send test email');
-    }
-  };
-
-  const runTriggerTests = async () => {
-    try {
-      const tests = await emailTriggerFix.diagnoseAllEmailTriggers();
-      setTriggerTests(tests);
-
-      const failedTests = tests.filter(test => !test.success);
-      if (failedTests.length === 0) {
-        toast.success('All email triggers are working correctly!');
-      } else {
-        toast.warning(`${failedTests.length} email trigger issues found`);
-      }
-    } catch (error) {
-      console.error('Trigger test error:', error);
-      toast.error('Failed to run trigger tests');
-    }
-  };
-
-  const processStuckEmails = async () => {
-    setProcessingEmails(true);
+  const processMailQueue = async () => {
+    setIsProcessingQueue(true);
     try {
       const result = await emailTriggerFix.forceProcessAllPendingEmails();
-
+      
       if (result.success) {
         toast.success(result.message);
-        // Refresh diagnostics and trigger tests
-        setTimeout(() => {
-          runDiagnostics();
-          runTriggerTests();
-        }, 1000);
+        await loadRecentEmails(); // Refresh the email list
+        await runDiagnostics(); // Re-run diagnostics
       } else {
-        toast.error(result.message);
+        toast.error(`Queue processing failed: ${result.message}`);
       }
     } catch (error) {
-      console.error('Process emails error:', error);
-      toast.error('Failed to process stuck emails');
+      toast.error('Failed to process mail queue');
     } finally {
-      setProcessingEmails(false);
+      setIsProcessingQueue(false);
     }
   };
 
-  const sendTestOrderEmail = async () => {
-    if (!testEmail) {
-      toast.error('Please enter an email address');
+  const sendTestEmail = async (emailType: 'order' | 'commit') => {
+    if (!testEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testEmail)) {
+      toast.error('Please enter a valid email address');
       return;
     }
 
+    setIsSendingTest(true);
     try {
-      const result = await emailTriggerFix.createTestOrderEmail(testEmail);
-
+      const result = emailType === 'order' 
+        ? await emailTriggerFix.createTestOrderEmail(testEmail)
+        : await emailTriggerFix.createTestCommitEmail(testEmail);
+      
       if (result.success) {
-        toast.success('Test order email created and queued!');
-        setTimeout(runDiagnostics, 1000);
+        toast.success(`✅ Test ${emailType} email queued successfully!`);
+        toast.info('Check your email in a few minutes. Process the queue if needed.');
+        await loadRecentEmails();
       } else {
-        toast.error(result.message);
+        toast.error(`Failed to queue test email: ${result.message}`);
       }
     } catch (error) {
-      console.error('Test order email error:', error);
-      toast.error('Failed to create test order email');
-    }
-  };
-
-  const sendTestCommitEmail = async () => {
-    if (!testEmail) {
-      toast.error('Please enter an email address');
-      return;
-    }
-
-    try {
-      const result = await emailTriggerFix.createTestCommitEmail(testEmail);
-
-      if (result.success) {
-        toast.success('Test commit email created and queued!');
-        setTimeout(runDiagnostics, 1000);
-      } else {
-        toast.error(result.message);
-      }
-    } catch (error) {
-      console.error('Test commit email error:', error);
-      toast.error('Failed to create test commit email');
-    }
-  };
-
-  const debugEmailSubjects = async () => {
-    setDebuggingSubjects(true);
-    try {
-      const result = await emailTriggerFix.debugEmailSubjects();
-      setSubjectDebugResult(result);
-
-      if (result.success) {
-        toast.success(`Found ${result.details?.totalEmails || 0} recent emails to analyze`);
-      } else {
-        toast.error('Failed to debug email subjects');
-      }
-    } catch (error) {
-      console.error('Subject debug error:', error);
-      toast.error('Failed to debug email subjects');
+      toast.error(`Error sending test ${emailType} email`);
     } finally {
-      setDebuggingSubjects(false);
+      setIsSendingTest(false);
     }
   };
 
-  const getStatusIcon = (result: EmailDiagnosticResult) => {
-    if (result.success) {
-      return <CheckCircle className="h-5 w-5 text-green-500" />;
-    } else {
-      return <XCircle className="h-5 w-5 text-red-500" />;
-    }
-  };
-
-  const getOverallStatusBadge = (status: string) => {
-    switch (status) {
-      case 'healthy':
-        return <Badge className="bg-green-100 text-green-800">Healthy</Badge>;
-      case 'degraded':
-        return <Badge className="bg-yellow-100 text-yellow-800">Degraded</Badge>;
-      case 'failed':
-        return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
-      default:
-        return <Badge variant="secondary">Unknown</Badge>;
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
-  };
-
-  if (!diagnosticsStatus) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5" />
-            Email System Diagnostics
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <Button onClick={runDiagnostics} disabled={loading}>
-              {loading ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  Running Diagnostics...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Run Diagnostics
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+  const getStatusIcon = (success: boolean) => {
+    return success ? (
+      <CheckCircle className="w-5 h-5 text-green-600" />
+    ) : (
+      <XCircle className="w-5 h-5 text-red-600" />
     );
-  }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      'healthy': 'default',
+      'warning': 'secondary', 
+      'critical': 'destructive',
+      'unknown': 'outline'
+    } as const;
+    
+    return (
+      <Badge variant={variants[status as keyof typeof variants] || 'outline'}>
+        {status.toUpperCase()}
+      </Badge>
+    );
+  };
+
+  useEffect(() => {
+    runDiagnostics();
+    loadRecentEmails();
+  }, []);
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Mail className="h-5 w-5" />
-              Email System Status
-            </div>
-            <div className="flex items-center gap-2">
-              {getOverallStatusBadge(diagnosticsStatus.overallStatus)}
-              <Button variant="outline" size="sm" onClick={runDiagnostics} disabled={loading}>
-                {loading ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </CardTitle>
-          <CardDescription>
-            Monitor and troubleshoot your email system
-          </CardDescription>
-        </CardHeader>
-      </Card>
+    <div className="space-y-6 p-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Mail className="w-8 h-8 text-blue-600" />
+          <div>
+            <h1 className="text-2xl font-bold">Email System Diagnostics</h1>
+            <p className="text-gray-600">Monitor and troubleshoot email functionality</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {getStatusBadge(diagnostics.overallStatus)}
+          <Button
+            onClick={runDiagnostics}
+            disabled={diagnostics.isRunning}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${diagnostics.isRunning ? 'animate-spin' : ''}`} />
+            {diagnostics.isRunning ? 'Running...' : 'Run Diagnostics'}
+          </Button>
+        </div>
+      </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="triggers">Email Triggers</TabsTrigger>
-          <TabsTrigger value="tests">Component Tests</TabsTrigger>
-          <TabsTrigger value="queue">Mail Queue</TabsTrigger>
-          <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
+      {diagnostics.lastRun && (
+        <Alert>
+          <AlertTriangle className="w-4 h-4" />
+          <AlertDescription>
+            Last diagnostic run: {new Date(diagnostics.lastRun).toLocaleString()}
+            {diagnostics.overallStatus === 'critical' && (
+              <span className="ml-2 font-semibold text-red-600">
+                Critical issues found - emails may not be working!
+              </span>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <Tabs defaultValue="diagnostics" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="diagnostics" className="flex items-center gap-2">
+            <Settings className="w-4 h-4" />
+            Diagnostics
+          </TabsTrigger>
+          <TabsTrigger value="queue" className="flex items-center gap-2">
+            <Database className="w-4 h-4" />
+            Mail Queue
+          </TabsTrigger>
+          <TabsTrigger value="test" className="flex items-center gap-2">
+            <Send className="w-4 h-4" />
+            Test Emails
+          </TabsTrigger>
+          <TabsTrigger value="recent" className="flex items-center gap-2">
+            <Eye className="w-4 h-4" />
+            Recent Emails
+          </TabsTrigger>
+          <TabsTrigger value="debug" className="flex items-center gap-2">
+            <Wrench className="w-4 h-4" />
+            Debug
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="triggers" className="space-y-4">
+        <TabsContent value="diagnostics" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Email Trigger Analysis
-                </div>
-                <Button variant="outline" size="sm" onClick={runTriggerTests}>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Test All Triggers
-                </Button>
+              <CardTitle className="flex items-center gap-2">
+                <Wrench className="w-5 h-5" />
+                System Health Checks
               </CardTitle>
-              <CardDescription>
-                Deep analysis of all email triggers in the order and commit flow
-              </CardDescription>
             </CardHeader>
             <CardContent>
-              {triggerTests ? (
+              {diagnostics.tests.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No diagnostics run yet. Click "Run Diagnostics" to start.</p>
+                </div>
+              ) : (
                 <div className="space-y-4">
-                  {triggerTests.map((test, index) => (
-                    <div key={index} className="p-4 border rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon({ success: test.success, message: test.message })}
-                          <span className="font-medium">{test.name}</span>
+                  {diagnostics.tests.map((test, index) => (
+                    <div key={index} className="border rounded-lg p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          {getStatusIcon(test.success)}
+                          <div>
+                            <h3 className="font-semibold">{test.name}</h3>
+                            <p className="text-sm text-gray-600">{test.message}</p>
+                          </div>
                         </div>
-                        <Badge variant={test.success ? 'default' : 'destructive'}>
-                          {test.success ? 'PASS' : 'FAIL'}
-                        </Badge>
+                        {getStatusBadge(test.success ? 'healthy' : 'critical')}
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">{test.message}</p>
-
+                      
                       {test.details && (
-                        <div className="mt-2 p-3 bg-gray-50 rounded-md">
-                          <pre className="text-xs overflow-auto">
+                        <div className="mt-3 p-3 bg-gray-50 rounded text-sm">
+                          <strong>Details:</strong>
+                          <pre className="mt-1 overflow-x-auto">
                             {JSON.stringify(test.details, null, 2)}
                           </pre>
                         </div>
                       )}
-
+                      
                       {test.fix && test.fix.length > 0 && (
-                        <div className="mt-3">
-                          <p className="text-sm font-medium text-red-600 mb-2">How to fix:</p>
-                          <ul className="list-disc list-inside space-y-1">
-                            {test.fix.map((fixStep, fixIndex) => (
-                              <li key={fixIndex} className="text-sm text-gray-600">{fixStep}</li>
+                        <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded">
+                          <strong className="text-amber-800">How to fix:</strong>
+                          <ul className="mt-1 list-disc list-inside text-amber-700">
+                            {test.fix.map((step, i) => (
+                              <li key={i} className="text-sm">{step}</li>
                             ))}
                           </ul>
                         </div>
@@ -342,372 +318,149 @@ export const EmailDiagnosticsDashboard: React.FC = () => {
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="text-center py-8 space-y-4">
-                  <Button onClick={runTriggerTests}>
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    Run Email Trigger Tests
-                  </Button>
-
-                  <div className="flex flex-col gap-2">
-                    <Button
-                      onClick={debugEmailSubjects}
-                      variant="outline"
-                      disabled={debuggingSubjects}
-                    >
-                      {debuggingSubjects ? (
-                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <FileText className="mr-2 h-4 w-4" />
-                      )}
-                      Debug Email Subjects
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {subjectDebugResult && (
-                <div className="mt-6 p-4 border rounded-lg bg-blue-50">
-                  <h4 className="font-medium mb-3 flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Email Subject Debug Results
-                  </h4>
-
-                  {subjectDebugResult.success ? (
-                    <div className="space-y-3">
-                      <p className="text-sm text-green-600 font-medium">
-                        ✅ {subjectDebugResult.message}
-                      </p>
-
-                      {subjectDebugResult.details?.subjectGroups && (
-                        <div>
-                          <h5 className="font-medium text-sm mb-2">Email Subjects Found (with counts):</h5>
-                          <div className="space-y-1">
-                            {Object.entries(subjectDebugResult.details.subjectGroups).map(([subject, count]) => (
-                              <div key={subject} className="text-xs p-2 bg-white rounded border">
-                                <span className="font-mono text-blue-600">"{subject}"</span>
-                                <span className="ml-2 text-gray-500">({count} emails)</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {subjectDebugResult.details?.recentEmailSamples && (
-                        <div>
-                          <h5 className="font-medium text-sm mb-2">Recent Email Samples:</h5>
-                          <div className="space-y-1 max-h-40 overflow-y-auto">
-                            {subjectDebugResult.details.recentEmailSamples.map((email, index) => (
-                              <div key={index} className="text-xs p-2 bg-white rounded border">
-                                <div className="font-mono text-blue-600">"{email.subject}"</div>
-                                <div className="text-gray-500 mt-1">
-                                  {email.created_at} • {email.status}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-red-600">
-                      ❌ {subjectDebugResult.message}
-                    </p>
-                  )}
-                </div>
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Environment Setup</CardTitle>
-                {getStatusIcon(diagnosticsStatus.environmentVariablesCheck)}
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {diagnosticsStatus.environmentVariablesCheck.success ? 'Configured' : 'Missing'}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {diagnosticsStatus.environmentVariablesCheck.message}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Mail Queue</CardTitle>
-                {getStatusIcon(diagnosticsStatus.mailQueueCheck)}
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {diagnosticsStatus.mailQueueCheck.details?.pendingEmails || 0} Pending
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {diagnosticsStatus.mailQueueCheck.details?.failedEmails || 0} failed emails
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Send Function</CardTitle>
-                {getStatusIcon(diagnosticsStatus.sendEmailFunctionCheck)}
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {diagnosticsStatus.sendEmailFunctionCheck.success ? 'Online' : 'Offline'}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Email sending service status
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Queue Processor</CardTitle>
-                {getStatusIcon(diagnosticsStatus.mailQueueProcessorCheck)}
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {diagnosticsStatus.mailQueueProcessorCheck.success ? 'Active' : 'Inactive'}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Mail queue processing service
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Send className="h-5 w-5" />
-                Test Specific Email Types
-              </CardTitle>
-              <CardDescription>
-                Test the exact email types that should be triggered during order flow
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="test-email">Email Address</Label>
-                <Input
-                  id="test-email"
-                  type="email"
-                  placeholder="test@example.com"
-                  value={testEmail}
-                  onChange={(e) => setTestEmail(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2 md:grid-cols-3">
-                <Button onClick={sendTestOrderEmail} variant="outline">
-                  <Mail className="mr-2 h-4 w-4" />
-                  Order Receipt
-                </Button>
-                <Button onClick={sendTestCommitEmail} variant="outline">
-                  <Clock className="mr-2 h-4 w-4" />
-                  Commit Request
-                </Button>
-                <Button onClick={sendTestEmail} variant="outline">
-                  <Send className="mr-2 h-4 w-4" />
-                  General Test
-                </Button>
-              </div>
-              <div className="mt-4">
-                <Button onClick={processStuckEmails} disabled={processingEmails} className="w-full">
-                  {processingEmails ? (
-                    <>
-                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      Processing Emails...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="mr-2 h-4 w-4" />
-                      Process All Pending Emails
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="tests" className="space-y-4">
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  Environment Variables Check
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2 mb-2">
-                  {getStatusIcon(diagnosticsStatus.environmentVariablesCheck)}
-                  <span className="font-medium">{diagnosticsStatus.environmentVariablesCheck.message}</span>
-                </div>
-                {diagnosticsStatus.environmentVariablesCheck.error && (
-                  <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{diagnosticsStatus.environmentVariablesCheck.error}</AlertDescription>
-                  </Alert>
-                )}
-                {diagnosticsStatus.environmentVariablesCheck.details && (
-                  <div className="mt-2 p-3 bg-gray-50 rounded-md">
-                    <pre className="text-sm">{JSON.stringify(diagnosticsStatus.environmentVariablesCheck.details, null, 2)}</pre>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Database className="h-5 w-5" />
-                  Mail Queue Table Check
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2 mb-2">
-                  {getStatusIcon(diagnosticsStatus.mailQueueCheck)}
-                  <span className="font-medium">{diagnosticsStatus.mailQueueCheck.message}</span>
-                </div>
-                {diagnosticsStatus.mailQueueCheck.details && (
-                  <div className="mt-2 p-3 bg-gray-50 rounded-md">
-                    <div className="text-sm space-y-1">
-                      <div>Total emails: {diagnosticsStatus.mailQueueCheck.details.totalEmails}</div>
-                      <div>Pending: {diagnosticsStatus.mailQueueCheck.details.pendingEmails}</div>
-                      <div>Failed: {diagnosticsStatus.mailQueueCheck.details.failedEmails}</div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Mail className="h-5 w-5" />
-                  Send Email Function Test
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2 mb-2">
-                  {getStatusIcon(diagnosticsStatus.sendEmailFunctionCheck)}
-                  <span className="font-medium">{diagnosticsStatus.sendEmailFunctionCheck.message}</span>
-                </div>
-                {diagnosticsStatus.sendEmailFunctionCheck.error && (
-                  <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{diagnosticsStatus.sendEmailFunctionCheck.error}</AlertDescription>
-                  </Alert>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Mail Queue Processor Test
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2 mb-2">
-                  {getStatusIcon(diagnosticsStatus.mailQueueProcessorCheck)}
-                  <span className="font-medium">{diagnosticsStatus.mailQueueProcessorCheck.message}</span>
-                </div>
-                {diagnosticsStatus.mailQueueProcessorCheck.details && (
-                  <div className="mt-2 p-3 bg-gray-50 rounded-md">
-                    <pre className="text-sm">{JSON.stringify(diagnosticsStatus.mailQueueProcessorCheck.details, null, 2)}</pre>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
 
         <TabsContent value="queue" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Database className="h-5 w-5" />
-                  Recent Emails
-                </div>
-                <Button variant="outline" size="sm" onClick={loadRecentEmails}>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Refresh
+              <CardTitle className="flex items-center gap-2">
+                <Database className="w-5 h-5" />
+                Mail Queue Management
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <Clock className="w-4 h-4" />
+                <AlertDescription>
+                  The mail queue processes emails automatically, but you can manually trigger processing here.
+                </AlertDescription>
+              </Alert>
+              
+              <Button
+                onClick={processMailQueue}
+                disabled={isProcessingQueue}
+                className="flex items-center gap-2 w-full"
+              >
+                <Play className={`w-4 h-4 ${isProcessingQueue ? 'animate-spin' : ''}`} />
+                {isProcessingQueue ? 'Processing Queue...' : 'Process Mail Queue Now'}
+              </Button>
+              
+              <div className="text-sm text-gray-600">
+                <p>This will attempt to send all pending emails in the queue.</p>
+                <p>Failed emails will be retried up to 3 times.</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="test" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Send className="w-5 h-5" />
+                Send Test Emails
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Test Email Address
+                </label>
+                <Input
+                  type="email"
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                  placeholder="your.email@example.com"
+                  className="w-full"
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Button
+                  onClick={() => sendTestEmail('order')}
+                  disabled={isSendingTest || !testEmail}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Mail className="w-4 h-4" />
+                  Test Order Confirmation
                 </Button>
+                
+                <Button
+                  onClick={() => sendTestEmail('commit')}
+                  disabled={isSendingTest || !testEmail}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  Test Commit Notification
+                </Button>
+              </div>
+              
+              <Alert>
+                <Mail className="w-4 h-4" />
+                <AlertDescription>
+                  Test emails are added to the queue and will be sent when the queue is processed.
+                  After sending, process the mail queue or wait for automatic processing.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="recent" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Eye className="w-5 h-5" />
+                Recent Email Activity
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {recentEmails ? (
-                <div className="space-y-4">
-                  {recentEmails.success ? (
-                    <div>
-                      <div className="mb-4 grid gap-4 md:grid-cols-4">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold">{recentEmails.details?.summary?.total || 0}</div>
-                          <div className="text-sm text-muted-foreground">Total</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-green-600">{recentEmails.details?.summary?.sent || 0}</div>
-                          <div className="text-sm text-muted-foreground">Sent</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-yellow-600">{recentEmails.details?.summary?.pending || 0}</div>
-                          <div className="text-sm text-muted-foreground">Pending</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-red-600">{recentEmails.details?.summary?.failed || 0}</div>
-                          <div className="text-sm text-muted-foreground">Failed</div>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        {recentEmails.details?.emails?.slice(0, 10).map((email: any) => (
-                          <div key={email.id} className="flex items-center justify-between p-3 border rounded-lg">
-                            <div className="flex-1">
-                              <div className="font-medium">{email.subject}</div>
-                              <div className="text-sm text-muted-foreground">{email.email}</div>
-                              <div className="text-xs text-muted-foreground">{formatDate(email.created_at)}</div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant={
-                                email.status === 'sent' ? 'default' : 
-                                email.status === 'pending' ? 'secondary' : 'destructive'
-                              }>
-                                {email.status}
-                              </Badge>
-                              {email.retry_count > 0 && (
-                                <Badge variant="outline">{email.retry_count} retries</Badge>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <Alert variant="destructive">
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertTitle>Error</AlertTitle>
-                      <AlertDescription>{recentEmails.error}</AlertDescription>
-                    </Alert>
-                  )}
+              {recentEmails.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No recent emails found</p>
+                  <Button 
+                    onClick={loadRecentEmails} 
+                    variant="outline" 
+                    className="mt-2"
+                  >
+                    Refresh
+                  </Button>
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <Button onClick={loadRecentEmails}>
-                    <Database className="mr-2 h-4 w-4" />
-                    Load Recent Emails
+                <div className="space-y-3">
+                  {recentEmails.map((email, index) => (
+                    <div key={email.id || `email-${index}`} className="border rounded p-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h4 className="font-medium">{email.subject}</h4>
+                          <p className="text-sm text-gray-600">To: {email.email}</p>
+                          <p className="text-xs text-gray-400">
+                            {new Date(email.created_at).toLocaleString()}
+                          </p>
+                        </div>
+                        <Badge variant={
+                          email.status === 'sent' ? 'default' :
+                          email.status === 'failed' ? 'destructive' : 'secondary'
+                        }>
+                          {email.status}
+                          {email.retry_count && email.retry_count > 0 && ` (${email.retry_count})`}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <Button 
+                    onClick={loadRecentEmails} 
+                    variant="outline" 
+                    className="w-full mt-4"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh Recent Emails
                   </Button>
                 </div>
               )}
@@ -715,26 +468,16 @@ export const EmailDiagnosticsDashboard: React.FC = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="recommendations" className="space-y-4">
+        <TabsContent value="debug" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Recommendations
+                <Wrench className="w-5 h-5" />
+                Email Pattern Analysis
               </CardTitle>
-              <CardDescription>
-                Steps to fix email system issues
-              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {diagnosticsStatus.recommendations.map((recommendation, index) => (
-                  <div key={index} className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <MessageSquare className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm">{recommendation}</div>
-                  </div>
-                ))}
-              </div>
+              <EmailPatternDebugger />
             </CardContent>
           </Card>
         </TabsContent>

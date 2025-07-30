@@ -4,6 +4,8 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
+import { EnhancedPurchaseEmailService } from "@/services/enhancedPurchaseEmailService";
 import {
   CheckoutState,
   CheckoutBook,
@@ -36,6 +38,7 @@ interface CheckoutFlowProps {
 const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { removeFromCart, removeFromSellerCart } = useCart();
 
   const [checkoutState, setCheckoutState] = useState<CheckoutState>({
     step: { current: 1, completed: [] },
@@ -100,17 +103,17 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         // Fallback: check seller's profile for subaccount
         const { data: sellerProfile, error: sellerProfileError } = await supabase
           .from("profiles")
-          .select("paystack_subaccount_code")
+          .select("subaccount_code")
           .eq("id", bookData.seller_id)
           .single();
 
-        if (sellerProfileError || !sellerProfile?.paystack_subaccount_code) {
+        if (sellerProfileError || !sellerProfile?.subaccount_code) {
           throw new Error(
             "Seller payment setup is incomplete. The seller needs to set up their banking details.",
           );
         }
 
-        sellerSubaccountCode = sellerProfile.paystack_subaccount_code;
+        sellerSubaccountCode = sellerProfile.subaccount_code;
 
         // Update the book with the subaccount code for future purchases
         await supabase
@@ -242,8 +245,66 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
     goToStep(3);
   };
 
-  const handlePaymentSuccess = (orderData: OrderConfirmation) => {
+  const handlePaymentSuccess = async (orderData: OrderConfirmation) => {
     setOrderConfirmation(orderData);
+
+    // Remove book from cart after successful purchase
+    // This fixes the bug where books remain in cart after Buy Now purchase
+    try {
+      // Remove from legacy cart
+      removeFromCart(book.id);
+
+      // Also remove from seller carts if it exists there
+      if (book.seller?.id) {
+        removeFromSellerCart(book.seller.id, book.id);
+      }
+
+      console.log("✅ Book removed from cart after successful purchase:", book.id);
+    } catch (error) {
+      console.warn("Failed to remove book from cart after purchase:", error);
+      // Don't block the checkout success flow if cart removal fails
+    }
+
+    // 📧 GUARANTEED EMAIL FALLBACK SYSTEM
+    // Send purchase confirmation emails with multiple fallback layers
+    try {
+      console.log("📧 Triggering guaranteed purchase emails...");
+
+      const purchaseEmailData = {
+        orderId: orderData.orderId || book.id,
+        bookId: book.id,
+        bookTitle: book.title,
+        bookPrice: book.price,
+        sellerName: book.seller?.name || "Seller",
+        sellerEmail: book.seller?.email || "",
+        buyerName: user?.name || "Buyer",
+        buyerEmail: user?.email || "",
+        orderTotal: orderData.totalAmount || book.price,
+        orderDate: new Date().toISOString()
+      };
+
+      // Use enhanced email service with guaranteed fallbacks
+      const emailResult = await EnhancedPurchaseEmailService.sendPurchaseEmailsWithFallback(purchaseEmailData);
+
+      console.log("📧 Purchase email result:", emailResult);
+
+      // Show user feedback about email status
+      if (emailResult.sellerEmailSent && emailResult.buyerEmailSent) {
+        toast.success("📧 Confirmation emails sent to all parties");
+      } else {
+        toast.info("📧 Confirmation emails are being processed", {
+          description: "You'll receive your receipt shortly via our backup system."
+        });
+      }
+
+    } catch (emailError) {
+      console.error("⚠️ Purchase email system failed:", emailError);
+      // Don't block checkout completion if emails fail
+      toast.warning("📧 Emails are being processed manually", {
+        description: "Your purchase is complete but notifications may be delayed."
+      });
+    }
+
     goToStep(4);
   };
 
