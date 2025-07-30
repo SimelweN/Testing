@@ -246,6 +246,24 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
   const handlePaymentSuccess = (orderData: OrderConfirmation) => {
     setOrderConfirmation(orderData);
+
+    // Remove book from cart after successful purchase
+    // This fixes the bug where books remain in cart after Buy Now purchase
+    try {
+      // Remove from legacy cart
+      removeFromCart(book.id);
+
+      // Also remove from seller carts if it exists there
+      if (book.seller?.id) {
+        removeFromSellerCart(book.seller.id, book.id);
+      }
+
+      console.log("✅ Book removed from cart after successful purchase:", book.id);
+    } catch (error) {
+      console.warn("Failed to remove book from cart after purchase:", error);
+      // Don't block the checkout success flow if cart removal fails
+    }
+
     goToStep(4);
   };
 
