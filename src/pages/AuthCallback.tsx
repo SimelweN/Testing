@@ -99,9 +99,11 @@ const AuthCallback = () => {
                 navigate("/", { replace: true });
               }, 2000);
             } else if (type === "recovery") {
+              console.log("🔐 Password recovery type detected (token path) - redirecting to reset password page");
               setMessage("Password reset link verified! Redirecting to reset your password.");
               toast.success("Reset link verified! Set your new password.");
               // Redirect to reset password page immediately for better UX
+              console.log("🔄 Navigating to /reset-password from token path");
               navigate("/reset-password", { replace: true });
             } else {
               setMessage("Authentication successful! You are now logged in.");
@@ -167,9 +169,11 @@ const AuthCallback = () => {
                 navigate("/", { replace: true });
               }, 2000);
             } else if (type === "recovery") {
+              console.log("🔐 Password recovery type detected (OTP path) - redirecting to reset password page");
               setMessage("Password reset link verified! Redirecting to reset your password.");
               toast.success("Reset link verified! Set your new password.");
               // Redirect to reset password page immediately for better UX
+              console.log("🔄 Navigating to /reset-password from OTP path");
               navigate("/reset-password", { replace: true });
             } else {
               setMessage("Email verification successful! You are now logged in.");
