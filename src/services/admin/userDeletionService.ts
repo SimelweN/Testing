@@ -315,7 +315,7 @@ export class UserDeletionService {
       return report;
     } catch (error) {
       logError('Complete user deletion failed', error);
-      report.errors.push(`Critical error: ${error}`);
+      report.errors.push(`Critical error: ${error instanceof Error ? error.message : String(error)}`);
       return report;
     }
   }
