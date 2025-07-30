@@ -184,7 +184,7 @@ const OrderDeclineButton: React.FC<OrderDeclineButtonProps> = ({
         </Button>
       </AlertDialogTrigger>
 
-      <AlertDialogContent className="max-w-md">
+      <AlertDialogContent className="w-[90vw] max-w-[90vw] sm:max-w-md mx-auto my-auto">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-red-500" />
