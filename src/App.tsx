@@ -48,7 +48,7 @@ import AuthCallback from "./pages/AuthCallback";
 import Admin from "./pages/Admin";
 import AdminReports from "./pages/AdminReports";
 import Developer from "./pages/Developer";
-
+import PhotoUploadDemo from "./pages/PhotoUploadDemo";
 
 // Support Pages
 import ContactUs from "./pages/ContactUs";
