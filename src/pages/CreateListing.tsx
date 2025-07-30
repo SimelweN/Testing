@@ -9,13 +9,20 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { createBook } from "@/services/book/bookMutations";
 import { BookFormData } from "@/types/book";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Loader2, AlertTriangle, Info } from "lucide-react";
 import EnhancedMobileImageUpload from "@/components/EnhancedMobileImageUpload";
 import FirstUploadSuccessDialog from "@/components/FirstUploadSuccessDialog";
 import PostListingSuccessDialog from "@/components/PostListingSuccessDialog";
 import ShareProfileDialog from "@/components/ShareProfileDialog";
 import SellerPolicyModal from "@/components/SellerPolicyModal";
 import CommitReminderModal from "@/components/CommitReminderModal";
+import SellerInfoModal from "@/components/SellerInfoModal";
+import {
+  shouldShowCommitReminder,
+  shouldShowFirstUpload,
+  shouldShowPostListing,
+  markPopupAsShown,
+} from "@/services/popupTrackingService";
 import BankingRequirementCheck from "@/components/BankingRequirementCheck";
 import {
   hasCompletedFirstUpload,
@@ -62,6 +69,7 @@ const CreateListing = () => {
   const [showShareProfileDialog, setShowShareProfileDialog] = useState(false);
   const [showSellerPolicyModal, setShowSellerPolicyModal] = useState(false);
   const [showCommitReminderModal, setShowCommitReminderModal] = useState(false);
+  const [showSellerInfoModal, setShowSellerInfoModal] = useState(false);
   const [sellerPolicyAccepted, setSellerPolicyAccepted] = useState(false);
   const [canListBooks, setCanListBooks] = useState<boolean | null>(null);
   const [isCheckingAddress, setIsCheckingAddress] = useState(true);
@@ -230,8 +238,13 @@ const CreateListing = () => {
         duration: 5000,
       });
 
-      // Show commit reminder modal first
-      setShowCommitReminderModal(true);
+      // Show commit reminder modal first (only if not shown before)
+      if (shouldShowCommitReminder(user.id)) {
+        setShowCommitReminderModal(true);
+      } else {
+        // Skip to post-listing flow if commit reminder already shown
+        handlePostCommitFlow();
+      }
 
       // Handle first upload workflow after commit reminder
       try {
@@ -426,20 +439,30 @@ const CreateListing = () => {
                   className="mt-1 h-4 w-4"
                   required
                 />
-                <div className="space-y-1">
-                  <Label
-                    htmlFor="sellerPolicy"
-                    className="text-sm text-gray-600 leading-relaxed cursor-pointer"
-                  >
-                    I agree to the{" "}
+                <div className="space-y-1 flex-1">
+                  <div className="flex items-center gap-2">
+                    <Label
+                      htmlFor="sellerPolicy"
+                      className="text-sm text-gray-600 leading-relaxed cursor-pointer"
+                    >
+                      I agree to the{" "}
+                      <button
+                        type="button"
+                        onClick={() => setShowSellerPolicyModal(true)}
+                        className="text-book-600 hover:text-book-800 underline font-medium"
+                      >
+                        Seller Policy and ReBooked's platform rules
+                      </button>
+                    </Label>
                     <button
                       type="button"
-                      onClick={() => setShowSellerPolicyModal(true)}
-                      className="text-book-600 hover:text-book-800 underline font-medium"
+                      onClick={() => setShowSellerInfoModal(true)}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                      title="Seller information"
                     >
-                      Seller Policy and ReBooked's platform rules
+                      <Info className="h-4 w-4" />
                     </button>
-                  </Label>
+                  </div>
                   {errors.sellerPolicy && (
                     <p className="text-xs text-red-500">
                       {errors.sellerPolicy}
@@ -492,15 +515,25 @@ const CreateListing = () => {
             isOpen={showFirstUploadDialog}
             onClose={() => {
               setShowFirstUploadDialog(false);
-              setShowShareProfileDialog(true);
+              markPopupAsShown(user.id, 'firstUploadShown');
+              // Check if post listing dialog should be shown for returning users
+              if (shouldShowPostListing(user.id)) {
+                setShowPostListingDialog(true);
+              } else {
+                setShowShareProfileDialog(true);
+              }
             }}
           />
 
           <PostListingSuccessDialog
             isOpen={showPostListingDialog}
-            onClose={() => setShowPostListingDialog(false)}
+            onClose={() => {
+              setShowPostListingDialog(false);
+              markPopupAsShown(user.id, 'postListingShown');
+            }}
             onShareProfile={() => {
               setShowPostListingDialog(false);
+              markPopupAsShown(user.id, 'postListingShown');
               setShowShareProfileDialog(true);
             }}
           />
@@ -521,26 +554,18 @@ const CreateListing = () => {
             isOpen={showCommitReminderModal}
             onClose={() => {
               setShowCommitReminderModal(false);
+              // Mark as shown so it doesn't appear again
+              markPopupAsShown(user.id, 'commitReminderShown');
+
               // Handle first upload workflow after commit reminder
-              const handlePostCommitFlow = async () => {
-                try {
-                  const hasCompleted = await hasCompletedFirstUpload(user.id);
-                  if (!hasCompleted) {
-                    setShowFirstUploadDialog(true);
-                  } else {
-                    setShowPostListingDialog(true);
-                  }
-                } catch (prefError) {
-                  console.warn(
-                    "Could not track first upload preference:",
-                    prefError,
-                  );
-                  setShowPostListingDialog(true);
-                }
-              };
               handlePostCommitFlow();
             }}
             type="seller"
+          />
+
+          <SellerInfoModal
+            isOpen={showSellerInfoModal}
+            onClose={() => setShowSellerInfoModal(false)}
           />
         </BankingRequirementCheck>
       </div>
