@@ -5,8 +5,8 @@ export interface CreateNotificationData {
   type: string;
   title: string;
   message: string;
-  metadata?: Record<string, any>;
-  priority?: 'high' | 'medium' | 'low';
+  metadata?: Record<string, any>; // Will be ignored for now
+  priority?: 'high' | 'medium' | 'low'; // Will be ignored for now
 }
 
 type Notification = {
@@ -15,8 +15,6 @@ type Notification = {
   type: string;
   title: string;
   message: string;
-  metadata?: Record<string, any>;
-  priority: 'high' | 'medium' | 'low';
   read: boolean;
   created_at: string;
 };
@@ -114,10 +112,7 @@ export class NotificationService {
           type: data.type,
           title: data.title,
           message: data.message,
-          metadata: data.metadata || {},
-          priority: data.priority || 'medium',
           read: false,
-          created_at: new Date().toISOString(),
         });
 
       if (error) {
