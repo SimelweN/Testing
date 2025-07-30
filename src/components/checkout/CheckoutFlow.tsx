@@ -100,17 +100,17 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         // Fallback: check seller's profile for subaccount
         const { data: sellerProfile, error: sellerProfileError } = await supabase
           .from("profiles")
-          .select("paystack_subaccount_code")
+          .select("subaccount_code")
           .eq("id", bookData.seller_id)
           .single();
 
-        if (sellerProfileError || !sellerProfile?.paystack_subaccount_code) {
+        if (sellerProfileError || !sellerProfile?.subaccount_code) {
           throw new Error(
             "Seller payment setup is incomplete. The seller needs to set up their banking details.",
           );
         }
 
-        sellerSubaccountCode = sellerProfile.paystack_subaccount_code;
+        sellerSubaccountCode = sellerProfile.subaccount_code;
 
         // Update the book with the subaccount code for future purchases
         await supabase
