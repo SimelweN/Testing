@@ -127,6 +127,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsLoading(true);
         console.log("🔄 AuthContext register called with:", { email, name });
 
+        // First, check if user already exists in our profiles table
+        console.log('🔍 Checking if user already exists...');
+        const { data: existingProfile, error: checkError } = await supabase
+          .from('profiles')
+          .select('id, email, status')
+          .eq('email', email)
+          .single();
+
+        if (existingProfile && !checkError) {
+          console.log('❌ User already exists in profiles table:', existingProfile);
+          throw new Error(
+            "An account with this email already exists. Please try logging in instead."
+          );
+        }
+
+        // If checkError is not "PGRST116" (no rows), then it's a real error
+        if (checkError && checkError.code !== 'PGRST116') {
+          console.warn('⚠️ Error checking existing user (non-critical):', checkError);
+        }
+
         // Create user account - Supabase handles email confirmation automatically
         console.log('🔧 Creating user account with email verification...');
 
