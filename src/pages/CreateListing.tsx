@@ -10,7 +10,7 @@ import { createBook } from "@/services/book/bookMutations";
 import { BookFormData } from "@/types/book";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2, AlertTriangle } from "lucide-react";
-import MultiImageUpload from "@/components/MultiImageUpload";
+import EnhancedMobileImageUpload from "@/components/EnhancedMobileImageUpload";
 import FirstUploadSuccessDialog from "@/components/FirstUploadSuccessDialog";
 import PostListingSuccessDialog from "@/components/PostListingSuccessDialog";
 import ShareProfileDialog from "@/components/ShareProfileDialog";
