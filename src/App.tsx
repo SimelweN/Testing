@@ -269,6 +269,10 @@ function App() {
                           </AdminProtectedRoute>
                         }
                       />
+                      <Route
+                        path="/photo-upload-demo"
+                        element={<PhotoUploadDemo />}
+                      />
 
                       {/* Support Routes */}
                       <Route path="/contact" element={<ContactUs />} />
