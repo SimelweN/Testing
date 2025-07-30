@@ -53,7 +53,7 @@ export const getSellerCheckoutData = async (sellerId: string) => {
       profile.pickup_address.province &&
       profile.pickup_address.postal_code;
 
-    const hasSubaccount = profile.paystack_subaccount_code;
+    const hasSubaccount = profile.subaccount_code;
 
     return {
       valid: hasAddress && hasSubaccount,
