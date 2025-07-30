@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Layout from "@/components/Layout";
-import MultiImageUpload from "@/components/MultiImageUpload";
+import EnhancedMobileImageUpload from "@/components/EnhancedMobileImageUpload";
 import { getBookById } from "@/services/book/bookQueries";
 import { updateBook } from "@/services/book/bookMutations";
 import { categories } from "@/constants/categories";
@@ -321,7 +321,7 @@ const EditBook = () => {
             </div>
 
             <div className="space-y-4">
-              <MultiImageUpload
+              <EnhancedMobileImageUpload
                 images={currentImages}
                 onImagesChange={(images) => {
                   const bookImages = images as {

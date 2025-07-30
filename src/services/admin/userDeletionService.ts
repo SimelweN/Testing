@@ -102,7 +102,8 @@ export class UserDeletionService {
           console.log('✅ Deleted notifications:', notifCount);
         }
       } catch (error) {
-        report.errors.push(`Notifications deletion error: ${error}`);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        report.errors.push(`Notifications deletion error: ${errorMessage}`);
       }
 
       // 2. Delete mail queue entries (skip if table/column doesn't exist)
@@ -285,7 +286,8 @@ export class UserDeletionService {
           console.log('✅ Deleted profile:', profileCount);
         }
       } catch (error) {
-        report.errors.push(`Profile deletion error: ${error}`);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        report.errors.push(`Profile deletion error: ${errorMessage}`);
       }
 
       // 11. Try to delete from Supabase Auth (if accessible)
@@ -315,7 +317,7 @@ export class UserDeletionService {
       return report;
     } catch (error) {
       logError('Complete user deletion failed', error);
-      report.errors.push(`Critical error: ${error}`);
+      report.errors.push(`Critical error: ${error instanceof Error ? error.message : String(error)}`);
       return report;
     }
   }
@@ -416,7 +418,8 @@ export class UserDeletionService {
 
       return result;
     } catch (error) {
-      result.errors.push(`Search error: ${error}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      result.errors.push(`Search error: ${errorMessage}`);
       return result;
     }
   }
