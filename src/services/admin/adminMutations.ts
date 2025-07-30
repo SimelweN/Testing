@@ -43,6 +43,52 @@ export const deleteBookListing = async (
   }
 };
 
+export const deleteUser = async (
+  userIdOrEmail: string,
+): Promise<UserDeletionReport> => {
+  try {
+    console.log("��️ Admin attempting to delete user:", userIdOrEmail);
+
+    // Use the comprehensive deletion service
+    const report = await UserDeletionService.deleteUserCompletely(userIdOrEmail);
+
+    if (report.success) {
+      console.log("✅ User deletion completed successfully:", {
+        userId: report.userId,
+        email: report.email,
+        deletedRecords: report.deletedRecords,
+      });
+    } else {
+      console.error("❌ User deletion failed:", {
+        errors: report.errors,
+        userId: report.userId,
+        email: report.email,
+      });
+    }
+
+    return report;
+  } catch (error) {
+    console.error("Error in deleteUser:", error);
+    throw new Error("Failed to delete user");
+  }
+};
+
+export const searchUserData = async (
+  userIdOrEmail: string,
+): Promise<any> => {
+  try {
+    console.log("🔍 Searching for user data:", userIdOrEmail);
+
+    const result = await UserDeletionService.searchUserData(userIdOrEmail);
+
+    console.log("📋 User data search results:", result);
+    return result;
+  } catch (error) {
+    console.error("Error in searchUserData:", error);
+    throw new Error("Failed to search user data");
+  }
+};
+
 export const sendBroadcastMessage = async (message: string): Promise<void> => {
   try {
     console.log("Attempting to send broadcast message:", message);
