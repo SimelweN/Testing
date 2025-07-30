@@ -228,7 +228,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error(`Error ${action}ing user:`, error);
       if (action === "delete") {
-        toast.error("Failed to delete user", { id: `delete-${userId}` });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        toast.error(`Failed to delete user: ${errorMessage}`, { id: `delete-${userId}` });
       }
       handleError(error, `${action} User`);
     }
