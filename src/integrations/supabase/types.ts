@@ -300,7 +300,7 @@ export type Database = {
           id?: string;
           is_admin?: boolean | null;
           name?: string | null;
-          paystack_subaccount_code?: string | null;
+          subaccount_code?: string | null;
           pickup_address?: Json | null;
           profile_picture_url?: string | null;
           shipping_address?: Json | null;
