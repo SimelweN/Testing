@@ -37,6 +37,7 @@ interface CheckoutFlowProps {
 const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { removeFromCart, removeFromSellerCart } = useCart();
 
   const [checkoutState, setCheckoutState] = useState<CheckoutState>({
     step: { current: 1, completed: [] },
