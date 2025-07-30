@@ -74,21 +74,24 @@ const OrderCommitButton: React.FC<OrderCommitButtonProps> = ({
 
       console.log("✅ Commit successful:", data);
 
-      // Show success messages with enhanced delivery info
-      toast.success("✅ Order committed successfully!", {
-        description:
-          "🚚 Delivery/shipping processes have been triggered automatically!",
+      // Show enhanced success messages with email status
+      toast.success(successMessage, {
+        description: "🚚 Delivery/shipping processes have been triggered automatically!",
         duration: 5000,
       });
 
-      toast.info(
-        "📧 Courier pickup is being scheduled. Check your email for details.",
-        {
-          description:
-            "You'll receive tracking information once the courier collects the book.",
+      // Show additional info about email delivery
+      if (result.emailsSent) {
+        toast.info("📧 Confirmation emails sent to buyer and seller", {
+          description: "Both parties have been notified of the sale commitment.",
           duration: 7000,
-        },
-      );
+        });
+      } else {
+        toast.info("📧 Emails are being processed manually", {
+          description: "Notifications will be sent shortly via our backup system.",
+          duration: 7000,
+        });
+      }
 
       toast.info(
         "🔄 Delivery automation started - this may take a few minutes to complete.",
