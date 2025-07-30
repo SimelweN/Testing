@@ -143,15 +143,19 @@ export class UserDeletionService {
         console.warn('Contact messages deletion skipped (table may not exist):', error);
       }
 
-      // 4. Delete reports (both filed by user and against user)
+      // 4. Delete reports (both filed by user and against user) - handle missing columns
       try {
         const { count: reportCount, error: reportError } = await supabase
           .from('reports')
           .delete({ count: 'exact' })
           .or(`reporter_id.eq.${userProfile.id},reported_user_id.eq.${userProfile.id}`);
-        
+
         if (reportError) {
-          report.errors.push(`Reports deletion failed: ${reportError.message}`);
+          if (reportError.code === '42P01' || reportError.message.includes('does not exist')) {
+            console.warn('Reports table/column does not exist, skipping...');
+          } else {
+            report.errors.push(`Reports deletion failed: ${reportError.message}`);
+          }
         } else {
           report.deletedRecords.other += reportCount || 0;
           console.log('✅ Deleted reports:', reportCount);
