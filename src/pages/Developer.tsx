@@ -238,7 +238,9 @@ const Developer = () => {
             phone: '+27123456789'
           }));
           setUsers(simpleUsers);
-          setSelectedBuyer(simpleUsers[0].id);
+          if (simpleUsers.length > 0) {
+            setSelectedBuyer(simpleUsers[0].id);
+          }
           setSelectedSeller(simpleUsers[1]?.id || simpleUsers[0].id);
           toast.success(`✅ Loaded ${simpleUsers.length} users with basic info`);
         } else {
@@ -1624,7 +1626,7 @@ const Developer = () => {
 
                             // Show some sample locker info
                             const sampleLocker = lockers[0];
-                            console.log('���� Sample real locker:', {
+                            console.log('📍 Sample real locker:', {
                               id: sampleLocker.id,
                               name: sampleLocker.name,
                               city: sampleLocker.city,
