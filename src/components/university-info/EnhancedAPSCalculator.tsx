@@ -854,7 +854,7 @@ const EnhancedAPSCalculator: React.FC = () => {
       {/* Program Details Modal */}
       {selectedProgram && (
         <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-3xl max-h-[85vh] mx-auto my-auto overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold text-green-800">
                 {selectedProgram.name}
