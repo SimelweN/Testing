@@ -198,8 +198,18 @@ const AdminDashboard = () => {
 
           console.log("User deletion report:", deletionReport);
         } else {
+          // Ensure all errors are properly converted to strings
+          const sanitizedErrors = deletionReport.errors.map(error => {
+            if (typeof error === 'string') return error;
+            if (error instanceof Error) return error.message;
+            if (typeof error === 'object' && error !== null && error.message) {
+              return String(error.message);
+            }
+            return String(error);
+          });
+
           toast.error(
-            `User deletion failed: ${deletionReport.errors.join(", ")}`,
+            `User deletion failed: ${sanitizedErrors.join(", ")}`,
             {
               id: `delete-${userId}`,
               duration: 8000
