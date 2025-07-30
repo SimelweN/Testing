@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { EnhancedCommitService } from "@/services/enhancedCommitService";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import {
   AlertDialog,
