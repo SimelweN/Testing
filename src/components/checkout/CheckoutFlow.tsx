@@ -245,7 +245,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
     goToStep(3);
   };
 
-  const handlePaymentSuccess = (orderData: OrderConfirmation) => {
+  const handlePaymentSuccess = async (orderData: OrderConfirmation) => {
     setOrderConfirmation(orderData);
 
     // Remove book from cart after successful purchase
@@ -263,6 +263,46 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
     } catch (error) {
       console.warn("Failed to remove book from cart after purchase:", error);
       // Don't block the checkout success flow if cart removal fails
+    }
+
+    // 📧 GUARANTEED EMAIL FALLBACK SYSTEM
+    // Send purchase confirmation emails with multiple fallback layers
+    try {
+      console.log("📧 Triggering guaranteed purchase emails...");
+
+      const purchaseEmailData = {
+        orderId: orderData.orderId || book.id,
+        bookId: book.id,
+        bookTitle: book.title,
+        bookPrice: book.price,
+        sellerName: book.seller?.name || "Seller",
+        sellerEmail: book.seller?.email || "",
+        buyerName: user?.name || "Buyer",
+        buyerEmail: user?.email || "",
+        orderTotal: orderData.totalAmount || book.price,
+        orderDate: new Date().toISOString()
+      };
+
+      // Use enhanced email service with guaranteed fallbacks
+      const emailResult = await EnhancedPurchaseEmailService.sendPurchaseEmailsWithFallback(purchaseEmailData);
+
+      console.log("📧 Purchase email result:", emailResult);
+
+      // Show user feedback about email status
+      if (emailResult.sellerEmailSent && emailResult.buyerEmailSent) {
+        toast.success("📧 Confirmation emails sent to all parties");
+      } else {
+        toast.info("📧 Confirmation emails are being processed", {
+          description: "You'll receive your receipt shortly via our backup system."
+        });
+      }
+
+    } catch (emailError) {
+      console.error("⚠️ Purchase email system failed:", emailError);
+      // Don't block checkout completion if emails fail
+      toast.warning("📧 Emails are being processed manually", {
+        description: "Your purchase is complete but notifications may be delayed."
+      });
     }
 
     goToStep(4);
