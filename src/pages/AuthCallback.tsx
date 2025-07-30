@@ -169,9 +169,8 @@ const AuthCallback = () => {
             } else if (type === "recovery") {
               setMessage("Password reset link verified! Redirecting to reset your password.");
               toast.success("Reset link verified! Set your new password.");
-              setTimeout(() => {
-                navigate("/reset-password", { replace: true });
-              }, 2000);
+              // Redirect to reset password page immediately for better UX
+              navigate("/reset-password", { replace: true });
             } else {
               setMessage("Email verification successful! You are now logged in.");
               toast.success("Email verified successfully!");
