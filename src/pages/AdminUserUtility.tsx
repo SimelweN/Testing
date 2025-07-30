@@ -63,7 +63,8 @@ const AdminUserUtility = () => {
       
       console.log("Deletion report:", report);
     } catch (error) {
-      toast.error("Deletion failed");
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      toast.error(`Deletion failed: ${errorMessage}`);
       console.error("Deletion error:", error);
     } finally {
       setIsDeleting(false);
