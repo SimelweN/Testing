@@ -90,7 +90,8 @@ const AdminUserUtility = () => {
       
       console.log("Specific user deletion result:", result);
     } catch (error) {
-      toast.error("Failed to delete specific user");
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      toast.error(`Failed to delete specific user: ${errorMessage}`);
       console.error("Specific user deletion error:", error);
     } finally {
       setIsDeleting(false);
