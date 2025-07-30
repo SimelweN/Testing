@@ -47,6 +47,7 @@ const AuthCallback = () => {
         console.log("📍 Hash:", window.location.hash);
 
         // Debug password reset flow specifically
+        const type = searchParams.get("type") || new URLSearchParams(window.location.hash.substring(1)).get("type");
         if (type === "recovery") {
           console.log("🔐 PASSWORD RESET FLOW DETECTED");
           console.log("🔐 This should redirect to /reset-password after authentication");
