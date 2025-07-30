@@ -1,10 +1,17 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Upload, X, Eye, Loader2, Camera } from "lucide-react";
+import { Upload, X, Eye, Loader2, Camera, Image, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 interface BookImages {
   frontCover: string;
@@ -36,6 +43,7 @@ const MultiImageUpload = ({
   );
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const cameraInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const isMobile = useIsMobile();
 
   // Convert images to array format for consistent handling
@@ -162,6 +170,16 @@ const MultiImageUpload = ({
     fileInputRefs.current[index]?.click();
   };
 
+  const triggerCameraInput = (index: number, facingMode: 'user' | 'environment' = 'environment') => {
+    // For camera capture, we'll use the same file input but with capture attribute
+    const input = cameraInputRefs.current[index];
+    if (input) {
+      // Set the capture mode dynamically
+      input.setAttribute('capture', facingMode === 'user' ? 'user' : 'environment');
+      input.click();
+    }
+  };
+
   return (
     <div className={`space-y-4 ${className}`}>
       <div
@@ -241,7 +259,8 @@ const MultiImageUpload = ({
                         )}
                       </div>
 
-                      {/* Hidden file input */}
+                      {/* Hidden file inputs */}
+                      {/* Gallery selection input */}
                       <input
                         ref={(el) => (fileInputRefs.current[index] = el)}
                         type="file"
@@ -249,31 +268,78 @@ const MultiImageUpload = ({
                         onChange={(e) => handleFileUpload(e, index)}
                         className="hidden"
                         disabled={isCurrentlyUploading || disabled}
-                        capture={isMobile ? "environment" : undefined}
                       />
 
-                      <Button
-                        type="button"
-                        variant="outline"
+                      {/* Camera capture input */}
+                      <input
+                        ref={(el) => (cameraInputRefs.current[index] = el)}
+                        type="file"
+                        accept="image/*,image/heic,image/heif"
+                        onChange={(e) => handleFileUpload(e, index)}
+                        className="hidden"
                         disabled={isCurrentlyUploading || disabled}
-                        onClick={() => triggerFileInput(index)}
-                        className={`w-full ${isMobile ? "h-12 text-sm" : "min-h-[44px]"} touch-manipulation`}
-                      >
-                        {isCurrentlyUploading ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        ) : (
-                          <Camera className="h-4 w-4 mr-2" />
-                        )}
-                        {isCurrentlyUploading
-                          ? "Uploading..."
-                          : `Add ${slot.label}`}
-                      </Button>
+                        capture="environment"
+                      />
+
+                      {isMobile ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              disabled={isCurrentlyUploading || disabled}
+                              className={`w-full h-12 text-sm touch-manipulation`}
+                            >
+                              {isCurrentlyUploading ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                              ) : (
+                                <Camera className="h-4 w-4 mr-2" />
+                              )}
+                              {isCurrentlyUploading
+                                ? "Uploading..."
+                                : `Add ${slot.label}`}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-56">
+                            <DropdownMenuItem onClick={() => triggerFileInput(index)}>
+                              <Image className="mr-2 h-4 w-4" />
+                              <span>Choose from Gallery</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => triggerCameraInput(index, 'environment')}>
+                              <Camera className="mr-2 h-4 w-4" />
+                              <span>Take Photo (Back Camera)</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => triggerCameraInput(index, 'user')}>
+                              <RotateCcw className="mr-2 h-4 w-4" />
+                              <span>Take Photo (Front Camera)</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={isCurrentlyUploading || disabled}
+                          onClick={() => triggerFileInput(index)}
+                          className={`w-full min-h-[44px] touch-manipulation`}
+                        >
+                          {isCurrentlyUploading ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          ) : (
+                            <Upload className="h-4 w-4 mr-2" />
+                          )}
+                          {isCurrentlyUploading
+                            ? "Uploading..."
+                            : `Upload ${slot.label}`}
+                        </Button>
+                      )}
 
                       <p
-                        className={`${isMobile ? "text-xs" : "text-xs"} text-gray-500 text-center`}
+                        className={`text-xs text-gray-500 text-center`}
                       >
                         {isMobile
-                          ? "PNG, JPG up to 10MB"
+                          ? "Gallery or Camera • PNG, JPG up to 10MB"
                           : "PNG, JPG up to 10MB"}
                       </p>
                     </div>
