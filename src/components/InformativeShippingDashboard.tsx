@@ -207,27 +207,10 @@ const InformativeShippingDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="bg-green-100 border border-green-300 rounded p-2">
-                      <p className="text-sm font-semibold text-green-800">💰 Get Paid Earlier!</p>
+                    <div className="bg-orange-100 border border-orange-300 rounded p-4 text-center">
+                      <p className="text-lg font-semibold text-orange-800 mb-2">🚀 Coming Soon!</p>
+                      <p className="text-sm text-orange-700">We're working on bringing you an exciting new locker-to-door delivery service.</p>
                     </div>
-                    <ul className="space-y-2">
-                      <li className="flex items-center space-x-2">
-                        <CheckCircle className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm">Drop off at secure lockers</span>
-                      </li>
-                      <li className="flex items-center space-x-2">
-                        <CheckCircle className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm">QR code access system</span>
-                      </li>
-                      <li className="flex items-center space-x-2">
-                        <CheckCircle className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm">Faster processing</span>
-                      </li>
-                      <li className="flex items-center space-x-2">
-                        <CheckCircle className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm">Available at major malls</span>
-                      </li>
-                    </ul>
                   </div>
                 </CardContent>
               </Card>
