@@ -23,8 +23,9 @@ const AuthCallback = () => {
       const type = searchParams.get("type") || new URLSearchParams(window.location.hash.substring(1)).get("type");
 
       if (type === "recovery") {
-        console.log("🔐 Authenticated user in recovery flow - allowing reset password access");
-        return; // Don't redirect, let the password reset flow continue
+        console.log("🔐 Authenticated user in recovery flow - redirecting directly to reset password");
+        navigate("/reset-password", { replace: true });
+        return;
       }
 
       console.log("🔄 User already authenticated, redirecting from auth callback");
@@ -46,16 +47,16 @@ const AuthCallback = () => {
         console.log("📍 Search params:", window.location.search);
         console.log("📍 Hash:", window.location.hash);
 
+        // Get tokens from URL parameters (both search params and hash)
+        const access_token = searchParams.get("access_token") || new URLSearchParams(window.location.hash.substring(1)).get("access_token");
+        const refresh_token = searchParams.get("refresh_token") || new URLSearchParams(window.location.hash.substring(1)).get("refresh_token");
+        const type = searchParams.get("type") || new URLSearchParams(window.location.hash.substring(1)).get("type");
+
         // Debug password reset flow specifically
         if (type === "recovery") {
           console.log("🔐 PASSWORD RESET FLOW DETECTED");
           console.log("🔐 This should redirect to /reset-password after authentication");
         }
-
-        // Get tokens from URL parameters (both search params and hash)
-        const access_token = searchParams.get("access_token") || new URLSearchParams(window.location.hash.substring(1)).get("access_token");
-        const refresh_token = searchParams.get("refresh_token") || new URLSearchParams(window.location.hash.substring(1)).get("refresh_token");
-        const type = searchParams.get("type") || new URLSearchParams(window.location.hash.substring(1)).get("type");
         const error = searchParams.get("error") || new URLSearchParams(window.location.hash.substring(1)).get("error");
         const error_description = searchParams.get("error_description") || new URLSearchParams(window.location.hash.substring(1)).get("error_description");
 
