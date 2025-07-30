@@ -298,9 +298,13 @@ export class UserDeletionService {
         console.warn('Auth user deletion not possible from client:', error);
       }
 
-      // Calculate success
+      // Calculate success - don't count missing table warnings as errors
       const totalDeleted = Object.values(report.deletedRecords).reduce((sum, count) => sum + count, 0);
-      report.success = totalDeleted > 0 && report.errors.length === 0;
+      const realErrors = report.errors.filter(error =>
+        !error.includes('does not exist') &&
+        !error.includes('table may not exist')
+      );
+      report.success = totalDeleted > 0 && realErrors.length === 0;
 
       console.log('🎯 User deletion completed:', {
         success: report.success,
