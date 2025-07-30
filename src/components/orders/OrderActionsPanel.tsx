@@ -444,7 +444,7 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
           open={showRescheduleDialog}
           onOpenChange={setShowRescheduleDialog}
         >
-          <DialogContent className="max-w-md">
+          <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-md mx-auto my-auto">
             <DialogHeader>
               <DialogTitle>Reschedule Pickup</DialogTitle>
               <DialogDescription>
