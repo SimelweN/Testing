@@ -528,7 +528,27 @@ const ActivityLog = () => {
                         }`}
                       >
                         <CardContent className="p-6">
-                          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                          <div className="flex flex-col lg:flex-row lg:items-start gap-6">
+                            {/* Book Image */}
+                            <div className="flex-shrink-0">
+                              <div className="w-20 h-24 bg-gray-200 rounded-lg overflow-hidden">
+                                {commit.imageUrl ? (
+                                  <img
+                                    src={commit.imageUrl}
+                                    alt={commit.bookTitle}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.currentTarget.src = '/placeholder.svg';
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center">
+                                    <span className="text-xs text-gray-500 text-center p-1">No Image</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
                             <div className="flex-grow">
                               <div className="flex items-center gap-2 mb-3">
                                 <h3 className="font-semibold text-lg text-slate-800">
@@ -540,6 +560,11 @@ const ActivityLog = () => {
                                   </Badge>
                                 )}
                               </div>
+
+                              {commit.author && (
+                                <p className="text-sm text-gray-600 mb-3">by {commit.author}</p>
+                              )}
+
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                                 <div className="flex items-center gap-2">
                                   <User className="h-4 w-4 text-slate-600" />
@@ -550,14 +575,31 @@ const ActivityLog = () => {
                                 <div className="flex items-center gap-2">
                                   <ShoppingCart className="h-4 w-4 text-emerald-600" />
                                   <span className="text-sm text-slate-600">
-                                    Price: <span className="font-bold text-emerald-700">R{commit.price}</span>
+                                    Price: <span className="font-bold text-emerald-700">R{commit.price?.toFixed(2)}</span>
                                   </span>
                                 </div>
+                                {commit.earnings && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm text-emerald-600 font-medium">💰</span>
+                                    <span className="text-sm text-slate-600">
+                                      Your Earnings: <span className="font-bold text-emerald-700">R{commit.earnings.toFixed(2)}</span>
+                                    </span>
+                                  </div>
+                                )}
+                                {commit.platformFee && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm text-gray-500">📊</span>
+                                    <span className="text-xs text-gray-500">
+                                      Platform Fee: R{commit.platformFee.toFixed(2)}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
+
                               <div className="flex items-center gap-2 p-3 rounded-lg bg-white/60">
                                 <Clock className={`h-4 w-4 ${isUrgent ? "text-red-500" : "text-amber-500"}`} />
                                 <span className={`font-medium text-sm ${isUrgent ? "text-red-600" : "text-amber-600"}`}>
-                                  {getTimeDisplay()} remaining
+                                  {totalMinutes <= 0 ? "Expired" : `${getTimeDisplay()} remaining`}
                                 </span>
                               </div>
                             </div>
