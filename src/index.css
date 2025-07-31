@@ -129,6 +129,9 @@ body {
   display: flex !important;
   flex-direction: column !important;
   align-items: flex-end !important;
+  gap: 8px !important;
+  overflow: visible !important;
+  max-height: calc(100vh - 40px) !important;
 }
 
 /* Mobile: Top right, smaller and subtle */
