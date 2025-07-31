@@ -289,19 +289,21 @@ export class BookDeletionService {
         // Force delete: Handle active orders and commitments
         console.log('Force delete requested, cancelling active orders and commitments...');
 
-        // Cancel active orders
+        // Cancel active orders using multiple approaches
         if (constraintCheck.details.activeOrders > 0) {
+          console.log('Cancelling active orders...');
+
+          // Approach 1: Try orders with direct book_id column (if it exists)
           try {
-            // Get orders that contain this book in items
-            const { data: orders } = await supabase
+            const { data: directOrders, error: directError } = await supabase
               .from('orders')
               .select('id, status')
-              .contains('items', [{ book_id: bookId }])
+              .eq('book_id', bookId)
               .neq('status', 'cancelled')
               .neq('status', 'refunded');
 
-            if (orders) {
-              for (const order of orders) {
+            if (!directError && directOrders && directOrders.length > 0) {
+              for (const order of directOrders) {
                 await supabase
                   .from('orders')
                   .update({
@@ -311,10 +313,40 @@ export class BookDeletionService {
                   })
                   .eq('id', order.id);
               }
-              console.log(`Cancelled ${orders.length} active orders`);
+              console.log(`Cancelled ${directOrders.length} orders with direct book_id`);
             }
           } catch (error) {
-            console.warn('Error cancelling orders during force delete:', error);
+            console.log('No direct book_id column, trying items JSON approach...');
+          }
+
+          // Approach 2: Try orders with book_id in items JSON
+          try {
+            const { data: itemOrders } = await supabase
+              .from('orders')
+              .select('id, status, items')
+              .neq('status', 'cancelled')
+              .neq('status', 'refunded');
+
+            if (itemOrders) {
+              const relevantOrders = itemOrders.filter(order => {
+                if (!order.items || !Array.isArray(order.items)) return false;
+                return order.items.some((item: any) => item.book_id === bookId);
+              });
+
+              for (const order of relevantOrders) {
+                await supabase
+                  .from('orders')
+                  .update({
+                    status: 'cancelled',
+                    cancelled_at: new Date().toISOString(),
+                    cancellation_reason: `Book deleted by admin - Book ID: ${bookId}`,
+                  })
+                  .eq('id', order.id);
+              }
+              console.log(`Cancelled ${relevantOrders.length} orders with book_id in items`);
+            }
+          } catch (error) {
+            console.warn('Error cancelling orders via items JSON:', error);
           }
         }
 
