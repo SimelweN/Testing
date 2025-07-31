@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { NotificationDebugger } from "@/components/NotificationDebugger";
 import { supabase } from "@/integrations/supabase/client";
 import EmailTemplateDashboard from "@/components/admin/EmailTemplateDashboard";
 import { EmailDiagnosticPanel } from "@/components/EmailDiagnosticPanel";
@@ -378,7 +379,7 @@ const Developer = () => {
 
       if (error) {
         console.error(`❌ ${functionName} error object:`, error);
-        console.error(`❌ ${functionName} error keys:`, Object.keys(error));
+        console.error(`��� ${functionName} error keys:`, Object.keys(error));
         console.error(`❌ ${functionName} error.context:`, error.context);
         console.error(`❌ ${functionName} data object:`, data);
 
