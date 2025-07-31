@@ -20,12 +20,34 @@ const AuthCallback = () => {
   // BUT NOT for password reset flows - they need to reach the reset form
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      // Check if this is a password reset flow by looking at URL parameters
-      const type = searchParams.get("type") || new URLSearchParams(window.location.hash.substring(1)).get("type");
+      // Enhanced parameter extraction for already authenticated users
+      const getParam = (name: string) => {
+        let value = searchParams.get(name);
+        if (value) return value;
+        value = new URLSearchParams(window.location.hash.substring(1)).get(name);
+        if (value) return value;
+        const fullUrl = window.location.href;
+        const decodedUrl = decodeURIComponent(fullUrl);
+        const regex = new RegExp(`[?&#]${name}=([^&#]*)`);
+        const match = decodedUrl.match(regex);
+        return match ? match[1] : null;
+      };
+
+      const type = getParam("type");
+      const token_hash = getParam("token_hash");
+      const access_token = getParam("access_token");
 
       if (type === "recovery") {
         console.log("🔐 Authenticated user in recovery flow - redirecting directly to reset password");
         navigate("/reset-password", { replace: true });
+        return;
+      }
+
+      // If user is authenticated but came via confirmation link, show success message
+      if (type === "signup" || token_hash || access_token) {
+        console.log("✅ User already authenticated via confirmation link");
+        toast.success("Email already verified! You are logged in.");
+        navigate("/", { replace: true });
         return;
       }
 
@@ -257,7 +279,7 @@ const AuthCallback = () => {
         }
 
         // If we get here, no valid auth parameters were found
-        console.warn("⚠�� No valid auth parameters found");
+        console.warn("⚠️ No valid auth parameters found");
         console.log("Available parameters:", {
           searchParams: Object.fromEntries(searchParams.entries()),
           hashParams: window.location.hash ? Object.fromEntries(new URLSearchParams(window.location.hash.substring(1)).entries()) : {}
