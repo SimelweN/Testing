@@ -268,6 +268,31 @@ body {
   animation: toast-slide-in 0.25s ease-out !important;
 }
 
+/* Fix for blank toast issue - ensure all content is visible */
+[data-sonner-toaster] [data-sonner-toast] * {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Ensure toast content doesn't get hidden */
+[data-sonner-toaster] [data-sonner-toast] [data-title],
+[data-sonner-toaster] [data-sonner-toast] [data-description] {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  color: inherit !important;
+}
+
+/* Fix for mobile touch interaction */
+@media (max-width: 768px) {
+  [data-sonner-toaster] [data-sonner-toast]:hover,
+  [data-sonner-toaster] [data-sonner-toast]:active,
+  [data-sonner-toaster] [data-sonner-toast]:focus {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+}
+
 @keyframes toast-slide-in {
   from {
     transform: translateX(100%);
