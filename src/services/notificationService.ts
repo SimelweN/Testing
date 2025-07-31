@@ -116,7 +116,14 @@ export class NotificationService {
         });
 
       if (error) {
-        console.error('Failed to create notification:', error);
+        console.error('Failed to create notification:', {
+          message: error.message || 'Unknown error',
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          data: data,
+          timestamp: new Date().toISOString()
+        });
         return false;
       }
 
