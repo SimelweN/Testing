@@ -314,7 +314,49 @@ export class EnhancedPurchaseEmailService {
       });
       console.log("📧 Urgent manual processing notification queued");
     } catch (error) {
-      console.error("�� Failed to queue urgent processing notification:", error);
+      console.error("❌ Failed to queue urgent processing notification:", error);
+    }
+  }
+
+  /**
+   * Create in-app notification for seller about new order
+   */
+  private static async createSellerNotification(purchaseData: PurchaseEmailData): Promise<void> {
+    // Get seller user ID from the email
+    const { data: seller } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', purchaseData.sellerEmail)
+      .single();
+
+    if (seller) {
+      await NotificationService.createOrderConfirmation(
+        seller.id,
+        purchaseData.orderId,
+        purchaseData.bookTitle,
+        true // isForSeller = true
+      );
+    }
+  }
+
+  /**
+   * Create in-app notification for buyer about order confirmation
+   */
+  private static async createBuyerNotification(purchaseData: PurchaseEmailData): Promise<void> {
+    // Get buyer user ID from the email
+    const { data: buyer } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', purchaseData.buyerEmail)
+      .single();
+
+    if (buyer) {
+      await NotificationService.createOrderConfirmation(
+        buyer.id,
+        purchaseData.orderId,
+        purchaseData.bookTitle,
+        false // isForSeller = false
+      );
     }
   }
 }
