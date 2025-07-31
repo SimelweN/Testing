@@ -310,16 +310,16 @@ export const getCommitPendingBooks = async (): Promise<any[]> => {
 };
 
 /**
- * Declines a book sale within the 48-hour window
- * Updates the book status back to available and triggers refund process
+ * Declines an order within the 48-hour window
+ * Updates the order status and triggers refund process
  */
-export const declineBookSale = async (bookId: string): Promise<void> => {
+export const declineBookSale = async (orderIdOrBookId: string): Promise<void> => {
   try {
-    console.log("[CommitService] Starting decline process for book:", bookId);
+    console.log("[CommitService] Starting decline process for order/book:", orderIdOrBookId);
 
     // Validate input
-    if (!bookId || typeof bookId !== "string") {
-      throw new Error("Invalid book ID provided");
+    if (!orderIdOrBookId || typeof orderIdOrBookId !== "string") {
+      throw new Error("Invalid order/book ID provided");
     }
 
     // Get current user
@@ -329,44 +329,72 @@ export const declineBookSale = async (bookId: string): Promise<void> => {
     } = await supabase.auth.getUser();
     if (userError || !user) {
       if (userError) {
-        logCommitError("Authentication error", userError);
+        console.error("[CommitService] Authentication error:", {
+          message: userError.message || 'Unknown auth error',
+          code: userError.code,
+          details: userError.details
+        });
       } else {
         console.log("[CommitService] No authenticated user found");
       }
       throw new Error("User not authenticated");
     }
 
-    // First, check if the book exists and is in the correct state
-    const { data: book, error: bookError } = await supabase
-      .from("books")
+    // Try to find the order first (since we're now passing order IDs)
+    let order = null;
+    let book = null;
+
+    // First, try to get the order
+    const { data: orderData, error: orderError } = await supabase
+      .from("orders")
       .select("*")
-      .eq("id", bookId)
+      .eq("id", orderIdOrBookId)
       .eq("seller_id", user.id)
+      .eq("status", "pending_commit")
       .single();
 
-    if (bookError) {
-      logCommitError("Error fetching book", bookError, {
-        bookId,
-        userId: user.id,
-      });
-      throw new Error(
-        `Failed to fetch book details: ${bookError.message || "Database error"}`,
-      );
+    if (!orderError && orderData) {
+      order = orderData;
+      console.log("[CommitService] Found order:", order.id);
+
+      // Get book info from items
+      const items = Array.isArray(order.items) ? order.items : [];
+      const firstItem = items[0] || {};
+
+      if (firstItem.book_id) {
+        // Try to get book details
+        const { data: bookData } = await supabase
+          .from("books")
+          .select("id, title, author, price")
+          .eq("id", firstItem.book_id)
+          .single();
+        book = bookData;
+      }
+    } else {
+      // Fallback: try as book ID
+      const { data: bookData, error: bookError } = await supabase
+        .from("books")
+        .select("*")
+        .eq("id", orderIdOrBookId)
+        .eq("seller_id", user.id)
+        .single();
+
+      if (!bookError && bookData) {
+        book = bookData;
+        console.log("[CommitService] Found book:", book.title);
+      } else {
+        console.error("[CommitService] Could not find order or book:", {
+          orderError: orderError?.message,
+          bookError: bookError?.message,
+          id: orderIdOrBookId,
+          userId: user.id
+        });
+        throw new Error("Order or book not found, or you don't have permission to decline this sale");
+      }
     }
 
-    if (!book) {
-      console.warn(
-        "[CommitService] Book not found - ID:",
-        bookId,
-        "User:",
-        user.id,
-      );
-      throw new Error(
-        "Book not found or you don't have permission to decline this sale",
-      );
-    }
-
-    console.log("[CommitService] Processing decline for book:", book.title);
+    const targetName = order ? `order ${order.id}` : `book ${book?.title || orderIdOrBookId}`;
+    console.log("[CommitService] Processing decline for", targetName);
 
     // Update book to mark as available again
     const { error: updateError } = await supabase
