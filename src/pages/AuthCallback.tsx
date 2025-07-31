@@ -48,10 +48,32 @@ const AuthCallback = () => {
         console.log("📍 Search params:", window.location.search);
         console.log("📍 Hash:", window.location.hash);
 
-        // Get tokens from URL parameters (both search params and hash)
-        const access_token = searchParams.get("access_token") || new URLSearchParams(window.location.hash.substring(1)).get("access_token");
-        const refresh_token = searchParams.get("refresh_token") || new URLSearchParams(window.location.hash.substring(1)).get("refresh_token");
-        const type = searchParams.get("type") || new URLSearchParams(window.location.hash.substring(1)).get("type");
+        // Enhanced URL parameter extraction - handle multiple formats
+        const getParam = (name: string) => {
+          // Check search params first
+          let value = searchParams.get(name);
+          if (value) return value;
+
+          // Check hash params
+          value = new URLSearchParams(window.location.hash.substring(1)).get(name);
+          if (value) return value;
+
+          // Check for URL-encoded parameters (some email clients encode URLs)
+          const fullUrl = window.location.href;
+          const encodedParam = encodeURIComponent(name + '=');
+          const decodedUrl = decodeURIComponent(fullUrl);
+
+          // Try to extract from decoded URL
+          const regex = new RegExp(`[?&#]${name}=([^&#]*)`);
+          const match = decodedUrl.match(regex);
+          if (match) return match[1];
+
+          return null;
+        };
+
+        const access_token = getParam("access_token");
+        const refresh_token = getParam("refresh_token");
+        const type = getParam("type");
 
         // Debug password reset flow specifically
         if (type === "recovery") {
@@ -151,7 +173,7 @@ const AuthCallback = () => {
           const { data, error: otpError } = await supabase.auth.verifyOtp(verificationData);
 
           if (otpError) {
-            console.error("❌ OTP verification error:", otpError);
+            console.error("�� OTP verification error:", otpError);
             setStatus("error");
 
             // Handle specific OTP errors
