@@ -95,10 +95,31 @@ const NotificationsNew = () => {
         n.title?.toLowerCase().includes("shipping"),
     );
 
+    const adminNotifications = dbNotifications.filter(
+      (n) =>
+        n.type === "admin_action" ||
+        n.type === "admin" ||
+        n.title?.toLowerCase().includes("removed") ||
+        n.title?.toLowerCase().includes("deleted") ||
+        n.title?.toLowerCase().includes("listing") ||
+        n.message?.toLowerCase().includes("admin") ||
+        n.message?.toLowerCase().includes("violation"),
+    );
+
+    const generalNotifications = dbNotifications.filter(
+      (n) =>
+        !commitNotifications.includes(n) &&
+        !purchaseNotifications.includes(n) &&
+        !deliveryNotifications.includes(n) &&
+        !adminNotifications.includes(n)
+    );
+
     return {
       commits: commitNotifications,
       purchases: purchaseNotifications,
       deliveries: deliveryNotifications,
+      admin: adminNotifications,
+      general: generalNotifications,
     };
   };
 
