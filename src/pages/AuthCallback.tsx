@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 import { useAuth } from "@/contexts/AuthContext";
+import ConfirmationLinkDiagnostic from "@/components/ConfirmationLinkDiagnostic";
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
@@ -324,6 +325,16 @@ const AuthCallback = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Enhanced Diagnostic Tool */}
+                <details className="mb-6">
+                  <summary className="cursor-pointer text-sm text-blue-600 hover:text-blue-800 mb-2">
+                    🔧 Show Advanced Diagnostics
+                  </summary>
+                  <div className="border border-gray-200 rounded-lg p-2">
+                    <ConfirmationLinkDiagnostic />
+                  </div>
+                </details>
 
                 <div className="space-y-3">
                   <Button
