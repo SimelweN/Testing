@@ -212,7 +212,7 @@ const OrderCommitButtonFallback: React.FC<OrderCommitButtonFallbackProps> = ({
               <AlertCircle className="w-5 h-5 text-amber-500" />
               Confirm Sale Commitment
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3">
+            <div className="text-sm text-muted-foreground space-y-3">
               <p>
                 You are about to commit to selling{" "}
                 <strong>"{bookTitle}"</strong> to {buyerName}.
@@ -263,7 +263,7 @@ const OrderCommitButtonFallback: React.FC<OrderCommitButtonFallbackProps> = ({
                   may result in penalties.
                 </p>
               </div>
-            </AlertDialogDescription>
+            </div>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
