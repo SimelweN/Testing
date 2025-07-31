@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 import {
   Package,
@@ -30,6 +31,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
   
 
     useEffect(() => {
@@ -37,6 +39,15 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
       fetchOrders();
     }
   }, [user]);
+
+  // Update current time every minute for countdown timers
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(timer);
+  }, []);
 
     const fetchOrders = async () => {
     if (!user) {
@@ -171,15 +182,43 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
               </p>
               {order.status === 'pending_commit' && (
                 <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
-                    Pending Commit
-                  </Badge>
-                  <div className="group relative">
-                    <Info className="h-4 w-4 text-gray-400 cursor-help" />
-                    <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-                      Waiting for seller to confirm within 48 hours
-                    </div>
-                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
+                            Pending Commit
+                          </Badge>
+                          <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Waiting for seller to confirm within 48 hours</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  {(() => {
+                    const orderTime = new Date(order.created_at);
+                    const expiryTime = new Date(orderTime.getTime() + 48 * 60 * 60 * 1000);
+                    const timeRemaining = Math.max(0, Math.floor((expiryTime.getTime() - currentTime.getTime()) / (1000 * 60 * 60)));
+                    const isUrgent = timeRemaining < 12;
+
+                    if (timeRemaining > 0) {
+                      return (
+                        <Badge variant="outline" className={`${isUrgent ? 'text-red-600 border-red-300 bg-red-50 animate-pulse' : 'text-blue-600 border-blue-300 bg-blue-50'}`}>
+                          <Clock className="h-3 w-3 mr-1" />
+                          {timeRemaining}h remaining
+                        </Badge>
+                      );
+                    } else {
+                      return (
+                        <Badge variant="outline" className="text-red-600 border-red-300 bg-red-50">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          Expired
+                        </Badge>
+                      );
+                    }
+                  })()}
                 </div>
               )}
             </div>
