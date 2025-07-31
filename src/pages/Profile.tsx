@@ -134,10 +134,6 @@ const Profile = () => {
         const errorMessage = error instanceof Error ? error.message : String(error);
         toast.error(`Failed to delete book: ${errorMessage}`);
       }
-      console.error("Error deleting book:", error);
-      const errorMsg =
-        error instanceof Error ? error.message : "Failed to delete book";
-      toast.error(errorMsg);
     } finally {
       setDeletingBooks((prev) => {
         const newSet = new Set(prev);
