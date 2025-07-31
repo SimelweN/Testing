@@ -28,6 +28,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/hooks/useNotifications";
 import { getActiveBroadcasts } from "@/services/broadcastService";
 import { toast } from "sonner";
+import { NotificationService } from "@/services/notificationService";
 
 interface NotificationCategory {
   id: string;
@@ -410,6 +411,32 @@ const NotificationsNew = () => {
             <Badge variant="outline" className="self-start sm:self-auto">
               Loading...
             </Badge>
+          )}
+          {process.env.NODE_ENV === 'development' && user && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                if (user) {
+                  try {
+                    await NotificationService.createNotification({
+                      userId: user.id,
+                      type: 'test',
+                      title: 'Test Notification',
+                      message: `Test notification created at ${new Date().toLocaleTimeString()}`,
+                    });
+                    toast.success('Test notification created!');
+                    refreshNotifications();
+                  } catch (error) {
+                    console.error('Failed to create test notification:', error);
+                    toast.error('Failed to create test notification');
+                  }
+                }
+              }}
+              className="self-start sm:self-auto"
+            >
+              Test Notification
+            </Button>
           )}
 
         </div>
