@@ -206,11 +206,11 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
                     const minutes = totalMinutes % 60;
                     const isUrgent = hours < 12;
 
-                    // Format time remaining display
+                    // Format time remaining display - always show minutes
                     const getTimeDisplay = () => {
                       if (totalMinutes <= 0) return "Expired";
                       if (hours > 0) {
-                        return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+                        return `${hours}h ${minutes}m`;
                       }
                       return `${minutes}m`;
                     };
