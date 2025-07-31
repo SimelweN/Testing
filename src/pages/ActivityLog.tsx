@@ -620,7 +620,8 @@ const ActivityLog = () => {
                                 onClick={async (e) => {
                                   e.preventDefault();
                                   try {
-                                    await declineBook(commit.bookId);
+                                    // Use order ID for declining, not book ID
+                                    await declineBook(commit.id);
                                   } catch (error) {
                                     console.error("Decline error:", error);
                                   }
