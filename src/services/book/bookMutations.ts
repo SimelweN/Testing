@@ -280,6 +280,40 @@ export const deleteBook = async (bookId: string): Promise<void> => {
     console.log("User authorized to delete book. Proceeding with deletion...");
 
     // Delete related records first to maintain referential integrity
+
+    // First, check if there are any orders for this book
+    const { data: relatedOrders, error: ordersCheckError } = await supabase
+      .from("orders")
+      .select("id, status")
+      .eq("book_id", bookId);
+
+    if (ordersCheckError) {
+      console.warn("Error checking related orders:", ordersCheckError);
+    }
+
+    // If there are active orders, prevent deletion
+    const activeOrders = relatedOrders?.filter(order =>
+      !["cancelled", "refunded", "declined"].includes(order.status)
+    );
+
+    if (activeOrders && activeOrders.length > 0) {
+      throw new Error(
+        `Cannot delete book: There are ${activeOrders.length} active order(s) for this book. ` +
+        "Please wait for orders to complete or be cancelled before deleting."
+      );
+    }
+
+    // Delete any completed/cancelled orders related to this book
+    const { error: ordersDeleteError } = await supabase
+      .from("orders")
+      .delete()
+      .eq("book_id", bookId);
+
+    if (ordersDeleteError) {
+      console.warn("Error deleting related orders:", ordersDeleteError);
+      // Continue with deletion even if orders cleanup fails for completed orders
+    }
+
     // Delete any reports related to this book
     const { error: reportsDeleteError } = await supabase
       .from("reports")
