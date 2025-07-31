@@ -268,7 +268,7 @@ export const getCommitPendingBooks = async (): Promise<any[]> => {
         status: "pending",
         author: firstItem.author || "Unknown Author",
         buyerEmail: order.buyer_email,
-        sellerName: order.seller?.name,
+        sellerName: "Current User",
       };
     });
 
