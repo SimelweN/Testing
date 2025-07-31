@@ -200,14 +200,26 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
                   {(() => {
                     const orderTime = new Date(order.created_at);
                     const expiryTime = new Date(orderTime.getTime() + 48 * 60 * 60 * 1000);
-                    const timeRemaining = Math.max(0, Math.floor((expiryTime.getTime() - currentTime.getTime()) / (1000 * 60 * 60)));
-                    const isUrgent = timeRemaining < 12;
+                    const totalMs = Math.max(0, expiryTime.getTime() - currentTime.getTime());
+                    const totalMinutes = Math.floor(totalMs / (1000 * 60));
+                    const hours = Math.floor(totalMinutes / 60);
+                    const minutes = totalMinutes % 60;
+                    const isUrgent = hours < 12;
 
-                    if (timeRemaining > 0) {
+                    // Format time remaining display
+                    const getTimeDisplay = () => {
+                      if (totalMinutes <= 0) return "Expired";
+                      if (hours > 0) {
+                        return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+                      }
+                      return `${minutes}m`;
+                    };
+
+                    if (totalMinutes > 0) {
                       return (
                         <Badge variant="outline" className={`${isUrgent ? 'text-red-600 border-red-300 bg-red-50 animate-pulse' : 'text-blue-600 border-blue-300 bg-blue-50'}`}>
                           <Clock className="h-3 w-3 mr-1" />
-                          {timeRemaining}h remaining
+                          {getTimeDisplay()} remaining
                         </Badge>
                       );
                     } else {
