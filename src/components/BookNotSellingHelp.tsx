@@ -81,7 +81,7 @@ Visit ReBooked Solutions for great deals on textbooks! 📚`;
       </Card>
 
       <Dialog open={isHelpOpen} onOpenChange={setIsHelpOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-2xl max-h-[85vh] mx-auto my-auto overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <HelpCircle className="h-5 w-5 text-book-600" />

@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { 
   Dialog, 
@@ -24,7 +23,7 @@ const FirstUploadSuccessDialog = ({ isOpen, onClose, onShareProfile }: FirstUplo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-md mx-auto my-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center text-green-600">
             <Sparkles className="h-6 w-6 mr-2" />

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 import { useAuth } from "@/contexts/AuthContext";
+import { attemptManualVerification, getConfirmationLinkErrorMessage } from "@/utils/confirmationLinkFixer";
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
@@ -19,12 +20,34 @@ const AuthCallback = () => {
   // BUT NOT for password reset flows - they need to reach the reset form
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      // Check if this is a password reset flow by looking at URL parameters
-      const type = searchParams.get("type") || new URLSearchParams(window.location.hash.substring(1)).get("type");
+      // Enhanced parameter extraction for already authenticated users
+      const getParam = (name: string) => {
+        let value = searchParams.get(name);
+        if (value) return value;
+        value = new URLSearchParams(window.location.hash.substring(1)).get(name);
+        if (value) return value;
+        const fullUrl = window.location.href;
+        const decodedUrl = decodeURIComponent(fullUrl);
+        const regex = new RegExp(`[?&#]${name}=([^&#]*)`);
+        const match = decodedUrl.match(regex);
+        return match ? match[1] : null;
+      };
+
+      const type = getParam("type");
+      const token_hash = getParam("token_hash");
+      const access_token = getParam("access_token");
 
       if (type === "recovery") {
         console.log("🔐 Authenticated user in recovery flow - redirecting directly to reset password");
         navigate("/reset-password", { replace: true });
+        return;
+      }
+
+      // If user is authenticated but came via confirmation link, show success message
+      if (type === "signup" || token_hash || access_token) {
+        console.log("✅ User already authenticated via confirmation link");
+        toast.success("Email already verified! You are logged in.");
+        navigate("/", { replace: true });
         return;
       }
 
@@ -47,22 +70,44 @@ const AuthCallback = () => {
         console.log("📍 Search params:", window.location.search);
         console.log("📍 Hash:", window.location.hash);
 
-        // Get tokens from URL parameters (both search params and hash)
-        const access_token = searchParams.get("access_token") || new URLSearchParams(window.location.hash.substring(1)).get("access_token");
-        const refresh_token = searchParams.get("refresh_token") || new URLSearchParams(window.location.hash.substring(1)).get("refresh_token");
-        const type = searchParams.get("type") || new URLSearchParams(window.location.hash.substring(1)).get("type");
+        // Enhanced URL parameter extraction - handle multiple formats
+        const getParam = (name: string) => {
+          // Check search params first
+          let value = searchParams.get(name);
+          if (value) return value;
+
+          // Check hash params
+          value = new URLSearchParams(window.location.hash.substring(1)).get(name);
+          if (value) return value;
+
+          // Check for URL-encoded parameters (some email clients encode URLs)
+          const fullUrl = window.location.href;
+          const encodedParam = encodeURIComponent(name + '=');
+          const decodedUrl = decodeURIComponent(fullUrl);
+
+          // Try to extract from decoded URL
+          const regex = new RegExp(`[?&#]${name}=([^&#]*)`);
+          const match = decodedUrl.match(regex);
+          if (match) return match[1];
+
+          return null;
+        };
+
+        const access_token = getParam("access_token");
+        const refresh_token = getParam("refresh_token");
+        const type = getParam("type");
 
         // Debug password reset flow specifically
         if (type === "recovery") {
           console.log("🔐 PASSWORD RESET FLOW DETECTED");
           console.log("🔐 This should redirect to /reset-password after authentication");
         }
-        const error = searchParams.get("error") || new URLSearchParams(window.location.hash.substring(1)).get("error");
-        const error_description = searchParams.get("error_description") || new URLSearchParams(window.location.hash.substring(1)).get("error_description");
+        const error = getParam("error");
+        const error_description = getParam("error_description");
 
         // Also check for token_hash and token (for OTP verification)
-        const token_hash = searchParams.get("token_hash") || new URLSearchParams(window.location.hash.substring(1)).get("token_hash");
-        const token = searchParams.get("token") || new URLSearchParams(window.location.hash.substring(1)).get("token");
+        const token_hash = getParam("token_hash");
+        const token = getParam("token");
 
         console.log("🔑 Auth callback parameters:", {
           hasAccessToken: !!access_token,
@@ -153,23 +198,17 @@ const AuthCallback = () => {
             console.error("❌ OTP verification error:", otpError);
             setStatus("error");
 
-            // Handle specific OTP errors
-            if (otpError.message?.includes("expired") || otpError.message?.includes("OTP expired")) {
-              setMessage("The verification link has expired. Please request a new verification email.");
-              toast.error("Verification link expired. Please request a new one.");
-            } else if (otpError.message?.includes("invalid")) {
-              setMessage("Invalid verification link. Please check the link or request a new one.");
-              toast.error("Invalid verification link.");
-            } else if (otpError.message?.includes("already confirmed")) {
-              setMessage("Email already verified! You can now log in.");
+            // Use helper function for better error messages
+            const friendlyErrorMsg = getConfirmationLinkErrorMessage(otpError);
+            setMessage(friendlyErrorMsg);
+
+            if (otpError.message?.includes("already confirmed")) {
               toast.success("Email already verified!");
               setTimeout(() => {
                 navigate("/login", { replace: true });
               }, 2000);
             } else {
-              const safeErrorMsg = getSafeErrorMessage(otpError.message || otpError, 'OTP verification failed');
-              setMessage(safeErrorMsg);
-              toast.error(safeErrorMsg);
+              toast.error(friendlyErrorMsg);
             }
             return;
           }
@@ -233,12 +272,44 @@ const AuthCallback = () => {
           }
         }
 
-        // If we get here, no valid auth parameters were found
-        console.warn("⚠️ No valid auth parameters found");
+        // If we get here, try manual verification as a last resort
+        console.warn("⚠️ No valid auth parameters found, attempting manual verification");
         console.log("Available parameters:", {
           searchParams: Object.fromEntries(searchParams.entries()),
           hashParams: window.location.hash ? Object.fromEntries(new URLSearchParams(window.location.hash.substring(1)).entries()) : {}
         });
+
+        try {
+          const manualResult = await attemptManualVerification({
+            token_hash,
+            access_token,
+            refresh_token,
+            type
+          });
+
+          if (manualResult.success) {
+            console.log(`✅ Manual verification succeeded via ${manualResult.method}`);
+            setStatus("success");
+
+            if (type === "signup") {
+              setMessage("Email verified successfully! Welcome to ReBooked Solutions.");
+              toast.success("Email verified! Welcome!");
+              setTimeout(() => navigate("/", { replace: true }), 2000);
+            } else if (type === "recovery") {
+              setMessage("Password reset link verified! Redirecting to reset your password.");
+              toast.success("Reset link verified! Set your new password.");
+              navigate("/reset-password", { replace: true });
+            } else {
+              setMessage("Authentication successful! You are now logged in.");
+              toast.success("Successfully authenticated!");
+              setTimeout(() => navigate("/", { replace: true }), 2000);
+            }
+            return;
+          }
+        } catch (manualError) {
+          console.warn("Manual verification also failed:", manualError);
+        }
+
         setStatus("error");
         setMessage("Invalid authentication link. No valid tokens or verification parameters found. Please try logging in directly or request a new verification email.");
         
@@ -324,6 +395,30 @@ const AuthCallback = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Simple diagnostic help */}
+                <details className="mb-6">
+                  <summary className="cursor-pointer text-sm text-blue-600 hover:text-blue-800 mb-2">
+                    🔧 Need Help? Common Solutions
+                  </summary>
+                  <div className="border border-gray-200 rounded-lg p-4 text-sm space-y-2">
+                    <p><strong>Common issues with confirmation links:</strong></p>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      <li>Link may have expired (confirmation links expire after 24 hours)</li>
+                      <li>Email client may have modified the link</li>
+                      <li>Link may have already been used</li>
+                      <li>Try copying the entire link and pasting it into a new browser tab</li>
+                    </ul>
+                    <div className="mt-3 p-2 bg-blue-50 rounded">
+                      <p><strong>Quick fixes:</strong></p>
+                      <ul className="list-disc list-inside text-xs text-blue-800">
+                        <li>Request a new verification email</li>
+                        <li>Try opening the link in an incognito/private browsing window</li>
+                        <li>Clear your browser cache and cookies</li>
+                      </ul>
+                    </div>
+                  </div>
+                </details>
 
                 <div className="space-y-3">
                   <Button

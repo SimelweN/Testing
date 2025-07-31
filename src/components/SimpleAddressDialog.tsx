@@ -111,7 +111,7 @@ const SimpleAddressDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] sm:max-w-2xl lg:max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-2xl lg:max-w-4xl max-h-[85vh] mx-auto my-auto overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Your Addresses</DialogTitle>
           <DialogDescription>

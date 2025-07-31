@@ -46,6 +46,7 @@ export const BookTypeSection = ({
     "Law",
     "Arts",
     "Languages",
+    "Reader",
     "Other",
   ];
 

@@ -5,8 +5,8 @@ export interface CreateNotificationData {
   type: string;
   title: string;
   message: string;
-  metadata?: Record<string, any>;
-  priority?: 'high' | 'medium' | 'low';
+  metadata?: Record<string, any>; // Will be ignored for now
+  priority?: 'high' | 'medium' | 'low'; // Will be ignored for now
 }
 
 type Notification = {
@@ -15,8 +15,6 @@ type Notification = {
   type: string;
   title: string;
   message: string;
-  metadata?: Record<string, any>;
-  priority: 'high' | 'medium' | 'low';
   read: boolean;
   created_at: string;
 };
@@ -114,10 +112,7 @@ export class NotificationService {
           type: data.type,
           title: data.title,
           message: data.message,
-          metadata: data.metadata || {},
-          priority: data.priority || 'medium',
           read: false,
-          created_at: new Date().toISOString(),
         });
 
       if (error) {
@@ -141,14 +136,7 @@ export class NotificationService {
       userId,
       type: 'commit',
       title: 'Commit to Sale Reminder',
-      message: `You have ${hoursRemaining} hours remaining to commit to selling "${bookTitle}". Please complete your commitment to avoid order cancellation.`,
-      metadata: {
-        order_id: orderId,
-        book_title: bookTitle,
-        hours_remaining: hoursRemaining,
-        action_required: true,
-      },
-      priority: hoursRemaining < 12 ? 'high' : 'medium',
+      message: `You have ${hoursRemaining} hours remaining to commit to selling "${bookTitle}". Please complete your commitment to avoid order cancellation. Order ID: ${orderId}`,
     });
   }
 
@@ -160,12 +148,7 @@ export class NotificationService {
       userId,
       type: 'delivery',
       title: 'Delivery Update',
-      message,
-      metadata: {
-        order_id: orderId,
-        delivery_status: status,
-      },
-      priority: 'medium',
+      message: `${message} (Order: ${orderId}, Status: ${status})`,
     });
   }
 
@@ -178,25 +161,14 @@ export class NotificationService {
         userId,
         type: 'purchase',
         title: 'New Order Received',
-        message: `Great news! You've received a new order for "${bookTitle}". Please commit to this sale within 48 hours.`,
-        metadata: {
-          order_id: orderId,
-          book_title: bookTitle,
-          action_required: true,
-        },
-        priority: 'high',
+        message: `Great news! You've received a new order for "${bookTitle}". Please commit to this sale within 48 hours. Order ID: ${orderId}`,
       });
     } else {
       return this.createNotification({
         userId,
         type: 'purchase',
         title: 'Order Confirmed',
-        message: `Your order for "${bookTitle}" has been confirmed. The seller will commit to the sale within 48 hours.`,
-        metadata: {
-          order_id: orderId,
-          book_title: bookTitle,
-        },
-        priority: 'medium',
+        message: `Your order for "${bookTitle}" has been confirmed. The seller will commit to the sale within 48 hours. Order ID: ${orderId}`,
       });
     }
   }
@@ -209,13 +181,7 @@ export class NotificationService {
       userId,
       type: 'purchase',
       title: 'Payment Successful',
-      message: `Payment of R${amount.toFixed(2)} for "${bookTitle}" has been processed successfully. Your order is now confirmed.`,
-      metadata: {
-        order_id: orderId,
-        book_title: bookTitle,
-        amount,
-      },
-      priority: 'medium',
+      message: `Payment of R${amount.toFixed(2)} for "${bookTitle}" has been processed successfully. Your order is now confirmed. Order ID: ${orderId}`,
     });
   }
 }

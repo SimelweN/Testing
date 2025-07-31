@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { emailService } from "@/services/emailService";
+import { NotificationService } from "@/services/notificationService";
 import { toast } from "sonner";
 
 interface CommitEmailData {
@@ -60,20 +61,37 @@ export class EnhancedCommitService {
         }
         
         emailsSent = true;
-        
+
+        // Create in-app notifications when edge function succeeds
+        try {
+          const orderData = await this.getOrderDataForCommit(orderId, sellerId);
+          if (orderData) {
+            await this.createCommitNotifications(orderData);
+          }
+        } catch (notifError) {
+          console.warn("⚠️ Failed to create notifications:", notifError);
+        }
+
       } catch (edgeError) {
         console.log("🔄 Edge function failed, using fallback services");
-        
+
         // Step 2: If edge function fails, get order data and handle manually
         const orderData = await this.getOrderDataForCommit(orderId, sellerId);
-        
+
         if (!orderData) {
           throw new Error("Could not retrieve order data for fallback");
         }
-        
+
         // Step 3: Manual commit and email sending
         await this.manualCommitWithEmails(orderData);
         emailsSent = true;
+
+        // Create in-app notifications for fallback path
+        try {
+          await this.createCommitNotifications(orderData);
+        } catch (notifError) {
+          console.warn("⚠️ Failed to create notifications:", notifError);
+        }
       }
       
       // Step 4: Always trigger additional email fallback verification
@@ -357,6 +375,33 @@ export class EnhancedCommitService {
       console.log(`📧 Queued ${emailData.type} email for manual processing`);
     } catch (error) {
       console.error("❌ Failed to queue email for manual processing:", error);
+    }
+  }
+
+  /**
+   * Create in-app notifications for commit confirmation
+   */
+  private static async createCommitNotifications(orderData: CommitEmailData): Promise<void> {
+    try {
+      // Notify seller that their sale is committed
+      await NotificationService.createNotification({
+        userId: orderData.sellerId,
+        type: 'commit',
+        title: 'Sale Committed Successfully!',
+        message: `You have successfully committed to selling "${orderData.bookTitle}" to ${orderData.buyerName}. Pickup will be arranged soon.`,
+      });
+
+      // Notify buyer that seller has committed
+      await NotificationService.createNotification({
+        userId: orderData.buyerId,
+        type: 'purchase',
+        title: 'Seller Committed to Your Order!',
+        message: `Great news! The seller has committed to your order for "${orderData.bookTitle}". Your book will be shipped soon.`,
+      });
+
+      console.log("✅ Commit notifications created for both seller and buyer");
+    } catch (error) {
+      console.error("❌ Failed to create commit notifications:", error);
     }
   }
 }
