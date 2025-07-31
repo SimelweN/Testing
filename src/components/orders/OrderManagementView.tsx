@@ -40,11 +40,11 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
     }
   }, [user]);
 
-  // Update current time every minute for countdown timers
+  // Update current time every 30 seconds for visible countdown
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 60000); // Update every minute
+    }, 30000); // Update every 30 seconds
 
     return () => clearInterval(timer);
   }, []);
