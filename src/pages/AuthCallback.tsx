@@ -198,23 +198,17 @@ const AuthCallback = () => {
             console.error("❌ OTP verification error:", otpError);
             setStatus("error");
 
-            // Handle specific OTP errors
-            if (otpError.message?.includes("expired") || otpError.message?.includes("OTP expired")) {
-              setMessage("The verification link has expired. Please request a new verification email.");
-              toast.error("Verification link expired. Please request a new one.");
-            } else if (otpError.message?.includes("invalid")) {
-              setMessage("Invalid verification link. Please check the link or request a new one.");
-              toast.error("Invalid verification link.");
-            } else if (otpError.message?.includes("already confirmed")) {
-              setMessage("Email already verified! You can now log in.");
+            // Use helper function for better error messages
+            const friendlyErrorMsg = getConfirmationLinkErrorMessage(otpError);
+            setMessage(friendlyErrorMsg);
+
+            if (otpError.message?.includes("already confirmed")) {
               toast.success("Email already verified!");
               setTimeout(() => {
                 navigate("/login", { replace: true });
               }, 2000);
             } else {
-              const safeErrorMsg = getSafeErrorMessage(otpError.message || otpError, 'OTP verification failed');
-              setMessage(safeErrorMsg);
-              toast.error(safeErrorMsg);
+              toast.error(friendlyErrorMsg);
             }
             return;
           }
