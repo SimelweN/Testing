@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 import { useAuth } from "@/contexts/AuthContext";
+import { attemptManualVerification, getConfirmationLinkErrorMessage } from "@/utils/confirmationLinkFixer";
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
@@ -277,12 +278,44 @@ const AuthCallback = () => {
           }
         }
 
-        // If we get here, no valid auth parameters were found
-        console.warn("⚠️ No valid auth parameters found");
+        // If we get here, try manual verification as a last resort
+        console.warn("⚠️ No valid auth parameters found, attempting manual verification");
         console.log("Available parameters:", {
           searchParams: Object.fromEntries(searchParams.entries()),
           hashParams: window.location.hash ? Object.fromEntries(new URLSearchParams(window.location.hash.substring(1)).entries()) : {}
         });
+
+        try {
+          const manualResult = await attemptManualVerification({
+            token_hash,
+            access_token,
+            refresh_token,
+            type
+          });
+
+          if (manualResult.success) {
+            console.log(`✅ Manual verification succeeded via ${manualResult.method}`);
+            setStatus("success");
+
+            if (type === "signup") {
+              setMessage("Email verified successfully! Welcome to ReBooked Solutions.");
+              toast.success("Email verified! Welcome!");
+              setTimeout(() => navigate("/", { replace: true }), 2000);
+            } else if (type === "recovery") {
+              setMessage("Password reset link verified! Redirecting to reset your password.");
+              toast.success("Reset link verified! Set your new password.");
+              navigate("/reset-password", { replace: true });
+            } else {
+              setMessage("Authentication successful! You are now logged in.");
+              toast.success("Successfully authenticated!");
+              setTimeout(() => navigate("/", { replace: true }), 2000);
+            }
+            return;
+          }
+        } catch (manualError) {
+          console.warn("Manual verification also failed:", manualError);
+        }
+
         setStatus("error");
         setMessage("Invalid authentication link. No valid tokens or verification parameters found. Please try logging in directly or request a new verification email.");
         
