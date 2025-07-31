@@ -1908,9 +1908,9 @@ const Developer = () => {
 
             <TabsContent value="communication">
               <div className="space-y-6">
-                {/* Notification Debugger */}
+                {/* Notification Debugger - Development Only */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <NotificationDebugger />
+                  {import.meta.env.DEV && <NotificationDebugger />}
                   <Card>
                     <CardHeader>
                       <CardTitle>📋 Notification Troubleshooting</CardTitle>
