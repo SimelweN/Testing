@@ -11,6 +11,15 @@ interface PendingCommit {
   bookId: string;
   title: string;
   expiresAt: string;
+  bookTitle: string;
+  buyerName: string;
+  price: number;
+  earnings?: number;
+  platformFee?: number;
+  author?: string;
+  imageUrl?: string;
+  condition?: string;
+  buyerEmail?: string;
 }
 
 interface UseCommitReturn {

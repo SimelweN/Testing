@@ -95,10 +95,31 @@ const NotificationsNew = () => {
         n.title?.toLowerCase().includes("shipping"),
     );
 
+    const adminNotifications = dbNotifications.filter(
+      (n) =>
+        n.type === "admin_action" ||
+        n.type === "admin" ||
+        n.title?.toLowerCase().includes("removed") ||
+        n.title?.toLowerCase().includes("deleted") ||
+        n.title?.toLowerCase().includes("listing") ||
+        n.message?.toLowerCase().includes("admin") ||
+        n.message?.toLowerCase().includes("violation"),
+    );
+
+    const generalNotifications = dbNotifications.filter(
+      (n) =>
+        !commitNotifications.includes(n) &&
+        !purchaseNotifications.includes(n) &&
+        !deliveryNotifications.includes(n) &&
+        !adminNotifications.includes(n)
+    );
+
     return {
       commits: commitNotifications,
       purchases: purchaseNotifications,
       deliveries: deliveryNotifications,
+      admin: adminNotifications,
+      general: generalNotifications,
     };
   };
 
@@ -138,7 +159,7 @@ const NotificationsNew = () => {
           type: "tip",
           title: "Quick Start Guide",
           message:
-            "🔹 Complete your profile setup\\n🔹 Add your addresses for delivery\\n🔹 Set up banking for selling\\n🔹 Start browsing or list your first book!",
+            "🔹 Complete your profile setup\\n��� Add your addresses for delivery\\n🔹 Set up banking for selling\\n🔹 Start browsing or list your first book!",
           timestamp: new Date().toISOString(),
           read: false,
           priority: "medium",
@@ -189,6 +210,40 @@ const NotificationsNew = () => {
       notifications: categorizedNotifications.deliveries.map((n) => ({
         id: n.id,
         type: n.type || "delivery",
+        title: n.title,
+        message: n.message,
+        timestamp: n.created_at || n.createdAt,
+        read: n.read,
+        priority: "medium" as const,
+      })),
+    },
+    {
+      id: "admin",
+      title: "Admin Actions",
+      description: "Actions taken by administrators",
+      icon: <Settings className="h-5 w-5" />,
+      color: "red",
+      enabled: true,
+      notifications: categorizedNotifications.admin.map((n) => ({
+        id: n.id,
+        type: n.type || "admin",
+        title: n.title,
+        message: n.message,
+        timestamp: n.created_at || n.createdAt,
+        read: n.read,
+        priority: "high" as const,
+      })),
+    },
+    {
+      id: "general",
+      title: "General Notifications",
+      description: "System notifications and updates",
+      icon: <Bell className="h-5 w-5" />,
+      color: "gray",
+      enabled: true,
+      notifications: categorizedNotifications.general.map((n) => ({
+        id: n.id,
+        type: n.type || "general",
         title: n.title,
         message: n.message,
         timestamp: n.created_at || n.createdAt,
@@ -285,6 +340,34 @@ const NotificationsNew = () => {
             })),
           };
         }
+        if (category.id === "admin") {
+          return {
+            ...category,
+            notifications: categorizedNotifications.admin.map((n) => ({
+              id: n.id,
+              type: n.type || "admin",
+              title: n.title,
+              message: n.message,
+              timestamp: n.created_at || n.createdAt,
+              read: n.read,
+              priority: "high" as const,
+            })),
+          };
+        }
+        if (category.id === "general") {
+          return {
+            ...category,
+            notifications: categorizedNotifications.general.map((n) => ({
+              id: n.id,
+              type: n.type || "general",
+              title: n.title,
+              message: n.message,
+              timestamp: n.created_at || n.createdAt,
+              read: n.read,
+              priority: "medium" as const,
+            })),
+          };
+        }
         return category;
       }),
     );
@@ -328,6 +411,12 @@ const NotificationsNew = () => {
         return <Star className="h-4 w-4 text-yellow-500" />;
       case "social":
         return <Users className="h-4 w-4 text-pink-500" />;
+      case "admin":
+      case "admin_action":
+        return <Settings className="h-4 w-4 text-red-500" />;
+      case "general":
+      case "test":
+        return <Bell className="h-4 w-4 text-gray-500" />;
       case "info":
         return <MessageCircle className="h-4 w-4 text-blue-500" />;
       case "tip":

@@ -1,5 +1,34 @@
 import { supabase } from "@/lib/supabase";
 
+// Utility to properly serialize errors for logging (prevents [object Object])
+const serializeError = (error: any): any => {
+  if (!error) return { message: 'Unknown error' };
+
+  if (typeof error === 'string') return { message: error };
+
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+    };
+  }
+
+  // Handle Supabase error objects
+  if (typeof error === 'object') {
+    return {
+      message: error.message || error.error_description || error.msg || 'Unknown error',
+      code: error.code || error.error || error.status,
+      details: error.details || error.error_description,
+      hint: error.hint,
+      timestamp: new Date().toISOString(),
+      originalError: error // Include full original object
+    };
+  }
+
+  return { message: String(error) };
+};
+
 export interface CreateNotificationData {
   userId: string;
   type: string;
@@ -105,6 +134,18 @@ export class NotificationService {
    */
   static async createNotification(data: CreateNotificationData) {
     try {
+      // Validate required fields
+      if (!data.userId || !data.type || !data.title || !data.message) {
+        throw new Error('Missing required notification data: userId, type, title, and message are required');
+      }
+
+      console.log('Creating notification with data:', {
+        user_id: data.userId,
+        type: data.type,
+        title: data.title,
+        message: data.message.substring(0, 100) + '...' // Log truncated message
+      });
+
       const { error } = await supabase
         .from('notifications')
         .insert({
@@ -116,14 +157,24 @@ export class NotificationService {
         });
 
       if (error) {
-        console.error('Failed to create notification:', error);
+        const serializedError = serializeError(error);
+        console.error('Failed to create notification:', {
+          ...serializedError,
+          attemptedData: data,
+          timestamp: new Date().toISOString()
+        });
         return false;
       }
 
       console.log(`📧 Notification created for user ${data.userId}:`, data.title);
       return true;
     } catch (error) {
-      console.error('Error creating notification:', error);
+      const serializedError = serializeError(error);
+      console.error('Error creating notification:', {
+        ...serializedError,
+        attemptedData: data,
+        timestamp: new Date().toISOString()
+      });
       return false;
     }
   }

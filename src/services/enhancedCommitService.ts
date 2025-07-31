@@ -69,7 +69,11 @@ export class EnhancedCommitService {
             await this.createCommitNotifications(orderData);
           }
         } catch (notifError) {
-          console.warn("⚠️ Failed to create notifications:", notifError);
+          console.warn("⚠️ Failed to create notifications:", {
+            message: notifError instanceof Error ? notifError.message : 'Unknown error',
+            error: notifError,
+            timestamp: new Date().toISOString()
+          });
         }
 
       } catch (edgeError) {
@@ -90,7 +94,11 @@ export class EnhancedCommitService {
         try {
           await this.createCommitNotifications(orderData);
         } catch (notifError) {
-          console.warn("⚠️ Failed to create notifications:", notifError);
+          console.warn("⚠️ Failed to create notifications:", {
+            message: notifError instanceof Error ? notifError.message : 'Unknown error',
+            error: notifError,
+            timestamp: new Date().toISOString()
+          });
         }
       }
       

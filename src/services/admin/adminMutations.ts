@@ -31,11 +31,12 @@ export const deleteBookListing = async (
   adminId?: string,
 ): Promise<void> => {
   try {
-    // Use the enhanced deletion service that sends notifications
+    // Use the enhanced deletion service with force delete for admin actions
     await BookDeletionService.deleteBookWithNotification(
       bookId,
       "admin_action",
       adminId,
+      true, // Force delete for admin actions
     );
   } catch (error) {
     console.error("Error in deleteBookListing:", error);

@@ -104,14 +104,36 @@ const Profile = () => {
     setDeletingBooks((prev) => new Set(prev).add(bookId));
 
     try {
-      await deleteBook(bookId);
+      await deleteBook(bookId, false); // Normal delete first
       toast.success("Book deleted successfully");
       await loadActiveListings();
     } catch (error: unknown) {
-      console.error("Error deleting book:", error);
-      const errorMsg =
-        error instanceof Error ? error.message : "Failed to delete book";
-      toast.error(errorMsg);
+      // If deletion failed due to active orders, offer force delete option for admins
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      if (errorMessage.includes("active order(s)") && profile?.is_admin) {
+        const forceConfirm = confirm(
+          `${errorMessage}\n\nAs an admin, you can force delete this book which will:\n` +
+          "• Cancel all active orders for this book\n" +
+          "• Trigger refunds for buyers\n" +
+          "• Permanently remove the book\n\n" +
+          "Do you want to force delete?"
+        );
+
+        if (forceConfirm) {
+          try {
+            await deleteBook(bookId, true); // Force delete
+            toast.success("Book force deleted successfully - orders cancelled and refunds initiated");
+            await loadActiveListings();
+          } catch (forceError: unknown) {
+            const forceErrorMessage = forceError instanceof Error ? forceError.message : String(forceError);
+            toast.error(`Force delete failed: ${forceErrorMessage}`);
+          }
+        }
+      } else {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        toast.error(`Failed to delete book: ${errorMessage}`);
+      }
     } finally {
       setDeletingBooks((prev) => {
         const newSet = new Set(prev);

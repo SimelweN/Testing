@@ -237,7 +237,7 @@ export const updateBook = async (
   }
 };
 
-export const deleteBook = async (bookId: string): Promise<void> => {
+export const deleteBook = async (bookId: string, forceDelete: boolean = false): Promise<void> => {
   try {
     const {
       data: { user },
@@ -280,6 +280,104 @@ export const deleteBook = async (bookId: string): Promise<void> => {
     console.log("User authorized to delete book. Proceeding with deletion...");
 
     // Delete related records first to maintain referential integrity
+
+    // Try to check for orders with book_id column first (if it exists)
+    let relatedOrders: any[] = [];
+
+    try {
+      const { data: directOrders, error: directOrdersError } = await supabase
+        .from("orders")
+        .select("id, status, book_id")
+        .eq("book_id", bookId);
+
+      if (!directOrdersError && directOrders) {
+        relatedOrders = directOrders;
+        console.log(`Found ${relatedOrders.length} orders with direct book_id reference`);
+      }
+    } catch (error) {
+      console.log("No direct book_id column in orders, checking items JSON...");
+    }
+
+    // If no direct book_id column, check items JSON
+    if (relatedOrders.length === 0) {
+      const { data: allOrders, error: ordersCheckError } = await supabase
+        .from("orders")
+        .select("id, status, items");
+
+      if (!ordersCheckError && allOrders) {
+        relatedOrders = allOrders.filter(order => {
+          if (!order.items || !Array.isArray(order.items)) return false;
+          return order.items.some((item: any) => item.book_id === bookId);
+        });
+        console.log(`Found ${relatedOrders.length} orders with book_id in items JSON`);
+      }
+    }
+
+    // If there are active orders, handle based on force delete flag
+    const activeOrders = relatedOrders.filter(order =>
+      !["cancelled", "refunded", "declined", "completed"].includes(order.status)
+    );
+
+    if (activeOrders.length > 0) {
+      if (!forceDelete) {
+        throw new Error(
+          `Cannot delete book: There are ${activeOrders.length} active order(s) for this book. ` +
+          "Please wait for orders to complete or be cancelled before deleting."
+        );
+      }
+
+      // Admin force delete: Cancel active orders first
+      if (isAdmin && forceDelete) {
+        console.log(`Admin force delete: Cancelling ${activeOrders.length} active orders...`);
+
+        for (const order of activeOrders) {
+          try {
+            // Cancel the order by updating its status
+            const { error: cancelError } = await supabase
+              .from("orders")
+              .update({
+                status: "cancelled",
+                cancelled_at: new Date().toISOString(),
+                cancellation_reason: `Book deleted by admin - Book ID: ${bookId}`
+              })
+              .eq("id", order.id);
+
+            if (cancelError) {
+              console.warn(`Failed to cancel order ${order.id}:`, cancelError);
+            } else {
+              console.log(`Successfully cancelled order ${order.id}`);
+            }
+          } catch (error) {
+            console.warn(`Error cancelling order ${order.id}:`, error);
+          }
+        }
+
+        console.log("All active orders cancelled. Proceeding with book deletion...");
+      } else {
+        throw new Error(
+          `Cannot force delete: Only admins can force delete books with active orders.`
+        );
+      }
+    }
+
+    // Try to delete orders that reference this book (for cleanup)
+    if (relatedOrders.length > 0) {
+      try {
+        const { error: ordersDeleteError } = await supabase
+          .from("orders")
+          .delete()
+          .eq("book_id", bookId);
+
+        if (ordersDeleteError) {
+          console.log("Could not delete orders by book_id, they might be in items JSON only");
+        } else {
+          console.log(`Deleted ${relatedOrders.length} completed orders`);
+        }
+      } catch (error) {
+        console.log("Orders cleanup failed, proceeding with book deletion");
+      }
+    }
+
     // Delete any reports related to this book
     const { error: reportsDeleteError } = await supabase
       .from("reports")

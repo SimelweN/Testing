@@ -31,10 +31,17 @@ const Layout = ({ children }: LayoutProps) => {
       <ConnectionStatus />
 
       <Toaster
-        position="top-center"
+        position="top-right"
+        expand={true}
+        visibleToasts={5}
         toastOptions={{
           className: "mobile-toast",
-          duration: 2000,
+          duration: 4000,
+          style: {
+            opacity: 1,
+            visibility: 'visible',
+            display: 'block',
+          },
         }}
       />
     </div>

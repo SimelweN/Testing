@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Book, Instagram, Facebook } from "lucide-react";
+import { Book, Instagram, Facebook, Music } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -171,6 +171,15 @@ const Footer = () => {
               aria-label="Follow us on Facebook"
             >
               <Facebook className="h-5 w-5" />
+            </a>
+            <a
+              href="https://www.tiktok.com/@rebooked.solution"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 hover:text-black transition-colors"
+              aria-label="Follow us on TikTok"
+            >
+              <Music className="h-5 w-5" />
             </a>
           </div>
         </div>
