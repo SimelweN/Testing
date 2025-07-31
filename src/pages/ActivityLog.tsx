@@ -114,11 +114,11 @@ const ActivityLog = () => {
     }
   }, [user, refreshPendingCommits]);
 
-  // Update timer every 30 seconds to show visible countdown
+  // Update timer every 5 seconds to show live countdown
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 30000); // Update every 30 seconds for visible countdown
+    }, 5000); // Update every 5 seconds for live countdown
 
     return () => clearInterval(timer);
   }, []);
