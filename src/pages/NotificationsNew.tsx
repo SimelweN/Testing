@@ -340,6 +340,34 @@ const NotificationsNew = () => {
             })),
           };
         }
+        if (category.id === "admin") {
+          return {
+            ...category,
+            notifications: categorizedNotifications.admin.map((n) => ({
+              id: n.id,
+              type: n.type || "admin",
+              title: n.title,
+              message: n.message,
+              timestamp: n.created_at || n.createdAt,
+              read: n.read,
+              priority: "high" as const,
+            })),
+          };
+        }
+        if (category.id === "general") {
+          return {
+            ...category,
+            notifications: categorizedNotifications.general.map((n) => ({
+              id: n.id,
+              type: n.type || "general",
+              title: n.title,
+              message: n.message,
+              timestamp: n.created_at || n.createdAt,
+              read: n.read,
+              priority: "medium" as const,
+            })),
+          };
+        }
         return category;
       }),
     );
