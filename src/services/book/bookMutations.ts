@@ -281,20 +281,37 @@ export const deleteBook = async (bookId: string): Promise<void> => {
 
     // Delete related records first to maintain referential integrity
 
-    // Check if there are any orders containing this book in their items
-    const { data: allOrders, error: ordersCheckError } = await supabase
-      .from("orders")
-      .select("id, status, items");
+    // Try to check for orders with book_id column first (if it exists)
+    let relatedOrders: any[] = [];
 
-    if (ordersCheckError) {
-      console.warn("Error checking orders:", ordersCheckError);
+    try {
+      const { data: directOrders, error: directOrdersError } = await supabase
+        .from("orders")
+        .select("id, status, book_id")
+        .eq("book_id", bookId);
+
+      if (!directOrdersError && directOrders) {
+        relatedOrders = directOrders;
+        console.log(`Found ${relatedOrders.length} orders with direct book_id reference`);
+      }
+    } catch (error) {
+      console.log("No direct book_id column in orders, checking items JSON...");
     }
 
-    // Filter orders that contain this book in their items
-    const relatedOrders = allOrders?.filter(order => {
-      if (!order.items || !Array.isArray(order.items)) return false;
-      return order.items.some((item: any) => item.book_id === bookId);
-    }) || [];
+    // If no direct book_id column, check items JSON
+    if (relatedOrders.length === 0) {
+      const { data: allOrders, error: ordersCheckError } = await supabase
+        .from("orders")
+        .select("id, status, items");
+
+      if (!ordersCheckError && allOrders) {
+        relatedOrders = allOrders.filter(order => {
+          if (!order.items || !Array.isArray(order.items)) return false;
+          return order.items.some((item: any) => item.book_id === bookId);
+        });
+        console.log(`Found ${relatedOrders.length} orders with book_id in items JSON`);
+      }
+    }
 
     // If there are active orders, prevent deletion
     const activeOrders = relatedOrders.filter(order =>
@@ -308,10 +325,23 @@ export const deleteBook = async (bookId: string): Promise<void> => {
       );
     }
 
-    console.log(`Found ${relatedOrders.length} related orders (${activeOrders.length} active)`);
+    // Try to delete orders that reference this book (for cleanup)
+    if (relatedOrders.length > 0) {
+      try {
+        const { error: ordersDeleteError } = await supabase
+          .from("orders")
+          .delete()
+          .eq("book_id", bookId);
 
-    // Note: We don't delete completed orders as they may be needed for record keeping
-    // The book deletion should proceed if there are no active orders
+        if (ordersDeleteError) {
+          console.log("Could not delete orders by book_id, they might be in items JSON only");
+        } else {
+          console.log(`Deleted ${relatedOrders.length} completed orders`);
+        }
+      } catch (error) {
+        console.log("Orders cleanup failed, proceeding with book deletion");
+      }
+    }
 
     // Delete any reports related to this book
     const { error: reportsDeleteError } = await supabase
