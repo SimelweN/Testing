@@ -1908,6 +1908,33 @@ const Developer = () => {
 
             <TabsContent value="communication">
               <div className="space-y-6">
+                {/* Notification Debugger */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <NotificationDebugger />
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>📋 Notification Troubleshooting</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-sm space-y-2 text-gray-600">
+                        <p><strong>Common Issues:</strong></p>
+                        <ul className="list-disc list-inside ml-2 space-y-1">
+                          <li>Missing RLS INSERT policy (most common)</li>
+                          <li>Invalid user_id or authentication</li>
+                          <li>Missing required fields</li>
+                          <li>Database connection issues</li>
+                        </ul>
+                        <p className="mt-3"><strong>Expected Errors to Check:</strong></p>
+                        <ul className="list-disc list-inside ml-2 space-y-1 text-xs">
+                          <li><code>42501</code> - RLS policy violation</li>
+                          <li><code>23503</code> - Foreign key constraint</li>
+                          <li><code>23502</code> - NULL constraint violation</li>
+                        </ul>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
                 <Card>
                   <CardHeader>
                     <CardTitle>Email Configuration</CardTitle>
