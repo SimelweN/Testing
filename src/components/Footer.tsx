@@ -172,6 +172,15 @@ const Footer = () => {
             >
               <Facebook className="h-5 w-5" />
             </a>
+            <a
+              href="https://www.tiktok.com/@rebooked.solution"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 hover:text-black transition-colors"
+              aria-label="Follow us on TikTok"
+            >
+              <Music className="h-5 w-5" />
+            </a>
           </div>
         </div>
       </div>
