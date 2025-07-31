@@ -157,12 +157,10 @@ export class NotificationService {
         });
 
       if (error) {
+        const serializedError = serializeError(error);
         console.error('Failed to create notification:', {
-          message: error.message || 'Unknown error',
-          code: error.code,
-          details: error.details,
-          hint: error.hint,
-          data: data,
+          ...serializedError,
+          attemptedData: data,
           timestamp: new Date().toISOString()
         });
         return false;
