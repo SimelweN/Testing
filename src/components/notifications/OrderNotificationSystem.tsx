@@ -419,7 +419,7 @@ const OrderNotificationSystem: React.FC = () => {
                 getNotificationIcon(selectedNotification)}
               <span>{selectedNotification?.title}</span>
             </DialogTitle>
-            <DialogDescription>
+            <div className="text-sm text-muted-foreground">
               {selectedNotification && (
                 <div className="space-y-3">
                   <p className="text-sm text-gray-700">
@@ -486,7 +486,7 @@ const OrderNotificationSystem: React.FC = () => {
                   </div>
                 </div>
               )}
-            </DialogDescription>
+            </div>
           </DialogHeader>
         </DialogContent>
       </Dialog>
