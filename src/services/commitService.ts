@@ -458,7 +458,11 @@ export const declineBookSale = async (orderIdOrBookId: string): Promise<void> =>
 
     console.log("[CommitService] Sale declined successfully:", targetName);
   } catch (error) {
-    logCommitError("Error declining book sale", error);
+    console.error("[CommitService] Error declining book sale:", {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      error: error,
+      timestamp: new Date().toISOString()
+    });
     throw error;
   }
 };
