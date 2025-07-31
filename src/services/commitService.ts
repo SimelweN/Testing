@@ -176,7 +176,8 @@ export const checkCommitDeadline = (orderCreatedAt: string): boolean => {
 };
 
 /**
- * Gets books that require commit action for the current user
+ * Gets orders that require commit action from the seller
+ * Returns orders with real expiry times based on creation date + 48 hours
  */
 export const getCommitPendingBooks = async (): Promise<any[]> => {
   try {
@@ -206,27 +207,29 @@ export const getCommitPendingBooks = async (): Promise<any[]> => {
       return [];
     }
 
-    // For now, return empty array since the commit system would need
-    // proper database schema with order tracking
     console.log(
       "[CommitService] Checking for pending commits for user:",
       user.id,
     );
 
-    // Query books that might be sold but not yet committed
-    // This is a simplified version - a real implementation would need
-    // a proper orders/transactions table
-    console.log("[CommitService] Querying books for user:", user.id);
-
-    // Use retry logic for book query
-    let books;
+    // Query orders with pending_commit status - this is the real commit system
+    let orders;
     try {
-      const booksResult = await withRetry(async () => {
+      const ordersResult = await withRetry(async () => {
         const result = await supabase
-          .from("books")
-          .select("id, title, price, sold, created_at, seller_id")
+          .from("orders")
+          .select(`
+            id,
+            total_amount,
+            created_at,
+            status,
+            book_id,
+            buyer_id,
+            book:books(id, title, author, price),
+            buyer:profiles!buyer_id(name, email)
+          `)
           .eq("seller_id", user.id)
-          .eq("sold", true)
+          .eq("status", "pending_commit")
           .order("created_at", { ascending: true });
 
         if (result.error) {
@@ -235,39 +238,36 @@ export const getCommitPendingBooks = async (): Promise<any[]> => {
         return result;
       }, { maxRetries: 2, retryDelay: 1500 });
 
-      books = booksResult.data;
-      console.log("[CommitService] Query successful, found books:", books?.length || 0);
+      orders = ordersResult.data;
+      console.log("[CommitService] Query successful, found orders:", orders?.length || 0);
     } catch (error) {
       const errorMessage = extractErrorMessage(error);
-      console.error("[CommitService] Error fetching pending books:", errorMessage);
-      handleSupabaseError(error, "Fetching pending books");
+      console.error("[CommitService] Error fetching pending orders:", errorMessage);
+      handleSupabaseError(error, "Fetching pending orders");
       // Return empty array instead of throwing to prevent UI crashes
       return [];
     }
 
-    console.log(
-      "[CommitService] Query successful, found books:",
-      books?.length || 0,
-    );
+    // Transform orders to the expected format with real expiry times
+    const pendingCommits = (orders || []).map((order) => {
+      // Calculate real expiry time: created_at + 48 hours
+      const orderCreated = new Date(order.created_at);
+      const expiresAt = new Date(orderCreated.getTime() + 48 * 60 * 60 * 1000);
 
-    // Filter for books that might need commits (this is simplified logic)
-    // In a real system, you'd have proper order status tracking
-    const pendingCommits = (books || [])
-      .filter((book) => {
-        // For now, since we don't have a proper commit tracking system,
-        // we'll just return books that are marked as sold
-        return book.sold;
-      })
-      .map((book) => ({
-        id: book.id,
-        bookId: book.id,
-        bookTitle: book.title,
-        buyerName: "Interested Buyer", // Would come from orders table in real system
-        price: book.price,
-        expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48 hours from now
-        createdAt: book.created_at,
-        status: book.sold ? "completed" : "pending",
-      }));
+      return {
+        id: order.id,
+        bookId: order.book_id,
+        title: order.book?.title || "Unknown Book",
+        expiresAt: expiresAt.toISOString(), // This now uses the real expiry time!
+        bookTitle: order.book?.title || "Unknown Book",
+        buyerName: order.buyer?.name || "Unknown Buyer",
+        price: order.total_amount,
+        createdAt: order.created_at,
+        status: "pending",
+        author: order.book?.author,
+        buyerEmail: order.buyer?.email,
+      };
+    });
 
     console.log(
       "[CommitService] Found pending commits:",
