@@ -80,12 +80,12 @@ const AuthCallback = () => {
           console.log("🔐 PASSWORD RESET FLOW DETECTED");
           console.log("🔐 This should redirect to /reset-password after authentication");
         }
-        const error = searchParams.get("error") || new URLSearchParams(window.location.hash.substring(1)).get("error");
-        const error_description = searchParams.get("error_description") || new URLSearchParams(window.location.hash.substring(1)).get("error_description");
+        const error = getParam("error");
+        const error_description = getParam("error_description");
 
         // Also check for token_hash and token (for OTP verification)
-        const token_hash = searchParams.get("token_hash") || new URLSearchParams(window.location.hash.substring(1)).get("token_hash");
-        const token = searchParams.get("token") || new URLSearchParams(window.location.hash.substring(1)).get("token");
+        const token_hash = getParam("token_hash");
+        const token = getParam("token");
 
         console.log("🔑 Auth callback parameters:", {
           hasAccessToken: !!access_token,
@@ -173,7 +173,7 @@ const AuthCallback = () => {
           const { data, error: otpError } = await supabase.auth.verifyOtp(verificationData);
 
           if (otpError) {
-            console.error("�� OTP verification error:", otpError);
+            console.error("❌ OTP verification error:", otpError);
             setStatus("error");
 
             // Handle specific OTP errors
@@ -257,7 +257,7 @@ const AuthCallback = () => {
         }
 
         // If we get here, no valid auth parameters were found
-        console.warn("⚠️ No valid auth parameters found");
+        console.warn("⚠�� No valid auth parameters found");
         console.log("Available parameters:", {
           searchParams: Object.fromEntries(searchParams.entries()),
           hashParams: window.location.hash ? Object.fromEntries(new URLSearchParams(window.location.hash.substring(1)).entries()) : {}
