@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { emailService } from "@/services/emailService";
+import { NotificationService } from "@/services/notificationService";
 
 interface PurchaseEmailData {
   orderId: string;
@@ -44,6 +45,14 @@ export class EnhancedPurchaseEmailService {
         console.warn("⚠️ Seller email failed, queuing for fallback:", sellerError);
         await this.queueSellerEmailForFallback(purchaseData);
       }
+
+      // Create in-app notification for seller (regardless of email success)
+      try {
+        await this.createSellerNotification(purchaseData);
+        console.log("✅ Seller in-app notification created");
+      } catch (notifError) {
+        console.warn("⚠️ Seller notification failed:", notifError);
+      }
       
       // Send buyer receipt/confirmation
       try {
@@ -53,6 +62,14 @@ export class EnhancedPurchaseEmailService {
       } catch (buyerError) {
         console.warn("⚠️ Buyer email failed, queuing for fallback:", buyerError);
         await this.queueBuyerEmailForFallback(purchaseData);
+      }
+
+      // Create in-app notification for buyer (regardless of email success)
+      try {
+        await this.createBuyerNotification(purchaseData);
+        console.log("✅ Buyer in-app notification created");
+      } catch (notifError) {
+        console.warn("⚠️ Buyer notification failed:", notifError);
       }
       
       // Additional fallback: Queue verification email
@@ -297,7 +314,7 @@ export class EnhancedPurchaseEmailService {
       });
       console.log("📧 Urgent manual processing notification queued");
     } catch (error) {
-      console.error("❌ Failed to queue urgent processing notification:", error);
+      console.error("�� Failed to queue urgent processing notification:", error);
     }
   }
 }
