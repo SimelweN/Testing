@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 import { useAuth } from "@/contexts/AuthContext";
-import ConfirmationLinkDiagnostic from "@/components/ConfirmationLinkDiagnostic";
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
@@ -370,13 +369,27 @@ const AuthCallback = () => {
                   </div>
                 )}
 
-                {/* Enhanced Diagnostic Tool */}
+                {/* Simple diagnostic help */}
                 <details className="mb-6">
                   <summary className="cursor-pointer text-sm text-blue-600 hover:text-blue-800 mb-2">
-                    🔧 Show Advanced Diagnostics
+                    🔧 Need Help? Common Solutions
                   </summary>
-                  <div className="border border-gray-200 rounded-lg p-2">
-                    <ConfirmationLinkDiagnostic />
+                  <div className="border border-gray-200 rounded-lg p-4 text-sm space-y-2">
+                    <p><strong>Common issues with confirmation links:</strong></p>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      <li>Link may have expired (confirmation links expire after 24 hours)</li>
+                      <li>Email client may have modified the link</li>
+                      <li>Link may have already been used</li>
+                      <li>Try copying the entire link and pasting it into a new browser tab</li>
+                    </ul>
+                    <div className="mt-3 p-2 bg-blue-50 rounded">
+                      <p><strong>Quick fixes:</strong></p>
+                      <ul className="list-disc list-inside text-xs text-blue-800">
+                        <li>Request a new verification email</li>
+                        <li>Try opening the link in an incognito/private browsing window</li>
+                        <li>Clear your browser cache and cookies</li>
+                      </ul>
+                    </div>
                   </div>
                 </details>
 
