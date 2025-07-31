@@ -278,11 +278,65 @@ export class BookDeletionService {
       const constraintCheck = await BookDeletionService.checkBookDeletionConstraints(bookId);
 
       if (!constraintCheck.canDelete) {
-        const blockersList = constraintCheck.blockers.join(', ');
-        throw new Error(
-          `Cannot delete book: This book is referenced by ${blockersList}. ` +
-          'Please resolve these dependencies before deleting the book.'
-        );
+        if (!forceDelete) {
+          const blockersList = constraintCheck.blockers.join(', ');
+          throw new Error(
+            `Cannot delete book: This book is referenced by ${blockersList}. ` +
+            'Please resolve these dependencies before deleting the book.'
+          );
+        }
+
+        // Force delete: Handle active orders and commitments
+        console.log('Force delete requested, cancelling active orders and commitments...');
+
+        // Cancel active orders
+        if (constraintCheck.details.activeOrders > 0) {
+          try {
+            // Get orders that contain this book in items
+            const { data: orders } = await supabase
+              .from('orders')
+              .select('id, status')
+              .contains('items', [{ book_id: bookId }])
+              .neq('status', 'cancelled')
+              .neq('status', 'refunded');
+
+            if (orders) {
+              for (const order of orders) {
+                await supabase
+                  .from('orders')
+                  .update({
+                    status: 'cancelled',
+                    cancelled_at: new Date().toISOString(),
+                    cancellation_reason: `Book deleted by admin - Book ID: ${bookId}`,
+                  })
+                  .eq('id', order.id);
+              }
+              console.log(`Cancelled ${orders.length} active orders`);
+            }
+          } catch (error) {
+            console.warn('Error cancelling orders during force delete:', error);
+          }
+        }
+
+        // Cancel active sale commitments
+        if (constraintCheck.details.saleCommitments > 0) {
+          try {
+            await supabase
+              .from('sale_commitments')
+              .update({
+                status: 'cancelled',
+                updated_at: new Date().toISOString(),
+              })
+              .eq('book_id', bookId)
+              .neq('status', 'cancelled');
+
+            console.log(`Cancelled ${constraintCheck.details.saleCommitments} sale commitments`);
+          } catch (error) {
+            console.warn('Error cancelling commitments during force delete:', error);
+          }
+        }
+
+        console.log('Force delete cleanup completed, proceeding with deletion...');
       }
 
       console.log('Book is safe to delete, proceeding...');
