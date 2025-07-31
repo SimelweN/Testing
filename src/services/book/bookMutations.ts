@@ -313,16 +313,51 @@ export const deleteBook = async (bookId: string, forceDelete: boolean = false): 
       }
     }
 
-    // If there are active orders, prevent deletion
+    // If there are active orders, handle based on force delete flag
     const activeOrders = relatedOrders.filter(order =>
       !["cancelled", "refunded", "declined", "completed"].includes(order.status)
     );
 
     if (activeOrders.length > 0) {
-      throw new Error(
-        `Cannot delete book: There are ${activeOrders.length} active order(s) for this book. ` +
-        "Please wait for orders to complete or be cancelled before deleting."
-      );
+      if (!forceDelete) {
+        throw new Error(
+          `Cannot delete book: There are ${activeOrders.length} active order(s) for this book. ` +
+          "Please wait for orders to complete or be cancelled before deleting."
+        );
+      }
+
+      // Admin force delete: Cancel active orders first
+      if (isAdmin && forceDelete) {
+        console.log(`Admin force delete: Cancelling ${activeOrders.length} active orders...`);
+
+        for (const order of activeOrders) {
+          try {
+            // Cancel the order by updating its status
+            const { error: cancelError } = await supabase
+              .from("orders")
+              .update({
+                status: "cancelled",
+                cancelled_at: new Date().toISOString(),
+                cancellation_reason: `Book deleted by admin - Book ID: ${bookId}`
+              })
+              .eq("id", order.id);
+
+            if (cancelError) {
+              console.warn(`Failed to cancel order ${order.id}:`, cancelError);
+            } else {
+              console.log(`Successfully cancelled order ${order.id}`);
+            }
+          } catch (error) {
+            console.warn(`Error cancelling order ${order.id}:`, error);
+          }
+        }
+
+        console.log("All active orders cancelled. Proceeding with book deletion...");
+      } else {
+        throw new Error(
+          `Cannot force delete: Only admins can force delete books with active orders.`
+        );
+      }
     }
 
     // Try to delete orders that reference this book (for cleanup)
