@@ -360,7 +360,41 @@ export class BookDeletionService {
 
         // Handle foreign key constraint errors specifically
         if (deleteError.code === '23503' && deleteError.message?.includes('orders_book_id_fkey')) {
-          throw new Error(`Cannot delete book: There are active orders referencing this book. Please cancel or complete these orders first before deleting the book.`);
+          if (forceDelete) {
+            // If this is a force delete, try additional cleanup approaches
+            console.log('Foreign key constraint still blocking, trying additional cleanup...');
+
+            try {
+              // Try to delete orders with book_id column directly (if it exists)
+              const { error: directDeleteError } = await supabase
+                .from("orders")
+                .delete()
+                .eq("book_id", bookId);
+
+              if (!directDeleteError) {
+                console.log('Successfully deleted orders with direct book_id reference');
+
+                // Try book deletion again
+                const { error: retryDeleteError } = await supabase
+                  .from("books")
+                  .delete()
+                  .eq("id", bookId);
+
+                if (!retryDeleteError) {
+                  console.log('Book deleted successfully after additional cleanup');
+                  // Continue to notification logic
+                } else {
+                  throw new Error(`Force delete failed even after cleanup: ${retryDeleteError.message}`);
+                }
+              } else {
+                throw new Error(`Cannot force delete: Unable to remove foreign key dependencies. Error: ${deleteError.message}`);
+              }
+            } catch (cleanupError) {
+              throw new Error(`Force delete failed: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`);
+            }
+          } else {
+            throw new Error(`Cannot delete book: There are active orders referencing this book. Please cancel or complete these orders first before deleting the book.`);
+          }
         }
 
         const errorMessage = deleteError.message || String(deleteError);
