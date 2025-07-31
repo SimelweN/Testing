@@ -114,11 +114,11 @@ const ActivityLog = () => {
     }
   }, [user, refreshPendingCommits]);
 
-  // Update timer every minute to keep countdown accurate
+  // Update timer every 5 seconds to show live countdown
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 60000); // Update every minute
+    }, 5000); // Update every 5 seconds for live countdown
 
     return () => clearInterval(timer);
   }, []);
@@ -503,14 +503,20 @@ const ActivityLog = () => {
                   </Alert>
 
                   {pendingCommits.map((commit) => {
-                    const timeRemaining = Math.max(
-                      0,
-                      Math.floor(
-                        (new Date(commit.expiresAt).getTime() - currentTime.getTime()) /
-                        (1000 * 60 * 60),
-                      ),
-                    );
-                    const isUrgent = timeRemaining < 12;
+                    const totalMs = Math.max(0, new Date(commit.expiresAt).getTime() - currentTime.getTime());
+                    const totalMinutes = Math.floor(totalMs / (1000 * 60));
+                    const hours = Math.floor(totalMinutes / 60);
+                    const minutes = totalMinutes % 60;
+                    const isUrgent = hours < 12;
+
+                    // Format time remaining display - always show minutes for better visibility
+                    const getTimeDisplay = () => {
+                      if (totalMinutes <= 0) return "Expired";
+                      if (hours > 0) {
+                        return `${hours}h ${minutes}m`;
+                      }
+                      return `${minutes}m`;
+                    };
 
                     return (
                       <Card
@@ -551,7 +557,7 @@ const ActivityLog = () => {
                               <div className="flex items-center gap-2 p-3 rounded-lg bg-white/60">
                                 <Clock className={`h-4 w-4 ${isUrgent ? "text-red-500" : "text-amber-500"}`} />
                                 <span className={`font-medium text-sm ${isUrgent ? "text-red-600" : "text-amber-600"}`}>
-                                  {timeRemaining} hours remaining
+                                  {getTimeDisplay()} remaining
                                 </span>
                               </div>
                             </div>

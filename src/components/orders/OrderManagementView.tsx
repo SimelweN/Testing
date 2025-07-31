@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 import {
   Package,
@@ -14,6 +15,7 @@ import {
   ShoppingCart,
   DollarSign,
   Calendar,
+  Info,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +31,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
   
 
     useEffect(() => {
@@ -36,6 +39,15 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
       fetchOrders();
     }
   }, [user]);
+
+  // Update current time every 5 seconds for live countdown
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 5000); // Update every 5 seconds
+
+    return () => clearInterval(timer);
+  }, []);
 
     const fetchOrders = async () => {
     if (!user) {
@@ -128,17 +140,20 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
   const getOrderStats = () => {
     const stats = {
       total: orders.length,
-      pending: orders.filter((o) => ["pending", "confirmed"].includes(o.status))
+      pending: orders.filter((o) => ["pending", "pending_commit", "confirmed"].includes(o.status))
         .length,
       active: orders.filter((o) =>
-        ["confirmed", "dispatched"].includes(o.status),
+        ["committed", "pending_delivery", "in_transit", "confirmed", "dispatched"].includes(o.status),
       ).length,
-      completed: orders.filter((o) => o.status === "delivered").length,
+      completed: orders.filter((o) => ["delivered", "completed"].includes(o.status)).length,
       cancelled: orders.filter((o) =>
         [
           "cancelled_by_buyer",
           "declined_by_seller",
           "cancelled_by_seller_after_missed_pickup",
+          "cancelled",
+          "declined",
+          "expired"
         ].includes(o.status),
       ).length,
     };
@@ -155,16 +170,69 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle className="text-lg font-semibold">
-                {order.book?.title || "Unknown Book"}
+                {order.book?.title || order.book_title || "Unknown Book"}
               </CardTitle>
               <p className="text-sm text-gray-600 mt-1">
                 Order #{order.id.slice(-8)}
               </p>
               <p className="text-sm text-gray-500">
                 {isMyPurchase
-                  ? `Seller: ${order.seller?.name}`
-                  : `Buyer: ${order.buyer?.name}`}
+                  ? `Seller: ${order.seller?.name || 'Unknown'}`
+                  : `Buyer: ${order.buyer?.name || 'Unknown'}`}
               </p>
+              {order.status === 'pending_commit' && (
+                <div className="flex items-center gap-2 mt-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
+                            Pending Commit
+                          </Badge>
+                          <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Waiting for seller to confirm within 48 hours</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  {(() => {
+                    const orderTime = new Date(order.created_at);
+                    const expiryTime = new Date(orderTime.getTime() + 48 * 60 * 60 * 1000);
+                    const totalMs = Math.max(0, expiryTime.getTime() - currentTime.getTime());
+                    const totalMinutes = Math.floor(totalMs / (1000 * 60));
+                    const hours = Math.floor(totalMinutes / 60);
+                    const minutes = totalMinutes % 60;
+                    const isUrgent = hours < 12;
+
+                    // Format time remaining display - always show minutes
+                    const getTimeDisplay = () => {
+                      if (totalMinutes <= 0) return "Expired";
+                      if (hours > 0) {
+                        return `${hours}h ${minutes}m`;
+                      }
+                      return `${minutes}m`;
+                    };
+
+                    if (totalMinutes > 0) {
+                      return (
+                        <Badge variant="outline" className={`${isUrgent ? 'text-red-600 border-red-300 bg-red-50 animate-pulse' : 'text-blue-600 border-blue-300 bg-blue-50'}`}>
+                          <Clock className="h-3 w-3 mr-1" />
+                          {getTimeDisplay()} remaining
+                        </Badge>
+                      );
+                    } else {
+                      return (
+                        <Badge variant="outline" className="text-red-600 border-red-300 bg-red-50">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          Expired
+                        </Badge>
+                      );
+                    }
+                  })()}
+                </div>
+              )}
             </div>
             <div className="text-right">
               <p className="text-lg font-semibold">R{order.total_amount}</p>
@@ -226,20 +294,26 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
             <div className="flex items-center space-x-2">
               <div
                 className={`w-3 h-3 rounded-full ${
-                  ["confirmed", "dispatched", "delivered"].includes(
-                    order.status,
-                  )
-                    ? "bg-green-500"
-                    : "bg-gray-300"
+                  order.status === "pending_commit"
+                    ? "bg-amber-500"
+                    : ["committed", "pending_delivery", "in_transit", "completed", "confirmed", "dispatched", "delivered"].includes(
+                        order.status,
+                      )
+                      ? "bg-green-500"
+                      : "bg-gray-300"
                 }`}
               />
-              <span>Confirmed</span>
+              <span>{
+                order.status === "pending_commit"
+                  ? "Pending Commit"
+                  : "Confirmed"
+              }</span>
             </div>
             <div className="flex-1 h-px bg-gray-200" />
             <div className="flex items-center space-x-2">
               <div
                 className={`w-3 h-3 rounded-full ${
-                  ["dispatched", "delivered"].includes(order.status)
+                  ["pending_delivery", "in_transit", "completed", "dispatched", "delivered"].includes(order.status)
                     ? "bg-green-500"
                     : order.delivery_status === "pickup_failed"
                       ? "bg-red-500"
@@ -252,7 +326,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
             <div className="flex items-center space-x-2">
               <div
                 className={`w-3 h-3 rounded-full ${
-                  order.status === "delivered" ? "bg-green-500" : "bg-gray-300"
+                  ["completed", "delivered"].includes(order.status) ? "bg-green-500" : "bg-gray-300"
                 }`}
               />
               <span>Delivered</span>
