@@ -224,8 +224,7 @@ export const getCommitPendingBooks = async (): Promise<any[]> => {
             created_at,
             status,
             buyer_email,
-            items,
-            seller:profiles!seller_id(name, email)
+            items
           `)
           .eq("seller_id", user.id)
           .eq("status", "pending_commit")
