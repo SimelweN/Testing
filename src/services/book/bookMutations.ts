@@ -281,38 +281,37 @@ export const deleteBook = async (bookId: string): Promise<void> => {
 
     // Delete related records first to maintain referential integrity
 
-    // First, check if there are any orders for this book
-    const { data: relatedOrders, error: ordersCheckError } = await supabase
+    // Check if there are any orders containing this book in their items
+    const { data: allOrders, error: ordersCheckError } = await supabase
       .from("orders")
-      .select("id, status")
-      .eq("book_id", bookId);
+      .select("id, status, items");
 
     if (ordersCheckError) {
-      console.warn("Error checking related orders:", ordersCheckError);
+      console.warn("Error checking orders:", ordersCheckError);
     }
 
+    // Filter orders that contain this book in their items
+    const relatedOrders = allOrders?.filter(order => {
+      if (!order.items || !Array.isArray(order.items)) return false;
+      return order.items.some((item: any) => item.book_id === bookId);
+    }) || [];
+
     // If there are active orders, prevent deletion
-    const activeOrders = relatedOrders?.filter(order =>
-      !["cancelled", "refunded", "declined"].includes(order.status)
+    const activeOrders = relatedOrders.filter(order =>
+      !["cancelled", "refunded", "declined", "completed"].includes(order.status)
     );
 
-    if (activeOrders && activeOrders.length > 0) {
+    if (activeOrders.length > 0) {
       throw new Error(
         `Cannot delete book: There are ${activeOrders.length} active order(s) for this book. ` +
         "Please wait for orders to complete or be cancelled before deleting."
       );
     }
 
-    // Delete any completed/cancelled orders related to this book
-    const { error: ordersDeleteError } = await supabase
-      .from("orders")
-      .delete()
-      .eq("book_id", bookId);
+    console.log(`Found ${relatedOrders.length} related orders (${activeOrders.length} active)`);
 
-    if (ordersDeleteError) {
-      console.warn("Error deleting related orders:", ordersDeleteError);
-      // Continue with deletion even if orders cleanup fails for completed orders
-    }
+    // Note: We don't delete completed orders as they may be needed for record keeping
+    // The book deletion should proceed if there are no active orders
 
     // Delete any reports related to this book
     const { error: reportsDeleteError } = await supabase
