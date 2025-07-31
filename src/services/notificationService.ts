@@ -169,10 +169,10 @@ export class NotificationService {
       console.log(`📧 Notification created for user ${data.userId}:`, data.title);
       return true;
     } catch (error) {
+      const serializedError = serializeError(error);
       console.error('Error creating notification:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        data: data,
+        ...serializedError,
+        attemptedData: data,
         timestamp: new Date().toISOString()
       });
       return false;
