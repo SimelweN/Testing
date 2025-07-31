@@ -253,18 +253,23 @@ export const getCommitPendingBooks = async (): Promise<any[]> => {
       const orderCreated = new Date(order.created_at);
       const expiresAt = new Date(orderCreated.getTime() + 48 * 60 * 60 * 1000);
 
+      // Extract book info from items JSON
+      const items = Array.isArray(order.items) ? order.items : [];
+      const firstItem = items[0] || {};
+
       return {
         id: order.id,
-        bookId: order.book_id,
-        title: order.book?.title || "Unknown Book",
+        bookId: firstItem.book_id || "unknown",
+        title: firstItem.name || "Order Item",
         expiresAt: expiresAt.toISOString(), // This now uses the real expiry time!
-        bookTitle: order.book?.title || "Unknown Book",
-        buyerName: order.buyer?.name || "Unknown Buyer",
-        price: order.total_amount,
+        bookTitle: firstItem.name || "Order Item",
+        buyerName: order.buyer_email?.split("@")[0] || "Unknown Buyer", // Extract name from email
+        price: order.amount / 100, // Convert from kobo to rands
         createdAt: order.created_at,
         status: "pending",
-        author: order.book?.author,
-        buyerEmail: order.buyer?.email,
+        author: firstItem.author || "Unknown Author",
+        buyerEmail: order.buyer_email,
+        sellerName: order.seller?.name,
       };
     });
 
