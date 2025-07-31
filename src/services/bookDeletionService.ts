@@ -245,6 +245,7 @@ export class BookDeletionService {
     bookId: string,
     reason: "admin_action" | "violation_reports" | "content_policy",
     adminId?: string,
+    forceDelete: boolean = false,
   ): Promise<void> {
     try {
       console.log("Deleting book with notification:", {
