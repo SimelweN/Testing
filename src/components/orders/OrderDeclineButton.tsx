@@ -190,7 +190,7 @@ const OrderDeclineButton: React.FC<OrderDeclineButtonProps> = ({
             <AlertTriangle className="w-5 h-5 text-red-500" />
             Decline Order
           </AlertDialogTitle>
-          <AlertDialogDescription className="space-y-3">
+          <div className="text-sm text-muted-foreground space-y-3">
             <p>
               You are about to decline the order for{" "}
               <strong>"{bookTitle}"</strong> from {buyerName}.
@@ -207,7 +207,7 @@ const OrderDeclineButton: React.FC<OrderDeclineButtonProps> = ({
                 <li>• This action cannot be undone</li>
               </ul>
             </div>
-          </AlertDialogDescription>
+          </div>
         </AlertDialogHeader>
 
         <div className="space-y-3">
