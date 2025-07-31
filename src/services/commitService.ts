@@ -246,8 +246,8 @@ export const getCommitPendingBooks = async (): Promise<any[]> => {
       return [];
     }
 
-    // Transform orders to the expected format with real expiry times
-    const pendingCommits = (orders || []).map((order) => {
+    // Transform orders to the expected format with real expiry times and enhanced data
+    const pendingCommits = await Promise.all((orders || []).map(async (order) => {
       // Calculate real expiry time: created_at + 48 hours
       const orderCreated = new Date(order.created_at);
       const expiresAt = new Date(orderCreated.getTime() + 48 * 60 * 60 * 1000);
@@ -256,21 +256,45 @@ export const getCommitPendingBooks = async (): Promise<any[]> => {
       const items = Array.isArray(order.items) ? order.items : [];
       const firstItem = items[0] || {};
 
+      // Try to get complete book data from books table
+      let bookData = null;
+      if (firstItem.book_id) {
+        try {
+          const { data: book } = await supabase
+            .from("books")
+            .select("id, title, author, price, image_url, front_cover, condition")
+            .eq("id", firstItem.book_id)
+            .single();
+          bookData = book;
+        } catch (error) {
+          console.warn("Could not fetch book details for", firstItem.book_id);
+        }
+      }
+
+      // Calculate earnings (assuming 5% platform fee)
+      const totalAmount = order.amount / 100; // Convert from kobo to rands
+      const platformFee = totalAmount * 0.05; // 5% platform fee
+      const earnings = totalAmount - platformFee;
+
       return {
         id: order.id,
-        bookId: firstItem.book_id || "unknown",
-        title: firstItem.name || "Order Item",
+        bookId: firstItem.book_id || bookData?.id || "unknown",
+        title: bookData?.title || firstItem.name || "Order Item",
         expiresAt: expiresAt.toISOString(), // This now uses the real expiry time!
-        bookTitle: firstItem.name || "Order Item",
-        buyerName: order.buyer_email?.split("@")[0] || "Unknown Buyer", // Extract name from email
-        price: order.amount / 100, // Convert from kobo to rands
+        bookTitle: bookData?.title || firstItem.name || "Order Item",
+        buyerName: order.buyer_email?.split("@")[0] || "Unknown Buyer",
+        price: totalAmount,
+        earnings: earnings, // Add earnings calculation
+        platformFee: platformFee, // Add platform fee info
         createdAt: order.created_at,
         status: "pending",
-        author: firstItem.author || "Unknown Author",
+        author: bookData?.author || firstItem.author || "Unknown Author",
         buyerEmail: order.buyer_email,
         sellerName: "Current User",
+        imageUrl: bookData?.image_url || bookData?.front_cover || null,
+        condition: bookData?.condition || "Good",
       };
-    });
+    }));
 
     console.log(
       "[CommitService] Found pending commits:",
