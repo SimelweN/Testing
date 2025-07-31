@@ -220,13 +220,12 @@ export const getCommitPendingBooks = async (): Promise<any[]> => {
           .from("orders")
           .select(`
             id,
-            total_amount,
+            amount,
             created_at,
             status,
-            book_id,
-            buyer_id,
-            book:books(id, title, author, price),
-            buyer:profiles!buyer_id(name, email)
+            buyer_email,
+            items,
+            seller:profiles!seller_id(name, email)
           `)
           .eq("seller_id", user.id)
           .eq("status", "pending_commit")
