@@ -411,6 +411,12 @@ const NotificationsNew = () => {
         return <Star className="h-4 w-4 text-yellow-500" />;
       case "social":
         return <Users className="h-4 w-4 text-pink-500" />;
+      case "admin":
+      case "admin_action":
+        return <Settings className="h-4 w-4 text-red-500" />;
+      case "general":
+      case "test":
+        return <Bell className="h-4 w-4 text-gray-500" />;
       case "info":
         return <MessageCircle className="h-4 w-4 text-blue-500" />;
       case "tip":
