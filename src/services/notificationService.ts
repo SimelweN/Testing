@@ -105,6 +105,18 @@ export class NotificationService {
    */
   static async createNotification(data: CreateNotificationData) {
     try {
+      // Validate required fields
+      if (!data.userId || !data.type || !data.title || !data.message) {
+        throw new Error('Missing required notification data: userId, type, title, and message are required');
+      }
+
+      console.log('Creating notification with data:', {
+        user_id: data.userId,
+        type: data.type,
+        title: data.title,
+        message: data.message.substring(0, 100) + '...' // Log truncated message
+      });
+
       const { error } = await supabase
         .from('notifications')
         .insert({
