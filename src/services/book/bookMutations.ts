@@ -237,7 +237,7 @@ export const updateBook = async (
   }
 };
 
-export const deleteBook = async (bookId: string): Promise<void> => {
+export const deleteBook = async (bookId: string, forceDelete: boolean = false): Promise<void> => {
   try {
     const {
       data: { user },
