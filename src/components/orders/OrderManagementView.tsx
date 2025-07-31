@@ -14,6 +14,7 @@ import {
   ShoppingCart,
   DollarSign,
   Calendar,
+  Info,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -128,17 +129,20 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
   const getOrderStats = () => {
     const stats = {
       total: orders.length,
-      pending: orders.filter((o) => ["pending", "confirmed"].includes(o.status))
+      pending: orders.filter((o) => ["pending", "pending_commit", "confirmed"].includes(o.status))
         .length,
       active: orders.filter((o) =>
-        ["confirmed", "dispatched"].includes(o.status),
+        ["committed", "pending_delivery", "in_transit", "confirmed", "dispatched"].includes(o.status),
       ).length,
-      completed: orders.filter((o) => o.status === "delivered").length,
+      completed: orders.filter((o) => ["delivered", "completed"].includes(o.status)).length,
       cancelled: orders.filter((o) =>
         [
           "cancelled_by_buyer",
           "declined_by_seller",
           "cancelled_by_seller_after_missed_pickup",
+          "cancelled",
+          "declined",
+          "expired"
         ].includes(o.status),
       ).length,
     };
@@ -155,16 +159,29 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle className="text-lg font-semibold">
-                {order.book?.title || "Unknown Book"}
+                {order.book?.title || order.book_title || "Unknown Book"}
               </CardTitle>
               <p className="text-sm text-gray-600 mt-1">
                 Order #{order.id.slice(-8)}
               </p>
               <p className="text-sm text-gray-500">
                 {isMyPurchase
-                  ? `Seller: ${order.seller?.name}`
-                  : `Buyer: ${order.buyer?.name}`}
+                  ? `Seller: ${order.seller?.name || 'Unknown'}`
+                  : `Buyer: ${order.buyer?.name || 'Unknown'}`}
               </p>
+              {order.status === 'pending_commit' && (
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
+                    Pending Commit
+                  </Badge>
+                  <div className="group relative">
+                    <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                    <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                      Waiting for seller to confirm within 48 hours
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="text-right">
               <p className="text-lg font-semibold">R{order.total_amount}</p>
@@ -226,20 +243,26 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
             <div className="flex items-center space-x-2">
               <div
                 className={`w-3 h-3 rounded-full ${
-                  ["confirmed", "dispatched", "delivered"].includes(
-                    order.status,
-                  )
-                    ? "bg-green-500"
-                    : "bg-gray-300"
+                  order.status === "pending_commit"
+                    ? "bg-amber-500"
+                    : ["committed", "pending_delivery", "in_transit", "completed", "confirmed", "dispatched", "delivered"].includes(
+                        order.status,
+                      )
+                      ? "bg-green-500"
+                      : "bg-gray-300"
                 }`}
               />
-              <span>Confirmed</span>
+              <span>{
+                order.status === "pending_commit"
+                  ? "Pending Commit"
+                  : "Confirmed"
+              }</span>
             </div>
             <div className="flex-1 h-px bg-gray-200" />
             <div className="flex items-center space-x-2">
               <div
                 className={`w-3 h-3 rounded-full ${
-                  ["dispatched", "delivered"].includes(order.status)
+                  ["pending_delivery", "in_transit", "completed", "dispatched", "delivered"].includes(order.status)
                     ? "bg-green-500"
                     : order.delivery_status === "pickup_failed"
                       ? "bg-red-500"
@@ -252,7 +275,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
             <div className="flex items-center space-x-2">
               <div
                 className={`w-3 h-3 rounded-full ${
-                  order.status === "delivered" ? "bg-green-500" : "bg-gray-300"
+                  ["completed", "delivered"].includes(order.status) ? "bg-green-500" : "bg-gray-300"
                 }`}
               />
               <span>Delivered</span>
