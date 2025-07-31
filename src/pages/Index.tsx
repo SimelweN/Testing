@@ -7,6 +7,7 @@ import { Search, BookOpen } from "lucide-react";
 import FeaturedBooks from "@/components/home/FeaturedBooks";
 import HowItWorks from "@/components/home/HowItWorks";
 import ReadyToGetStarted from "@/components/home/ReadyToGetStarted";
+import GoogleAdsense from "@/components/GoogleAdsense";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -153,8 +154,22 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Ad Placement 1 - After Categories */}
+      <section className="py-4 bg-gray-50">
+        <div className="container mx-auto px-4 flex justify-center">
+          <GoogleAdsense />
+        </div>
+      </section>
+
       {/* Featured Books Section */}
       <FeaturedBooks />
+
+      {/* Ad Placement 2 - After Featured Books */}
+      <section className="py-4 bg-white">
+        <div className="container mx-auto px-4 flex justify-center">
+          <GoogleAdsense />
+        </div>
+      </section>
 
       {/* ReBooked Campus Promotion Section */}
       <section className="py-8 sm:py-12 bg-gradient-to-r from-book-600 to-book-700">

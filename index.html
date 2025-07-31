@@ -17,13 +17,19 @@
         https://images.unsplash.com
         https://cdn.builder.io
         https://cdn.gpteng.co
+        https://pagead2.googlesyndication.com
+        https://googleads.g.doubleclick.net
+        https://www.google.com
         wss: ws:;
       script-src 'self' 'unsafe-inline' 'unsafe-eval'
         https://www.googletagmanager.com
         https://js.paystack.co
-        https://cdn.gpteng.co;
+        https://cdn.gpteng.co
+        https://pagead2.googlesyndication.com
+        https://googleads.g.doubleclick.net;
       img-src 'self' data: https:;
       style-src 'self' 'unsafe-inline' https:;
+      frame-src 'self' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com;
     "
     />
 
@@ -85,6 +91,10 @@
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
     <link rel="dns-prefetch" href="https://js.paystack.co" />
     <link rel="preconnect" href="https://js.paystack.co" crossorigin />
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1957085805829290"
+         crossorigin="anonymous"></script>
 
     <!-- Google tag (gtag.js) -->
     <script

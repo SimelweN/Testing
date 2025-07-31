@@ -11,6 +11,7 @@ import { useCommit } from "@/hooks/useCommit";
 import { useAuth } from "@/contexts/AuthContext";
 import { clearAllBrowseBooks } from "@/utils/clearBrowseBooks";
 import { Button } from "@/components/ui/button";
+import GoogleAdsense from "@/components/GoogleAdsense";
 
 
 const BookListing = () => {
@@ -224,6 +225,11 @@ const BookListing = () => {
               {isClearingBooks ? "Clearing..." : "Clear All Books"}
             </Button>
           )}
+        </div>
+
+        {/* Ad Placement - Top of Books Page */}
+        <div className="mb-4 sm:mb-8 flex justify-center">
+          <GoogleAdsense />
         </div>
 
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
