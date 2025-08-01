@@ -338,20 +338,18 @@ serve(async (req) => {
       createdOrders.push(order);
 
       // Create notifications
-      await supabase.from("order_notifications").insert([
+      await supabase.from("notifications").insert([
         {
-          order_id: order.id,
           user_id: finalBuyerId,
-          type: "order_confirmed",
-          title: "Order Confirmed!",
-          message: `Your order for ${sellerItems.length} book(s) has been confirmed. Total: R${totalAmount.toFixed(2)}`
+          type: "success",
+          title: "🛒 Order Confirmed!",
+          message: `Your order for ${sellerItems.length} book(s) has been confirmed. Total: R${totalAmount.toFixed(2)}. Order ID: ${order.id}`
         },
         {
-          order_id: order.id,
           user_id: sellerId,
-          type: "new_order",
-          title: "New Order Received!",
-          message: `You have a new order worth R${totalAmount.toFixed(2)}. Please commit within 48 hours.`
+          type: "info",
+          title: "📦 New Order Received!",
+          message: `You have a new order worth R${totalAmount.toFixed(2)}. Please commit within 48 hours. Order ID: ${order.id}`
         }
       ]);
 
