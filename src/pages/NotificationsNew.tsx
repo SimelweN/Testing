@@ -409,30 +409,33 @@ const NotificationsNew = () => {
     }
   };
 
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = (type: string, title?: string, message?: string) => {
+    // Content-based icon detection (more specific)
+    if (title?.includes("🧪") || title?.includes("Test")) {
+      return <Bell className="h-4 w-4 text-gray-500" />;
+    }
+    if (title?.includes("⏰") || title?.includes("Commit") || message?.includes("commit")) {
+      return <Award className="h-4 w-4 text-orange-500" />;
+    }
+    if (title?.includes("🛒") || title?.includes("📦") || title?.includes("💳") || title?.includes("Order") || title?.includes("Purchase") || title?.includes("Payment")) {
+      return <ShoppingCart className="h-4 w-4 text-green-500" />;
+    }
+    if (title?.includes("📦") || title?.includes("Delivery") || title?.includes("Shipping")) {
+      return <Truck className="h-4 w-4 text-blue-500" />;
+    }
+
+    // Fallback to type-based icons
     switch (type) {
       case "welcome":
         return <Gift className="h-4 w-4 text-purple-500" />;
-      case "commit":
-        return <Award className="h-4 w-4 text-orange-500" />;
-      case "purchase":
-        return <ShoppingCart className="h-4 w-4 text-green-500" />;
-      case "delivery":
-        return <Truck className="h-4 w-4 text-blue-500" />;
-      case "review":
-        return <Star className="h-4 w-4 text-yellow-500" />;
-      case "social":
-        return <Users className="h-4 w-4 text-pink-500" />;
-      case "admin":
-      case "admin_action":
-        return <Settings className="h-4 w-4 text-red-500" />;
-      case "general":
-      case "test":
-        return <Bell className="h-4 w-4 text-gray-500" />;
+      case "success":
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case "warning":
+        return <AlertCircle className="h-4 w-4 text-orange-500" />;
+      case "error":
+        return <XCircle className="h-4 w-4 text-red-500" />;
       case "info":
         return <MessageCircle className="h-4 w-4 text-blue-500" />;
-      case "tip":
-        return <BookOpen className="h-4 w-4 text-green-500" />;
       default:
         return <Bell className="h-4 w-4 text-gray-500" />;
     }
