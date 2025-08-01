@@ -394,16 +394,16 @@ export class EnhancedCommitService {
       // Notify seller that their sale is committed
       await NotificationService.createNotification({
         userId: orderData.sellerId,
-        type: 'commit',
-        title: 'Sale Committed Successfully!',
+        type: 'success',
+        title: '✅ Sale Committed Successfully!',
         message: `You have successfully committed to selling "${orderData.bookTitle}" to ${orderData.buyerName}. Pickup will be arranged soon.`,
       });
 
       // Notify buyer that seller has committed
       await NotificationService.createNotification({
         userId: orderData.buyerId,
-        type: 'purchase',
-        title: 'Seller Committed to Your Order!',
+        type: 'success',
+        title: '🎉 Seller Committed to Your Order!',
         message: `Great news! The seller has committed to your order for "${orderData.bookTitle}". Your book will be shipped soon.`,
       });
 
