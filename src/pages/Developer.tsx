@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { NotificationDebugger } from "@/components/NotificationDebugger";
 import EnhancedNotificationDebugger from "@/components/EnhancedNotificationDebugger";
+import ErrorMonitor from "@/components/ErrorMonitor";
 import { supabase } from "@/integrations/supabase/client";
 import EmailTemplateDashboard from "@/components/admin/EmailTemplateDashboard";
 import { EmailDiagnosticPanel } from "@/components/EmailDiagnosticPanel";
