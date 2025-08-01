@@ -559,6 +559,28 @@ const NotificationsNew = () => {
             </Button>
           )}
 
+          {process.env.NODE_ENV === 'development' && user && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                try {
+                  await refreshNotifications();
+                  toast.success('✅ Notifications refreshed!');
+                } catch (error) {
+                  const errorMessage = error instanceof Error ? error.message :
+                    (typeof error === 'object' && error !== null) ?
+                      (error.message || error.details || error.hint || JSON.stringify(error)) :
+                      String(error);
+                  toast.error(`Failed to refresh: ${errorMessage}`);
+                }
+              }}
+              className="self-start sm:self-auto"
+            >
+              🔄 Refresh
+            </Button>
+          )}
+
         </div>
 
         {/* Welcome Message for First-Time Users */}
