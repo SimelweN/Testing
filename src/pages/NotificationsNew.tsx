@@ -74,25 +74,32 @@ const NotificationsNew = () => {
   const categorizeNotifications = (dbNotifications: any[]) => {
     const commitNotifications = dbNotifications.filter(
       (n) =>
-        n.type === "commit" ||
         n.title?.toLowerCase().includes("commit") ||
-        n.message?.toLowerCase().includes("commit"),
+        n.message?.toLowerCase().includes("commit") ||
+        n.title?.includes("⏰") ||
+        (n.type === "warning" && (n.title?.includes("Commit") || n.message?.includes("commit"))),
     );
 
     const purchaseNotifications = dbNotifications.filter(
       (n) =>
-        n.type === "purchase" ||
-        n.type === "order" ||
         n.title?.toLowerCase().includes("purchase") ||
-        n.title?.toLowerCase().includes("order"),
+        n.title?.toLowerCase().includes("order") ||
+        n.title?.toLowerCase().includes("payment") ||
+        n.title?.includes("🛒") ||
+        n.title?.includes("📦") ||
+        n.title?.includes("💳") ||
+        n.title?.includes("✅") ||
+        n.title?.includes("🎉") ||
+        (n.type === "success" && (n.title?.includes("Order") || n.title?.includes("Payment"))),
     );
 
     const deliveryNotifications = dbNotifications.filter(
       (n) =>
-        n.type === "delivery" ||
-        n.type === "shipping" ||
         n.title?.toLowerCase().includes("delivery") ||
-        n.title?.toLowerCase().includes("shipping"),
+        n.title?.toLowerCase().includes("shipping") ||
+        n.title?.toLowerCase().includes("tracking") ||
+        n.title?.includes("📦") ||
+        (n.type === "info" && (n.title?.includes("Delivery") || n.title?.includes("Shipping"))),
     );
 
     const adminNotifications = dbNotifications.filter(
