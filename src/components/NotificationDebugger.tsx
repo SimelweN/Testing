@@ -54,7 +54,11 @@ export const NotificationDebugger: React.FC = () => {
       });
       console.log('Result:', result);
     } catch (error) {
-      console.error('Expected error for invalid data:', error);
+      const errorMessage = error instanceof Error ? error.message :
+        (typeof error === 'object' && error !== null) ?
+          (error.message || error.details || error.hint || JSON.stringify(error)) :
+          String(error);
+      console.error('Expected error for invalid data:', errorMessage, error);
       toast.info('Expected validation error logged to console');
     }
   };
