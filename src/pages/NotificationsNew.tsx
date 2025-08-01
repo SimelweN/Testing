@@ -528,7 +528,14 @@ const NotificationsNew = () => {
                         setTimeout(() => {
                           const generalSection = document.querySelector('[data-category="general"]');
                           if (generalSection) {
+                            // Add highlight effect
+                            generalSection.classList.add('ring-4', 'ring-blue-500', 'ring-opacity-50');
                             generalSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                            // Remove highlight after 3 seconds
+                            setTimeout(() => {
+                              generalSection.classList.remove('ring-4', 'ring-blue-500', 'ring-opacity-50');
+                            }, 3000);
                           }
                         }, 500);
                       } catch (refreshError) {
