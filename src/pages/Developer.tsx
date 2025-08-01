@@ -222,7 +222,7 @@ const Developer = () => {
         console.log('✅ REAL Users loaded:', realUsers.length, realUsers);
         toast.success(`�� Loaded ${realUsers.length} REAL users from database`);
       } else {
-        console.error('❌ Users query failed:', usersError);
+        console.error('�� Users query failed:', usersError);
         const userErrorMsg = usersError?.message || usersError?.details || usersError?.hint || (usersError ? JSON.stringify(usersError, null, 2) : 'Unknown database error');
         toast.error(`❌ Failed to load users: ${userErrorMsg}`);
 
@@ -1910,6 +1910,9 @@ const Developer = () => {
 
             <TabsContent value="communication">
               <div className="space-y-6">
+                {/* Error Monitor - Development Only */}
+                {import.meta.env.DEV && <ErrorMonitor />}
+
                 {/* Enhanced Notification Debugger - Development Only */}
                 {import.meta.env.DEV && <EnhancedNotificationDebugger />}
 
