@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { NotificationDebugger } from "@/components/NotificationDebugger";
+import EnhancedNotificationDebugger from "@/components/EnhancedNotificationDebugger";
 import { supabase } from "@/integrations/supabase/client";
 import EmailTemplateDashboard from "@/components/admin/EmailTemplateDashboard";
 import { EmailDiagnosticPanel } from "@/components/EmailDiagnosticPanel";
@@ -1568,7 +1569,7 @@ const Developer = () => {
                         setIsLoading(true);
                         try {
                           const { lockerService } = await import('@/services/lockerService');
-                          console.log('��� Testing with provided API key...');
+                          console.log('🔑 Testing with provided API key...');
 
                           // Set the API key
                           lockerService.setApiKey('37102346|dpTTHKfhJYBQh79UfHmOj8P0IPtt8ImFz0VeHXWr65621bae');
