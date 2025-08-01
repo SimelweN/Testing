@@ -261,7 +261,11 @@ const NotificationsNew = () => {
         setBroadcasts(activeBroadcasts);
         console.log("📢 Loaded broadcasts:", activeBroadcasts);
       } catch (error) {
-        console.error("Failed to load broadcasts:", error);
+        const errorMessage = error instanceof Error ? error.message :
+          (typeof error === 'object' && error !== null) ?
+            (error.message || error.details || error.hint || JSON.stringify(error)) :
+            String(error);
+        console.error("Failed to load broadcasts:", errorMessage, error);
       }
     };
 
