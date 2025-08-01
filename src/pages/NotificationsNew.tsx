@@ -23,6 +23,9 @@ import {
   MessageCircle,
   Clock,
   X,
+  CheckCircle,
+  AlertCircle,
+  XCircle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/hooks/useNotifications";
