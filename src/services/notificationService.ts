@@ -189,8 +189,8 @@ export class NotificationService {
   static async createCommitReminder(userId: string, orderId: string, bookTitle: string, hoursRemaining: number) {
     return this.createNotification({
       userId,
-      type: 'commit',
-      title: 'Commit to Sale Reminder',
+      type: 'warning',
+      title: '⏰ Commit to Sale Reminder',
       message: `You have ${hoursRemaining} hours remaining to commit to selling "${bookTitle}". Please complete your commitment to avoid order cancellation. Order ID: ${orderId}`,
     });
   }
@@ -201,8 +201,8 @@ export class NotificationService {
   static async createDeliveryUpdate(userId: string, orderId: string, status: string, message: string) {
     return this.createNotification({
       userId,
-      type: 'delivery',
-      title: 'Delivery Update',
+      type: 'info',
+      title: '📦 Delivery Update',
       message: `${message} (Order: ${orderId}, Status: ${status})`,
     });
   }
@@ -214,15 +214,15 @@ export class NotificationService {
     if (isForSeller) {
       return this.createNotification({
         userId,
-        type: 'purchase',
-        title: 'New Order Received',
+        type: 'info',
+        title: '📦 New Order Received',
         message: `Great news! You've received a new order for "${bookTitle}". Please commit to this sale within 48 hours. Order ID: ${orderId}`,
       });
     } else {
       return this.createNotification({
         userId,
-        type: 'purchase',
-        title: 'Order Confirmed',
+        type: 'success',
+        title: '✅ Order Confirmed',
         message: `Your order for "${bookTitle}" has been confirmed. The seller will commit to the sale within 48 hours. Order ID: ${orderId}`,
       });
     }
@@ -234,8 +234,8 @@ export class NotificationService {
   static async createPaymentConfirmation(userId: string, orderId: string, amount: number, bookTitle: string) {
     return this.createNotification({
       userId,
-      type: 'purchase',
-      title: 'Payment Successful',
+      type: 'success',
+      title: '💳 Payment Successful',
       message: `Payment of R${amount.toFixed(2)} for "${bookTitle}" has been processed successfully. Your order is now confirmed. Order ID: ${orderId}`,
     });
   }
