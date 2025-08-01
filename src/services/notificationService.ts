@@ -71,7 +71,8 @@ export async function getNotifications(userId: string): Promise<Notification[]> 
       .limit(50);
 
     if (error) {
-      console.error('Error fetching notifications:', error);
+      const serializedError = serializeError(error);
+      console.error('Error fetching notifications:', serializedError);
       throw error;
     }
 
@@ -85,7 +86,8 @@ export async function getNotifications(userId: string): Promise<Notification[]> 
 
     return notifications;
   } catch (error) {
-    console.error('Failed to get notifications:', error);
+    const serializedError = serializeError(error);
+    console.error('Failed to get notifications:', serializedError);
     throw error;
   }
 }
@@ -116,14 +118,16 @@ export async function markNotificationAsRead(notificationId: string): Promise<bo
       .eq('id', notificationId);
 
     if (error) {
-      console.error('Failed to mark notification as read:', error);
+      const serializedError = serializeError(error);
+      console.error('Failed to mark notification as read:', serializedError);
       return false;
     }
 
     console.log(`📖 Marked notification ${notificationId} as read`);
     return true;
   } catch (error) {
-    console.error('Error marking notification as read:', error);
+    const serializedError = serializeError(error);
+    console.error('Error marking notification as read:', serializedError);
     return false;
   }
 }
