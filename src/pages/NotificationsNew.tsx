@@ -731,7 +731,7 @@ const NotificationsNew = () => {
                         <div
                           key={notification.id}
                           className={`p-3 sm:p-4 rounded-lg border transition-all ${
-                            notification.type === 'test' && !notification.read
+                            (notification.title.includes('🧪') || notification.title.includes('Test Notification')) && !notification.read
                               ? "bg-gradient-to-r from-green-50 to-blue-50 border-green-400 shadow-lg ring-2 ring-green-300 ring-opacity-50"
                               : notification.read
                               ? "bg-white border-gray-200"
