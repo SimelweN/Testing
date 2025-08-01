@@ -111,7 +111,8 @@ const NotificationsNew = () => {
         !commitNotifications.includes(n) &&
         !purchaseNotifications.includes(n) &&
         !deliveryNotifications.includes(n) &&
-        !adminNotifications.includes(n)
+        !adminNotifications.includes(n) ||
+        n.type === 'info' || n.type === 'success' || n.type === 'warning' || n.type === 'error'
     );
 
     return {
