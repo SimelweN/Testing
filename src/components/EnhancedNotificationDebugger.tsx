@@ -13,7 +13,7 @@ import { AlertCircle, CheckCircle, XCircle, Info } from 'lucide-react';
 export const EnhancedNotificationDebugger: React.FC = () => {
   const { user } = useAuth();
   const [testType, setTestType] = useState('service');
-  const [notificationType, setNotificationType] = useState('test');
+  const [notificationType, setNotificationType] = useState('info');
   const [title, setTitle] = useState('Debug Test Notification');
   const [message, setMessage] = useState('This is a test notification to debug the system.');
   const [isLoading, setIsLoading] = useState(false);
@@ -246,7 +246,7 @@ export const EnhancedNotificationDebugger: React.FC = () => {
             variant="secondary"
             className="w-full"
           >
-            ��� Check Permissions
+            🔐 Check Permissions
           </Button>
         </div>
         
