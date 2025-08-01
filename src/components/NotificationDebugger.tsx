@@ -20,7 +20,7 @@ export const NotificationDebugger: React.FC = () => {
     try {
       const result = await NotificationService.createNotification({
         userId: user.id,
-        type: 'test',
+        type: 'info',
         title: 'Debug Test Notification',
         message: 'This is a test notification to debug the notification system.',
       });
