@@ -192,12 +192,10 @@ export const EnhancedNotificationDebugger: React.FC = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="test">Test</SelectItem>
-                <SelectItem value="commit">Commit</SelectItem>
-                <SelectItem value="purchase">Purchase</SelectItem>
-                <SelectItem value="delivery">Delivery</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="general">General</SelectItem>
+                <SelectItem value="info">Info (Test)</SelectItem>
+                <SelectItem value="success">Success</SelectItem>
+                <SelectItem value="warning">Warning</SelectItem>
+                <SelectItem value="error">Error</SelectItem>
               </SelectContent>
             </Select>
           </div>
