@@ -666,6 +666,7 @@ const NotificationsNew = () => {
             return (
               <Card
                 key={category.id}
+                data-category={category.id}
                 className={`${colorClasses[category.color as keyof typeof colorClasses]} border-2`}
               >
                 <CardHeader className="px-4 sm:px-6">
