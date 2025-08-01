@@ -518,7 +518,11 @@ const NotificationsNew = () => {
                     refreshNotifications();
                   } catch (error) {
                     console.error('Failed to create test notification:', error);
-                    toast.error('Failed to create test notification');
+                    const errorMessage = error instanceof Error ? error.message :
+                      (typeof error === 'object' && error !== null) ?
+                        (error.message || error.details || error.hint || JSON.stringify(error)) :
+                        String(error);
+                    toast.error(`Failed to create notification: ${errorMessage}`);
                   }
                 }
               }}
