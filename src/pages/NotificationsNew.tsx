@@ -515,7 +515,17 @@ const NotificationsNew = () => {
                       message: `Test notification created at ${new Date().toLocaleTimeString()}`,
                     });
                     toast.success('Test notification created!');
-                    refreshNotifications();
+                    try {
+                      await refreshNotifications();
+                    } catch (refreshError) {
+                      // Handle refresh error separately to avoid masking the success
+                      const refreshErrorMessage = refreshError instanceof Error ? refreshError.message :
+                        (typeof refreshError === 'object' && refreshError !== null) ?
+                          (refreshError.message || refreshError.details || refreshError.hint || JSON.stringify(refreshError)) :
+                          String(refreshError);
+                      console.error('Error refreshing notifications after creation:', refreshErrorMessage, refreshError);
+                      // Don't show toast error for refresh failure since creation succeeded
+                    }
                   } catch (error) {
                     console.error('Failed to create test notification:', error);
                     const errorMessage = error instanceof Error ? error.message :
