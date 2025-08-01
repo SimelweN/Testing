@@ -748,7 +748,7 @@ const NotificationsNew = () => {
                                   <h4 className="font-semibold text-gray-900 text-sm sm:text-base line-clamp-2">
                                     {notification.title}
                                   </h4>
-                                  {notification.type === 'test' && (
+                                  {(notification.title.includes('🧪') || notification.title.includes('Test Notification')) && (
                                     <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
                                       TEST
                                     </Badge>
