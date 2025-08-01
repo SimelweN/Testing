@@ -743,9 +743,16 @@ const NotificationsNew = () => {
                                 {getNotificationIcon(notification.type)}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base line-clamp-2">
-                                  {notification.title}
-                                </h4>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h4 className="font-semibold text-gray-900 text-sm sm:text-base line-clamp-2">
+                                    {notification.title}
+                                  </h4>
+                                  {notification.type === 'test' && (
+                                    <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                                      TEST
+                                    </Badge>
+                                  )}
+                                </div>
                                 <p className="text-gray-700 text-xs sm:text-sm whitespace-pre-line mb-2 leading-relaxed">
                                   {notification.message}
                                 </p>
