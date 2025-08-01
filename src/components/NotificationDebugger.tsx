@@ -48,7 +48,7 @@ export const NotificationDebugger: React.FC = () => {
     try {
       const result = await NotificationService.createNotification({
         userId: '', // Invalid - empty userId
-        type: 'test',
+        type: 'info',
         title: 'Invalid Test',
         message: 'This should fail validation.',
       });
