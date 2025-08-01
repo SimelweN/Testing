@@ -137,7 +137,13 @@ class NotificationManager {
           );
           if (payload.eventType === "INSERT") {
             clearNotificationCache(userId);
-            refreshCallback().catch(console.error);
+            refreshCallback().catch((err) => {
+              const errorMessage = err instanceof Error ? err.message :
+                (typeof err === 'object' && err !== null) ?
+                  (err.message || err.details || err.hint || JSON.stringify(err)) :
+                  String(err);
+              console.error('[NotificationManager] Refresh callback error:', errorMessage, err);
+            });
           }
         },
       );
@@ -350,8 +356,19 @@ export const useNotifications = (): NotificationHookReturn => {
           error instanceof Error ? error.message : "Unknown error";
         console.error(
           `[NotificationHook] Error fetching notifications:`,
-          errorMessage,
+          errorMessage
         );
+
+        // Also log the original error object with proper serialization
+        if (error && typeof error === 'object') {
+          console.error('[NotificationHook] Original error object:', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint,
+            status: error.status
+          });
+        }
 
         // Handle 403 errors with session refresh
         if (
