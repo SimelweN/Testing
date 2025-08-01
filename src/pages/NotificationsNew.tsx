@@ -514,7 +514,7 @@ const NotificationsNew = () => {
                   try {
                     const result = await NotificationService.createNotification({
                       userId: user.id,
-                      type: 'test',
+                      type: 'info',
                       title: '🧪 Test Notification',
                       message: `Test notification created at ${new Date().toLocaleTimeString()} - This should appear in the General Notifications section below.`,
                     });
