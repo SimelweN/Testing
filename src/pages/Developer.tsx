@@ -1568,7 +1568,7 @@ const Developer = () => {
                         setIsLoading(true);
                         try {
                           const { lockerService } = await import('@/services/lockerService');
-                          console.log('🔑 Testing with provided API key...');
+                          console.log('��� Testing with provided API key...');
 
                           // Set the API key
                           lockerService.setApiKey('37102346|dpTTHKfhJYBQh79UfHmOj8P0IPtt8ImFz0VeHXWr65621bae');
@@ -1621,8 +1621,8 @@ const Developer = () => {
                             console.log(`✅ Successfully loaded ${lockers.length} lockers`);
 
                             // Check if these are mock lockers vs real API data
-                          const mockLockerIds = lockers.filter(l => l.id.startsWith('gauteng_') || l.id.startsWith('western_cape_'));
-                          const hasMockFlag = lockers.some(l => (l as any).isMockData);
+                          const mockLockerIds = lockers.filter(l => l && l.id && (l.id.startsWith('gauteng_') || l.id.startsWith('western_cape_')));
+                          const hasMockFlag = lockers.some(l => l && (l as any).isMockData);
 
                           if (mockLockerIds.length === lockers.length || hasMockFlag) {
                             toast.warning('📄 Using verified mock data - CORS blocking real API');
