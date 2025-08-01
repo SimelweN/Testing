@@ -100,9 +100,9 @@ export class FallbackCommitService {
           .from("notifications")
           .insert({
             user_id: order.buyer_id,
-            title: "Order Committed",
+            title: "✅ Order Committed",
             message: notificationMessage,
-            type: "order_committed",
+            type: "success",
             metadata: {
               order_id: order_id,
               delivery_method: delivery_method,
