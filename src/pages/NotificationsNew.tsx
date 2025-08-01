@@ -512,23 +512,36 @@ const NotificationsNew = () => {
               onClick={async () => {
                 if (user) {
                   try {
-                    await NotificationService.createNotification({
+                    const result = await NotificationService.createNotification({
                       userId: user.id,
                       type: 'test',
-                      title: 'Test Notification',
-                      message: `Test notification created at ${new Date().toLocaleTimeString()}`,
+                      title: '🧪 Test Notification',
+                      message: `Test notification created at ${new Date().toLocaleTimeString()} - This should appear in the General Notifications section below.`,
                     });
-                    toast.success('Test notification created!');
-                    try {
-                      await refreshNotifications();
-                    } catch (refreshError) {
-                      // Handle refresh error separately to avoid masking the success
-                      const refreshErrorMessage = refreshError instanceof Error ? refreshError.message :
-                        (typeof refreshError === 'object' && refreshError !== null) ?
-                          (refreshError.message || refreshError.details || refreshError.hint || JSON.stringify(refreshError)) :
-                          String(refreshError);
-                      console.error('Error refreshing notifications after creation:', refreshErrorMessage, refreshError);
-                      // Don't show toast error for refresh failure since creation succeeded
+
+                    if (result) {
+                      toast.success('✅ Test notification created! Check "General Notifications" section below');
+                      // Force refresh notifications to show the new one
+                      try {
+                        await refreshNotifications();
+                        // Give a moment for the UI to update, then scroll to general notifications
+                        setTimeout(() => {
+                          const generalSection = document.querySelector('[data-category="general"]');
+                          if (generalSection) {
+                            generalSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }, 500);
+                      } catch (refreshError) {
+                        // Handle refresh error separately to avoid masking the success
+                        const refreshErrorMessage = refreshError instanceof Error ? refreshError.message :
+                          (typeof refreshError === 'object' && refreshError !== null) ?
+                            (refreshError.message || refreshError.details || refreshError.hint || JSON.stringify(refreshError)) :
+                            String(refreshError);
+                        console.error('Error refreshing notifications after creation:', refreshErrorMessage, refreshError);
+                        toast.warning('Notification created but failed to refresh - try manually refreshing the page');
+                      }
+                    } else {
+                      toast.error('❌ Failed to create test notification - check console for details');
                     }
                   } catch (error) {
                     console.error('Failed to create test notification:', error);
