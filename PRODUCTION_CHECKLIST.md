@@ -89,11 +89,12 @@
 6. Verify error handling scenarios
 
 ### Final Steps
-1. Run production build: `npm run build`
-2. Test production build locally: `npm run preview`
-3. Deploy to production environment
-4. Verify all functionality in production
-5. Monitor error logs and performance
+1. Validate production readiness: `node scripts/validate-production.js`
+2. Run production build: `npm run build:prod`
+3. Test production build locally: `npm run preview`
+4. Deploy to production environment
+5. Verify all functionality in production
+6. Monitor error logs and performance
 
 ## 🎯 Key Production URLs
 - **Main Site**: https://rebookedsolutions.co.za
