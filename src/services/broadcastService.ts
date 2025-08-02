@@ -134,10 +134,19 @@ export const broadcastService = {
       }
       return mapSupabaseBroadcast(data);
     } catch (error) {
-      console.error("Broadcast creation failed:", error);
-      throw error instanceof Error
-        ? error
-        : new Error("Unknown error occurred");
+      const errorMessage = error instanceof Error ? error.message :
+        (typeof error === 'object' && error !== null) ?
+          (error.message || error.details || error.hint || JSON.stringify(error)) :
+          String(error);
+
+      console.error("Broadcast creation failed:", errorMessage, error);
+
+      // Re-throw the error with better context
+      if (error instanceof Error) {
+        throw error;
+      } else {
+        throw new Error(`Broadcast creation failed: ${errorMessage}`);
+      }
     }
   },
 
