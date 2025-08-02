@@ -606,18 +606,19 @@ const NotificationsNew = () => {
         return updatedCategories;
       });
 
-      // Refresh notifications to ensure consistency
-      console.log('🔄 Refreshing notifications...');
+      // Show success message immediately after UI update
+      toast.success('✅ Notification permanently removed');
+      console.log('✅ Notification removed from UI - dismissNotification completed successfully');
+
+      // Refresh notifications to ensure consistency (in background)
+      console.log('🔄 Refreshing notifications in background...');
       try {
         await refreshNotifications();
-        console.log('✅ Notifications refreshed successfully');
+        console.log('✅ Background notifications refresh completed');
       } catch (refreshError) {
         console.warn('⚠️ Failed to refresh notifications after deletion:', refreshError);
         // Don't show error toast for refresh failure since deletion succeeded
       }
-
-      toast.success('✅ Notification permanently removed');
-      console.log('✅ dismissNotification completed successfully');
 
     } catch (error) {
       console.error('💥 Exception while dismissing notification:', {
