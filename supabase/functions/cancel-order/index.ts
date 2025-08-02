@@ -137,6 +137,56 @@ serve(async (req) => {
       }
     }
 
+    // Create database notifications first
+    const notificationPromises = [];
+
+    // Create notification for seller
+    if (order.seller?.id) {
+      notificationPromises.push(
+        supabase.from("notifications").insert({
+          user_id: order.seller.id,
+          type: "warning",
+          title: "❌ Order Cancelled",
+          message: `Order #${order_id} for "${order.book?.title}" has been cancelled by the buyer. Your book has been returned to the marketplace.`,
+          order_id: order_id,
+          action_required: false
+        })
+      );
+    }
+
+    // Create notification for buyer
+    if (buyer_id) {
+      notificationPromises.push(
+        supabase.from("notifications").insert({
+          user_id: buyer_id,
+          type: "info",
+          title: "✅ Order Cancellation Confirmed",
+          message: `Your order #${order_id} for "${order.book?.title}" has been successfully cancelled. ${refundProcessed ? `Refund of R${(order.total_amount / 100).toFixed(2)} will be processed within 3-5 business days.` : 'No refund processed.'}`,
+          order_id: order_id,
+          action_required: false
+        })
+      );
+    }
+
+    // Create database notifications
+    try {
+      const notificationResults = await Promise.allSettled(notificationPromises);
+      const notificationErrors = notificationResults.filter(
+        (result) => result.status === "rejected",
+      ).length;
+
+      if (notificationErrors > 0) {
+        console.warn(
+          `${notificationErrors} notification(s) failed to create out of ${notificationPromises.length}`,
+        );
+      } else {
+        console.log("✅ Database notifications created successfully for order cancellation");
+      }
+    } catch (notificationError) {
+      console.error("Failed to create database notifications:", notificationError);
+      // Don't fail the cancellation for notification errors
+    }
+
     // Send cancellation notification emails
     try {
       // Notify seller
