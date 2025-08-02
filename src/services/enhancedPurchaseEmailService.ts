@@ -131,7 +131,7 @@ export class EnhancedPurchaseEmailService {
           
           <p><strong>What happens next:</strong></p>
           <ul>
-            <li>Log in to your ReBooked Campus account</li>
+            <li>Log in to your ReBooked Solutions account</li>
             <li>Click "Commit Sale" for this book</li>
             <li>We'll arrange pickup from your location</li>
             <li>You'll receive payment after delivery</li>
