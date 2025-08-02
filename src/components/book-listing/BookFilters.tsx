@@ -45,6 +45,8 @@ const BookFilters = ({
   setSelectedUniversityYear,
   selectedUniversity,
   setSelectedUniversity,
+  selectedProvince,
+  setSelectedProvince,
   priceRange,
   setPriceRange,
   bookType,
