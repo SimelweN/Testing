@@ -37,14 +37,13 @@ export const logAdminAction = async (
   description?: string,
 ) => {
   try {
-    // Since admin_actions table doesn't exist, we'll log to notifications instead
-    const { error } = await supabase.from("notifications").insert({
-      user_id: adminId,
+    // Log admin action as notification
+    const { NotificationService } = await import('../notificationService');
+    const success = await NotificationService.createNotification({
+      userId: adminId,
+      type: "info",
       title: `Admin Action: ${actionType}`,
-      message:
-        description ||
-        `Admin performed ${actionType} on ${targetType}: ${targetId}`,
-      type: "info", // Use 'info' instead of 'admin_action'
+      message: description || `Admin performed ${actionType} on ${targetType}: ${targetId}`,
     });
 
     if (error) {
