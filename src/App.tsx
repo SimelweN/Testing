@@ -227,6 +227,10 @@ function App() {
                         }
                       />
                       <Route
+                        path="/test-auth"
+                        element={<TestAuth />}
+                      />
+                      <Route
                         path="/activity"
                         element={
                           <ProtectedRoute>
