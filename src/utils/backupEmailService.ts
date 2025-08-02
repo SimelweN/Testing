@@ -37,7 +37,7 @@ const BACKUP_CONFIRMATION_TEMPLATE = `<!DOCTYPE html>
 <body>
   <div class="container">
     <h2>Confirm Your Email</h2>
-    <p>Thanks for signing up to ReBooked Campus! Please confirm your email address to activate your account.</p>
+    <p>Thanks for signing up to ReBooked Solutions! Please confirm your email address to activate your account.</p>
     <a href="{{CONFIRMATION_URL}}" class="btn">Confirm Email</a>
     <p>If the button doesn't work, copy and paste this link into your browser:</p>
     <p><a href="{{CONFIRMATION_URL}}" class="link">{{CONFIRMATION_URL}}</a></p>
