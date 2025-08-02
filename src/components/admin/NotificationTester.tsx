@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { NotificationService } from '@/services/notificationService';
 import { useAuth } from '@/contexts/AuthContext';
-import { TestTube, CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
+import { TestTube, CheckCircle, XCircle, Clock, AlertTriangle, Database, BarChart } from 'lucide-react';
+import { checkNotificationTable, getNotificationStats, testNotificationFlow } from '@/utils/notificationDatabaseChecker';
 
 const NotificationTester = () => {
   const { user } = useAuth();
