@@ -226,10 +226,12 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
-                      <Route
-                        path="/test-auth"
-                        element={<TestAuth />}
-                      />
+                      {import.meta.env.DEV && (
+                        <Route
+                          path="/test-auth"
+                          element={<TestAuth />}
+                        />
+                      )}
                       <Route
                         path="/activity"
                         element={
