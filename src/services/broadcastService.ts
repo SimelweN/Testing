@@ -148,11 +148,12 @@ export const broadcastService = {
 
       if (error) {
         const errorMessage = error.message || "Unknown error";
-        console.error("Error fetching active broadcasts:", {
+        const errorDetails = {
           message: errorMessage,
-          code: error.code,
-          details: error.details,
-        });
+          code: error.code || "NO_CODE",
+          details: error.details || "No details"
+        };
+        console.error("Error fetching active broadcasts:", errorMessage, errorDetails);
         return [];
       }
       return data?.map(mapSupabaseBroadcast) || [];
