@@ -271,21 +271,8 @@ const NotificationsNew = () => {
     },
   ]);
 
-  // Load broadcasts and test connection on component mount
+  // Test connection on component mount
   useEffect(() => {
-    const loadBroadcasts = async () => {
-      try {
-        const activeBroadcasts = await getActiveBroadcasts();
-        setBroadcasts(activeBroadcasts);
-        console.log("📢 Loaded broadcasts:", activeBroadcasts);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message :
-          (typeof error === 'object' && error !== null) ?
-            (error.message || error.details || error.hint || JSON.stringify(error)) :
-            String(error);
-        console.error("Failed to load broadcasts:", errorMessage, error);
-      }
-    };
 
     const checkConnection = async () => {
       try {
