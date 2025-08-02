@@ -16,7 +16,7 @@ import {
 import {
   updateUserStatus,
   deleteBookListing,
-  sendBroadcastMessage,
+  sendNotificationMessage,
   deleteUser,
 } from "@/services/admin/adminMutations";
 import { useIsMobile } from "@/hooks/use-mobile";
