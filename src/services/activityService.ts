@@ -35,14 +35,18 @@ export class ActivityService {
       // Log to console
       console.log(`📝 Profile updated for user: ${userId}`);
 
-      // Create notification for profile update (if table exists)
-      const { error } = await supabase.from("notifications").insert({
-        user_id: userId,
-        title: "Profile Updated",
-        message: "Your profile has been successfully updated",
-        type: "success",
-        read: false,
-      });
+      // Create notification for profile update
+      try {
+        const { NotificationService } = await import('./notificationService');
+        await NotificationService.createNotification({
+          userId: userId,
+          type: "success",
+          title: "Profile Updated",
+          message: "Your profile has been successfully updated",
+        });
+      } catch (notifError) {
+        console.warn('Failed to create profile update notification:', notifError);
+      }
 
       if (error) {
         // Check if it's a table not found error
