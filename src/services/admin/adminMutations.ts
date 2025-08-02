@@ -154,7 +154,7 @@ export const sendBroadcastMessage = async (message: string): Promise<void> => {
         // Test with one user first
         const testNotification = {
           user_id: users[0].id,
-          title: "System Announcement",
+          title: "ReBooked Solutions Team",
           message: message,
           type: tryType,
         };
