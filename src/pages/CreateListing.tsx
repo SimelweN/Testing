@@ -562,13 +562,19 @@ const CreateListing = () => {
 
           <FirstUploadSuccessDialog
             isOpen={showFirstUploadDialog}
-            onClose={() => {
+            onClose={async () => {
               setShowFirstUploadDialog(false);
               markPopupAsShown(user.id, 'firstUploadShown');
-              // Check if post listing dialog should be shown for returning users
-              if (shouldShowPostListing(user.id)) {
-                setShowPostListingDialog(true);
-              } else {
+              // Check if post listing dialog should be shown for first book only
+              try {
+                const isFirstBook = await isFirstBookListing(user.id);
+                if (isFirstBook && shouldShowPostListing(user.id)) {
+                  setShowPostListingDialog(true);
+                } else {
+                  setShowShareProfileDialog(true);
+                }
+              } catch (error) {
+                console.warn('Could not check if first book listing:', error);
                 setShowShareProfileDialog(true);
               }
             }}
