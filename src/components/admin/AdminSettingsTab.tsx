@@ -36,17 +36,7 @@ const AdminSettingsTab = ({
   onSendBroadcast,
 }: AdminSettingsTabProps) => {
   const { user } = useAuth();
-  const [newBroadcast, setNewBroadcast] = useState({
-    title: "",
-    message: "",
-    type: "info" as "info" | "warning" | "success" | "error",
-    priority: "normal" as "low" | "normal" | "medium" | "high" | "urgent",
-    targetAudience: "all" as "all" | "users" | "admin",
-    active: true,
-    expiresAt: "",
-  });
-  const [isCreating, setIsCreating] = useState(false);
-  const [isTesting, setIsTesting] = useState(false);
+
 
 
   const handleTestBroadcastPolicies = async () => {
