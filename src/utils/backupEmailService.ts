@@ -125,8 +125,8 @@ export class BackupEmailService {
       
       localStorage.setItem(`verification_${options.to}`, JSON.stringify(verificationData));
       
-      // Create a simple verification URL
-      const verificationUrl = `${window.location.origin}/verify?email=${encodeURIComponent(options.to)}&fallback=true`;
+      // Create a simple verification URL - use proper Supabase callback
+      const verificationUrl = `${window.location.origin}/auth/callback`;
       
       console.log("📧 Fallback verification URL created:", verificationUrl);
       
