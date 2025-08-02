@@ -46,8 +46,10 @@ export const logAdminAction = async (
       message: description || `Admin performed ${actionType} on ${targetType}: ${targetId}`,
     });
 
-    if (error) {
-      console.error("Error logging admin action:", error);
+    if (success) {
+      console.log(`📝 Admin action logged: ${actionType}`);
+    } else {
+      console.warn(`⚠️ Failed to log admin action: ${actionType}`);
     }
   } catch (error) {
     console.error("Error in admin action logging:", error);
