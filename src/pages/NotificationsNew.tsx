@@ -114,9 +114,12 @@ const NotificationsNew = () => {
       (n) =>
         n.type === "admin_action" ||
         n.type === "admin" ||
+        n.type === "broadcast" ||
         n.title?.toLowerCase().includes("removed") ||
         n.title?.toLowerCase().includes("deleted") ||
         n.title?.toLowerCase().includes("listing") ||
+        n.title?.toLowerCase().includes("rebooked solutions team") ||
+        n.title?.toLowerCase().includes("system announcement") ||
         n.message?.toLowerCase().includes("admin") ||
         n.message?.toLowerCase().includes("violation"),
     );
