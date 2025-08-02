@@ -728,6 +728,11 @@ const NotificationsNew = () => {
                         <div className="text-xs sm:text-sm font-normal text-gray-600">
                           {category.description}
                         </div>
+                        {process.env.NODE_ENV === 'development' && category.id === 'general' && (
+                          <div className="text-xs text-blue-600 mt-1">
+                            Debug: {category.notifications.length} notifications in this category
+                          </div>
+                        )}
                       </div>
                     </div>
                     {category.notifications.length > 0 && (
