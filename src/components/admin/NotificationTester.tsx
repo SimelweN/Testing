@@ -133,6 +133,40 @@ const NotificationTester = () => {
     }
   };
 
+  const checkDatabase = async () => {
+    setIsCheckingDb(true);
+    try {
+      console.log('🔍 Checking notification database...');
+
+      // Check table access
+      const tableInfo = await checkNotificationTable();
+      setDbStatus(tableInfo);
+
+      if (tableInfo.exists && tableInfo.canRead) {
+        // Get user stats
+        const userStats = await getNotificationStats();
+        setStats(userStats);
+
+        // Test complete flow
+        const flowTest = await testNotificationFlow();
+
+        if (tableInfo.canRead && tableInfo.canWrite && flowTest.success) {
+          toast.success('✅ Database verification passed!');
+        } else {
+          toast.warning('⚠️ Database has some issues - check details below');
+        }
+      } else {
+        toast.error('❌ Database verification failed');
+      }
+
+    } catch (error) {
+      console.error('Database check error:', error);
+      toast.error(`Database check failed: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsCheckingDb(false);
+    }
+  };
+
   const runAllTests = async () => {
     if (!user?.id) {
       toast.error('You must be logged in to run notification tests');
