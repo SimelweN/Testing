@@ -142,7 +142,9 @@ function App() {
                       />
                       <Route path="/verify" element={<Verify />} />
                       <Route path="/verify/*" element={<VerifyEmail />} />
-                      <Route path="/verify-debug" element={<VerifyDebug />} />
+                      {import.meta.env.DEV && (
+                        <Route path="/verify-debug" element={<VerifyDebug />} />
+                      )}
                       <Route path="/auth/callback" element={<AuthCallback />} />
 
                       {/* Protected User Routes */}
