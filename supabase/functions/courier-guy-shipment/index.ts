@@ -152,6 +152,31 @@ serve(async (req) => {
       console.error("Failed to update order:", updateError);
     }
 
+    // Get order information for notifications
+    const { data: orderInfo, error: orderInfoError } = await supabase
+      .from('orders')
+      .select('buyer_id, seller_id, buyer_email')
+      .eq('id', order_id)
+      .single();
+
+    // Create database notification for buyer
+    if (orderInfo?.buyer_id && shipmentData.tracking_number) {
+      try {
+        await supabase.from("notifications").insert({
+          user_id: orderInfo.buyer_id,
+          type: "info",
+          title: "📦 Your Order Has Shipped!",
+          message: `Great news! Your order #${finalReference} has been shipped and is on its way to you. Tracking: ${shipmentData.tracking_number}${isSimulated ? " (Test Mode)" : ""}`,
+          order_id: order_id,
+          action_required: false
+        });
+        console.log("Database notification created successfully");
+      } catch (notificationError) {
+        console.error("Failed to create database notification:", notificationError);
+        // Don't fail the shipment if notification fails
+      }
+    }
+
     // Send ReBooked Solutions shipping notification email
     if (delivery_address.email && shipmentData.tracking_number) {
       try {
