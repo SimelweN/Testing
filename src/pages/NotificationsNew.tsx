@@ -153,7 +153,7 @@ const NotificationsNew = () => {
         {
           id: "welcome-1",
           type: "welcome",
-          title: "Welcome to ReBooked Solutions! 🎉",
+          title: "Welcome to ReBooked Solutions! ����",
           message:
             "We're South Africa's premier textbook marketplace, connecting students across universities. Buy and sell textbooks easily, track your orders, and join a community of learners!",
           timestamp: new Date().toISOString(),
@@ -611,7 +611,7 @@ const NotificationsNew = () => {
       });
 
       // Show success message immediately after UI update
-      toast.success('✅ Notification permanently removed');
+      toast.success('�� Notification permanently removed');
       console.log('✅ Notification removed from UI - dismissNotification completed successfully');
 
       // Refresh notifications to ensure consistency (in background)
@@ -642,6 +642,13 @@ const NotificationsNew = () => {
       } else {
         toast.error('An unexpected error occurred. Please try again.');
       }
+    } finally {
+      // Clear dismissing state
+      setDismissingNotifications(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(notificationId);
+        return newSet;
+      });
     }
   };
 
