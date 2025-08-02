@@ -141,6 +141,21 @@ const AdminSettingsTab = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div>
+                <h4 className="font-semibold text-blue-900 mb-1">Admin Privileges Required</h4>
+                <p className="text-sm text-blue-800 mb-2">
+                  Creating broadcasts requires admin privileges. If you're getting permission errors, use the "Test Policies" button to diagnose the issue.
+                </p>
+                <p className="text-xs text-blue-700">
+                  The system will automatically verify your admin status before creating broadcasts.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="broadcast-title">Title</Label>
