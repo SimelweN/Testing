@@ -130,9 +130,11 @@ export const broadcastService = {
       }
       return data?.map(mapSupabaseBroadcast) || [];
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      console.error("Failed to fetch broadcasts:", errorMessage);
+      const errorMessage = error instanceof Error ? error.message :
+        (typeof error === 'object' && error !== null) ?
+          (error.message || error.details || error.hint || JSON.stringify(error)) :
+          String(error);
+      console.error("Failed to fetch broadcasts:", errorMessage, error);
       return [];
     }
   },
