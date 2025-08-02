@@ -125,6 +125,10 @@ const BookFilters = ({
     }
   };
 
+  const handleProvinceChange = (province: string) => {
+    setSelectedProvince(province === selectedProvince ? "" : province);
+  };
+
   const handleBookTypeChange = (type: "all" | "school" | "university") => {
     setBookType(type);
     if (type === "school") {
