@@ -155,7 +155,7 @@ const NotificationsNew = () => {
         {
           id: "welcome-1",
           type: "welcome",
-          title: "Welcome to ReBooked Solutions! 🎉",
+          title: "Welcome to ReBooked Campus! 🎉",
           message:
             "We're South Africa's premier textbook marketplace, connecting students across universities. Buy and sell textbooks easily, track your orders, and join a community of learners!",
           timestamp: new Date().toISOString(),
