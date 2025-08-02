@@ -92,11 +92,13 @@ export const broadcastService = {
 
       if (error) {
         const errorMessage = error.message || "Unknown error";
-        console.error("Error creating broadcast:", {
+        const errorDetails = {
           message: errorMessage,
-          code: error.code,
-          details: error.details,
-        });
+          code: error.code || "NO_CODE",
+          details: error.details || "No details",
+          hint: error.hint || "No hint"
+        };
+        console.error("Error creating broadcast:", errorMessage, errorDetails);
         throw new Error(`Failed to create broadcast: ${errorMessage}`);
       }
       if (!data) {
