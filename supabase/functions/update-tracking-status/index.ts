@@ -530,6 +530,31 @@ async function sendStatusChangeEmails(supabase: any, order: OrderToTrack, newSta
       break;
 
     case 'delivered':
+      // Create database notifications
+      notificationPromises.push(
+        supabase.from("notifications").insert({
+          user_id: order.buyer_id,
+          type: "success",
+          title: "✅ Order Delivered Successfully!",
+          message: `Excellent news! Your order #${order.order_id} has been successfully delivered. Enjoy your purchase!`,
+          order_id: order.order_id,
+          action_required: false
+        })
+      );
+
+      if (order.seller_id) {
+        notificationPromises.push(
+          supabase.from("notifications").insert({
+            user_id: order.seller_id,
+            type: "success",
+            title: "🎉 Order Completed Successfully!",
+            message: `Great news! Your order #${order.order_id} has been delivered. Your payout is being processed.`,
+            order_id: order.order_id,
+            action_required: false
+          })
+        );
+      }
+
       // Notify buyer - delivery confirmed
       if (order.buyer_email) {
         const buyerHtml = createEmailTemplate(
