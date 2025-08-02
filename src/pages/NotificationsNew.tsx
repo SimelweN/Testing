@@ -523,10 +523,9 @@ const NotificationsNew = () => {
 
       if (deleteError) {
         console.error('❌ Database error deleting notification:', {
-          error: deleteError,
           notificationId,
           code: deleteError.code,
-          message: deleteError.message,
+          message: deleteError.message || String(deleteError),
           details: deleteError.details,
           hint: deleteError.hint
         });
