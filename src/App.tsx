@@ -218,6 +218,14 @@ function App() {
                         }
                       />
                       <Route
+                        path="/restore-books"
+                        element={
+                          <ProtectedRoute>
+                            <RestoreBooks />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
                         path="/activity"
                         element={
                           <ProtectedRoute>
