@@ -508,7 +508,7 @@ serve(async (req) => {
     <p>The buyer has been notified and their payment has been refunded.</p>
 
     <div class="footer">
-      <p><strong>This is an automated message from ReBooked Marketplace.</strong><br>
+      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
       Please do not reply to this email.</p>
       <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
       Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
