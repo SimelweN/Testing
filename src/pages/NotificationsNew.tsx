@@ -474,19 +474,42 @@ const NotificationsNew = () => {
     );
   };
 
-  const dismissNotification = (categoryId: string, notificationId: string) => {
-    setCategories((prev) =>
-      prev.map((category) =>
-        category.id === categoryId
-          ? {
-              ...category,
-              notifications: category.notifications.filter(
-                (notif) => notif.id !== notificationId,
-              ),
-            }
-          : category,
-      ),
-    );
+  const dismissNotification = async (categoryId: string, notificationId: string) => {
+    try {
+      // Delete from database first
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId);
+
+      if (error) {
+        console.error('Failed to delete notification:', error);
+        toast.error('Failed to remove notification');
+        return;
+      }
+
+      // Update local state to remove from UI immediately
+      setCategories((prev) =>
+        prev.map((category) =>
+          category.id === categoryId
+            ? {
+                ...category,
+                notifications: category.notifications.filter(
+                  (notif) => notif.id !== notificationId,
+                ),
+              }
+            : category,
+        ),
+      );
+
+      // Refresh notifications to ensure consistency
+      refreshNotifications();
+
+      toast.success('Notification removed');
+    } catch (error) {
+      console.error('Error dismissing notification:', error);
+      toast.error('Failed to remove notification');
+    }
   };
 
   // Use real notification counts from the hook
