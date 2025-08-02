@@ -589,10 +589,10 @@ const NotificationsNew = () => {
 
       console.log('✅ Successfully deleted notification from database');
 
-      // Update local state to remove from UI immediately
-      console.log('🔄 Updating local state...');
-      setCategories((prev) =>
-        prev.map((category) =>
+      // Update local state to remove from UI immediately (before showing success message)
+      console.log('🔄 Updating local state to remove notification from UI...');
+      setCategories((prev) => {
+        const updatedCategories = prev.map((category) =>
           category.id === categoryId
             ? {
                 ...category,
@@ -601,8 +601,10 @@ const NotificationsNew = () => {
                 ),
               }
             : category,
-        ),
-      );
+        );
+        console.log('✅ Local state updated - notification removed from UI');
+        return updatedCategories;
+      });
 
       // Refresh notifications to ensure consistency
       console.log('🔄 Refreshing notifications...');
