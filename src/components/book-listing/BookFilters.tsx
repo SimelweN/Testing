@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Filter, Search, School, GraduationCap, BookOpen } from "lucide-react";
+import { Filter, Search, School, GraduationCap, BookOpen, MapPin } from "lucide-react";
 import { UniversitySelector } from "@/components/ui/university-selector";
 import { UNIVERSITY_YEARS } from "@/constants/universities";
 
