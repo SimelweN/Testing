@@ -209,6 +209,14 @@ function App() {
                         }
                       />
                       <Route
+                        path="/clear-notifications"
+                        element={
+                          <ProtectedRoute>
+                            <ClearNotifications />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
                         path="/activity"
                         element={
                           <ProtectedRoute>
