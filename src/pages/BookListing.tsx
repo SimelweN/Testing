@@ -250,6 +250,8 @@ const BookListing = () => {
             setSelectedUniversityYear={setSelectedUniversityYear}
             selectedUniversity={selectedUniversity}
             setSelectedUniversity={setSelectedUniversity}
+            selectedProvince={selectedProvince}
+            setSelectedProvince={setSelectedProvince}
             priceRange={priceRange}
             setPriceRange={setPriceRange}
             bookType={bookType}
