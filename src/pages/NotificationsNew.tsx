@@ -738,6 +738,9 @@ const NotificationsNew = () => {
             if (!category.enabled && category.id !== "welcome") return null;
             if (category.id === "welcome" && !isFirstTime && !showWelcome)
               return null;
+            // Hide categories with no notifications (except welcome)
+            if (category.id !== "welcome" && category.notifications.length === 0)
+              return null;
 
             const colorClasses = {
               purple: "border-purple-200 bg-purple-50",
