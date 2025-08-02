@@ -29,7 +29,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/hooks/useNotifications";
-import { getActiveBroadcasts } from "@/services/broadcastService";
 import { toast } from "sonner";
 import { NotificationService } from "@/services/notificationService";
 import { supabase } from "@/integrations/supabase/client";
@@ -704,7 +703,7 @@ const NotificationsNew = () => {
                   const result = await NotificationService.createNotification({
                     userId: user.id,
                     type: 'info',
-                    title: '🗑��� Test Dismiss Notification',
+                    title: '🗑️ Test Dismiss Notification',
                     message: 'Click the X button to test the dismiss functionality. This should permanently delete from database.',
                   });
 
