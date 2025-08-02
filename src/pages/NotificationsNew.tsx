@@ -486,8 +486,13 @@ const NotificationsNew = () => {
         .single();
 
       if (checkError) {
-        console.error('❌ Error checking notification existence:', checkError);
-        toast.error(`Notification not found: ${checkError.message}`);
+        console.error('❌ Error checking notification existence:', {
+          message: checkError.message || String(checkError),
+          code: checkError.code,
+          details: checkError.details,
+          hint: checkError.hint
+        });
+        toast.error(`Notification not found: ${checkError.message || 'Unknown error'}`);
         return;
       }
 
