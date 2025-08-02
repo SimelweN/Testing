@@ -76,6 +76,7 @@ const NotificationsNew = () => {
   });
   const [connectionStatus, setConnectionStatus] = useState<ConnectionTestResult | null>(null);
   const [showConnectionDetails, setShowConnectionDetails] = useState(false);
+  const [dismissingNotifications, setDismissingNotifications] = useState<Set<string>>(new Set());
 
   // Convert database notifications to our category format
   const categorizeNotifications = (dbNotifications: any[]) => {
