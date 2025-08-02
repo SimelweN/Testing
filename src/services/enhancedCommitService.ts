@@ -3,6 +3,35 @@ import { emailService } from "@/services/emailService";
 import { NotificationService } from "@/services/notificationService";
 import { toast } from "sonner";
 
+// Utility to properly serialize errors for logging (prevents [object Object])
+const serializeError = (error: any): any => {
+  if (!error) return { message: 'Unknown error' };
+
+  if (typeof error === 'string') return { message: error };
+
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+    };
+  }
+
+  // Handle Supabase error objects
+  if (typeof error === 'object') {
+    return {
+      message: error.message || error.error_description || error.msg || 'Unknown error',
+      code: error.code || error.error || error.status,
+      details: error.details || error.error_description,
+      hint: error.hint,
+      timestamp: new Date().toISOString(),
+      originalError: error // Include full original object
+    };
+  }
+
+  return { message: String(error) };
+};
+
 interface CommitEmailData {
   orderId: string;
   sellerId: string;
@@ -69,9 +98,10 @@ export class EnhancedCommitService {
             await this.createCommitNotifications(orderData);
           }
         } catch (notifError) {
+          const serializedError = serializeError(notifError);
           console.warn("⚠️ Failed to create notifications:", {
-            message: notifError instanceof Error ? notifError.message : 'Unknown error',
-            error: notifError,
+            ...serializedError,
+            context: 'edge-function-success-path',
             timestamp: new Date().toISOString()
           });
         }
@@ -94,9 +124,10 @@ export class EnhancedCommitService {
         try {
           await this.createCommitNotifications(orderData);
         } catch (notifError) {
+          const serializedError = serializeError(notifError);
           console.warn("⚠️ Failed to create notifications:", {
-            message: notifError instanceof Error ? notifError.message : 'Unknown error',
-            error: notifError,
+            ...serializedError,
+            context: 'fallback-path',
             timestamp: new Date().toISOString()
           });
         }
