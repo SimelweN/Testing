@@ -364,7 +364,7 @@ async function createRecipientForPayout(supabase: any, order: OrderToTrack) {
       console.log(`📊 PAYOUT DETAILS:`)
       console.log(`┌─────────────────────────────────────────────────────────────┐`)
       console.log(`│                     SELLER PAYOUT SUMMARY                  │`)
-      console.log(`├─────────────────────────────────────────────────────────────┤`)
+      console.log(`├─��───────────────────────────────────────────────────────────┤`)
       console.log(`│ Seller ID: ${order.seller_id}`)
       console.log(`│ Recipient Code: ${recipientResult.recipient_code || 'N/A'}`)
       console.log(`│ Payment Status: ${recipientResult.already_existed ? 'EXISTING RECIPIENT' : 'NEW RECIPIENT CREATED'}`)
@@ -617,6 +617,18 @@ async function sendStatusChangeEmails(supabase: any, order: OrderToTrack, newSta
       break;
 
     case 'out_for_delivery':
+      // Create database notification
+      notificationPromises.push(
+        supabase.from("notifications").insert({
+          user_id: order.buyer_id,
+          type: "info",
+          title: "🚛 Your Order is Out for Delivery!",
+          message: `Your order #${order.order_id} is out for delivery and should arrive today! Please be available to receive it.`,
+          order_id: order.order_id,
+          action_required: false
+        })
+      );
+
       // Notify buyer - out for delivery
       if (order.buyer_email) {
         const buyerHtml = createEmailTemplate(
