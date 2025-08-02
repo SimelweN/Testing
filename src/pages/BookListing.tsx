@@ -75,7 +75,7 @@ const BookListing = () => {
       if (grade) filters.grade = grade;
       if (universityYear) filters.universityYear = universityYear;
       if (selectedUniversity) filters.university = selectedUniversity;
-      if (selectedProvince) filters.province = selectedProvince;
+      if (province || selectedProvince) filters.province = province || selectedProvince;
 
       if (priceRange[0] > 0) filters.minPrice = priceRange[0];
       if (priceRange[1] < 1000) filters.maxPrice = priceRange[1];
