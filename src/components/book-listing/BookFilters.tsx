@@ -322,6 +322,33 @@ const BookFilters = ({
             </div>
           </div>
 
+          {/* Province Filter */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+              <MapPin className="mr-1 h-4 w-4" />
+              Province
+            </h3>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {provinces.map((province) => (
+                <div key={province} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id={`province-${province}`}
+                    checked={selectedProvince === province}
+                    onChange={() => handleProvinceChange(province)}
+                    className="h-4 w-4 text-book-600 focus:ring-book-500 border-gray-300 rounded"
+                  />
+                  <label
+                    htmlFor={`province-${province}`}
+                    className="ml-2 text-sm text-gray-700"
+                  >
+                    {province}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Condition Filter */}
           <div className="mb-6">
             <h3 className="text-sm font-medium text-gray-700 mb-2">
