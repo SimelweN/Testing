@@ -230,6 +230,42 @@ ${processedBooks.slice(0, 10).map(book =>
 ReBooked Solutions - Pre-Loved Pages, New Adventures`
           }),
         });
+
+        // Create database notification for admin users
+        try {
+          // Try to get admin user ID from environment variable, fallback to looking up by email
+          let adminUserId = Deno.env.get("ADMIN_USER_ID");
+
+          if (!adminUserId) {
+            // Look up admin user by email
+            const { data: adminUser } = await supabase
+              .from("profiles")
+              .select("id")
+              .eq("email", "admin@rebookedsolutions.co.za")
+              .single();
+
+            adminUserId = adminUser?.id;
+          }
+
+          if (adminUserId) {
+            await supabase
+              .from('notifications')
+              .insert({
+                user_id: adminUserId,
+                type: 'info',
+                title: `📚 Auto-Expire: ${successCount} books back on market`,
+                message: `${successCount} books have been freed up and are back on the market! Total value: R${totalValue.toFixed(2)}. Generated: ${now.toLocaleString()}`,
+                action_required: false
+              });
+
+            console.log(`✅ Created database notification for admin about ${successCount} expired books`);
+          } else {
+            console.warn("No admin user found for database notification");
+          }
+        } catch (notificationError) {
+          console.error("Failed to create admin database notification:", notificationError);
+        }
+
       } catch (emailError) {
         console.error("[ReBooked Auto-Expire] Failed to send notification email:", emailError);
       }
