@@ -18,11 +18,9 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { createBroadcast } from "@/services/broadcastService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { MessageSquare, Megaphone, TestTube, Shield } from "lucide-react";
-import { testAndFixBroadcastPolicies, checkCurrentUserAdminStatus } from "@/utils/broadcastPolicyFix";
+import { MessageSquare } from "lucide-react";
 
 
 
