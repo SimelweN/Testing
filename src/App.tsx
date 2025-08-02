@@ -204,14 +204,16 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
-                      <Route
-                        path="/notification-test"
-                        element={
-                          <ProtectedRoute>
-                            <NotificationTest />
-                          </ProtectedRoute>
-                        }
-                      />
+                      {import.meta.env.DEV && (
+                        <Route
+                          path="/notification-test"
+                          element={
+                            <ProtectedRoute>
+                              <NotificationTest />
+                            </ProtectedRoute>
+                          }
+                        />
+                      )}
                       <Route
                         path="/clear-notifications"
                         element={
