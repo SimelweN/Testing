@@ -156,6 +156,7 @@ const BookListing = () => {
     setSelectedGrade("");
     setSelectedUniversityYear("");
     setSelectedUniversity("");
+    setSelectedProvince("");
     setPriceRange([0, 1000]);
     setBookType("all");
     setSearchParams(new URLSearchParams());
