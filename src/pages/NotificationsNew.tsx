@@ -32,6 +32,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { getActiveBroadcasts } from "@/services/broadcastService";
 import { toast } from "sonner";
 import { NotificationService } from "@/services/notificationService";
+import { supabase } from "@/integrations/supabase/client";
 
 interface NotificationCategory {
   id: string;
