@@ -126,7 +126,10 @@ Current environment: ${ENV.NODE_ENV}
   }
 
   if (missing.length === 0) {
-    console.log("✅ Environment variables validated successfully");
+    // Only log in development
+    if (import.meta.env.DEV) {
+      console.log("✅ Environment variables validated successfully");
+    }
 
     // Warn about missing optional API keys in production
     if (import.meta.env.PROD && missingOptional.length > 0) {
