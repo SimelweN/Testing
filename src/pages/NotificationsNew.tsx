@@ -477,6 +477,14 @@ const NotificationsNew = () => {
 
   const dismissNotification = async (categoryId: string, notificationId: string) => {
     try {
+      console.log('🗑️ Attempting to delete notification:', notificationId);
+
+      // Check network connectivity first
+      if (!navigator.onLine) {
+        toast.error('No internet connection. Please check your network.');
+        return;
+      }
+
       // Delete from database first
       const { error } = await supabase
         .from('notifications')
@@ -484,10 +492,29 @@ const NotificationsNew = () => {
         .eq('id', notificationId);
 
       if (error) {
-        console.error('Failed to delete notification:', error);
-        toast.error('Failed to remove notification');
+        console.error('❌ Database error deleting notification:', {
+          error,
+          notificationId,
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+
+        // Handle specific error cases
+        if (error.code === 'PGRST116') {
+          toast.error('Notification not found or already deleted');
+        } else if (error.code === '42501') {
+          toast.error('Permission denied. You can only delete your own notifications.');
+        } else if (error.message?.includes('Failed to fetch') || error.message?.includes('network')) {
+          toast.error('Network error. Please check your connection and try again.');
+        } else {
+          toast.error(`Failed to remove notification: ${error.message}`);
+        }
         return;
       }
+
+      console.log('✅ Successfully deleted notification from database');
 
       // Update local state to remove from UI immediately
       setCategories((prev) =>
@@ -504,12 +531,31 @@ const NotificationsNew = () => {
       );
 
       // Refresh notifications to ensure consistency
-      refreshNotifications();
+      try {
+        await refreshNotifications();
+      } catch (refreshError) {
+        console.warn('⚠️ Failed to refresh notifications after deletion:', refreshError);
+        // Don't show error toast for refresh failure since deletion succeeded
+      }
 
       toast.success('Notification removed');
     } catch (error) {
-      console.error('Error dismissing notification:', error);
-      toast.error('Failed to remove notification');
+      console.error('💥 Exception while dismissing notification:', {
+        error,
+        notificationId,
+        categoryId,
+        isOnline: navigator.onLine,
+        timestamp: new Date().toISOString()
+      });
+
+      // Handle network errors specifically
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        toast.error('Network error. Please check your internet connection and try again.');
+      } else if (error instanceof Error) {
+        toast.error(`Error: ${error.message}`);
+      } else {
+        toast.error('An unexpected error occurred. Please try again.');
+      }
     }
   };
 
