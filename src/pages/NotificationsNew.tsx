@@ -238,8 +238,8 @@ const NotificationsNew = () => {
     },
     {
       id: "admin",
-      title: "Admin Actions",
-      description: "Actions taken by administrators",
+      title: "System Messages & Admin Actions",
+      description: "Official communications and administrative actions",
       icon: <Settings className="h-5 w-5" />,
       color: "red",
       enabled: true,
@@ -704,7 +704,7 @@ const NotificationsNew = () => {
                   const result = await NotificationService.createNotification({
                     userId: user.id,
                     type: 'info',
-                    title: '🗑️ Test Dismiss Notification',
+                    title: '🗑��� Test Dismiss Notification',
                     message: 'Click the X button to test the dismiss functionality. This should permanently delete from database.',
                   });
 
