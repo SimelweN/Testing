@@ -55,6 +55,7 @@ const BookListing = () => {
       const category = searchParams.get("category") || "";
       const grade = searchParams.get("grade") || "";
       const universityYear = searchParams.get("universityYear") || "";
+      const province = searchParams.get("province") || "";
 
       const filters: {
         search?: string;
