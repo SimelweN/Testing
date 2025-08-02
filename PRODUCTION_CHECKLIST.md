@@ -30,8 +30,10 @@
 ## ✅ Development Features Disabled
 - [x] **Test notification button** - Only shown in development
 - [x] **Notification debugger** - Only shown in development
-- [x] **Debug console logs** - Minimal in production
+- [x] **Debug console logs** - Removed/wrapped in production build
 - [x] **Development error messages** - Production-friendly errors
+- [x] **Test routes** - Wrapped in development checks (`/test-auth`, `/notification-test`, `/verify-debug`)
+- [x] **Console.log cleanup** - Terser removes console.log in production builds
 
 ## ✅ SEO & Analytics
 - [x] **Vercel Analytics** integrated
