@@ -190,7 +190,7 @@ export class EnhancedPurchaseEmailService {
           
           <p><strong>If the seller doesn't confirm:</strong> You'll receive a full automatic refund within 48 hours.</p>
           
-          <p>Thank you for choosing ReBooked Campus!</p>
+          <p>Thank you for choosing ReBooked Solutions!</p>
         </div>
       </div>
     `;
