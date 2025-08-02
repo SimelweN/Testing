@@ -100,9 +100,9 @@ export const searchUserData = async (
   }
 };
 
-export const sendBroadcastMessage = async (message: string): Promise<void> => {
+export const sendNotificationMessage = async (message: string): Promise<void> => {
   try {
-    console.log("Attempting to send broadcast message:", message);
+    console.log("Attempting to send notification message:", message);
 
     // Get all users first
     const { data: users, error: usersError } = await supabase
