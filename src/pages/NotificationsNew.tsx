@@ -74,6 +74,8 @@ const NotificationsNew = () => {
     purchases: true,
     deliveries: true,
   });
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionTestResult | null>(null);
+  const [showConnectionDetails, setShowConnectionDetails] = useState(false);
 
   // Convert database notifications to our category format
   const categorizeNotifications = (dbNotifications: any[]) => {
