@@ -628,6 +628,77 @@ const NotificationsNew = () => {
 
         </div>
 
+        {/* Connection Status Details */}
+        {showConnectionDetails && connectionStatus && (
+          <Card className="mb-6 border-red-200 bg-red-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-800">
+                <XCircle className="h-5 w-5" />
+                Connection Diagnostics
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Internet Connection:</span>
+                  <Badge variant={connectionStatus.isOnline ? "default" : "destructive"}>
+                    {connectionStatus.isOnline ? "✅ Online" : "❌ Offline"}
+                  </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span>Supabase Reachable:</span>
+                  <Badge variant={connectionStatus.supabaseReachable ? "default" : "destructive"}>
+                    {connectionStatus.supabaseReachable ? "✅ Yes" : "❌ No"}
+                  </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span>Authentication:</span>
+                  <Badge variant={connectionStatus.authWorking ? "default" : "destructive"}>
+                    {connectionStatus.authWorking ? "✅ Working" : "❌ Failed"}
+                  </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span>Database Access:</span>
+                  <Badge variant={connectionStatus.databaseWorking ? "default" : "destructive"}>
+                    {connectionStatus.databaseWorking ? "✅ Working" : "❌ Failed"}
+                  </Badge>
+                </div>
+                {connectionStatus.latency && (
+                  <div className="flex justify-between">
+                    <span>Response Time:</span>
+                    <Badge variant="outline">{connectionStatus.latency}ms</Badge>
+                  </div>
+                )}
+                {connectionStatus.error && (
+                  <div className="mt-3 p-2 bg-red-100 rounded text-red-800 text-xs">
+                    <strong>Error:</strong> {connectionStatus.error}
+                  </div>
+                )}
+              </div>
+              <div className="mt-4 flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
+                    const result = await testConnection();
+                    setConnectionStatus(result);
+                    toast.info('Connection test completed');
+                  }}
+                >
+                  Retest Connection
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowConnectionDetails(false)}
+                >
+                  Hide Details
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Welcome Message for First-Time Users */}
         {showWelcome && (
           <Alert className="mb-6 sm:mb-8 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
