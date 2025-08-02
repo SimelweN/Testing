@@ -19,6 +19,8 @@ interface BookFiltersProps {
   setSelectedUniversityYear: (year: string) => void;
   selectedUniversity: string;
   setSelectedUniversity: (university: string) => void;
+  selectedProvince: string;
+  setSelectedProvince: (province: string) => void;
   priceRange: [number, number];
   setPriceRange: (range: [number, number]) => void;
   bookType: "all" | "school" | "university";
