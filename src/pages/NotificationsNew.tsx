@@ -157,7 +157,7 @@ const NotificationsNew = () => {
           type: "info",
           title: "How ReBooked Solutions Works",
           message:
-            "📚 Browse thousands of textbooks → 💰 Buy at student-friendly prices → 🚚 Get delivery nationwide → ✅ Sell your old books when done!",
+            "📚 Browse thousands of textbooks → 💰 Buy at student-friendly prices → 🚚 Get delivery nationwide �� ✅ Sell your old books when done!",
           timestamp: new Date().toISOString(),
           read: false,
           priority: "medium",
@@ -478,7 +478,7 @@ const NotificationsNew = () => {
       }
 
       // First, let's verify the notification exists
-      console.log('🔍 Checking if notification exists...');
+      console.log('��� Checking if notification exists...');
       const { data: existingNotification, error: checkError } = await supabase
         .from('notifications')
         .select('id, user_id, title')
@@ -616,7 +616,7 @@ const NotificationsNew = () => {
                 Notifications
               </h1>
               <p className="text-sm sm:text-base text-gray-500">
-                Stay updated with your ReBooked Campus activity
+                Stay updated with your ReBooked Solutions activity
               </p>
             </div>
           </div>
