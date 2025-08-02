@@ -121,6 +121,12 @@ export const broadcastService = {
           hint: error.hint || "No hint"
         };
         console.error("Error creating broadcast:", errorMessage, errorDetails);
+
+        // Handle specific RLS policy violations
+        if (error.message?.includes("row-level security policy") || error.code === "42501") {
+          throw new Error("Permission denied: Admin privileges required to create broadcasts. Please ensure you are logged in as an admin user.");
+        }
+
         throw new Error(`Failed to create broadcast: ${errorMessage}`);
       }
       if (!data) {
