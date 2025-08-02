@@ -586,25 +586,60 @@ const NotificationsNew = () => {
           )}
 
           {process.env.NODE_ENV === 'development' && user && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                try {
-                  await refreshNotifications();
-                  toast.success('✅ Notifications refreshed!');
-                } catch (error) {
-                  const errorMessage = error instanceof Error ? error.message :
-                    (typeof error === 'object' && error !== null) ?
-                      (error.message || error.details || error.hint || JSON.stringify(error)) :
-                      String(error);
-                  toast.error(`Failed to refresh: ${errorMessage}`);
-                }
-              }}
-              className="self-start sm:self-auto"
-            >
-              🔄 Refresh
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    await refreshNotifications();
+                    toast.success('✅ Notifications refreshed!');
+                  } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message :
+                      (typeof error === 'object' && error !== null) ?
+                        (error.message || error.details || error.hint || JSON.stringify(error)) :
+                        String(error);
+                    toast.error(`Failed to refresh: ${errorMessage}`);
+                  }
+                }}
+                className="self-start sm:self-auto"
+              >
+                🔄 Refresh
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    const { data, error } = await supabase
+                      .from('notifications')
+                      .select('*')
+                      .eq('user_id', user.id)
+                      .order('created_at', { ascending: false });
+
+                    if (error) {
+                      toast.error(`DB Error: ${error.message}`);
+                    } else {
+                      console.log('🔍 Raw database notifications:', data);
+                      toast.success(`Found ${data?.length || 0} notifications in database`);
+
+                      // Show details of most recent 3
+                      if (data && data.length > 0) {
+                        console.table(data.slice(0, 3));
+                        const recent = data[0];
+                        toast.info(`Most recent: "${recent.title}" (${recent.type}) - ${recent.read ? 'Read' : 'Unread'}`);
+                      }
+                    }
+                  } catch (error) {
+                    console.error('Debug error:', error);
+                    toast.error('Debug failed');
+                  }
+                }}
+                className="self-start sm:self-auto"
+              >
+                🔍 Check DB
+              </Button>
+            </div>
           )}
 
         </div>
