@@ -242,23 +242,6 @@ const NotificationsNew = () => {
         priority: "high" as const,
       })),
     },
-    {
-      id: "general",
-      title: "General Notifications",
-      description: "System notifications and updates",
-      icon: <Bell className="h-5 w-5" />,
-      color: "gray",
-      enabled: true,
-      notifications: categorizedNotifications.general.map((n) => ({
-        id: n.id,
-        type: n.type || "general",
-        title: n.title,
-        message: n.message,
-        timestamp: n.created_at || n.createdAt,
-        read: n.read,
-        priority: "medium" as const,
-      })),
-    },
   ]);
 
   // Test connection on component mount
