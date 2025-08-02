@@ -624,6 +624,36 @@ const NotificationsNew = () => {
               Connection Issues
             </Badge>
           )}
+          {process.env.NODE_ENV === 'development' && user && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                try {
+                  console.log('🧪 Creating test notification for dismiss testing...');
+                  const result = await NotificationService.createNotification({
+                    userId: user.id,
+                    type: 'info',
+                    title: '🗑️ Test Dismiss Notification',
+                    message: 'Click the X button to test the dismiss functionality. This should permanently delete from database.',
+                  });
+
+                  if (result) {
+                    toast.success('Test notification created - try dismissing it with the X button');
+                    await refreshNotifications();
+                  } else {
+                    toast.error('Failed to create test notification');
+                  }
+                } catch (error) {
+                  console.error('Failed to create test notification:', error);
+                  toast.error('Error creating test notification');
+                }
+              }}
+              className="self-start sm:self-auto"
+            >
+              🧪 Test Dismiss
+            </Button>
+          )}
 
 
         </div>
