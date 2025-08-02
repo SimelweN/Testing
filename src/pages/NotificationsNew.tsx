@@ -257,7 +257,11 @@ const NotificationsNew = () => {
           toast.warning('Connection issues detected. Some features may not work properly.');
         }
       } catch (error) {
-        console.error('❌ Connection test failed:', error);
+        console.error('❌ Connection test failed:', {
+          message: error instanceof Error ? error.message : String(error),
+          code: error?.code,
+          details: error?.details
+        });
         const errorMessage = getConnectionErrorMessage(error);
         setConnectionStatus({
           isOnline: navigator.onLine,
@@ -572,7 +576,11 @@ const NotificationsNew = () => {
         await refreshNotifications();
         console.log('✅ Background notifications refresh completed');
       } catch (refreshError) {
-        console.warn('⚠️ Failed to refresh notifications after deletion:', refreshError);
+        console.warn('⚠️ Failed to refresh notifications after deletion:', {
+          message: refreshError instanceof Error ? refreshError.message : String(refreshError),
+          code: refreshError?.code,
+          details: refreshError?.details
+        });
         // Don't show error toast for refresh failure since deletion succeeded
       }
 
@@ -664,7 +672,11 @@ const NotificationsNew = () => {
                     toast.error('Failed to create test notification');
                   }
                 } catch (error) {
-                  console.error('Failed to create test notification:', error);
+                  console.error('Failed to create test notification:', {
+                    message: error instanceof Error ? error.message : String(error),
+                    code: error?.code,
+                    details: error?.details
+                  });
                   toast.error('Error creating test notification');
                 }
               }}
