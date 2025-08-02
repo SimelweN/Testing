@@ -44,9 +44,7 @@ const AdminSettingsTab = ({
 
   return (
     <div className="space-y-6">
-
-
-
+      <NotificationTester />
 
       <Card>
         <CardHeader>
