@@ -47,19 +47,7 @@ const AdminSettingsTab = ({
     expiresAt: "",
   });
   const [isCreating, setIsCreating] = useState(false);
-  const [isCleaningBanking, setIsCleaningBanking] = useState(false);
 
-  const handleBankingCleanup = async () => {
-    if (
-      !confirm(
-        "⚠️ This will remove ALL development/mock banking details from the system. This action cannot be undone. Are you sure?",
-      )
-    ) {
-      return;
-    }
-
-    toast.info("Banking cleanup functionality has been removed");
-  };
 
   const handleCreateBroadcast = async () => {
     if (!user || !newBroadcast.title.trim() || !newBroadcast.message.trim()) {
