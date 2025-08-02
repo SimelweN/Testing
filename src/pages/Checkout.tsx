@@ -71,7 +71,7 @@ const Checkout: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      console.log('🔍 CHECKOUT: Loading cart data...');
+
 
       // Get cart data from localStorage - use the most recent one
       const cartDataStr = localStorage.getItem('checkoutCart');
