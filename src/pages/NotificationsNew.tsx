@@ -280,7 +280,7 @@ const NotificationsNew = () => {
         setConnectionStatus(result);
 
         if (!result.supabaseReachable || !result.databaseWorking) {
-          console.warn('⚠️ Connection issues detected:', result);
+          console.warn('⚠�� Connection issues detected:', result);
           toast.warning('Connection issues detected. Some features may not work properly.');
         }
       } catch (error) {
@@ -296,7 +296,6 @@ const NotificationsNew = () => {
       }
     };
 
-    loadBroadcasts();
     checkConnection();
   }, []);
 
