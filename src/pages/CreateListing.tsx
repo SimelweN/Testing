@@ -29,6 +29,7 @@ import {
   hasCompletedFirstUpload,
   markFirstUploadCompleted,
 } from "@/services/userPreferenceService";
+import { isFirstBookListing } from "@/services/userBookCountService";
 import { BookInformationForm } from "@/components/create-listing/BookInformationForm";
 import { PricingSection } from "@/components/create-listing/PricingSection";
 import { BookTypeSection } from "@/components/create-listing/BookTypeSection";
