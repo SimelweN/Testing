@@ -37,7 +37,9 @@ const BookListing = () => {
   const [selectedGrade, setSelectedGrade] = useState("");
   const [selectedUniversityYear, setSelectedUniversityYear] = useState("");
   const [selectedUniversity, setSelectedUniversity] = useState("");
-  const [selectedProvince, setSelectedProvince] = useState("");
+  const [selectedProvince, setSelectedProvince] = useState(
+    searchParams.get("province") || "",
+  );
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [bookType, setBookType] = useState<"all" | "school" | "university">(
     "all",
