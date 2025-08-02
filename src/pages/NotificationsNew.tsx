@@ -503,39 +503,86 @@ const NotificationsNew = () => {
 
   const dismissNotification = async (categoryId: string, notificationId: string) => {
     try {
-      console.log('🗑️ Attempting to delete notification:', notificationId);
+      console.log('🗑️ Starting dismissNotification:', {
+        categoryId,
+        notificationId,
+        userId: user?.id,
+        isOnline: navigator.onLine,
+        timestamp: new Date().toISOString()
+      });
 
       // Check network connectivity first
       if (!navigator.onLine) {
+        console.error('❌ No internet connection');
         toast.error('No internet connection. Please check your network.');
         return;
       }
 
-      // Delete from database first
-      const { error } = await supabase
+      // Check if user is authenticated
+      if (!user?.id) {
+        console.error('❌ No authenticated user');
+        toast.error('You must be logged in to delete notifications');
+        return;
+      }
+
+      // First, let's verify the notification exists
+      console.log('🔍 Checking if notification exists...');
+      const { data: existingNotification, error: checkError } = await supabase
+        .from('notifications')
+        .select('id, user_id, title')
+        .eq('id', notificationId)
+        .single();
+
+      if (checkError) {
+        console.error('❌ Error checking notification existence:', checkError);
+        toast.error(`Notification not found: ${checkError.message}`);
+        return;
+      }
+
+      if (!existingNotification) {
+        console.error('❌ Notification not found in database');
+        toast.error('Notification not found');
+        return;
+      }
+
+      console.log('✅ Notification found:', existingNotification);
+
+      // Verify ownership
+      if (existingNotification.user_id !== user.id) {
+        console.error('❌ User does not own this notification');
+        toast.error('You can only delete your own notifications');
+        return;
+      }
+
+      // Now delete from database
+      console.log('🗑️ Attempting to delete notification from database...');
+      const { data: deleteData, error: deleteError } = await supabase
         .from('notifications')
         .delete()
-        .eq('id', notificationId);
+        .eq('id', notificationId)
+        .eq('user_id', user.id); // Double-check ownership in delete query
 
-      if (error) {
+      console.log('Delete operation result:', { data: deleteData, error: deleteError });
+
+      if (deleteError) {
         console.error('❌ Database error deleting notification:', {
-          error,
+          error: deleteError,
           notificationId,
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
+          code: deleteError.code,
+          message: deleteError.message,
+          details: deleteError.details,
+          hint: deleteError.hint
         });
 
         // Handle specific error cases
-        if (error.code === 'PGRST116') {
+        if (deleteError.code === 'PGRST116') {
           toast.error('Notification not found or already deleted');
-        } else if (error.code === '42501') {
+        } else if (deleteError.code === '42501') {
           toast.error('Permission denied. You can only delete your own notifications.');
-        } else if (error.message?.includes('Failed to fetch') || error.message?.includes('network')) {
+        } else if (deleteError.message?.includes('Failed to fetch') || deleteError.message?.includes('network')) {
           toast.error('Network error. Please check your connection and try again.');
         } else {
-          toast.error(`Failed to remove notification: ${error.message}`);
+          toast.error(`Failed to remove notification: ${deleteError.message}`);
         }
         return;
       }
@@ -543,6 +590,7 @@ const NotificationsNew = () => {
       console.log('✅ Successfully deleted notification from database');
 
       // Update local state to remove from UI immediately
+      console.log('🔄 Updating local state...');
       setCategories((prev) =>
         prev.map((category) =>
           category.id === categoryId
@@ -557,21 +605,26 @@ const NotificationsNew = () => {
       );
 
       // Refresh notifications to ensure consistency
+      console.log('🔄 Refreshing notifications...');
       try {
         await refreshNotifications();
+        console.log('✅ Notifications refreshed successfully');
       } catch (refreshError) {
         console.warn('⚠️ Failed to refresh notifications after deletion:', refreshError);
         // Don't show error toast for refresh failure since deletion succeeded
       }
 
-      toast.success('Notification removed');
+      toast.success('✅ Notification permanently removed');
+      console.log('✅ dismissNotification completed successfully');
+
     } catch (error) {
       console.error('💥 Exception while dismissing notification:', {
         error,
         notificationId,
         categoryId,
         isOnline: navigator.onLine,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        stack: error instanceof Error ? error.stack : undefined
       });
 
       // Handle network errors specifically
