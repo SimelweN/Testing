@@ -153,7 +153,7 @@ const NotificationsNew = () => {
         {
           id: "welcome-1",
           type: "welcome",
-          title: "Welcome to ReBooked Solutions! ����",
+          title: "Welcome to ReBooked Solutions! 🎉",
           message:
             "We're South Africa's premier textbook marketplace, connecting students across universities. Buy and sell textbooks easily, track your orders, and join a community of learners!",
           timestamp: new Date().toISOString(),
@@ -611,7 +611,7 @@ const NotificationsNew = () => {
       });
 
       // Show success message immediately after UI update
-      toast.success('�� Notification permanently removed');
+      toast.success('✅ Notification permanently removed');
       console.log('✅ Notification removed from UI - dismissNotification completed successfully');
 
       // Refresh notifications to ensure consistency (in background)
@@ -1090,9 +1090,14 @@ const NotificationsNew = () => {
                                     notification.id,
                                   )
                                 }
-                                className="text-gray-500 hover:bg-gray-100 min-h-[44px] min-w-[44px] p-2"
+                                disabled={dismissingNotifications.has(notification.id)}
+                                className="text-gray-500 hover:bg-gray-100 min-h-[44px] min-w-[44px] p-2 disabled:opacity-50"
                               >
-                                <X className="h-4 w-4" />
+                                {dismissingNotifications.has(notification.id) ? (
+                                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                                ) : (
+                                  <X className="h-4 w-4" />
+                                )}
                               </Button>
                             </div>
                           </div>
