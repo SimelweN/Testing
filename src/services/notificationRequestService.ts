@@ -214,13 +214,21 @@ export class NotificationRequestService {
         .eq("user_id", userId);
 
       if (error) {
-        console.error("Error cancelling notification request:", error);
+        console.error("Error cancelling notification request:", {
+          message: error.message || String(error),
+          code: error.code,
+          details: error.details
+        });
         return { success: false, error: error.message };
       }
 
       return { success: true };
     } catch (error) {
-      console.error("Error in cancelNotificationRequest:", error);
+      console.error("Error in cancelNotificationRequest:", {
+        message: error instanceof Error ? error.message : String(error),
+        code: error?.code,
+        details: error?.details
+      });
       return {
         success: false,
         error:
