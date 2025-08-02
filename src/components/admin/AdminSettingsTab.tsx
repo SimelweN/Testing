@@ -21,7 +21,8 @@ import { Badge } from "@/components/ui/badge";
 import { createBroadcast } from "@/services/broadcastService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { MessageSquare, Megaphone } from "lucide-react";
+import { MessageSquare, Megaphone, TestTube, Shield } from "lucide-react";
+import { testAndFixBroadcastPolicies, checkCurrentUserAdminStatus } from "@/utils/broadcastPolicyFix";
 
 
 
