@@ -455,13 +455,7 @@ const AdminDashboard = () => {
       color: "text-orange-600",
       description: "Testing tools and database management",
     },
-    {
-      value: "email",
-      label: "Email",
-      icon: Mail,
-      color: "text-blue-600",
-      description: "Email system diagnostics and monitoring",
-    },
+
     {
       value: "settings",
       label: "Settings",
