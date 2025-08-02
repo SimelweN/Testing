@@ -48,26 +48,7 @@ export class ActivityService {
         console.warn('Failed to create profile update notification:', notifError);
       }
 
-      if (error) {
-        // Check if it's a table not found error
-        if (
-          error.code === "42P01" ||
-          error.message?.includes("relation") ||
-          error.message?.includes("does not exist") ||
-          error.message?.includes("schema cache")
-        ) {
-          console.log(
-            "📝 Notifications table not available, skipping notification",
-          );
-        } else {
-          console.warn(
-            "⚠️ Failed to create profile update notification:",
-            error.message || error,
-          );
-        }
-      } else {
-        console.log("✅ Profile update notification created");
-      }
+
     } catch (error) {
       console.error("Error logging profile update activity:", {
         message: error instanceof Error ? error.message : String(error),
