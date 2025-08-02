@@ -12,6 +12,9 @@ const NotificationTester = () => {
   const { user } = useAuth();
   const [testResults, setTestResults] = useState<Record<string, boolean>>({});
   const [isRunning, setIsRunning] = useState(false);
+  const [dbStatus, setDbStatus] = useState<any>(null);
+  const [stats, setStats] = useState<any>(null);
+  const [isCheckingDb, setIsCheckingDb] = useState(false);
 
   const notificationTests = [
     {
