@@ -710,19 +710,7 @@ const AdminDashboard = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="email" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
-                  <MailQueueFix />
-                </CardContent>
-              </Card>
 
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
-                  <EmailDiagnosticsDashboard />
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             <TabsContent value="settings" className="mt-0 space-y-6">
               <Card className="border-0 shadow-sm">
