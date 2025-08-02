@@ -74,6 +74,27 @@ export const broadcastService = {
     broadcastData: Omit<Broadcast, "id" | "createdAt" | "updatedAt">,
   ): Promise<Broadcast> => {
     try {
+      // Get current user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        throw new Error("Authentication required to create broadcasts");
+      }
+
+      // Verify admin status
+      const isAdmin = await verifyAdminStatus(user.id);
+      if (!isAdmin) {
+        // Try to ensure admin privileges if this is the admin email
+        await ensureAdminPrivileges(user.id);
+
+        // Check again
+        const isAdminAfterEnsure = await verifyAdminStatus(user.id);
+        if (!isAdminAfterEnsure) {
+          throw new Error("Admin privileges required to create broadcasts");
+        }
+      }
+
+      console.log("✅ Admin verification passed for broadcast creation");
       const { data, error } = await supabase
         .from("broadcasts")
         .insert([
