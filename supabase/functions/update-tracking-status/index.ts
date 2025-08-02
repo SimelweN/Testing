@@ -394,7 +394,7 @@ async function createRecipientForPayout(supabase: any, order: OrderToTrack) {
         console.log(`│ • Email: ${seller.email}`)
         console.log(`│ • Account: ${seller.account_number}`)
         console.log(`│ • Bank: ${seller.bank_name}`)
-        console.log(`├──────────────────────────────────────────────────────────���──┤`)
+        console.log(`├─────────────────────────────────────────────────────────────┤`)
       }
 
       console.log(`│ STATUS: ✅ Ready for manual payout processing`)
@@ -461,6 +461,31 @@ async function sendStatusChangeEmails(supabase: any, order: OrderToTrack, newSta
 
   switch (newStatus) {
     case 'in_transit':
+      // Create database notifications
+      notificationPromises.push(
+        supabase.from("notifications").insert({
+          user_id: order.buyer_id,
+          type: "info",
+          title: "🚚 Your Order is on the Way!",
+          message: `Good news! Your order #${order.order_id} is now in transit and on its way to you. Expected delivery: 1-3 business days.`,
+          order_id: order.order_id,
+          action_required: false
+        })
+      );
+
+      if (order.seller_id) {
+        notificationPromises.push(
+          supabase.from("notifications").insert({
+            user_id: order.seller_id,
+            type: "success",
+            title: "📦 Package Collected Successfully",
+            message: `Your order #${order.order_id} has been collected by our courier and is in transit to the buyer.`,
+            order_id: order.order_id,
+            action_required: false
+          })
+        );
+      }
+
       // Notify buyer - package is in transit
       if (order.buyer_email) {
         const buyerHtml = createEmailTemplate(
@@ -544,7 +569,7 @@ async function sendStatusChangeEmails(supabase: any, order: OrderToTrack, newSta
             <p><strong>✅ Payout Recipient Created:</strong> Your banking details have been verified and you're now ready to receive payment.</p>
             <p><strong>📊 Earnings Calculation:</strong> Your earnings (90% of book price) have been calculated and are awaiting manual payout approval.</p>
             <p><strong>⏰ Processing Time:</strong> Payouts are processed manually by our admin team and will be transferred to your registered bank account.</p>
-            <p><strong>�� Notification:</strong> You'll receive an email confirmation once the payment has been sent.</p>
+            <p><strong>📧 Notification:</strong> You'll receive an email confirmation once the payment has been sent.</p>
           </div>
           <div class="info-box">
             <h3>📋 What Happens Next?</h3>
