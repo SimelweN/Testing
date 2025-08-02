@@ -155,7 +155,7 @@ const NotificationsNew = () => {
         {
           id: "welcome-2",
           type: "info",
-          title: "How ReBooked Campus Works",
+          title: "How ReBooked Solutions Works",
           message:
             "📚 Browse thousands of textbooks → 💰 Buy at student-friendly prices → 🚚 Get delivery nationwide → ✅ Sell your old books when done!",
           timestamp: new Date().toISOString(),
