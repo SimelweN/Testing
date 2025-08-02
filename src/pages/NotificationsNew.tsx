@@ -615,6 +615,15 @@ const NotificationsNew = () => {
               Loading...
             </Badge>
           )}
+          {connectionStatus && !connectionStatus.databaseWorking && (
+            <Badge
+              variant="destructive"
+              className="self-start sm:self-auto cursor-pointer"
+              onClick={() => setShowConnectionDetails(!showConnectionDetails)}
+            >
+              Connection Issues
+            </Badge>
+          )}
 
 
         </div>
