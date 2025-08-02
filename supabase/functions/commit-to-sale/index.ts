@@ -134,6 +134,58 @@ serve(async (req) => {
       throw new Error(`Failed to update order status: ${updateError.message}`);
     }
 
+    // Create database notifications
+    const notificationPromises = [];
+
+    // Notify buyer
+    if (buyer?.id) {
+      notificationPromises.push(
+        supabase.from("notifications").insert({
+          user_id: buyer.id,
+          type: "success",
+          title: "✅ Order Confirmed",
+          message: `Your order for "${(order.items || []).map((item: any) => item.title || "Book").join(", ")}" has been confirmed by ${seller?.name || "the seller"}. Pickup will be scheduled.`,
+          order_id: order_id,
+          action_required: false
+        })
+      );
+    }
+
+    // Notify seller
+    if (seller?.id) {
+      notificationPromises.push(
+        supabase.from("notifications").insert({
+          user_id: seller.id,
+          type: "success",
+          title: "✅ Order Commitment Confirmed",
+          message: `You've successfully committed to sell "${(order.items || []).map((item: any) => item.title || "Book").join(", ")}" to ${buyer?.name || "the buyer"}. Pickup will be scheduled.`,
+          order_id: order_id,
+          action_required: false
+        })
+      );
+    }
+
+    // Create notifications
+    try {
+      if (notificationPromises.length > 0) {
+        const notificationResults = await Promise.allSettled(notificationPromises);
+        const notificationErrors = notificationResults.filter(
+          (result) => result.status === "rejected",
+        ).length;
+
+        if (notificationErrors > 0) {
+          console.warn(
+            `${notificationErrors} notification(s) failed to create out of ${notificationPromises.length}`,
+          );
+        } else {
+          console.log("✅ Database notifications created successfully for commit");
+        }
+      }
+    } catch (notificationError) {
+      console.error("Failed to create database notifications:", notificationError);
+      // Don't fail the commit process for notification errors
+    }
+
             // Schedule automatic courier pickup by calling automate-delivery (if possible)
     let deliveryError = null;
 
