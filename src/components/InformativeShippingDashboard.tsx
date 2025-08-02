@@ -131,7 +131,6 @@ const InformativeShippingDashboard = () => {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                 <div className="flex items-center space-x-2 text-green-700">
-                  <ArrowRight className="h-4 w-4" />
                   <span><strong>Cheaper delivery fees</strong> with competitive pricing</span>
                 </div>
                 <div className="flex items-center space-x-2 text-blue-700">
@@ -140,7 +139,7 @@ const InformativeShippingDashboard = () => {
                 </div>
                 <div className="flex items-center space-x-2 text-purple-700">
                   <ArrowRight className="h-4 w-4" />
-                  <span><strong>Faster payouts</strong> to sellers within 24 hours</span>
+                  <span><strong>Faster payouts</strong> to sellers</span>
                 </div>
               </div>
               <p className="text-xs text-gray-600 mt-3">
