@@ -64,6 +64,7 @@ import SellerProfile from "./pages/SellerProfile";
 import NotificationsNew from "./pages/NotificationsNew";
 import NotificationTest from "./pages/NotificationTest";
 import ClearNotifications from "./pages/ClearNotifications";
+import RestoreBooks from "./pages/RestoreBooks";
 import ActivityLog from "./pages/ActivityLog";
 import BankingSetup from "./pages/BankingSetup";
 import UserProfile from "./pages/UserProfile";
