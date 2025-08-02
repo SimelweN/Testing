@@ -707,13 +707,7 @@ const NotificationsNew = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {category.notifications.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>No {category.title.toLowerCase()} yet</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
+                  <div className="space-y-3">
                       {category.notifications.map((notification) => (
                         <div
                           key={notification.id}
@@ -779,8 +773,7 @@ const NotificationsNew = () => {
                           </div>
                         </div>
                       ))}
-                    </div>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
             );
