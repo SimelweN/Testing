@@ -133,6 +133,58 @@ serve(async (req) => {
       );
     }
 
+    // Create database notifications first
+    const notificationPromises = [];
+
+    // Create notification for buyer
+    if (buyer?.id) {
+      notificationPromises.push(
+        supabase.from("notifications").insert({
+          user_id: buyer.id,
+          type: "info",
+          title: "📦 Your Order is on the Way!",
+          message: `Order #${order_id} has been collected and is being shipped to you. ${tracking_reference ? `Tracking: ${tracking_reference}` : 'Tracking information will be provided soon.'}`,
+          order_id: order_id,
+          action_required: false
+        })
+      );
+    }
+
+    // Create notification for seller
+    if (seller?.id) {
+      notificationPromises.push(
+        supabase.from("notifications").insert({
+          user_id: seller.id,
+          type: "success",
+          title: "📦 Order Collected Successfully!",
+          message: `Order #${order_id} has been collected and is being shipped to the buyer.`,
+          order_id: order_id,
+          action_required: false
+        })
+      );
+    }
+
+    // Create database notifications
+    let notificationErrors = [];
+    try {
+      const notificationResults = await Promise.allSettled(notificationPromises);
+      notificationErrors = notificationResults
+        .map((result, index) =>
+          result.status === "rejected"
+            ? { recipient: index === 0 ? "buyer" : "seller", error: result.reason }
+            : null
+        )
+        .filter(Boolean);
+
+      if (notificationErrors.length === 0) {
+        console.log("✅ Database notifications created successfully");
+      } else {
+        console.warn(`${notificationErrors.length} notification(s) failed to create`);
+      }
+    } catch (notificationError) {
+      console.error("Failed to create database notifications:", notificationError);
+    }
+
     // Send notification emails
     const emailPromises = [];
     let emailErrors = [];
