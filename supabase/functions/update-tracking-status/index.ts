@@ -394,7 +394,7 @@ async function createRecipientForPayout(supabase: any, order: OrderToTrack) {
         console.log(`│ • Email: ${seller.email}`)
         console.log(`│ • Account: ${seller.account_number}`)
         console.log(`│ • Bank: ${seller.bank_name}`)
-        console.log(`├─────────────────────────────────────────────────────────────┤`)
+        console.log(`├──────────────────────────────────────────────────────────���──┤`)
       }
 
       console.log(`│ STATUS: ✅ Ready for manual payout processing`)
@@ -455,6 +455,9 @@ async function createRecipientForPayout(supabase: any, order: OrderToTrack) {
 async function sendStatusChangeEmails(supabase: any, order: OrderToTrack, newStatus: string) {
   const customerName = order.buyer_name || "Customer";
   const sellerName = order.seller_name || "Seller";
+
+  // Create database notifications first
+  const notificationPromises = [];
 
   switch (newStatus) {
     case 'in_transit':
@@ -541,7 +544,7 @@ async function sendStatusChangeEmails(supabase: any, order: OrderToTrack, newSta
             <p><strong>✅ Payout Recipient Created:</strong> Your banking details have been verified and you're now ready to receive payment.</p>
             <p><strong>📊 Earnings Calculation:</strong> Your earnings (90% of book price) have been calculated and are awaiting manual payout approval.</p>
             <p><strong>⏰ Processing Time:</strong> Payouts are processed manually by our admin team and will be transferred to your registered bank account.</p>
-            <p><strong>📧 Notification:</strong> You'll receive an email confirmation once the payment has been sent.</p>
+            <p><strong>�� Notification:</strong> You'll receive an email confirmation once the payment has been sent.</p>
           </div>
           <div class="info-box">
             <h3>📋 What Happens Next?</h3>
