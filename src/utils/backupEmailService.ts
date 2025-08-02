@@ -79,9 +79,9 @@ export class BackupEmailService {
         body: {
           to: options.to,
           from: "noreply@rebookedsolutions.co.za",
-          subject: "Confirm Your Email - ReBooked",
+          subject: "Confirm Your Email - ReBooked Campus",
           html: html,
-          text: `Thanks for signing up to ReBooked! Please confirm your email by visiting: ${confirmationUrl}`,
+          text: `Thanks for signing up to ReBooked Campus! Please confirm your email by visiting: ${confirmationUrl}`,
           backup: true // Flag this as a backup email
         },
       });
