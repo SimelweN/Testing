@@ -250,9 +250,16 @@ serve(async (req) => {
       collected_by,
       tracking_reference,
       notifications: {
-        buyer_notified: !!buyer?.email && emailErrors.filter((e) => e.recipient === "buyer").length === 0,
-        seller_notified: !!seller?.email && emailErrors.filter((e) => e.recipient === "seller").length === 0,
-        email_errors: emailErrors,
+        database_notifications: {
+          buyer_notified: !!buyer?.id && notificationErrors.filter((e) => e.recipient === "buyer").length === 0,
+          seller_notified: !!seller?.id && notificationErrors.filter((e) => e.recipient === "seller").length === 0,
+          notification_errors: notificationErrors,
+        },
+        email_notifications: {
+          buyer_notified: !!buyer?.email && emailErrors.filter((e) => e.recipient === "buyer").length === 0,
+          seller_notified: !!seller?.email && emailErrors.filter((e) => e.recipient === "seller").length === 0,
+          email_errors: emailErrors,
+        },
       },
     });
 
