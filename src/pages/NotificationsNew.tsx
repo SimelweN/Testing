@@ -123,21 +123,11 @@ const NotificationsNew = () => {
         n.message?.toLowerCase().includes("violation"),
     );
 
-    const generalNotifications = dbNotifications.filter(
-      (n) =>
-        !commitNotifications.includes(n) &&
-        !purchaseNotifications.includes(n) &&
-        !deliveryNotifications.includes(n) &&
-        !adminNotifications.includes(n) ||
-        n.type === 'info' || n.type === 'success' || n.type === 'warning' || n.type === 'error'
-    );
-
     return {
       commits: commitNotifications,
       purchases: purchaseNotifications,
       deliveries: deliveryNotifications,
       admin: adminNotifications,
-      general: generalNotifications,
     };
   };
 
