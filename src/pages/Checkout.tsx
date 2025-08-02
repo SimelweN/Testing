@@ -82,7 +82,7 @@ const Checkout: React.FC = () => {
         return;
       }
 
-      console.log('📦 CHECKOUT: Raw cart data from localStorage:', cartDataStr);
+
       const parsedCartData: CartCheckoutData = JSON.parse(cartDataStr);
 
       // Validate cart data is recent (within 1 hour)
