@@ -51,6 +51,40 @@ const AdminSettingsTab = ({
   const [isTesting, setIsTesting] = useState(false);
 
 
+  const handleTestBroadcastPolicies = async () => {
+    setIsTesting(true);
+    try {
+      // First check admin status
+      const adminStatus = await checkCurrentUserAdminStatus();
+      console.log("Current user admin status:", adminStatus);
+
+      if (!adminStatus.isAuthenticated) {
+        toast.error("You must be logged in to test broadcast policies");
+        return;
+      }
+
+      if (!adminStatus.isAdmin) {
+        toast.warning("You don't appear to have admin privileges. Testing policies anyway...");
+      }
+
+      // Run the policy test
+      const result = await testAndFixBroadcastPolicies();
+
+      if (result.success) {
+        toast.success(result.message);
+      } else {
+        toast.error(result.message);
+        console.error("Policy test details:", result.details);
+      }
+
+    } catch (error) {
+      console.error("Error testing broadcast policies:", error);
+      toast.error("Failed to test broadcast policies");
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
   const handleCreateBroadcast = async () => {
     if (!user || !newBroadcast.title.trim() || !newBroadcast.message.trim()) {
       toast.error("Please fill in title and message fields");
