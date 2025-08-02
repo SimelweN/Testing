@@ -601,13 +601,13 @@ const CreateListing = () => {
 
           <CommitReminderModal
             isOpen={showCommitReminderModal}
-            onClose={() => {
+            onClose={async () => {
               setShowCommitReminderModal(false);
               // Mark as shown so it doesn't appear again
               markPopupAsShown(user.id, 'commitReminderShown');
 
               // Handle first upload workflow after commit reminder
-              handlePostCommitFlow();
+              await handlePostCommitFlow();
             }}
             type="seller"
           />
