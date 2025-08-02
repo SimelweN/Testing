@@ -13,27 +13,27 @@ CREATE POLICY "Allow admin users to create broadcasts" ON public.broadcasts
 FOR INSERT
 WITH CHECK (
   EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE profiles.id = auth.uid() 
-    AND profiles.user_type = 'admin'
+    SELECT 1 FROM public.profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
   )
 );
 
--- Policy to allow admin users to update their own broadcasts
+-- Policy to allow admin users to update broadcasts
 CREATE POLICY "Allow admin users to update broadcasts" ON public.broadcasts
 FOR UPDATE
 USING (
   EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE profiles.id = auth.uid() 
-    AND profiles.user_type = 'admin'
+    SELECT 1 FROM public.profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
   )
 )
 WITH CHECK (
   EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE profiles.id = auth.uid() 
-    AND profiles.user_type = 'admin'
+    SELECT 1 FROM public.profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
   )
 );
 
@@ -42,20 +42,30 @@ CREATE POLICY "Allow admin users to delete broadcasts" ON public.broadcasts
 FOR DELETE
 USING (
   EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE profiles.id = auth.uid() 
-    AND profiles.user_type = 'admin'
+    SELECT 1 FROM public.profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
   )
 );
 
--- Alternative policy for admin role-based access if user_type doesn't exist
--- This will work if the admin access is role-based instead of profile-based
-CREATE POLICY "Allow authenticated admin role to manage broadcasts" ON public.broadcasts
+-- Fallback policy for specific admin email (in case is_admin flag is not set yet)
+CREATE POLICY "Allow specific admin email to manage broadcasts" ON public.broadcasts
 FOR ALL
 USING (
-  auth.role() = 'authenticated' AND 
-  (
-    auth.jwt() ->> 'role' = 'admin' OR
-    auth.jwt() ->> 'user_role' = 'admin'
+  EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE profiles.id = auth.uid()
+    AND LOWER(profiles.email) = 'adminsimnli@gmail.com'
+  )
+);
+
+-- Policy to allow any authenticated user to view all broadcasts for admin management
+CREATE POLICY "Allow admin users to view all broadcasts" ON public.broadcasts
+FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE profiles.id = auth.uid()
+    AND (profiles.is_admin = true OR LOWER(profiles.email) = 'adminsimnli@gmail.com')
   )
 );
