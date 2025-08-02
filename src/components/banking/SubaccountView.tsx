@@ -90,8 +90,14 @@ const SubaccountView: React.FC<SubaccountViewProps> = ({
   }, []);
 
   const handleEdit = () => {
+    console.log('Edit button clicked:', { onEdit: !!onEdit, isEditing });
     if (onEdit) {
-      onEdit();
+      try {
+        onEdit();
+      } catch (error) {
+        console.error('Error calling onEdit:', error);
+        toast.error('Failed to enter edit mode');
+      }
     } else {
       setIsEditing(true);
     }
