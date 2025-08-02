@@ -139,7 +139,7 @@ export class EnhancedPurchaseEmailService {
           
           <p style="color: #e17055;"><strong>Important:</strong> If you don't confirm within 48 hours, the order will be automatically cancelled and refunded.</p>
           
-          <p>Thank you for using ReBooked Solutions!</p>
+          <p>Thank you for using ReBooked Campus!</p>
         </div>
       </div>
     `;
