@@ -62,6 +62,7 @@ import SellerProfile from "./pages/SellerProfile";
 
 // Other Pages
 import NotificationsNew from "./pages/NotificationsNew";
+import NotificationTest from "./pages/NotificationTest";
 import ActivityLog from "./pages/ActivityLog";
 import BankingSetup from "./pages/BankingSetup";
 import UserProfile from "./pages/UserProfile";
