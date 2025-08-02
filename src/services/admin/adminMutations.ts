@@ -198,7 +198,7 @@ export const sendBroadcastMessage = async (message: string): Promise<void> => {
     // Create notifications for all users with the successful type
     const notifications = users.map((user) => ({
       user_id: user.id,
-      title: "System Announcement",
+      title: "ReBooked Solutions Team",
       message: message,
       type: successfulType,
     }));
