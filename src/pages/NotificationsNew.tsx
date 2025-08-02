@@ -656,7 +656,7 @@ const NotificationsNew = () => {
                 Notifications
               </h1>
               <p className="text-sm sm:text-base text-gray-500">
-                Stay updated with your ReBooked activity
+                Stay updated with your ReBooked Campus activity
               </p>
             </div>
           </div>
