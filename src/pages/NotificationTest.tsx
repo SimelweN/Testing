@@ -117,8 +117,8 @@ const NotificationTest: React.FC = () => {
     },
     {
       type: 'success',
-      title: '🎉 Welcome to ReBooked Campus!',
-      message: 'Welcome to ReBooked Campus! Your account has been created successfully. Start buying and selling textbooks today!',
+      title: '🎉 Welcome to ReBooked Solutions!',
+      message: 'Welcome to ReBooked Solutions! Your account has been created successfully. Start buying and selling textbooks today!',
       icon: <CheckCircle className="h-5 w-5 text-green-500" />,
       color: 'bg-green-50 border-green-200'
     },
