@@ -364,7 +364,7 @@ async function createRecipientForPayout(supabase: any, order: OrderToTrack) {
       console.log(`📊 PAYOUT DETAILS:`)
       console.log(`┌─────────────────────────────────────────────────────────────┐`)
       console.log(`│                     SELLER PAYOUT SUMMARY                  │`)
-      console.log(`├─��───────────────────────────────────────────────────────────┤`)
+      console.log(`├─────────────────────────────────────────────────────────────┤`)
       console.log(`│ Seller ID: ${order.seller_id}`)
       console.log(`│ Recipient Code: ${recipientResult.recipient_code || 'N/A'}`)
       console.log(`│ Payment Status: ${recipientResult.already_existed ? 'EXISTING RECIPIENT' : 'NEW RECIPIENT CREATED'}`)
@@ -655,5 +655,26 @@ async function sendStatusChangeEmails(supabase: any, order: OrderToTrack, newSta
         );
       }
       break;
+  }
+
+  // Create all database notifications
+  if (notificationPromises.length > 0) {
+    try {
+      const notificationResults = await Promise.allSettled(notificationPromises);
+      const notificationErrors = notificationResults.filter(
+        (result) => result.status === "rejected",
+      ).length;
+
+      if (notificationErrors > 0) {
+        console.warn(
+          `${notificationErrors} notification(s) failed to create out of ${notificationPromises.length}`,
+        );
+      } else {
+        console.log("✅ Database notifications created successfully for tracking update");
+      }
+    } catch (notificationError) {
+      console.error("Failed to create database notifications:", notificationError);
+      // Don't fail the tracking update for notification errors
+    }
   }
 }
