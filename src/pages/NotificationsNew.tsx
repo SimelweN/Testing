@@ -610,6 +610,58 @@ const NotificationsNew = () => {
           </div>
         )}
 
+        {/* Check if we have any notifications to show */}
+        {(() => {
+          const hasVisibleCategories = categories.some(category => {
+            if (!category.enabled && category.id !== "welcome") return false;
+            if (category.id === "welcome" && !isFirstTime && !showWelcome) return false;
+            return category.notifications.length > 0;
+          });
+
+          const shouldShowWelcome = showWelcome && isFirstTime;
+
+          if (!hasVisibleCategories && !shouldShowWelcome) {
+            return (
+              <Card className="text-center py-16">
+                <CardContent>
+                  <Bell className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                    No notifications yet
+                  </h3>
+                  <p className="text-gray-500 mb-6">
+                    You're all caught up! We'll notify you when something important happens.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <ShoppingCart className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                      <h4 className="font-medium text-blue-900">Start Shopping</h4>
+                      <p className="text-blue-700 text-sm">
+                        Browse textbooks and make your first purchase
+                      </p>
+                    </div>
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <BookOpen className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                      <h4 className="font-medium text-green-900">List Books</h4>
+                      <p className="text-green-700 text-sm">
+                        Sell your textbooks to earn money
+                      </p>
+                    </div>
+                    <div className="p-4 bg-purple-50 rounded-lg">
+                      <Users className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+                      <h4 className="font-medium text-purple-900">Join Community</h4>
+                      <p className="text-purple-700 text-sm">
+                        Connect with other students
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          }
+
+          return null;
+        })()}
+
         {/* Notification Categories */}
         <div className="space-y-6">
           {categories.map((category) => {
