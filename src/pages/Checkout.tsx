@@ -37,8 +37,7 @@ const Checkout: React.FC = () => {
 
     if (isCartCheckout) {
       const timestamp = searchParams.get('t');
-      console.log('🛒 CHECKOUT: Loading cart checkout with timestamp:', timestamp);
-      console.log('🛒 CHECKOUT: Route info:', { pathname: location.pathname, id });
+
       loadCartData();
       return;
     }
