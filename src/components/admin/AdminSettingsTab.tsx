@@ -253,17 +253,38 @@ const AdminSettingsTab = ({
             />
           </div>
 
-          <Button
-            onClick={handleCreateBroadcast}
-            disabled={
-              isCreating ||
-              !newBroadcast.title.trim() ||
-              !newBroadcast.message.trim()
-            }
-            className="w-full md:w-auto"
-          >
-            {isCreating ? "Creating..." : "Create Broadcast"}
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button
+              onClick={handleCreateBroadcast}
+              disabled={
+                isCreating ||
+                !newBroadcast.title.trim() ||
+                !newBroadcast.message.trim()
+              }
+              className="flex-1 sm:flex-none"
+            >
+              {isCreating ? "Creating..." : "Create Broadcast"}
+            </Button>
+
+            <Button
+              onClick={handleTestBroadcastPolicies}
+              disabled={isTesting}
+              variant="outline"
+              className="flex-1 sm:flex-none"
+            >
+              {isTesting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                  Testing...
+                </>
+              ) : (
+                <>
+                  <TestTube className="h-4 w-4 mr-2" />
+                  Test Policies
+                </>
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
