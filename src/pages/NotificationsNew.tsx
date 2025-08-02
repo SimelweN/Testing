@@ -268,7 +268,7 @@ const NotificationsNew = () => {
     },
   ]);
 
-  // Load broadcasts on component mount
+  // Load broadcasts and test connection on component mount
   useEffect(() => {
     const loadBroadcasts = async () => {
       try {
@@ -284,7 +284,30 @@ const NotificationsNew = () => {
       }
     };
 
+    const checkConnection = async () => {
+      try {
+        const result = await testConnection();
+        setConnectionStatus(result);
+
+        if (!result.supabaseReachable || !result.databaseWorking) {
+          console.warn('⚠️ Connection issues detected:', result);
+          toast.warning('Connection issues detected. Some features may not work properly.');
+        }
+      } catch (error) {
+        console.error('❌ Connection test failed:', error);
+        const errorMessage = getConnectionErrorMessage(error);
+        setConnectionStatus({
+          isOnline: navigator.onLine,
+          supabaseReachable: false,
+          authWorking: false,
+          databaseWorking: false,
+          error: errorMessage
+        });
+      }
+    };
+
     loadBroadcasts();
+    checkConnection();
   }, []);
 
   // Check if this is a first-time user
