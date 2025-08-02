@@ -33,6 +33,7 @@ import { getActiveBroadcasts } from "@/services/broadcastService";
 import { toast } from "sonner";
 import { NotificationService } from "@/services/notificationService";
 import { supabase } from "@/integrations/supabase/client";
+import { testConnection, getConnectionErrorMessage, type ConnectionTestResult } from "@/utils/connectionTester";
 
 interface NotificationCategory {
   id: string;
