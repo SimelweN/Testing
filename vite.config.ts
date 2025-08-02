@@ -19,4 +19,24 @@ export default defineConfig({
       process.env.VITE_DISABLE_GOOGLE_MAPS || 'true'
     ),
   },
+  build: {
+    // Production optimizations
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console.log statements in production
+        drop_debugger: true,
+      },
+    },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+          supabase: ['@supabase/supabase-js'],
+        },
+      },
+    },
+  },
 })
