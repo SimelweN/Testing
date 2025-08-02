@@ -49,7 +49,7 @@ const recordSuccess = (): void => {
   if (circuitBreakerState.isOpen) {
     circuitBreakerState.isOpen = false;
     console.log(
-      "📢 [BroadcastService] Circuit breaker closed - broadcasts restored",
+      "��� [BroadcastService] Circuit breaker closed - broadcasts restored",
     );
   }
 };
@@ -362,7 +362,7 @@ export const broadcastService = {
     try {
       await supabase.from("notifications").insert({
         user_id: userId,
-        title: `System Announcement: ${broadcast.title}`,
+        title: `ReBooked Solutions Team: ${broadcast.title}`,
         message: broadcast.message,
         type: "broadcast", // or map broadcast.type to a notification type
         // You might want to add a link or reference to the broadcast itself
