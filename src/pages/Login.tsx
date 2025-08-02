@@ -130,9 +130,7 @@ const Login = () => {
         throw new Error("Email and password are required");
       }
 
-      console.log("Attempting login with:", email);
       await login(email, password);
-      console.log("Login successful, navigating to home");
       navigate("/", { replace: true });
     } catch (error: unknown) {
       const errorMessage =
