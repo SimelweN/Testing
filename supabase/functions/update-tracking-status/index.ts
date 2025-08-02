@@ -34,6 +34,7 @@ interface OrderToTrack {
   tracking_number: string
   delivery_status: string
   courier: string
+  buyer_id: string
   buyer_email: string
   seller_id: string
   buyer_name?: string
@@ -394,7 +395,7 @@ async function createRecipientForPayout(supabase: any, order: OrderToTrack) {
         console.log(`│ • Email: ${seller.email}`)
         console.log(`│ • Account: ${seller.account_number}`)
         console.log(`│ • Bank: ${seller.bank_name}`)
-        console.log(`├─────────────────────────────────────────────────────────────┤`)
+        console.log(`├─────────────────────────────────────────────────────────────��`)
       }
 
       console.log(`│ STATUS: ✅ Ready for manual payout processing`)
