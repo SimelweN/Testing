@@ -67,7 +67,7 @@ const NotificationsNew = () => {
   } = useNotifications();
   const [isFirstTime, setIsFirstTime] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
-  const [broadcasts, setBroadcasts] = useState([]);
+
   const [notificationSettings, setNotificationSettings] = useState({
     commits: true,
     purchases: true,
