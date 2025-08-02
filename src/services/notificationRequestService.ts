@@ -45,7 +45,11 @@ export class NotificationRequestService {
 
       return { success: true };
     } catch (error) {
-      console.error("Error in requestAccommodationNotification:", error);
+      console.error("Error in requestAccommodationNotification:", {
+        message: error instanceof Error ? error.message : String(error),
+        code: error?.code,
+        details: error?.details
+      });
       return {
         success: false,
         error:
@@ -81,13 +85,21 @@ export class NotificationRequestService {
       });
 
       if (error) {
-        console.error("Error submitting program notification request:", error);
+        console.error("Error submitting program notification request:", {
+          message: error.message || String(error),
+          code: error.code,
+          details: error.details
+        });
         return { success: false, error: error.message };
       }
 
       return { success: true };
     } catch (error) {
-      console.error("Error in requestProgramNotification:", error);
+      console.error("Error in requestProgramNotification:", {
+        message: error instanceof Error ? error.message : String(error),
+        code: error?.code,
+        details: error?.details
+      });
       return {
         success: false,
         error:
@@ -123,13 +135,21 @@ export class NotificationRequestService {
       const { data, error } = await query;
 
       if (error) {
-        console.error("Error checking existing notification request:", error);
+        console.error("Error checking existing notification request:", {
+          message: error.message || String(error),
+          code: error.code,
+          details: error.details
+        });
         return { exists: false, error: error.message };
       }
 
       return { exists: (data?.length || 0) > 0 };
     } catch (error) {
-      console.error("Error in hasExistingRequest:", error);
+      console.error("Error in hasExistingRequest:", {
+        message: error instanceof Error ? error.message : String(error),
+        code: error?.code,
+        details: error?.details
+      });
       return {
         exists: false,
         error:
@@ -154,13 +174,21 @@ export class NotificationRequestService {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching user notification requests:", error);
+        console.error("Error fetching user notification requests:", {
+          message: error.message || String(error),
+          code: error.code,
+          details: error.details
+        });
         return { requests: [], error: error.message };
       }
 
       return { requests: data || [] };
     } catch (error) {
-      console.error("Error in getUserNotificationRequests:", error);
+      console.error("Error in getUserNotificationRequests:", {
+        message: error instanceof Error ? error.message : String(error),
+        code: error?.code,
+        details: error?.details
+      });
       return {
         requests: [],
         error:
@@ -186,13 +214,21 @@ export class NotificationRequestService {
         .eq("user_id", userId);
 
       if (error) {
-        console.error("Error cancelling notification request:", error);
+        console.error("Error cancelling notification request:", {
+          message: error.message || String(error),
+          code: error.code,
+          details: error.details
+        });
         return { success: false, error: error.message };
       }
 
       return { success: true };
     } catch (error) {
-      console.error("Error in cancelNotificationRequest:", error);
+      console.error("Error in cancelNotificationRequest:", {
+        message: error instanceof Error ? error.message : String(error),
+        code: error?.code,
+        details: error?.details
+      });
       return {
         success: false,
         error:

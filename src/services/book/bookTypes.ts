@@ -5,6 +5,7 @@ export interface BookFilters {
   grade?: string;
   universityYear?: string;
   university?: string;
+  province?: string;
   minPrice?: number;
   maxPrice?: number;
 }

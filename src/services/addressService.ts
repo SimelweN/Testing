@@ -86,9 +86,10 @@ export const getSellerPickupAddress = async (sellerId: string) => {
     return data?.pickup_address || null;
   } catch (error) {
     console.error("Error in getSellerPickupAddress:", {
-      error,
       sellerId,
       message: error instanceof Error ? error.message : String(error),
+      code: error?.code,
+      details: error?.details,
     });
 
     // Handle network errors

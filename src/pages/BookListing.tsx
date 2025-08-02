@@ -37,6 +37,9 @@ const BookListing = () => {
   const [selectedGrade, setSelectedGrade] = useState("");
   const [selectedUniversityYear, setSelectedUniversityYear] = useState("");
   const [selectedUniversity, setSelectedUniversity] = useState("");
+  const [selectedProvince, setSelectedProvince] = useState(
+    searchParams.get("province") || "",
+  );
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [bookType, setBookType] = useState<"all" | "school" | "university">(
     "all",
@@ -52,6 +55,7 @@ const BookListing = () => {
       const category = searchParams.get("category") || "";
       const grade = searchParams.get("grade") || "";
       const universityYear = searchParams.get("universityYear") || "";
+      const province = searchParams.get("province") || "";
 
       const filters: {
         search?: string;
@@ -60,6 +64,7 @@ const BookListing = () => {
         grade?: string;
         universityYear?: string;
         university?: string;
+        province?: string;
         minPrice?: number;
         maxPrice?: number;
       } = {};
@@ -70,6 +75,7 @@ const BookListing = () => {
       if (grade) filters.grade = grade;
       if (universityYear) filters.universityYear = universityYear;
       if (selectedUniversity) filters.university = selectedUniversity;
+      if (province || selectedProvince) filters.province = province || selectedProvince;
 
       if (priceRange[0] > 0) filters.minPrice = priceRange[0];
       if (priceRange[1] < 1000) filters.maxPrice = priceRange[1];
@@ -107,7 +113,7 @@ const BookListing = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [searchParams, selectedCondition, selectedUniversity, priceRange]);
+  }, [searchParams, selectedCondition, selectedUniversity, selectedProvince, priceRange]);
 
   // Initial load
   useEffect(() => {
@@ -136,6 +142,9 @@ const BookListing = () => {
     if (selectedUniversityYear) {
       newSearchParams.set("universityYear", selectedUniversityYear);
     }
+    if (selectedProvince) {
+      newSearchParams.set("province", selectedProvince);
+    }
 
     setSearchParams(newSearchParams);
   }, [
@@ -143,6 +152,7 @@ const BookListing = () => {
     selectedCategory,
     selectedGrade,
     selectedUniversityYear,
+    selectedProvince,
     setSearchParams,
   ]);
 
@@ -153,6 +163,7 @@ const BookListing = () => {
     setSelectedGrade("");
     setSelectedUniversityYear("");
     setSelectedUniversity("");
+    setSelectedProvince("");
     setPriceRange([0, 1000]);
     setBookType("all");
     setSearchParams(new URLSearchParams());
@@ -246,6 +257,8 @@ const BookListing = () => {
             setSelectedUniversityYear={setSelectedUniversityYear}
             selectedUniversity={selectedUniversity}
             setSelectedUniversity={setSelectedUniversity}
+            selectedProvince={selectedProvince}
+            setSelectedProvince={setSelectedProvince}
             priceRange={priceRange}
             setPriceRange={setPriceRange}
             bookType={bookType}

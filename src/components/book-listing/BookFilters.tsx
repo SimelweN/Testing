@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Filter, Search, School, GraduationCap, BookOpen } from "lucide-react";
+import { Filter, Search, School, GraduationCap, BookOpen, MapPin } from "lucide-react";
 import { UniversitySelector } from "@/components/ui/university-selector";
 import { UNIVERSITY_YEARS } from "@/constants/universities";
 
@@ -19,6 +19,8 @@ interface BookFiltersProps {
   setSelectedUniversityYear: (year: string) => void;
   selectedUniversity: string;
   setSelectedUniversity: (university: string) => void;
+  selectedProvince: string;
+  setSelectedProvince: (province: string) => void;
   priceRange: [number, number];
   setPriceRange: (range: [number, number]) => void;
   bookType: "all" | "school" | "university";
@@ -43,6 +45,8 @@ const BookFilters = ({
   setSelectedUniversityYear,
   selectedUniversity,
   setSelectedUniversity,
+  selectedProvince,
+  setSelectedProvince,
   priceRange,
   setPriceRange,
   bookType,
@@ -77,6 +81,17 @@ const BookFilters = ({
     "Grade 11",
     "Grade 12",
   ];
+  const provinces = [
+    "Eastern Cape",
+    "Free State",
+    "Gauteng",
+    "KwaZulu-Natal",
+    "Limpopo",
+    "Mpumalanga",
+    "Northern Cape",
+    "North West",
+    "Western Cape",
+  ];
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category === selectedCategory ? "" : category);
@@ -108,6 +123,10 @@ const BookFilters = ({
       setSelectedGrade("");
       setBookType("university");
     }
+  };
+
+  const handleProvinceChange = (province: string) => {
+    setSelectedProvince(province === selectedProvince ? "" : province);
   };
 
   const handleBookTypeChange = (type: "all" | "school" | "university") => {
@@ -297,6 +316,33 @@ const BookFilters = ({
                     className="ml-2 text-sm text-gray-700"
                   >
                     {category}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Province Filter */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+              <MapPin className="mr-1 h-4 w-4" />
+              Province
+            </h3>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {provinces.map((province) => (
+                <div key={province} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id={`province-${province}`}
+                    checked={selectedProvince === province}
+                    onChange={() => handleProvinceChange(province)}
+                    className="h-4 w-4 text-book-600 focus:ring-book-500 border-gray-300 rounded"
+                  />
+                  <label
+                    htmlFor={`province-${province}`}
+                    className="ml-2 text-sm text-gray-700"
+                  >
+                    {province}
                   </label>
                 </div>
               ))}

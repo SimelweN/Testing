@@ -142,7 +142,9 @@ function App() {
                       />
                       <Route path="/verify" element={<Verify />} />
                       <Route path="/verify/*" element={<VerifyEmail />} />
-                      <Route path="/verify-debug" element={<VerifyDebug />} />
+                      {import.meta.env.DEV && (
+                        <Route path="/verify-debug" element={<VerifyDebug />} />
+                      )}
                       <Route path="/auth/callback" element={<AuthCallback />} />
 
                       {/* Protected User Routes */}
@@ -202,14 +204,16 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
-                      <Route
-                        path="/notification-test"
-                        element={
-                          <ProtectedRoute>
-                            <NotificationTest />
-                          </ProtectedRoute>
-                        }
-                      />
+                      {import.meta.env.DEV && (
+                        <Route
+                          path="/notification-test"
+                          element={
+                            <ProtectedRoute>
+                              <NotificationTest />
+                            </ProtectedRoute>
+                          }
+                        />
+                      )}
                       <Route
                         path="/clear-notifications"
                         element={
@@ -226,10 +230,12 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
-                      <Route
-                        path="/test-auth"
-                        element={<TestAuth />}
-                      />
+                      {import.meta.env.DEV && (
+                        <Route
+                          path="/test-auth"
+                          element={<TestAuth />}
+                        />
+                      )}
                       <Route
                         path="/activity"
                         element={

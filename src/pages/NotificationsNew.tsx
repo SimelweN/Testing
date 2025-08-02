@@ -257,7 +257,11 @@ const NotificationsNew = () => {
           toast.warning('Connection issues detected. Some features may not work properly.');
         }
       } catch (error) {
-        console.error('❌ Connection test failed:', error);
+        console.error('❌ Connection test failed:', {
+          message: error instanceof Error ? error.message : String(error),
+          code: error?.code,
+          details: error?.details
+        });
         const errorMessage = getConnectionErrorMessage(error);
         setConnectionStatus({
           isOnline: navigator.onLine,
@@ -486,8 +490,13 @@ const NotificationsNew = () => {
         .single();
 
       if (checkError) {
-        console.error('❌ Error checking notification existence:', checkError);
-        toast.error(`Notification not found: ${checkError.message}`);
+        console.error('❌ Error checking notification existence:', {
+          message: checkError.message || String(checkError),
+          code: checkError.code,
+          details: checkError.details,
+          hint: checkError.hint
+        });
+        toast.error(`Notification not found: ${checkError.message || 'Unknown error'}`);
         return;
       }
 
@@ -518,10 +527,9 @@ const NotificationsNew = () => {
 
       if (deleteError) {
         console.error('❌ Database error deleting notification:', {
-          error: deleteError,
           notificationId,
           code: deleteError.code,
-          message: deleteError.message,
+          message: deleteError.message || String(deleteError),
           details: deleteError.details,
           hint: deleteError.hint
         });
@@ -568,7 +576,11 @@ const NotificationsNew = () => {
         await refreshNotifications();
         console.log('✅ Background notifications refresh completed');
       } catch (refreshError) {
-        console.warn('⚠️ Failed to refresh notifications after deletion:', refreshError);
+        console.warn('⚠️ Failed to refresh notifications after deletion:', {
+          message: refreshError instanceof Error ? refreshError.message : String(refreshError),
+          code: refreshError?.code,
+          details: refreshError?.details
+        });
         // Don't show error toast for refresh failure since deletion succeeded
       }
 
@@ -639,88 +651,7 @@ const NotificationsNew = () => {
               Connection Issues
             </Badge>
           )}
-          {process.env.NODE_ENV === 'development' && user && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                try {
-                  console.log('🧪 Creating test notification for dismiss testing...');
-                  const result = await NotificationService.createNotification({
-                    userId: user.id,
-                    type: 'info',
-                    title: '🗑️ Test Dismiss Notification',
-                    message: 'Click the X button to test the dismiss functionality. This should permanently delete from database.',
-                  });
 
-                  if (result) {
-                    toast.success('Test notification created - try dismissing it with the X button');
-                    await refreshNotifications();
-                  } else {
-                    toast.error('Failed to create test notification');
-                  }
-                } catch (error) {
-                  console.error('Failed to create test notification:', error);
-                  toast.error('Error creating test notification');
-                }
-              }}
-              className="self-start sm:self-auto"
-            >
-              🧪 Test Dismiss
-            </Button>
-          )}
-          {process.env.NODE_ENV === 'development' && user && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                try {
-                  console.log('🔍 Testing DELETE policy directly...');
-
-                  // First create a test notification
-                  const { data: createData, error: createError } = await supabase
-                    .from('notifications')
-                    .insert({
-                      user_id: user.id,
-                      type: 'info',
-                      title: 'DELETE Test',
-                      message: 'Testing DELETE policy'
-                    })
-                    .select()
-                    .single();
-
-                  if (createError) {
-                    console.error('Failed to create test notification:', createError);
-                    toast.error('Failed to create test notification');
-                    return;
-                  }
-
-                  console.log('✅ Created test notification:', createData);
-
-                  // Now try to delete it
-                  const { error: deleteError } = await supabase
-                    .from('notifications')
-                    .delete()
-                    .eq('id', createData.id);
-
-                  if (deleteError) {
-                    console.error('❌ DELETE policy test failed:', deleteError);
-                    toast.error(`DELETE policy failed: ${deleteError.message}`);
-                  } else {
-                    console.log('✅ DELETE policy test passed');
-                    toast.success('✅ DELETE policy is working correctly');
-                  }
-
-                } catch (error) {
-                  console.error('💥 DELETE policy test exception:', error);
-                  toast.error('DELETE policy test failed');
-                }
-              }}
-              className="self-start sm:self-auto"
-            >
-              🔍 Test DELETE Policy
-            </Button>
-          )}
 
 
         </div>
