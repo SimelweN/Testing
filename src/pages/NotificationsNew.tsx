@@ -503,6 +503,9 @@ const NotificationsNew = () => {
   };
 
   const dismissNotification = async (categoryId: string, notificationId: string) => {
+    // Set dismissing state
+    setDismissingNotifications(prev => new Set(prev).add(notificationId));
+
     try {
       console.log('🗑️ Starting dismissNotification:', {
         categoryId,
