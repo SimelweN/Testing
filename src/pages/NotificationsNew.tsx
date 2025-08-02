@@ -707,6 +707,58 @@ const NotificationsNew = () => {
               🧪 Test Dismiss
             </Button>
           )}
+          {process.env.NODE_ENV === 'development' && user && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                try {
+                  console.log('🔍 Testing DELETE policy directly...');
+
+                  // First create a test notification
+                  const { data: createData, error: createError } = await supabase
+                    .from('notifications')
+                    .insert({
+                      user_id: user.id,
+                      type: 'info',
+                      title: 'DELETE Test',
+                      message: 'Testing DELETE policy'
+                    })
+                    .select()
+                    .single();
+
+                  if (createError) {
+                    console.error('Failed to create test notification:', createError);
+                    toast.error('Failed to create test notification');
+                    return;
+                  }
+
+                  console.log('✅ Created test notification:', createData);
+
+                  // Now try to delete it
+                  const { error: deleteError } = await supabase
+                    .from('notifications')
+                    .delete()
+                    .eq('id', createData.id);
+
+                  if (deleteError) {
+                    console.error('❌ DELETE policy test failed:', deleteError);
+                    toast.error(`DELETE policy failed: ${deleteError.message}`);
+                  } else {
+                    console.log('✅ DELETE policy test passed');
+                    toast.success('✅ DELETE policy is working correctly');
+                  }
+
+                } catch (error) {
+                  console.error('💥 DELETE policy test exception:', error);
+                  toast.error('DELETE policy test failed');
+                }
+              }}
+              className="self-start sm:self-auto"
+            >
+              🔍 Test DELETE Policy
+            </Button>
+          )}
 
 
         </div>
