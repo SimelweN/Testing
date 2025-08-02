@@ -280,7 +280,7 @@ const NotificationsNew = () => {
         setConnectionStatus(result);
 
         if (!result.supabaseReachable || !result.databaseWorking) {
-          console.warn('⚠�� Connection issues detected:', result);
+          console.warn('⚠️ Connection issues detected:', result);
           toast.warning('Connection issues detected. Some features may not work properly.');
         }
       } catch (error) {
@@ -873,55 +873,7 @@ const NotificationsNew = () => {
           </Alert>
         )}
 
-        {/* System Broadcasts */}
-        {broadcasts.length > 0 && (
-          <div className="mb-8 space-y-4">
-            {broadcasts.map((broadcast) => (
-              <Alert
-                key={broadcast.id}
-                className="border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50"
-              >
-                <MessageCircle className="h-5 w-5 text-blue-600" />
-                <AlertDescription>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-blue-900 mb-2">
-                        📢 {broadcast.title}
-                      </h3>
-                      <p className="text-blue-800 mb-3 whitespace-pre-line">
-                        {broadcast.message}
-                      </p>
-                      <div className="text-xs text-blue-600">
-                        {formatTimestamp(broadcast.createdAt)}
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setBroadcasts((prev) =>
-                          prev.filter((b) => b.id !== broadcast.id),
-                        );
-                        // Save dismissal to localStorage
-                        const dismissed = JSON.parse(
-                          localStorage.getItem("dismissedBroadcasts") || "[]",
-                        );
-                        dismissed.push(broadcast.id);
-                        localStorage.setItem(
-                          "dismissedBroadcasts",
-                          JSON.stringify(dismissed),
-                        );
-                      }}
-                      className="text-blue-600 hover:bg-blue-100"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </AlertDescription>
-              </Alert>
-            ))}
-          </div>
-        )}
+
 
         {/* Check if we have any notifications to show */}
         {(() => {
