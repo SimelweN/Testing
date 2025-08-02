@@ -10,6 +10,8 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { NotificationDebugger } from "@/components/NotificationDebugger";
+import EnhancedNotificationDebugger from "@/components/EnhancedNotificationDebugger";
+import ErrorMonitor from "@/components/ErrorMonitor";
 import { supabase } from "@/integrations/supabase/client";
 import EmailTemplateDashboard from "@/components/admin/EmailTemplateDashboard";
 import { EmailDiagnosticPanel } from "@/components/EmailDiagnosticPanel";
@@ -220,7 +222,7 @@ const Developer = () => {
         console.log('✅ REAL Users loaded:', realUsers.length, realUsers);
         toast.success(`�� Loaded ${realUsers.length} REAL users from database`);
       } else {
-        console.error('❌ Users query failed:', usersError);
+        console.error('�� Users query failed:', usersError);
         const userErrorMsg = usersError?.message || usersError?.details || usersError?.hint || (usersError ? JSON.stringify(usersError, null, 2) : 'Unknown database error');
         toast.error(`❌ Failed to load users: ${userErrorMsg}`);
 
@@ -1621,8 +1623,8 @@ const Developer = () => {
                             console.log(`✅ Successfully loaded ${lockers.length} lockers`);
 
                             // Check if these are mock lockers vs real API data
-                          const mockLockerIds = lockers.filter(l => l.id.startsWith('gauteng_') || l.id.startsWith('western_cape_'));
-                          const hasMockFlag = lockers.some(l => (l as any).isMockData);
+                          const mockLockerIds = lockers.filter(l => l && l.id && (l.id.startsWith('gauteng_') || l.id.startsWith('western_cape_')));
+                          const hasMockFlag = lockers.some(l => l && (l as any).isMockData);
 
                           if (mockLockerIds.length === lockers.length || hasMockFlag) {
                             toast.warning('📄 Using verified mock data - CORS blocking real API');
@@ -1908,7 +1910,13 @@ const Developer = () => {
 
             <TabsContent value="communication">
               <div className="space-y-6">
-                {/* Notification Debugger - Development Only */}
+                {/* Error Monitor - Development Only */}
+                {import.meta.env.DEV && <ErrorMonitor />}
+
+                {/* Enhanced Notification Debugger - Development Only */}
+                {import.meta.env.DEV && <EnhancedNotificationDebugger />}
+
+                {/* Original Notification Debugger - Development Only */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {import.meta.env.DEV && <NotificationDebugger />}
                   <Card>

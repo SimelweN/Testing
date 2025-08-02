@@ -156,7 +156,7 @@ const generateWelcomeEmailHTML = (name: string, email: string): string => `
       <p>Welcome to South Africa's premier textbook marketplace! Your account is now active and you can:</p>
 
       <ul>
-        <li>📚 Browse thousands of affordable textbooks</li>
+        <li>��� Browse thousands of affordable textbooks</li>
         <li>💰 Sell your textbooks to other students</li>
         <li>🚚 Enjoy convenient doorstep delivery</li>
         <li>🎓 Connect with students at your university</li>
@@ -437,12 +437,12 @@ export const createUserProfile = async (user: User): Promise<Profile> => {
 
     // Create welcome notification for new user
     try {
-      await supabase.from("notifications").insert({
-        user_id: user.id,
+      const { NotificationService } = await import('./notificationService');
+      await NotificationService.createNotification({
+        userId: user.id,
+        type: "info", // Change from "welcome" to "info" for database compatibility
         title: "Welcome to ReBooked Solutions! 🎉",
         message: `Hi ${newProfile.name}! Welcome to South Africa's premier textbook marketplace. Start browsing textbooks, set up your profile, and join our community of students!`,
-        type: "welcome",
-        read: false,
       });
       console.log("✅ Welcome notification created for new user");
     } catch (notifError) {

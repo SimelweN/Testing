@@ -277,19 +277,17 @@ serve(async (req) => {
     // Create notifications
     console.log('📬 Creating notifications...');
     const notificationPromises = [
-      supabase.from("order_notifications").insert({
-        order_id: order.id,
+      supabase.from("notifications").insert({
         user_id: buyer_id,
-        type: "order_confirmed",
-        title: "Purchase Confirmed!",
-        message: `Your purchase of "${book.title}" has been confirmed. Total: R${amount.toFixed(2)}`
+        type: "success",
+        title: "🛒 Purchase Confirmed!",
+        message: `Your purchase of "${book.title}" has been confirmed. Total: R${amount.toFixed(2)}. Order ID: ${order.id}`
       }),
-      supabase.from("order_notifications").insert({
-        order_id: order.id,
+      supabase.from("notifications").insert({
         user_id: seller_id,
-        type: "new_order",
-        title: "New Sale!",
-        message: `You have a new order for "${book.title}" worth R${amount.toFixed(2)}. Please commit within 48 hours.`
+        type: "info",
+        title: "📦 New Sale!",
+        message: `You have a new order for "${book.title}" worth R${amount.toFixed(2)}. Please commit within 48 hours. Order ID: ${order.id}`
       })
     ];
 

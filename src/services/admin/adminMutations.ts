@@ -100,9 +100,9 @@ export const searchUserData = async (
   }
 };
 
-export const sendBroadcastMessage = async (message: string): Promise<void> => {
+export const sendNotificationMessage = async (message: string): Promise<void> => {
   try {
-    console.log("Attempting to send broadcast message:", message);
+    console.log("Attempting to send notification message:", message);
 
     // Get all users first
     const { data: users, error: usersError } = await supabase
@@ -154,7 +154,7 @@ export const sendBroadcastMessage = async (message: string): Promise<void> => {
         // Test with one user first
         const testNotification = {
           user_id: users[0].id,
-          title: "System Announcement",
+          title: "ReBooked Solutions Team",
           message: message,
           type: tryType,
         };
@@ -198,7 +198,7 @@ export const sendBroadcastMessage = async (message: string): Promise<void> => {
     // Create notifications for all users with the successful type
     const notifications = users.map((user) => ({
       user_id: user.id,
-      title: "System Announcement",
+      title: "ReBooked Solutions Team",
       message: message,
       type: successfulType,
     }));

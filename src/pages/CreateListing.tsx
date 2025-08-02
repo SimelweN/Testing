@@ -29,6 +29,7 @@ import {
   hasCompletedFirstUpload,
   markFirstUploadCompleted,
 } from "@/services/userPreferenceService";
+import { isFirstBookListing } from "@/services/userBookCountService";
 import { BookInformationForm } from "@/components/create-listing/BookInformationForm";
 import { PricingSection } from "@/components/create-listing/PricingSection";
 import { BookTypeSection } from "@/components/create-listing/BookTypeSection";
@@ -256,9 +257,12 @@ const CreateListing = () => {
       const handlePostCommitFlow = async () => {
         try {
           const hasCompleted = await hasCompletedFirstUpload(user.id);
+          const isFirstBook = await isFirstBookListing(user.id);
+
           if (!hasCompleted && shouldShowFirstUpload(user.id)) {
             setShowFirstUploadDialog(true);
-          } else if (shouldShowPostListing(user.id)) {
+          } else if (isFirstBook && shouldShowPostListing(user.id)) {
+            // Only show post-listing dialog for first book AND if not shown before
             setShowPostListingDialog(true);
           } else {
             setShowShareProfileDialog(true);
@@ -268,10 +272,16 @@ const CreateListing = () => {
             "Could not track first upload preference:",
             prefError,
           );
-          // Fallback to showing appropriate dialog
-          if (shouldShowPostListing(user.id)) {
-            setShowPostListingDialog(true);
-          } else {
+          // Fallback: check if it's first book before showing post-listing dialog
+          try {
+            const isFirstBook = await isFirstBookListing(user.id);
+            if (isFirstBook && shouldShowPostListing(user.id)) {
+              setShowPostListingDialog(true);
+            } else {
+              setShowShareProfileDialog(true);
+            }
+          } catch (bookError) {
+            console.warn("Could not check if first book:", bookError);
             setShowShareProfileDialog(true);
           }
         }
@@ -282,7 +292,7 @@ const CreateListing = () => {
         setShowCommitReminderModal(true);
       } else {
         // Skip to post-listing flow if commit reminder already shown
-        handlePostCommitFlow();
+        await handlePostCommitFlow();
       }
 
       // Handle first upload workflow after commit reminder
@@ -552,13 +562,19 @@ const CreateListing = () => {
 
           <FirstUploadSuccessDialog
             isOpen={showFirstUploadDialog}
-            onClose={() => {
+            onClose={async () => {
               setShowFirstUploadDialog(false);
               markPopupAsShown(user.id, 'firstUploadShown');
-              // Check if post listing dialog should be shown for returning users
-              if (shouldShowPostListing(user.id)) {
-                setShowPostListingDialog(true);
-              } else {
+              // Check if post listing dialog should be shown for first book only
+              try {
+                const isFirstBook = await isFirstBookListing(user.id);
+                if (isFirstBook && shouldShowPostListing(user.id)) {
+                  setShowPostListingDialog(true);
+                } else {
+                  setShowShareProfileDialog(true);
+                }
+              } catch (error) {
+                console.warn('Could not check if first book listing:', error);
                 setShowShareProfileDialog(true);
               }
             }}
@@ -591,13 +607,13 @@ const CreateListing = () => {
 
           <CommitReminderModal
             isOpen={showCommitReminderModal}
-            onClose={() => {
+            onClose={async () => {
               setShowCommitReminderModal(false);
               // Mark as shown so it doesn't appear again
               markPopupAsShown(user.id, 'commitReminderShown');
 
               // Handle first upload workflow after commit reminder
-              handlePostCommitFlow();
+              await handlePostCommitFlow();
             }}
             type="seller"
           />

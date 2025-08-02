@@ -90,8 +90,14 @@ const SubaccountView: React.FC<SubaccountViewProps> = ({
   }, []);
 
   const handleEdit = () => {
+    console.log('Edit button clicked:', { onEdit: !!onEdit, isEditing });
     if (onEdit) {
-      onEdit();
+      try {
+        onEdit();
+      } catch (error) {
+        console.error('Error calling onEdit:', error);
+        toast.error('Failed to enter edit mode');
+      }
     } else {
       setIsEditing(true);
     }
@@ -205,9 +211,15 @@ const SubaccountView: React.FC<SubaccountViewProps> = ({
               </Button>
               {showEditButton && (
                 <Button
-                  onClick={handleEdit}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Edit button click event triggered');
+                    handleEdit();
+                  }}
                   size="sm"
                   className="bg-book-600 hover:bg-book-700 flex items-center gap-2"
+                  type="button"
                 >
                   <Edit3 className="h-4 w-4" />
                   Edit

@@ -23,12 +23,16 @@ import {
   MessageCircle,
   Clock,
   X,
+  CheckCircle,
+  AlertCircle,
+  XCircle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/hooks/useNotifications";
-import { getActiveBroadcasts } from "@/services/broadcastService";
 import { toast } from "sonner";
 import { NotificationService } from "@/services/notificationService";
+import { supabase } from "@/integrations/supabase/client";
+import { testConnection, getConnectionErrorMessage, type ConnectionTestResult } from "@/utils/connectionTester";
 
 interface NotificationCategory {
   id: string;
@@ -63,45 +67,58 @@ const NotificationsNew = () => {
   } = useNotifications();
   const [isFirstTime, setIsFirstTime] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
-  const [broadcasts, setBroadcasts] = useState([]);
+
   const [notificationSettings, setNotificationSettings] = useState({
     commits: true,
     purchases: true,
     deliveries: true,
   });
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionTestResult | null>(null);
+  const [showConnectionDetails, setShowConnectionDetails] = useState(false);
+  const [dismissingNotifications, setDismissingNotifications] = useState<Set<string>>(new Set());
 
   // Convert database notifications to our category format
   const categorizeNotifications = (dbNotifications: any[]) => {
     const commitNotifications = dbNotifications.filter(
       (n) =>
-        n.type === "commit" ||
         n.title?.toLowerCase().includes("commit") ||
-        n.message?.toLowerCase().includes("commit"),
+        n.message?.toLowerCase().includes("commit") ||
+        n.title?.includes("⏰") ||
+        (n.type === "warning" && (n.title?.includes("Commit") || n.message?.includes("commit"))),
     );
 
     const purchaseNotifications = dbNotifications.filter(
       (n) =>
-        n.type === "purchase" ||
-        n.type === "order" ||
         n.title?.toLowerCase().includes("purchase") ||
-        n.title?.toLowerCase().includes("order"),
+        n.title?.toLowerCase().includes("order") ||
+        n.title?.toLowerCase().includes("payment") ||
+        n.title?.includes("🛒") ||
+        n.title?.includes("📦") ||
+        n.title?.includes("💳") ||
+        n.title?.includes("✅") ||
+        n.title?.includes("🎉") ||
+        (n.type === "success" && (n.title?.includes("Order") || n.title?.includes("Payment"))),
     );
 
     const deliveryNotifications = dbNotifications.filter(
       (n) =>
-        n.type === "delivery" ||
-        n.type === "shipping" ||
         n.title?.toLowerCase().includes("delivery") ||
-        n.title?.toLowerCase().includes("shipping"),
+        n.title?.toLowerCase().includes("shipping") ||
+        n.title?.toLowerCase().includes("tracking") ||
+        n.title?.includes("📦") ||
+        (n.type === "info" && (n.title?.includes("Delivery") || n.title?.includes("Shipping"))),
     );
 
     const adminNotifications = dbNotifications.filter(
       (n) =>
         n.type === "admin_action" ||
         n.type === "admin" ||
+        n.type === "broadcast" ||
         n.title?.toLowerCase().includes("removed") ||
         n.title?.toLowerCase().includes("deleted") ||
         n.title?.toLowerCase().includes("listing") ||
+        n.title?.toLowerCase().includes("rebooked solutions team") ||
+        n.title?.toLowerCase().includes("system announcement") ||
         n.message?.toLowerCase().includes("admin") ||
         n.message?.toLowerCase().includes("violation"),
     );
@@ -111,7 +128,8 @@ const NotificationsNew = () => {
         !commitNotifications.includes(n) &&
         !purchaseNotifications.includes(n) &&
         !deliveryNotifications.includes(n) &&
-        !adminNotifications.includes(n)
+        !adminNotifications.includes(n) ||
+        n.type === 'info' || n.type === 'success' || n.type === 'warning' || n.type === 'error'
     );
 
     return {
@@ -219,8 +237,8 @@ const NotificationsNew = () => {
     },
     {
       id: "admin",
-      title: "Admin Actions",
-      description: "Actions taken by administrators",
+      title: "System Messages & Admin Actions",
+      description: "Official communications and administrative actions",
       icon: <Settings className="h-5 w-5" />,
       color: "red",
       enabled: true,
@@ -253,19 +271,32 @@ const NotificationsNew = () => {
     },
   ]);
 
-  // Load broadcasts on component mount
+  // Test connection on component mount
   useEffect(() => {
-    const loadBroadcasts = async () => {
+
+    const checkConnection = async () => {
       try {
-        const activeBroadcasts = await getActiveBroadcasts();
-        setBroadcasts(activeBroadcasts);
-        console.log("📢 Loaded broadcasts:", activeBroadcasts);
+        const result = await testConnection();
+        setConnectionStatus(result);
+
+        if (!result.supabaseReachable || !result.databaseWorking) {
+          console.warn('⚠️ Connection issues detected:', result);
+          toast.warning('Connection issues detected. Some features may not work properly.');
+        }
       } catch (error) {
-        console.error("Failed to load broadcasts:", error);
+        console.error('❌ Connection test failed:', error);
+        const errorMessage = getConnectionErrorMessage(error);
+        setConnectionStatus({
+          isOnline: navigator.onLine,
+          supabaseReachable: false,
+          authWorking: false,
+          databaseWorking: false,
+          error: errorMessage
+        });
       }
     };
 
-    loadBroadcasts();
+    checkConnection();
   }, []);
 
   // Check if this is a first-time user
@@ -397,30 +428,33 @@ const NotificationsNew = () => {
     }
   };
 
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = (type: string, title?: string, message?: string) => {
+    // Content-based icon detection (more specific)
+    if (title?.includes("🧪") || title?.includes("Test")) {
+      return <Bell className="h-4 w-4 text-gray-500" />;
+    }
+    if (title?.includes("⏰") || title?.includes("Commit") || message?.includes("commit")) {
+      return <Award className="h-4 w-4 text-orange-500" />;
+    }
+    if (title?.includes("🛒") || title?.includes("📦") || title?.includes("💳") || title?.includes("Order") || title?.includes("Purchase") || title?.includes("Payment")) {
+      return <ShoppingCart className="h-4 w-4 text-green-500" />;
+    }
+    if (title?.includes("📦") || title?.includes("Delivery") || title?.includes("Shipping")) {
+      return <Truck className="h-4 w-4 text-blue-500" />;
+    }
+
+    // Fallback to type-based icons
     switch (type) {
       case "welcome":
         return <Gift className="h-4 w-4 text-purple-500" />;
-      case "commit":
-        return <Award className="h-4 w-4 text-orange-500" />;
-      case "purchase":
-        return <ShoppingCart className="h-4 w-4 text-green-500" />;
-      case "delivery":
-        return <Truck className="h-4 w-4 text-blue-500" />;
-      case "review":
-        return <Star className="h-4 w-4 text-yellow-500" />;
-      case "social":
-        return <Users className="h-4 w-4 text-pink-500" />;
-      case "admin":
-      case "admin_action":
-        return <Settings className="h-4 w-4 text-red-500" />;
-      case "general":
-      case "test":
-        return <Bell className="h-4 w-4 text-gray-500" />;
+      case "success":
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case "warning":
+        return <AlertCircle className="h-4 w-4 text-orange-500" />;
+      case "error":
+        return <XCircle className="h-4 w-4 text-red-500" />;
       case "info":
         return <MessageCircle className="h-4 w-4 text-blue-500" />;
-      case "tip":
-        return <BookOpen className="h-4 w-4 text-green-500" />;
       default:
         return <Bell className="h-4 w-4 text-gray-500" />;
     }
@@ -456,19 +490,154 @@ const NotificationsNew = () => {
     );
   };
 
-  const dismissNotification = (categoryId: string, notificationId: string) => {
-    setCategories((prev) =>
-      prev.map((category) =>
-        category.id === categoryId
-          ? {
-              ...category,
-              notifications: category.notifications.filter(
-                (notif) => notif.id !== notificationId,
-              ),
-            }
-          : category,
-      ),
-    );
+  const dismissNotification = async (categoryId: string, notificationId: string) => {
+    // Set dismissing state
+    setDismissingNotifications(prev => new Set(prev).add(notificationId));
+
+    try {
+      console.log('🗑️ Starting dismissNotification:', {
+        categoryId,
+        notificationId,
+        userId: user?.id,
+        isOnline: navigator.onLine,
+        timestamp: new Date().toISOString()
+      });
+
+      // Check network connectivity first
+      if (!navigator.onLine) {
+        console.error('❌ No internet connection');
+        toast.error('No internet connection. Please check your network.');
+        return;
+      }
+
+      // Check if user is authenticated
+      if (!user?.id) {
+        console.error('❌ No authenticated user');
+        toast.error('You must be logged in to delete notifications');
+        return;
+      }
+
+      // First, let's verify the notification exists
+      console.log('🔍 Checking if notification exists...');
+      const { data: existingNotification, error: checkError } = await supabase
+        .from('notifications')
+        .select('id, user_id, title')
+        .eq('id', notificationId)
+        .single();
+
+      if (checkError) {
+        console.error('❌ Error checking notification existence:', checkError);
+        toast.error(`Notification not found: ${checkError.message}`);
+        return;
+      }
+
+      if (!existingNotification) {
+        console.error('❌ Notification not found in database');
+        toast.error('Notification not found');
+        return;
+      }
+
+      console.log('✅ Notification found:', existingNotification);
+
+      // Verify ownership
+      if (existingNotification.user_id !== user.id) {
+        console.error('❌ User does not own this notification');
+        toast.error('You can only delete your own notifications');
+        return;
+      }
+
+      // Now delete from database
+      console.log('🗑️ Attempting to delete notification from database...');
+      const { data: deleteData, error: deleteError } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId)
+        .eq('user_id', user.id); // Double-check ownership in delete query
+
+      console.log('Delete operation result:', { data: deleteData, error: deleteError });
+
+      if (deleteError) {
+        console.error('❌ Database error deleting notification:', {
+          error: deleteError,
+          notificationId,
+          code: deleteError.code,
+          message: deleteError.message,
+          details: deleteError.details,
+          hint: deleteError.hint
+        });
+
+        // Handle specific error cases
+        if (deleteError.code === 'PGRST116') {
+          toast.error('Notification not found or already deleted');
+        } else if (deleteError.code === '42501') {
+          toast.error('Permission denied. You can only delete your own notifications.');
+        } else if (deleteError.message?.includes('Failed to fetch') || deleteError.message?.includes('network')) {
+          toast.error('Network error. Please check your connection and try again.');
+        } else {
+          toast.error(`Failed to remove notification: ${deleteError.message}`);
+        }
+        return;
+      }
+
+      console.log('✅ Successfully deleted notification from database');
+
+      // Update local state to remove from UI immediately (before showing success message)
+      console.log('🔄 Updating local state to remove notification from UI...');
+      setCategories((prev) => {
+        const updatedCategories = prev.map((category) =>
+          category.id === categoryId
+            ? {
+                ...category,
+                notifications: category.notifications.filter(
+                  (notif) => notif.id !== notificationId,
+                ),
+              }
+            : category,
+        );
+        console.log('✅ Local state updated - notification removed from UI');
+        return updatedCategories;
+      });
+
+      // Show success message immediately after UI update
+      toast.success('✅ Notification permanently removed');
+      console.log('✅ Notification removed from UI - dismissNotification completed successfully');
+
+      // Refresh notifications to ensure consistency (in background)
+      console.log('🔄 Refreshing notifications in background...');
+      try {
+        await refreshNotifications();
+        console.log('✅ Background notifications refresh completed');
+      } catch (refreshError) {
+        console.warn('⚠️ Failed to refresh notifications after deletion:', refreshError);
+        // Don't show error toast for refresh failure since deletion succeeded
+      }
+
+    } catch (error) {
+      console.error('💥 Exception while dismissing notification:', {
+        error,
+        notificationId,
+        categoryId,
+        isOnline: navigator.onLine,
+        timestamp: new Date().toISOString(),
+        stack: error instanceof Error ? error.stack : undefined
+      });
+
+      // Handle network errors specifically
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        toast.error('Network error. Please check your internet connection and try again.');
+      } else if (error instanceof Error) {
+        toast.error(`Error: ${error.message}`);
+      } else {
+        toast.error('An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      // Clear dismissing state
+      setDismissingNotifications(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(notificationId);
+        return newSet;
+      });
+    }
   };
 
   // Use real notification counts from the hook
@@ -501,34 +670,171 @@ const NotificationsNew = () => {
               Loading...
             </Badge>
           )}
+          {connectionStatus && !connectionStatus.databaseWorking && (
+            <Badge
+              variant="destructive"
+              className="self-start sm:self-auto cursor-pointer"
+              onClick={() => setShowConnectionDetails(!showConnectionDetails)}
+            >
+              Connection Issues
+            </Badge>
+          )}
           {process.env.NODE_ENV === 'development' && user && (
             <Button
               variant="outline"
               size="sm"
               onClick={async () => {
-                if (user) {
-                  try {
-                    await NotificationService.createNotification({
-                      userId: user.id,
-                      type: 'test',
-                      title: 'Test Notification',
-                      message: `Test notification created at ${new Date().toLocaleTimeString()}`,
-                    });
-                    toast.success('Test notification created!');
-                    refreshNotifications();
-                  } catch (error) {
-                    console.error('Failed to create test notification:', error);
+                try {
+                  console.log('🧪 Creating test notification for dismiss testing...');
+                  const result = await NotificationService.createNotification({
+                    userId: user.id,
+                    type: 'info',
+                    title: '🗑️ Test Dismiss Notification',
+                    message: 'Click the X button to test the dismiss functionality. This should permanently delete from database.',
+                  });
+
+                  if (result) {
+                    toast.success('Test notification created - try dismissing it with the X button');
+                    await refreshNotifications();
+                  } else {
                     toast.error('Failed to create test notification');
                   }
+                } catch (error) {
+                  console.error('Failed to create test notification:', error);
+                  toast.error('Error creating test notification');
                 }
               }}
               className="self-start sm:self-auto"
             >
-              Test Notification
+              🧪 Test Dismiss
+            </Button>
+          )}
+          {process.env.NODE_ENV === 'development' && user && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                try {
+                  console.log('🔍 Testing DELETE policy directly...');
+
+                  // First create a test notification
+                  const { data: createData, error: createError } = await supabase
+                    .from('notifications')
+                    .insert({
+                      user_id: user.id,
+                      type: 'info',
+                      title: 'DELETE Test',
+                      message: 'Testing DELETE policy'
+                    })
+                    .select()
+                    .single();
+
+                  if (createError) {
+                    console.error('Failed to create test notification:', createError);
+                    toast.error('Failed to create test notification');
+                    return;
+                  }
+
+                  console.log('✅ Created test notification:', createData);
+
+                  // Now try to delete it
+                  const { error: deleteError } = await supabase
+                    .from('notifications')
+                    .delete()
+                    .eq('id', createData.id);
+
+                  if (deleteError) {
+                    console.error('❌ DELETE policy test failed:', deleteError);
+                    toast.error(`DELETE policy failed: ${deleteError.message}`);
+                  } else {
+                    console.log('✅ DELETE policy test passed');
+                    toast.success('✅ DELETE policy is working correctly');
+                  }
+
+                } catch (error) {
+                  console.error('💥 DELETE policy test exception:', error);
+                  toast.error('DELETE policy test failed');
+                }
+              }}
+              className="self-start sm:self-auto"
+            >
+              🔍 Test DELETE Policy
             </Button>
           )}
 
+
         </div>
+
+        {/* Connection Status Details */}
+        {showConnectionDetails && connectionStatus && (
+          <Card className="mb-6 border-red-200 bg-red-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-800">
+                <XCircle className="h-5 w-5" />
+                Connection Diagnostics
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Internet Connection:</span>
+                  <Badge variant={connectionStatus.isOnline ? "default" : "destructive"}>
+                    {connectionStatus.isOnline ? "✅ Online" : "❌ Offline"}
+                  </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span>Supabase Reachable:</span>
+                  <Badge variant={connectionStatus.supabaseReachable ? "default" : "destructive"}>
+                    {connectionStatus.supabaseReachable ? "✅ Yes" : "❌ No"}
+                  </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span>Authentication:</span>
+                  <Badge variant={connectionStatus.authWorking ? "default" : "destructive"}>
+                    {connectionStatus.authWorking ? "✅ Working" : "❌ Failed"}
+                  </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span>Database Access:</span>
+                  <Badge variant={connectionStatus.databaseWorking ? "default" : "destructive"}>
+                    {connectionStatus.databaseWorking ? "✅ Working" : "❌ Failed"}
+                  </Badge>
+                </div>
+                {connectionStatus.latency && (
+                  <div className="flex justify-between">
+                    <span>Response Time:</span>
+                    <Badge variant="outline">{connectionStatus.latency}ms</Badge>
+                  </div>
+                )}
+                {connectionStatus.error && (
+                  <div className="mt-3 p-2 bg-red-100 rounded text-red-800 text-xs">
+                    <strong>Error:</strong> {connectionStatus.error}
+                  </div>
+                )}
+              </div>
+              <div className="mt-4 flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
+                    const result = await testConnection();
+                    setConnectionStatus(result);
+                    toast.info('Connection test completed');
+                  }}
+                >
+                  Retest Connection
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowConnectionDetails(false)}
+                >
+                  Hide Details
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Welcome Message for First-Time Users */}
         {showWelcome && (
@@ -567,61 +873,68 @@ const NotificationsNew = () => {
           </Alert>
         )}
 
-        {/* System Broadcasts */}
-        {broadcasts.length > 0 && (
-          <div className="mb-8 space-y-4">
-            {broadcasts.map((broadcast) => (
-              <Alert
-                key={broadcast.id}
-                className="border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50"
-              >
-                <MessageCircle className="h-5 w-5 text-blue-600" />
-                <AlertDescription>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-blue-900 mb-2">
-                        📢 {broadcast.title}
-                      </h3>
-                      <p className="text-blue-800 mb-3 whitespace-pre-line">
-                        {broadcast.message}
+
+
+        {/* Check if we have any notifications to show */}
+        {(() => {
+          const hasVisibleCategories = categories.some(category => {
+            if (!category.enabled && category.id !== "welcome") return false;
+            if (category.id === "welcome" && !isFirstTime && !showWelcome) return false;
+            return category.notifications.length > 0;
+          });
+
+          const shouldShowWelcome = showWelcome && isFirstTime;
+
+          if (!hasVisibleCategories && !shouldShowWelcome) {
+            return (
+              <Card className="text-center py-16">
+                <CardContent>
+                  <Bell className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                    No notifications yet
+                  </h3>
+                  <p className="text-gray-500 mb-6">
+                    You're all caught up! We'll notify you when something important happens.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <ShoppingCart className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                      <h4 className="font-medium text-blue-900">Start Shopping</h4>
+                      <p className="text-blue-700 text-sm">
+                        Browse textbooks and make your first purchase
                       </p>
-                      <div className="text-xs text-blue-600">
-                        {formatTimestamp(broadcast.createdAt)}
-                      </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setBroadcasts((prev) =>
-                          prev.filter((b) => b.id !== broadcast.id),
-                        );
-                        // Save dismissal to localStorage
-                        const dismissed = JSON.parse(
-                          localStorage.getItem("dismissedBroadcasts") || "[]",
-                        );
-                        dismissed.push(broadcast.id);
-                        localStorage.setItem(
-                          "dismissedBroadcasts",
-                          JSON.stringify(dismissed),
-                        );
-                      }}
-                      className="text-blue-600 hover:bg-blue-100"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <BookOpen className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                      <h4 className="font-medium text-green-900">List Books</h4>
+                      <p className="text-green-700 text-sm">
+                        Sell your textbooks to earn money
+                      </p>
+                    </div>
+                    <div className="p-4 bg-purple-50 rounded-lg">
+                      <Users className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+                      <h4 className="font-medium text-purple-900">Join Community</h4>
+                      <p className="text-purple-700 text-sm">
+                        Connect with other students
+                      </p>
+                    </div>
                   </div>
-                </AlertDescription>
-              </Alert>
-            ))}
-          </div>
-        )}
+                </CardContent>
+              </Card>
+            );
+          }
+
+          return null;
+        })()}
 
         {/* Notification Categories */}
         <div className="space-y-6">
           {categories.map((category) => {
             if (!category.enabled && category.id !== "welcome") return null;
             if (category.id === "welcome" && !isFirstTime && !showWelcome)
+              return null;
+            // Hide categories with no notifications (except welcome)
+            if (category.id !== "welcome" && category.notifications.length === 0)
               return null;
 
             const colorClasses = {
@@ -635,6 +948,7 @@ const NotificationsNew = () => {
             return (
               <Card
                 key={category.id}
+                data-category={category.id}
                 className={`${colorClasses[category.color as keyof typeof colorClasses]} border-2`}
               >
                 <CardHeader className="px-4 sm:px-6">
@@ -658,18 +972,14 @@ const NotificationsNew = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {category.notifications.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>No {category.title.toLowerCase()} yet</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
+                  <div className="space-y-3">
                       {category.notifications.map((notification) => (
                         <div
                           key={notification.id}
                           className={`p-3 sm:p-4 rounded-lg border transition-all ${
-                            notification.read
+                            (notification.title.includes('🧪') || notification.title.includes('Test Notification')) && !notification.read
+                              ? "bg-gradient-to-r from-green-50 to-blue-50 border-green-400 shadow-lg ring-2 ring-green-300 ring-opacity-50"
+                              : notification.read
                               ? "bg-white border-gray-200"
                               : "bg-white border-blue-300 shadow-md"
                           }`}
@@ -677,12 +987,19 @@ const NotificationsNew = () => {
                           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0">
                             <div className="flex items-start gap-2 sm:gap-3 flex-1">
                               <div className="flex-shrink-0 mt-0.5">
-                                {getNotificationIcon(notification.type)}
+                                {getNotificationIcon(notification.type, notification.title, notification.message)}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base line-clamp-2">
-                                  {notification.title}
-                                </h4>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h4 className="font-semibold text-gray-900 text-sm sm:text-base line-clamp-2">
+                                    {notification.title}
+                                  </h4>
+                                  {(notification.title.includes('🧪') || notification.title.includes('Test Notification')) && (
+                                    <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                                      TEST
+                                    </Badge>
+                                  )}
+                                </div>
                                 <p className="text-gray-700 text-xs sm:text-sm whitespace-pre-line mb-2 leading-relaxed">
                                   {notification.message}
                                 </p>
@@ -713,62 +1030,27 @@ const NotificationsNew = () => {
                                     notification.id,
                                   )
                                 }
-                                className="text-gray-500 hover:bg-gray-100 min-h-[44px] min-w-[44px] p-2"
+                                disabled={dismissingNotifications.has(notification.id)}
+                                className="text-gray-500 hover:bg-gray-100 min-h-[44px] min-w-[44px] p-2 disabled:opacity-50"
                               >
-                                <X className="h-4 w-4" />
+                                {dismissingNotifications.has(notification.id) ? (
+                                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                                ) : (
+                                  <X className="h-4 w-4" />
+                                )}
                               </Button>
                             </div>
                           </div>
                         </div>
                       ))}
-                    </div>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
             );
           })}
         </div>
 
-        {/* Empty State */}
-        {totalNotifications === 0 && !showWelcome && (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Bell className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                All caught up!
-              </h3>
-              <p className="text-gray-500 mb-6">
-                You don't have any notifications right now. We'll notify you
-                when something important happens.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <ShoppingCart className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                  <h4 className="font-medium text-blue-900">Start Shopping</h4>
-                  <p className="text-blue-700 text-sm">
-                    Browse textbooks and make your first purchase
-                  </p>
-                </div>
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <BookOpen className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                  <h4 className="font-medium text-green-900">List Books</h4>
-                  <p className="text-green-700 text-sm">
-                    Sell your textbooks to earn money
-                  </p>
-                </div>
-                <div className="p-4 bg-purple-50 rounded-lg">
-                  <Users className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                  <h4 className="font-medium text-purple-900">
-                    Join Community
-                  </h4>
-                  <p className="text-purple-700 text-sm">
-                    Connect with other students
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+
       </div>
     </Layout>
   );

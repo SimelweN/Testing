@@ -16,7 +16,7 @@ import {
 import {
   updateUserStatus,
   deleteBookListing,
-  sendBroadcastMessage,
+  sendNotificationMessage,
   deleteUser,
 } from "@/services/admin/adminMutations";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -31,8 +31,7 @@ import AdminResourcesTab from "@/components/admin/AdminResourcesTab";
 import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
 import AdminPayoutTab from "@/components/admin/AdminPayoutTab";
 import AdminUtilitiesTab from "@/components/admin/AdminUtilitiesTab";
-import EmailDiagnosticsDashboard from "@/components/admin/EmailDiagnosticsDashboard";
-import MailQueueFix from "@/components/admin/MailQueueFix";
+
 
 
 
@@ -58,7 +57,6 @@ import {
   Code,
   Banknote,
   Wrench,
-  Mail,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -318,12 +316,12 @@ const AdminDashboard = () => {
     }
 
     try {
-      await sendBroadcastMessage(broadcastMessage);
-      toast.success(`Broadcast message sent to all ${stats.totalUsers} users`);
+      await sendNotificationMessage(broadcastMessage);
+      toast.success(`Notification message sent to all ${stats.totalUsers} users`);
       setBroadcastMessage("");
     } catch (error) {
-      console.error("Error sending broadcast:", error);
-      handleError(error, "Send Broadcast");
+      console.error("Error sending notification:", error);
+      handleError(error, "Send Notification");
     }
   };
 
@@ -455,13 +453,7 @@ const AdminDashboard = () => {
       color: "text-orange-600",
       description: "Testing tools and database management",
     },
-    {
-      value: "email",
-      label: "Email",
-      icon: Mail,
-      color: "text-blue-600",
-      description: "Email system diagnostics and monitoring",
-    },
+
     {
       value: "settings",
       label: "Settings",
@@ -716,19 +708,7 @@ const AdminDashboard = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="email" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
-                  <MailQueueFix />
-                </CardContent>
-              </Card>
 
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
-                  <EmailDiagnosticsDashboard />
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             <TabsContent value="settings" className="mt-0 space-y-6">
               <Card className="border-0 shadow-sm">

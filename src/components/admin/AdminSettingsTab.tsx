@@ -18,11 +18,10 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { createBroadcast } from "@/services/broadcastService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Settings, MessageSquare, Megaphone, Trash2, Mail } from "lucide-react";
-import SupabaseEmailSetupGuide from "@/components/SupabaseEmailSetupGuide";
+import { MessageSquare } from "lucide-react";
+import NotificationTester from "./NotificationTester";
 
 
 
@@ -38,224 +37,14 @@ const AdminSettingsTab = ({
   onSendBroadcast,
 }: AdminSettingsTabProps) => {
   const { user } = useAuth();
-  const [newBroadcast, setNewBroadcast] = useState({
-    title: "",
-    message: "",
-    type: "info" as "info" | "warning" | "success" | "error",
-    priority: "normal" as "low" | "normal" | "medium" | "high" | "urgent",
-    targetAudience: "all" as "all" | "users" | "admin",
-    active: true,
-    expiresAt: "",
-  });
-  const [isCreating, setIsCreating] = useState(false);
-  const [isCleaningBanking, setIsCleaningBanking] = useState(false);
 
-  const handleBankingCleanup = async () => {
-    if (
-      !confirm(
-        "⚠️ This will remove ALL development/mock banking details from the system. This action cannot be undone. Are you sure?",
-      )
-    ) {
-      return;
-    }
 
-    toast.info("Banking cleanup functionality has been removed");
-  };
 
-  const handleCreateBroadcast = async () => {
-    if (!user || !newBroadcast.title.trim() || !newBroadcast.message.trim()) {
-      toast.error("Please fill in title and message fields");
-      return;
-    }
 
-    setIsCreating(true);
-    try {
-      await createBroadcast({
-        title: newBroadcast.title,
-        message: newBroadcast.message,
-        type: newBroadcast.type,
-        priority: newBroadcast.priority,
-        targetAudience: newBroadcast.targetAudience,
-        active: newBroadcast.active,
-        expiresAt: newBroadcast.expiresAt || undefined,
-        createdBy: user.id,
-      });
-
-      toast.success(
-        "Broadcast created successfully! Users will see it when they next visit the site.",
-      );
-
-      // Reset form
-      setNewBroadcast({
-        title: "",
-        message: "",
-        type: "info",
-        priority: "normal",
-        targetAudience: "all",
-        active: true,
-        expiresAt: "",
-      });
-    } catch (error) {
-      console.error("Error creating broadcast:", error);
-      toast.error("Failed to create broadcast");
-    } finally {
-      setIsCreating(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5" />
-            Email Service Configuration
-          </CardTitle>
-          <CardDescription>
-            Configure Supabase email settings for user registration and notifications
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SupabaseEmailSetupGuide />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Megaphone className="h-5 w-5" />
-            Create System Broadcast
-          </CardTitle>
-          <CardDescription>
-            Create announcements that appear to users when they visit the site
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="broadcast-title">Title</Label>
-              <Input
-                id="broadcast-title"
-                placeholder="Broadcast title..."
-                value={newBroadcast.title}
-                onChange={(e) =>
-                  setNewBroadcast((prev) => ({
-                    ...prev,
-                    title: e.target.value,
-                  }))
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="broadcast-type">Type</Label>
-              <Select
-                value={newBroadcast.type}
-                onValueChange={(
-                  value: "info" | "warning" | "success" | "error",
-                ) => setNewBroadcast((prev) => ({ ...prev, type: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="info">Info</SelectItem>
-                  <SelectItem value="warning">Warning</SelectItem>
-                  <SelectItem value="success">Success</SelectItem>
-                  <SelectItem value="error">Error</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="broadcast-priority">Priority</Label>
-              <Select
-                value={newBroadcast.priority}
-                onValueChange={(
-                  value: "low" | "normal" | "medium" | "high" | "urgent",
-                ) => setNewBroadcast((prev) => ({ ...prev, priority: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="broadcast-audience">Target Audience</Label>
-              <Select
-                value={newBroadcast.targetAudience}
-                onValueChange={(value: "all" | "users" | "admin") =>
-                  setNewBroadcast((prev) => ({
-                    ...prev,
-                    targetAudience: value,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Users</SelectItem>
-                  <SelectItem value="users">Registered Users Only</SelectItem>
-                  <SelectItem value="admin">Admin Only</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="broadcast-expires">Expires At (Optional)</Label>
-            <Input
-              id="broadcast-expires"
-              type="datetime-local"
-              value={newBroadcast.expiresAt}
-              onChange={(e) =>
-                setNewBroadcast((prev) => ({
-                  ...prev,
-                  expiresAt: e.target.value,
-                }))
-              }
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="broadcast-message">Message</Label>
-            <Textarea
-              id="broadcast-message"
-              placeholder="Enter broadcast message..."
-              className="min-h-[100px]"
-              rows={4}
-              value={newBroadcast.message}
-              onChange={(e) =>
-                setNewBroadcast((prev) => ({
-                  ...prev,
-                  message: e.target.value,
-                }))
-              }
-            />
-          </div>
-
-          <Button
-            onClick={handleCreateBroadcast}
-            disabled={
-              isCreating ||
-              !newBroadcast.title.trim() ||
-              !newBroadcast.message.trim()
-            }
-            className="w-full md:w-auto"
-          >
-            {isCreating ? "Creating..." : "Create Broadcast"}
-          </Button>
-        </CardContent>
-      </Card>
+      <NotificationTester />
 
       <Card>
         <CardHeader>
@@ -290,97 +79,13 @@ const AdminSettingsTab = ({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Site Configuration
-          </CardTitle>
-          <CardDescription>
-            Manage site-wide settings and features
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between py-2">
-              <span className="text-sm">Auto-approve new listings</span>
-              <Badge variant="default" className="text-xs">
-                Enabled
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-sm">User registration</span>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 w-7 p-0 md:h-8 md:w-auto md:px-2"
-              >
-                <Settings className="h-3 w-3 md:h-4 md:w-4" />
-              </Button>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-sm">Maximum images per listing</span>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 w-7 p-0 md:h-8 md:w-auto md:px-2"
-              >
-                <Settings className="h-3 w-3 md:h-4 md:w-4" />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
 
 
 
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trash2 className="h-5 w-5 text-red-600" />
-            Banking Cleanup
-          </CardTitle>
-          <CardDescription>
-            Remove all development/mock banking details from the system
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h4 className="font-semibold text-yellow-800 mb-2">⚠️ Warning</h4>
-            <p className="text-sm text-yellow-700">
-              This will permanently remove all mock/development banking details
-              including:
-            </p>
-            <ul className="text-sm text-yellow-700 mt-2 ml-4 list-disc">
-              <li>Mock subaccount codes (ACCT_mock_*, ACCT_dev_*)</li>
-              <li>Fallback subaccount codes from development mode</li>
-              <li>Banking subaccounts marked as mock</li>
-              <li>Book subaccount associations with development codes</li>
-            </ul>
-          </div>
 
-          <Button
-            onClick={handleBankingCleanup}
-            disabled={isCleaningBanking}
-            variant="destructive"
-            className="w-full"
-          >
-            {isCleaningBanking ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Cleaning Banking Data...
-              </>
-            ) : (
-              <>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Clean Development Banking Data
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
+
     </div>
   );
 };

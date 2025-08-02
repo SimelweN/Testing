@@ -238,7 +238,7 @@ export const clearAllTestData = async (): Promise<boolean> => {
       const { error: systemError, count: systemCount } = await supabase
         .from("notifications")
         .delete({ count: "exact" })
-        .ilike("title", "%system announcement%");
+        .or("title.ilike.%system announcement%,title.ilike.%rebooked solutions team%");
 
       if (!systemError) {
         notifCount += systemCount || 0;
