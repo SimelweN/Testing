@@ -136,7 +136,7 @@ const NotificationsNew = () => {
   const [categories, setCategories] = useState<NotificationCategory[]>([
     {
       id: "welcome",
-      title: "Welcome to ReBooked Campus!",
+      title: "Welcome to ReBooked Solutions!",
       description: "Get started with buying and selling textbooks",
       icon: <Gift className="h-5 w-5" />,
       color: "purple",
