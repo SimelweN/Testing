@@ -57,7 +57,7 @@ const Checkout: React.FC = () => {
 
     if (isCartCheckout) {
       const handleStorageChange = () => {
-        console.log('🛒 CHECKOUT: Cart localStorage changed, refreshing checkout...');
+
         loadCartData();
       };
 
