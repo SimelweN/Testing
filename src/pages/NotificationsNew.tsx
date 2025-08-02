@@ -396,7 +396,7 @@ const NotificationsNew = () => {
       );
 
       toast.success(
-        "Welcome! You're all set to start using ReBooked Solutions.",
+        "Welcome! You're all set to start using ReBooked Campus.",
       );
     }
   };
