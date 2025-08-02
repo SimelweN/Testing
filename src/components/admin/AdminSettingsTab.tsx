@@ -277,47 +277,7 @@ const AdminSettingsTab = ({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Site Configuration
-          </CardTitle>
-          <CardDescription>
-            Manage site-wide settings and features
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between py-2">
-              <span className="text-sm">Auto-approve new listings</span>
-              <Badge variant="default" className="text-xs">
-                Enabled
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-sm">User registration</span>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 w-7 p-0 md:h-8 md:w-auto md:px-2"
-              >
-                <Settings className="h-3 w-3 md:h-4 md:w-4" />
-              </Button>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-sm">Maximum images per listing</span>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 w-7 p-0 md:h-8 md:w-auto md:px-2"
-              >
-                <Settings className="h-3 w-3 md:h-4 md:w-4" />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+
 
 
 
