@@ -257,9 +257,12 @@ const CreateListing = () => {
       const handlePostCommitFlow = async () => {
         try {
           const hasCompleted = await hasCompletedFirstUpload(user.id);
+          const isFirstBook = await isFirstBookListing(user.id);
+
           if (!hasCompleted && shouldShowFirstUpload(user.id)) {
             setShowFirstUploadDialog(true);
-          } else if (shouldShowPostListing(user.id)) {
+          } else if (isFirstBook && shouldShowPostListing(user.id)) {
+            // Only show post-listing dialog for first book AND if not shown before
             setShowPostListingDialog(true);
           } else {
             setShowShareProfileDialog(true);
@@ -269,10 +272,16 @@ const CreateListing = () => {
             "Could not track first upload preference:",
             prefError,
           );
-          // Fallback to showing appropriate dialog
-          if (shouldShowPostListing(user.id)) {
-            setShowPostListingDialog(true);
-          } else {
+          // Fallback: check if it's first book before showing post-listing dialog
+          try {
+            const isFirstBook = await isFirstBookListing(user.id);
+            if (isFirstBook && shouldShowPostListing(user.id)) {
+              setShowPostListingDialog(true);
+            } else {
+              setShowShareProfileDialog(true);
+            }
+          } catch (bookError) {
+            console.warn("Could not check if first book:", bookError);
             setShowShareProfileDialog(true);
           }
         }
