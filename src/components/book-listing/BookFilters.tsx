@@ -81,6 +81,17 @@ const BookFilters = ({
     "Grade 11",
     "Grade 12",
   ];
+  const provinces = [
+    "Eastern Cape",
+    "Free State",
+    "Gauteng",
+    "KwaZulu-Natal",
+    "Limpopo",
+    "Mpumalanga",
+    "Northern Cape",
+    "North West",
+    "Western Cape",
+  ];
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category === selectedCategory ? "" : category);
