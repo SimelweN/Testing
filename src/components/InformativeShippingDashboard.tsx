@@ -112,6 +112,45 @@ const InformativeShippingDashboard = () => {
         </div>
       </div>
 
+      {/* Upcoming Couriers Announcement */}
+      <div className="bg-gradient-to-r from-blue-50 to-green-50 border-l-4 border-blue-500 px-4 py-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-start space-x-3">
+            <div className="flex-shrink-0">
+              <div className="bg-blue-100 rounded-full p-2">
+                <RefreshCw className="h-5 w-5 text-blue-600" />
+              </div>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-1">
+                <h3 className="text-lg font-semibold text-gray-900">Coming Soon: More Delivery Options! 🚀</h3>
+                <Badge className="bg-blue-600 text-white text-xs px-2 py-1">End of Month</Badge>
+              </div>
+              <p className="text-gray-700 text-sm mb-3">
+                We're expanding our delivery network with several new courier partners launching at the end of this month!
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                <div className="flex items-center space-x-2 text-green-700">
+                  <ArrowRight className="h-4 w-4" />
+                  <span><strong>Cheaper delivery fees</strong> with competitive pricing</span>
+                </div>
+                <div className="flex items-center space-x-2 text-blue-700">
+                  <ArrowRight className="h-4 w-4" />
+                  <span><strong>Faster pickup & drop-offs</strong> for quicker service</span>
+                </div>
+                <div className="flex items-center space-x-2 text-purple-700">
+                  <ArrowRight className="h-4 w-4" />
+                  <span><strong>Faster payouts</strong> to sellers within 24 hours</span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-600 mt-3">
+                📢 Stay tuned for more details coming soon! We're committed to making textbook delivery even better.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Navigation Tabs */}
