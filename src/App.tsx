@@ -62,6 +62,10 @@ import SellerProfile from "./pages/SellerProfile";
 
 // Other Pages
 import NotificationsNew from "./pages/NotificationsNew";
+import NotificationTest from "./pages/NotificationTest";
+import ClearNotifications from "./pages/ClearNotifications";
+import RestoreBooks from "./pages/RestoreBooks";
+import TestAuth from "./pages/TestAuth";
 import ActivityLog from "./pages/ActivityLog";
 import BankingSetup from "./pages/BankingSetup";
 import UserProfile from "./pages/UserProfile";
@@ -197,6 +201,34 @@ function App() {
                             <NotificationsNew />
                           </ProtectedRoute>
                         }
+                      />
+                      <Route
+                        path="/notification-test"
+                        element={
+                          <ProtectedRoute>
+                            <NotificationTest />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/clear-notifications"
+                        element={
+                          <ProtectedRoute>
+                            <ClearNotifications />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/restore-books"
+                        element={
+                          <ProtectedRoute>
+                            <RestoreBooks />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/test-auth"
+                        element={<TestAuth />}
                       />
                       <Route
                         path="/activity"

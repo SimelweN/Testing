@@ -123,21 +123,11 @@ const NotificationsNew = () => {
         n.message?.toLowerCase().includes("violation"),
     );
 
-    const generalNotifications = dbNotifications.filter(
-      (n) =>
-        !commitNotifications.includes(n) &&
-        !purchaseNotifications.includes(n) &&
-        !deliveryNotifications.includes(n) &&
-        !adminNotifications.includes(n) ||
-        n.type === 'info' || n.type === 'success' || n.type === 'warning' || n.type === 'error'
-    );
-
     return {
       commits: commitNotifications,
       purchases: purchaseNotifications,
       deliveries: deliveryNotifications,
       admin: adminNotifications,
-      general: generalNotifications,
     };
   };
 
@@ -165,7 +155,7 @@ const NotificationsNew = () => {
         {
           id: "welcome-2",
           type: "info",
-          title: "How ReBooked Works",
+          title: "How ReBooked Solutions Works",
           message:
             "📚 Browse thousands of textbooks → 💰 Buy at student-friendly prices → 🚚 Get delivery nationwide → ✅ Sell your old books when done!",
           timestamp: new Date().toISOString(),
@@ -250,23 +240,6 @@ const NotificationsNew = () => {
         timestamp: n.created_at || n.createdAt,
         read: n.read,
         priority: "high" as const,
-      })),
-    },
-    {
-      id: "general",
-      title: "General Notifications",
-      description: "System notifications and updates",
-      icon: <Bell className="h-5 w-5" />,
-      color: "gray",
-      enabled: true,
-      notifications: categorizedNotifications.general.map((n) => ({
-        id: n.id,
-        type: n.type || "general",
-        title: n.title,
-        message: n.message,
-        timestamp: n.created_at || n.createdAt,
-        read: n.read,
-        priority: "medium" as const,
       })),
     },
   ]);
@@ -385,20 +358,7 @@ const NotificationsNew = () => {
             })),
           };
         }
-        if (category.id === "general") {
-          return {
-            ...category,
-            notifications: categorizedNotifications.general.map((n) => ({
-              id: n.id,
-              type: n.type || "general",
-              title: n.title,
-              message: n.message,
-              timestamp: n.created_at || n.createdAt,
-              read: n.read,
-              priority: "medium" as const,
-            })),
-          };
-        }
+
         return category;
       }),
     );
@@ -656,7 +616,7 @@ const NotificationsNew = () => {
                 Notifications
               </h1>
               <p className="text-sm sm:text-base text-gray-500">
-                Stay updated with your ReBooked activity
+                Stay updated with your ReBooked Solutions activity
               </p>
             </div>
           </div>

@@ -37,7 +37,7 @@ const BACKUP_CONFIRMATION_TEMPLATE = `<!DOCTYPE html>
 <body>
   <div class="container">
     <h2>Confirm Your Email</h2>
-    <p>Thanks for signing up to ReBooked! Please confirm your email address to activate your account.</p>
+    <p>Thanks for signing up to ReBooked Solutions! Please confirm your email address to activate your account.</p>
     <a href="{{CONFIRMATION_URL}}" class="btn">Confirm Email</a>
     <p>If the button doesn't work, copy and paste this link into your browser:</p>
     <p><a href="{{CONFIRMATION_URL}}" class="link">{{CONFIRMATION_URL}}</a></p>
@@ -68,8 +68,8 @@ export class BackupEmailService {
     try {
       console.log("📧 Sending backup confirmation email to:", options.to);
       
-      // Generate confirmation URL if not provided
-      const confirmationUrl = options.confirmationUrl || `${window.location.origin}/verify?email=${encodeURIComponent(options.to)}`;
+      // Generate confirmation URL if not provided - use proper Supabase callback
+      const confirmationUrl = options.confirmationUrl || `${window.location.origin}/auth/callback`;
       
       // Prepare HTML with confirmation URL
       const html = BACKUP_CONFIRMATION_TEMPLATE.replace(/{{CONFIRMATION_URL}}/g, confirmationUrl);
@@ -79,9 +79,9 @@ export class BackupEmailService {
         body: {
           to: options.to,
           from: "noreply@rebookedsolutions.co.za",
-          subject: "Confirm Your Email - ReBooked",
+          subject: "Confirm Your Email - ReBooked Solutions",
           html: html,
-          text: `Thanks for signing up to ReBooked! Please confirm your email by visiting: ${confirmationUrl}`,
+          text: `Thanks for signing up to ReBooked Solutions! Please confirm your email by visiting: ${confirmationUrl}`,
           backup: true // Flag this as a backup email
         },
       });
@@ -125,8 +125,8 @@ export class BackupEmailService {
       
       localStorage.setItem(`verification_${options.to}`, JSON.stringify(verificationData));
       
-      // Create a simple verification URL
-      const verificationUrl = `${window.location.origin}/verify?email=${encodeURIComponent(options.to)}&fallback=true`;
+      // Create a simple verification URL - use proper Supabase callback
+      const verificationUrl = `${window.location.origin}/auth/callback`;
       
       console.log("📧 Fallback verification URL created:", verificationUrl);
       
@@ -134,11 +134,11 @@ export class BackupEmailService {
       const { data, error } = await supabase.functions.invoke("send-email", {
         body: {
           to: options.to,
-          subject: "Confirm Your Email - ReBooked",
+          subject: "Confirm Your Email - ReBooked Solutions",
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;">
               <h2>Confirm Your Email</h2>
-              <p>Thanks for signing up to ReBooked! Please confirm your email address:</p>
+              <p>Thanks for signing up to ReBooked Solutions! Please confirm your email address:</p>
               <p><a href="${verificationUrl}" style="background: #3ab26f; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Confirm Email</a></p>
               <p>Or copy this link: ${verificationUrl}</p>
             </div>

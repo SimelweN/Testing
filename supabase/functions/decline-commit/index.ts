@@ -280,6 +280,56 @@ serve(async (req) => {
       console.warn(`⚠️ No payment reference found for order ${order_id}`);
     }
 
+    // Create database notifications first
+    try {
+      const notificationPromises = [];
+
+      // Create notification for buyer
+      if (buyer?.id) {
+        notificationPromises.push(
+          supabase.from("notifications").insert({
+            user_id: buyer.id,
+            type: "error",
+            title: "❌ Order Declined",
+            message: `Your order has been declined by the seller. ${refundResult?.success ? 'Refund processed and will appear in 3-5 business days.' : 'Refund is being processed.'} Order ID: ${order_id}`,
+            order_id: order_id,
+            action_required: false
+          })
+        );
+      }
+
+      // Create notification for seller
+      if (seller?.id) {
+        notificationPromises.push(
+          supabase.from("notifications").insert({
+            user_id: seller.id,
+            type: "info",
+            title: "✅ Order Decline Confirmed",
+            message: `You have successfully declined order ${order_id}. The buyer has been notified and refunded.`,
+            order_id: order_id,
+            action_required: false
+          })
+        );
+      }
+
+      // Wait for notifications to be created
+      const notificationResults = await Promise.allSettled(notificationPromises);
+      const notificationErrors = notificationResults.filter(
+        (result) => result.status === "rejected",
+      ).length;
+
+      if (notificationErrors > 0) {
+        console.warn(
+          `${notificationErrors} notification(s) failed to create out of ${notificationPromises.length}`,
+        );
+      } else {
+        console.log("✅ Database notifications created successfully");
+      }
+    } catch (notificationError) {
+      console.error("Failed to create database notifications:", notificationError);
+      // Don't fail the decline process for notification errors
+    }
+
     // Send notification emails
     try {
       const emailPromises = [];
@@ -458,7 +508,7 @@ serve(async (req) => {
     <p>The buyer has been notified and their payment has been refunded.</p>
 
     <div class="footer">
-      <p><strong>This is an automated message from ReBooked Marketplace.</strong><br>
+      <p><strong>This is an automated message from ReBooked Solutions.</strong><br>
       Please do not reply to this email.</p>
       <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>
       Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>

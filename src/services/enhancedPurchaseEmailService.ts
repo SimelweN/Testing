@@ -131,7 +131,7 @@ export class EnhancedPurchaseEmailService {
           
           <p><strong>What happens next:</strong></p>
           <ul>
-            <li>Log in to your ReBooked account</li>
+            <li>Log in to your ReBooked Solutions account</li>
             <li>Click "Commit Sale" for this book</li>
             <li>We'll arrange pickup from your location</li>
             <li>You'll receive payment after delivery</li>
@@ -148,7 +148,7 @@ export class EnhancedPurchaseEmailService {
       to: purchaseData.sellerEmail,
       subject: "🚨 NEW SALE - Confirm Your Book Sale (48hr deadline)",
       html: sellerEmailHtml,
-      text: `NEW SALE - Action Required! Book: ${purchaseData.bookTitle}, Price: R${purchaseData.bookPrice}. You have 48 hours to confirm this sale. Login to ReBooked to confirm.`
+      text: `NEW SALE - Action Required! Book: ${purchaseData.bookTitle}, Price: R${purchaseData.bookPrice}. You have 48 hours to confirm this sale. Login to ReBooked Solutions to confirm.`
     });
   }
   
