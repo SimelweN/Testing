@@ -110,7 +110,7 @@ const BookListing = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [searchParams, selectedCondition, selectedUniversity, priceRange]);
+  }, [searchParams, selectedCondition, selectedUniversity, selectedProvince, priceRange]);
 
   // Initial load
   useEffect(() => {
