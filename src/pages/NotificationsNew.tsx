@@ -706,7 +706,11 @@ const NotificationsNew = () => {
                     .single();
 
                   if (createError) {
-                    console.error('Failed to create test notification:', createError);
+                    console.error('Failed to create test notification:', {
+                      message: createError.message || String(createError),
+                      code: createError.code,
+                      details: createError.details
+                    });
                     toast.error('Failed to create test notification');
                     return;
                   }
@@ -720,7 +724,11 @@ const NotificationsNew = () => {
                     .eq('id', createData.id);
 
                   if (deleteError) {
-                    console.error('❌ DELETE policy test failed:', deleteError);
+                    console.error('❌ DELETE policy test failed:', {
+                      message: deleteError.message || String(deleteError),
+                      code: deleteError.code,
+                      details: deleteError.details
+                    });
                     toast.error(`DELETE policy failed: ${deleteError.message}`);
                   } else {
                     console.log('✅ DELETE policy test passed');
@@ -728,7 +736,11 @@ const NotificationsNew = () => {
                   }
 
                 } catch (error) {
-                  console.error('💥 DELETE policy test exception:', error);
+                  console.error('💥 DELETE policy test exception:', {
+                    message: error instanceof Error ? error.message : String(error),
+                    code: error?.code,
+                    details: error?.details
+                  });
                   toast.error('DELETE policy test failed');
                 }
               }}
