@@ -68,8 +68,8 @@ export class BackupEmailService {
     try {
       console.log("📧 Sending backup confirmation email to:", options.to);
       
-      // Generate confirmation URL if not provided
-      const confirmationUrl = options.confirmationUrl || `${window.location.origin}/verify?email=${encodeURIComponent(options.to)}`;
+      // Generate confirmation URL if not provided - use proper Supabase callback
+      const confirmationUrl = options.confirmationUrl || `${window.location.origin}/auth/callback`;
       
       // Prepare HTML with confirmation URL
       const html = BACKUP_CONFIRMATION_TEMPLATE.replace(/{{CONFIRMATION_URL}}/g, confirmationUrl);
