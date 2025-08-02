@@ -35,13 +35,21 @@ export const submitReport = async (
     });
 
     if (error) {
-      console.error("Error submitting general report:", error);
+      console.error("Error submitting general report:", {
+        message: error.message || String(error),
+        code: error.code,
+        details: error.details
+      });
       throw error;
     }
 
     console.log("General report submitted successfully");
   } catch (error) {
-    console.error("Error in submitReport:", error);
+    console.error("Error in submitReport:", {
+      message: error instanceof Error ? error.message : String(error),
+      code: error?.code,
+      details: error?.details
+    });
     throw error;
   }
 };
