@@ -174,13 +174,21 @@ export class NotificationRequestService {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching user notification requests:", error);
+        console.error("Error fetching user notification requests:", {
+          message: error.message || String(error),
+          code: error.code,
+          details: error.details
+        });
         return { requests: [], error: error.message };
       }
 
       return { requests: data || [] };
     } catch (error) {
-      console.error("Error in getUserNotificationRequests:", error);
+      console.error("Error in getUserNotificationRequests:", {
+        message: error instanceof Error ? error.message : String(error),
+        code: error?.code,
+        details: error?.details
+      });
       return {
         requests: [],
         error:
