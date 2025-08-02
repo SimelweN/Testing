@@ -254,7 +254,75 @@ const NotificationTester = () => {
               </>
             )}
           </Button>
+
+          <Button
+            onClick={checkDatabase}
+            disabled={isCheckingDb}
+            variant="outline"
+          >
+            {isCheckingDb ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                Checking...
+              </>
+            ) : (
+              <>
+                <Database className="h-4 w-4 mr-2" />
+                Check DB
+              </>
+            )}
+          </Button>
         </div>
+
+        {/* Database Status */}
+        {dbStatus && (
+          <div className="border rounded-lg p-4 bg-gray-50">
+            <h4 className="font-semibold mb-3 flex items-center gap-2">
+              <Database className="h-4 w-4" />
+              Database Status
+            </h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                {dbStatus.exists ? <CheckCircle className="h-4 w-4 text-green-600" /> : <XCircle className="h-4 w-4 text-red-600" />}
+                <span>Table Exists: {dbStatus.exists ? 'Yes' : 'No'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {dbStatus.canRead ? <CheckCircle className="h-4 w-4 text-green-600" /> : <XCircle className="h-4 w-4 text-red-600" />}
+                <span>Can Read: {dbStatus.canRead ? 'Yes' : 'No'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {dbStatus.canWrite ? <CheckCircle className="h-4 w-4 text-green-600" /> : <XCircle className="h-4 w-4 text-red-600" />}
+                <span>Can Write: {dbStatus.canWrite ? 'Yes' : 'No'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <BarChart className="h-4 w-4 text-blue-600" />
+                <span>Sample Count: {dbStatus.sampleNotifications?.length || 0}</span>
+              </div>
+            </div>
+            {dbStatus.error && (
+              <div className="mt-3 p-2 bg-red-100 border border-red-200 rounded text-red-800 text-xs">
+                <strong>Error:</strong> {dbStatus.error}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* User Stats */}
+        {stats && (
+          <div className="border rounded-lg p-4 bg-blue-50">
+            <h4 className="font-semibold mb-3 flex items-center gap-2">
+              <BarChart className="h-4 w-4" />
+              Your Notification Stats
+            </h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>Total Notifications: <strong>{stats.total}</strong></div>
+              <div>Unread: <strong>{stats.unread}</strong></div>
+            </div>
+            <div className="mt-2 text-xs">
+              <strong>By Type:</strong> {Object.entries(stats.byType).map(([type, count]: [string, any]) => `${type}: ${count}`).join(', ') || 'None'}
+            </div>
+          </div>
+        )}
 
         <div className="grid gap-3">
           {notificationTests.map((test) => {
