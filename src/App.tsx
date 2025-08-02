@@ -200,6 +200,14 @@ function App() {
                         }
                       />
                       <Route
+                        path="/notification-test"
+                        element={
+                          <ProtectedRoute>
+                            <NotificationTest />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
                         path="/activity"
                         element={
                           <ProtectedRoute>
