@@ -134,11 +134,11 @@ export class BackupEmailService {
       const { data, error } = await supabase.functions.invoke("send-email", {
         body: {
           to: options.to,
-          subject: "Confirm Your Email - ReBooked",
+          subject: "Confirm Your Email - ReBooked Campus",
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;">
               <h2>Confirm Your Email</h2>
-              <p>Thanks for signing up to ReBooked! Please confirm your email address:</p>
+              <p>Thanks for signing up to ReBooked Campus! Please confirm your email address:</p>
               <p><a href="${verificationUrl}" style="background: #3ab26f; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Confirm Email</a></p>
               <p>Or copy this link: ${verificationUrl}</p>
             </div>
