@@ -139,6 +139,9 @@ const BookListing = () => {
     if (selectedUniversityYear) {
       newSearchParams.set("universityYear", selectedUniversityYear);
     }
+    if (selectedProvince) {
+      newSearchParams.set("province", selectedProvince);
+    }
 
     setSearchParams(newSearchParams);
   }, [
@@ -146,6 +149,7 @@ const BookListing = () => {
     selectedCategory,
     selectedGrade,
     selectedUniversityYear,
+    selectedProvince,
     setSearchParams,
   ]);
 
