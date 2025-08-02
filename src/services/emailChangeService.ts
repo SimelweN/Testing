@@ -247,11 +247,12 @@ ReBooked Solutions
           .single();
 
         if (profile) {
-          await supabase.from("notifications").insert({
-            user_id: profile.id,
+          const { NotificationService } = await import('./notificationService');
+          await NotificationService.createNotification({
+            userId: profile.id,
+            type: "info",
             title: "Email Change Confirmation Sent",
             message: `Confirmation email sent to ${newEmail}. Please check your email and click the confirmation link.`,
-            type: "info",
           });
         }
       } catch (notifError) {
