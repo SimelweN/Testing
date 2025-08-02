@@ -148,7 +148,7 @@ export class EnhancedPurchaseEmailService {
       to: purchaseData.sellerEmail,
       subject: "🚨 NEW SALE - Confirm Your Book Sale (48hr deadline)",
       html: sellerEmailHtml,
-      text: `NEW SALE - Action Required! Book: ${purchaseData.bookTitle}, Price: R${purchaseData.bookPrice}. You have 48 hours to confirm this sale. Login to ReBooked to confirm.`
+      text: `NEW SALE - Action Required! Book: ${purchaseData.bookTitle}, Price: R${purchaseData.bookPrice}. You have 48 hours to confirm this sale. Login to ReBooked Campus to confirm.`
     });
   }
   
