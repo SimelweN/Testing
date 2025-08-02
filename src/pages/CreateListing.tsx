@@ -292,7 +292,7 @@ const CreateListing = () => {
         setShowCommitReminderModal(true);
       } else {
         // Skip to post-listing flow if commit reminder already shown
-        handlePostCommitFlow();
+        await handlePostCommitFlow();
       }
 
       // Handle first upload workflow after commit reminder
