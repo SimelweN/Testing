@@ -316,12 +316,12 @@ const AdminDashboard = () => {
     }
 
     try {
-      await sendBroadcastMessage(broadcastMessage);
-      toast.success(`Broadcast message sent to all ${stats.totalUsers} users`);
+      await sendNotificationMessage(broadcastMessage);
+      toast.success(`Notification message sent to all ${stats.totalUsers} users`);
       setBroadcastMessage("");
     } catch (error) {
-      console.error("Error sending broadcast:", error);
-      handleError(error, "Send Broadcast");
+      console.error("Error sending notification:", error);
+      handleError(error, "Send Notification");
     }
   };
 
