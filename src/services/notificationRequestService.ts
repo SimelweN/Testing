@@ -45,7 +45,11 @@ export class NotificationRequestService {
 
       return { success: true };
     } catch (error) {
-      console.error("Error in requestAccommodationNotification:", error);
+      console.error("Error in requestAccommodationNotification:", {
+        message: error instanceof Error ? error.message : String(error),
+        code: error?.code,
+        details: error?.details
+      });
       return {
         success: false,
         error:
@@ -81,13 +85,21 @@ export class NotificationRequestService {
       });
 
       if (error) {
-        console.error("Error submitting program notification request:", error);
+        console.error("Error submitting program notification request:", {
+          message: error.message || String(error),
+          code: error.code,
+          details: error.details
+        });
         return { success: false, error: error.message };
       }
 
       return { success: true };
     } catch (error) {
-      console.error("Error in requestProgramNotification:", error);
+      console.error("Error in requestProgramNotification:", {
+        message: error instanceof Error ? error.message : String(error),
+        code: error?.code,
+        details: error?.details
+      });
       return {
         success: false,
         error:
@@ -123,13 +135,21 @@ export class NotificationRequestService {
       const { data, error } = await query;
 
       if (error) {
-        console.error("Error checking existing notification request:", error);
+        console.error("Error checking existing notification request:", {
+          message: error.message || String(error),
+          code: error.code,
+          details: error.details
+        });
         return { exists: false, error: error.message };
       }
 
       return { exists: (data?.length || 0) > 0 };
     } catch (error) {
-      console.error("Error in hasExistingRequest:", error);
+      console.error("Error in hasExistingRequest:", {
+        message: error instanceof Error ? error.message : String(error),
+        code: error?.code,
+        details: error?.details
+      });
       return {
         exists: false,
         error:
