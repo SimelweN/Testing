@@ -78,7 +78,21 @@ class EmailService {
         body: JSON.stringify(data),
       });
 
-      const result = await response.json();
+      let result: any;
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        // If JSON parsing fails, create a basic error response
+        result = {
+          success: false,
+          error: `Invalid JSON response: ${response.status} ${response.statusText}`,
+          details: {
+            status: response.status,
+            statusText: response.statusText,
+            jsonError: jsonError instanceof Error ? jsonError.message : 'JSON parse failed'
+          }
+        };
+      }
 
       if (!response.ok) {
         throw new Error(
