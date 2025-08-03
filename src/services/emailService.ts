@@ -78,7 +78,21 @@ class EmailService {
         body: JSON.stringify(data),
       });
 
-      const result = await response.json();
+      let result: any;
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        // If JSON parsing fails, create a basic error response
+        result = {
+          success: false,
+          error: `Invalid JSON response: ${response.status} ${response.statusText}`,
+          details: {
+            status: response.status,
+            statusText: response.statusText,
+            jsonError: jsonError instanceof Error ? jsonError.message : 'JSON parse failed'
+          }
+        };
+      }
 
       if (!response.ok) {
         throw new Error(
@@ -94,7 +108,35 @@ class EmailService {
   }
 
   async sendEmail(request: EmailRequest): Promise<EmailResponse> {
-    return this.makeRequest("send-email", request);
+    // Retry mechanism for handling stream conflicts
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        if (attempt > 1) {
+          // Add increasing delay for retries
+          await new Promise(resolve => setTimeout(resolve, attempt * 500));
+          console.log(`🔄 Email retry attempt ${attempt}/3`);
+        }
+
+        return await this.makeRequest("send-email", request);
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        console.warn(`⚠️ Email attempt ${attempt} failed:`, lastError.message);
+
+        // Don't retry for authentication errors
+        if (lastError.message.includes('Authorization') || lastError.message.includes('401')) {
+          throw lastError;
+        }
+
+        // If it's the last attempt, throw the error
+        if (attempt === 3) {
+          throw lastError;
+        }
+      }
+    }
+
+    throw lastError || new Error('Email sending failed after retries');
   }
 
   async sendTemplateEmail(

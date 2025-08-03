@@ -72,8 +72,6 @@ const OrderCommitButton: React.FC<OrderCommitButtonProps> = ({
 
       console.log(`✅ Enhanced commit completed:`, result);
 
-      console.log("✅ Commit successful:", data);
-
       // Show enhanced success messages with email status
       toast.success(successMessage, {
         description: "🚚 Delivery/shipping processes have been triggered automatically!",

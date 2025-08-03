@@ -307,6 +307,7 @@ function App() {
                           </AdminProtectedRoute>
                         }
                       />
+
                       <Route
                         path="/photo-upload-demo"
                         element={<PhotoUploadDemo />}
