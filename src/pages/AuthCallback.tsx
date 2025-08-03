@@ -70,6 +70,33 @@ const AuthCallback = () => {
         console.log("📍 Search params:", window.location.search);
         console.log("📍 Hash:", window.location.hash);
 
+        // FIRST: Check if Supabase has already authenticated the user automatically
+        // This happens in many cases where the callback URL contains valid tokens
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+
+        if (!sessionError && sessionData.session && sessionData.user) {
+          console.log("✅ User already authenticated automatically by Supabase!");
+          setStatus("success");
+
+          const type = new URLSearchParams(window.location.search).get("type") ||
+                      new URLSearchParams(window.location.hash.substring(1)).get("type");
+
+          if (type === "recovery") {
+            setMessage("Password reset link verified! Redirecting to reset your password.");
+            toast.success("Reset link verified! Set your new password.");
+            navigate("/reset-password", { replace: true });
+          } else if (type === "signup") {
+            setMessage("Email verified successfully! Welcome to ReBooked Solutions.");
+            toast.success("Email verified! Welcome!");
+            setTimeout(() => navigate("/", { replace: true }), 1500);
+          } else {
+            setMessage("Authentication successful! You are now logged in.");
+            toast.success("Successfully authenticated!");
+            setTimeout(() => navigate("/", { replace: true }), 1500);
+          }
+          return;
+        }
+
         // Enhanced URL parameter extraction - handle multiple formats
         const getParam = (name: string) => {
           // Check search params first
@@ -272,7 +299,18 @@ const AuthCallback = () => {
           }
         }
 
-        // If we get here, try manual verification as a last resort
+        // If we get here, check once more if user got authenticated during the process
+        const { data: finalSessionCheck } = await supabase.auth.getSession();
+        if (finalSessionCheck.session && finalSessionCheck.user) {
+          console.log("✅ User authenticated during callback processing!");
+          setStatus("success");
+          setMessage("Authentication successful! You are now logged in.");
+          toast.success("Successfully authenticated!");
+          setTimeout(() => navigate("/", { replace: true }), 1500);
+          return;
+        }
+
+        // Try manual verification as a last resort
         console.warn("⚠️ No valid auth parameters found, attempting manual verification");
         console.log("Available parameters:", {
           searchParams: Object.fromEntries(searchParams.entries()),
@@ -294,7 +332,7 @@ const AuthCallback = () => {
             if (type === "signup") {
               setMessage("Email verified successfully! Welcome to ReBooked Solutions.");
               toast.success("Email verified! Welcome!");
-              setTimeout(() => navigate("/", { replace: true }), 2000);
+              setTimeout(() => navigate("/", { replace: true }), 1500);
             } else if (type === "recovery") {
               setMessage("Password reset link verified! Redirecting to reset your password.");
               toast.success("Reset link verified! Set your new password.");
@@ -302,7 +340,7 @@ const AuthCallback = () => {
             } else {
               setMessage("Authentication successful! You are now logged in.");
               toast.success("Successfully authenticated!");
-              setTimeout(() => navigate("/", { replace: true }), 2000);
+              setTimeout(() => navigate("/", { replace: true }), 1500);
             }
             return;
           }
@@ -310,8 +348,20 @@ const AuthCallback = () => {
           console.warn("Manual verification also failed:", manualError);
         }
 
+        // Final check: maybe user is authenticated but we just can't detect the params
+        const { data: veryFinalCheck } = await supabase.auth.getSession();
+        if (veryFinalCheck.session && veryFinalCheck.user) {
+          console.log("✅ User is authenticated despite unclear parameters!");
+          setStatus("success");
+          setMessage("Authentication successful! You are now logged in.");
+          toast.success("Successfully authenticated!");
+          setTimeout(() => navigate("/", { replace: true }), 1500);
+          return;
+        }
+
+        // Only show error if we're really sure auth failed
         setStatus("error");
-        setMessage("Invalid authentication link. No valid tokens or verification parameters found. Please try logging in directly or request a new verification email.");
+        setMessage("Authentication link appears to be invalid or expired. Please try logging in directly or request a new verification email.");
         
       } catch (error) {
         console.error("❌ Auth callback exception:", error);
