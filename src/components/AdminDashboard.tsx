@@ -498,16 +498,7 @@ const AdminDashboard = () => {
                 <span>Developer Tools</span>
               </Button>
 
-              {/* Email Testing */}
-              <Button
-                onClick={() => navigate("/email-test")}
-                variant="outline"
-                size="sm"
-                className="hidden sm:flex items-center space-x-2 bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-              >
-                <Mail className="h-4 w-4" />
-                <span>Email Test</span>
-              </Button>
+
 
               {/* Notification Bell */}
               {(stats.pendingReports > 0 || stats.unreadMessages > 0) && (
