@@ -53,7 +53,10 @@ export class EnhancedPurchaseEmailService {
       } catch (notifError) {
         console.warn("⚠️ Seller notification failed:", notifError);
       }
-      
+
+      // Add small delay to prevent stream conflicts
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // Send buyer receipt/confirmation
       try {
         await this.sendBuyerPurchaseReceipt(purchaseData);
