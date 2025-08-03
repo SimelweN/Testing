@@ -8,52 +8,52 @@ import { Link } from 'react-router-dom';
 const FAQ = () => {
   const faqs = [
     {
-      question: "How do I sell my textbooks on ReBooked Marketplace?",
-      answer: "Simply create an account, click 'Sell a Book', fill in the details about your textbook including photos, condition, and price. Your listing will be live immediately for buyers to see."
+      question: "What is ReBooked Solutions?",
+      answer: "ReBooked Solutions is a South African platform where students, parents, and educators can buy and sell pre-owned academic books safely and affordably. We also offer bursary tools, study resources, and more via ReBooked Campus."
     },
     {
-      question: "What commission does ReBooked Marketplace charge?",
-      answer: "ReBooked Marketplace charges a 10% commission on completed sales. This means if you sell a book for R100, you'll receive R90 and ReBooked Marketplace keeps R10 to maintain the platform."
+      question: "How do I buy a book?",
+      answer: "Click \"Buy Now\" on the book you want, make a secure payment, and wait for the seller to confirm the sale. If they don't confirm within 48 hours, you'll be refunded automatically."
     },
     {
-      question: "How do I get paid when I sell a book?",
-      answer: "Once a buyer purchases your book and the transaction is completed, you'll receive 90% of the sale price. Payment details and methods will be provided in your account dashboard."
+      question: "How do I sell a book?",
+      answer: "Create a free account, upload your book's details, set a price, and publish. Once someone clicks \"Buy Now\", you'll be notified to confirm the sale within 48 hours."
     },
     {
-      question: "What condition should my textbook be in?",
-      answer: "We accept textbooks in various conditions from 'New' to 'Below Average'. Be honest about the condition and include clear photos. Books with excessive damage, missing pages, or illegible text may not be suitable for sale."
+      question: "What happens if a seller doesn't confirm the sale?",
+      answer: "If the seller does not respond within 48 hours of a buyer clicking \"Buy Now\", ReBooked automatically cancels the order and the buyer is fully refunded."
     },
     {
-      question: "How do I contact a seller or buyer?",
-      answer: "You can message other users through our secure messaging system. Go to the book listing and click 'Contact Seller' or check your notifications for buyer messages."
+      question: "How are books delivered?",
+      answer: "We partner with The Courier Guy to handle deliveries. Once the seller confirms the sale, shipping is arranged and tracking is provided."
     },
     {
-      question: "What if there's a problem with my purchase?",
-      answer: "If you experience any issues with a purchase, please contact the seller first to resolve the matter. If that doesn't work, you can report the issue through our support system."
+      question: "Can I track my delivery?",
+      answer: "Yes. As soon as shipping is booked with Courier Guy, a tracking link will be sent to your email and visible in your dashboard."
     },
     {
-      question: "Can I edit my book listing after posting?",
-      answer: "Currently, you cannot edit listings after they're posted. If you need to make changes, you'll need to remove the listing and create a new one with the correct information."
+      question: "Is ReBooked Solutions safe to use?",
+      answer: "Absolutely. All payments are processed securely through Paystack, and sellers only receive funds after confirming the sale. Your safety is our priority."
     },
     {
-      question: "How long do listings stay active?",
-      answer: "Listings remain active until the book is sold or you manually remove them. We recommend keeping your listings up to date and removing books that are no longer available."
+      question: "What kinds of books can I list?",
+      answer: "We accept academic, school, and university-level books, as well as exam prep guides and study material. Books must be genuine and in good condition."
     },
     {
-      question: "What types of books can I sell?",
-      answer: "You can sell textbooks for both school (Grade 1-12) and university levels. We accept books in various subjects including science, mathematics, literature, and more."
+      question: "Do I need to pay to list a book?",
+      answer: "No. Listing is completely free. We only charge a 10% service fee on completed sales, which is included in the price buyers see."
     },
     {
-      question: "Is my personal information safe?",
-      answer: "Yes, we take privacy seriously. We only share necessary contact information between buyers and sellers for transaction purposes. Please review our Privacy Policy for full details."
+      question: "What is ReBooked Campus?",
+      answer: "ReBooked Campus is our student resource hub offering bursary listings, university info, APS calculators, blog articles, and more — all free and tailored for South African students."
     },
     {
-      question: "What payment methods do you accept?",
-      answer: "Payment methods and arrangements are typically handled between buyers and sellers. We recommend using secure payment methods and meeting in safe, public locations for exchanges."
+      question: "Can I remove or change my book listing?",
+      answer: "Yes. Log in to your dashboard to update, pause, or delete any of your active book listings."
     },
     {
-      question: "Can I sell books that aren't textbooks?",
-      answer: "ReBooked Marketplace is specifically designed for textbooks and educational materials. We focus on school and university textbooks to provide the best experience for students."
+      question: "How do I get in touch with support?",
+      answer: "You can email us at support@rebookedsolutions.co.za or use the support form on our website."
     }
   ];
 
