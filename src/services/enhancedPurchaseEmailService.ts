@@ -102,6 +102,16 @@ export class EnhancedPurchaseEmailService {
    * Send purchase notification to seller (they need to confirm/commit the sale)
    */
   private static async sendSellerPurchaseNotification(purchaseData: PurchaseEmailData): Promise<void> {
+    try {
+      await this.sendSellerPurchaseNotificationDirect(purchaseData);
+    } catch (error) {
+      console.warn("Direct seller email failed, trying mail queue fallback:", error);
+      await this.queueSellerEmailForFallback(purchaseData);
+      throw error; // Re-throw to maintain error handling flow
+    }
+  }
+
+  private static async sendSellerPurchaseNotificationDirect(purchaseData: PurchaseEmailData): Promise<void> {
     const sellerEmailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background-color: #e74c3c; color: white; padding: 20px; text-align: center;">
