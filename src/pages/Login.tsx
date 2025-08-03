@@ -130,42 +130,64 @@ const Login = () => {
         throw new Error("Email and password are required");
       }
 
-      await login(email, password);
-      navigate("/", { replace: true });
+      const result = await login(email, password);
+
+      // Give a moment for auth state to update, then check if we're authenticated
+      setTimeout(() => {
+        if (isAuthenticated) {
+          console.log("✅ Login successful - user is authenticated");
+          navigate("/", { replace: true });
+        }
+      }, 100);
+
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Login failed";
+      // Before showing error, double-check if user is actually authenticated
+      // Sometimes login succeeds but throws an error due to network issues
+      setTimeout(async () => {
+        if (isAuthenticated) {
+          console.log("✅ Login actually succeeded despite error - redirecting user");
+          toast.success("Login successful!");
+          navigate("/", { replace: true });
+          return;
+        }
 
-      // Better error logging
-      console.group("🔐 Login Error Details");
-      console.error("Error:", error);
-      console.error("Message:", errorMessage);
-      console.error("Email:", email);
-      console.groupEnd();
+        // Only show error if user is definitely not authenticated
+        const errorMessage =
+          error instanceof Error ? error.message : "Login failed";
 
-      setLoginError(errorMessage);
+        // Better error logging
+        console.group("🔐 Login Error Details");
+        console.error("Error:", error);
+        console.error("Message:", errorMessage);
+        console.error("Email:", email);
+        console.error("Is Authenticated:", isAuthenticated);
+        console.groupEnd();
 
-      // Determine error type for better UX
-      if (
-        errorMessage.includes("verification") ||
-        errorMessage.includes("verified")
-      ) {
-        setErrorType("verify_email");
-      } else if (
-        errorMessage.includes("No account") ||
-        errorMessage.includes("not found")
-      ) {
-        setErrorType("register");
-      } else if (
-        errorMessage.includes("password") ||
-        errorMessage.includes("credentials")
-      ) {
-        setErrorType("reset_password");
-      } else {
-        setErrorType("general");
-      }
-    } finally {
-      setIsLoading(false);
+        setLoginError(errorMessage);
+
+        // Determine error type for better UX
+        if (
+          errorMessage.includes("verification") ||
+          errorMessage.includes("verified")
+        ) {
+          setErrorType("verify_email");
+        } else if (
+          errorMessage.includes("No account") ||
+          errorMessage.includes("not found")
+        ) {
+          setErrorType("register");
+        } else if (
+          errorMessage.includes("password") ||
+          errorMessage.includes("credentials")
+        ) {
+          setErrorType("reset_password");
+        } else {
+          setErrorType("general");
+        }
+
+        setIsLoading(false);
+      }, 500); // Give auth state time to update
+
     }
   };
 

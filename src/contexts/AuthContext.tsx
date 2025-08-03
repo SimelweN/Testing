@@ -111,8 +111,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         setIsLoading(true);
         const result = await loginUser(email, password);
+
+        // After successful login, give Supabase a moment to update auth state
+        if (result && result.user) {
+          console.log("✅ Login successful, waiting for auth state update...");
+          // Small delay to let auth state propagate
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
         return result;
       } catch (error) {
+        // Only handle error if we're sure login actually failed
+        // Check one more time if user is actually authenticated
+        try {
+          const { data: sessionCheck } = await supabase.auth.getSession();
+          if (sessionCheck.session && sessionCheck.user) {
+            console.log("✅ Login succeeded despite error - user is authenticated!");
+            return sessionCheck;
+          }
+        } catch (sessionError) {
+          console.warn("Session check failed:", sessionError);
+        }
+
         handleError(error, "Login");
       } finally {
         setIsLoading(false);
