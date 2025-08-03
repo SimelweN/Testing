@@ -169,6 +169,16 @@ export class EnhancedPurchaseEmailService {
    * Send purchase receipt to buyer
    */
   private static async sendBuyerPurchaseReceipt(purchaseData: PurchaseEmailData): Promise<void> {
+    try {
+      await this.sendBuyerPurchaseReceiptDirect(purchaseData);
+    } catch (error) {
+      console.warn("Direct buyer email failed, trying mail queue fallback:", error);
+      await this.queueBuyerEmailForFallback(purchaseData);
+      throw error; // Re-throw to maintain error handling flow
+    }
+  }
+
+  private static async sendBuyerPurchaseReceiptDirect(purchaseData: PurchaseEmailData): Promise<void> {
     const buyerEmailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background-color: #00b894; color: white; padding: 20px; text-align: center;">
