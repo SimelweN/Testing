@@ -311,9 +311,9 @@ function App() {
                       <Route
                         path="/email-test"
                         element={
-                          <AdminProtectedRoute>
+                          <ProtectedRoute>
                             <EmailTest />
-                          </AdminProtectedRoute>
+                          </ProtectedRoute>
                         }
                       />
                       <Route
