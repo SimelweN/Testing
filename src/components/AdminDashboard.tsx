@@ -57,6 +57,7 @@ import {
   Code,
   Banknote,
   Wrench,
+  Mail,
 } from "lucide-react";
 
 const AdminDashboard = () => {
