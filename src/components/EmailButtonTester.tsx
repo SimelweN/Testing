@@ -77,19 +77,28 @@ const EmailButtonTester: React.FC = () => {
       buttonText: "Complete Purchase",
       buttonVariant: "default",
       emailFunction: async (testEmail: string) => {
-        const purchaseData = {
-          ...mockOrderData,
-          sellerEmail: testEmail,
-          buyerEmail: testEmail
-        };
-        
-        const result = await EnhancedPurchaseEmailService.sendPurchaseEmailsWithFallback(purchaseData);
-        
-        return {
-          success: result.sellerEmailSent || result.buyerEmailSent,
-          message: result.message,
-          details: result
-        };
+        try {
+          const purchaseData = {
+            ...mockOrderData,
+            sellerEmail: testEmail,
+            buyerEmail: testEmail
+          };
+
+          const result = await EnhancedPurchaseEmailService.sendPurchaseEmailsWithFallback(purchaseData);
+
+          return {
+            success: result.sellerEmailSent || result.buyerEmailSent,
+            message: result.message,
+            details: result
+          };
+        } catch (error) {
+          console.error("Purchase email test failed:", error);
+          return {
+            success: false,
+            message: `Purchase email test failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            details: { error }
+          };
+        }
       }
     },
     {
