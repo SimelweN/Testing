@@ -204,7 +204,14 @@ const CampusBooks = ({
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0 relative">
+      <CardContent className="pt-0">
+        {/* Description */}
+        {book.description && (
+          <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+            {book.description}
+          </p>
+        )}
+
         {/* University and Year Info */}
         <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
           <div className="flex items-center gap-1">
@@ -218,14 +225,15 @@ const CampusBooks = ({
           )}
         </div>
 
-        {/* Description */}
-        {book.description && (
-          <p className="text-sm text-gray-600 line-clamp-2 mb-3">
-            {book.description}
-          </p>
+        {/* Province/Location display */}
+        {(book.province || book.location) && (
+          <div className="flex items-center gap-1 text-xs text-gray-500 mb-3">
+            <MapPin className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">{book.province || book.location}</span>
+          </div>
         )}
 
-        {/* Category */}
+        {/* Category and Date */}
         <div className="flex items-center justify-between">
           <Badge variant="outline" className="text-xs">
             {book.category}
@@ -234,14 +242,6 @@ const CampusBooks = ({
             {new Date(book.createdAt).toLocaleDateString()}
           </span>
         </div>
-
-        {/* Province/Location display - positioned in bottom right corner */}
-        {(book.province || book.location) && (
-          <div className="absolute bottom-2 right-2 flex items-center text-xs text-gray-500 bg-white bg-opacity-90 px-2 py-1 rounded-full shadow-sm">
-            <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-            <span className="truncate">{book.province || book.location}</span>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
