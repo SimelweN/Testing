@@ -287,6 +287,14 @@ const BookGrid = ({
           );
         })}
       </div>
+
+      {/* Pagination Controls */}
+      <Pagination
+        currentPage={currentPage}
+        totalItems={totalBooks}
+        itemsPerPage={booksPerPage}
+        onPageChange={onPageChange}
+      />
     </div>
   );
 };
