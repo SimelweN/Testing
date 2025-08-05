@@ -179,12 +179,7 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
         console.log(`Successfully fetched ${booksData.length} books`);
         return booksData;
       } catch (networkError) {
-        logDetailedError("Network exception in books query", {
-          error: networkError,
-          retryCount,
-          filters,
-          timestamp: new Date().toISOString()
-        });
+        logDetailedError("Network exception in books query", networkError);
 
         // If it's a network error and we haven't retried too many times, try again
         if (retryCount < 3) {
