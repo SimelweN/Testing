@@ -24,15 +24,29 @@ export const formatError = (error: unknown): string => {
 
 export const safeLogError = (context: string, error: unknown, additionalData?: Record<string, any>) => {
   const errorMessage = formatError(error);
-  
+
+  // Prevent logging [object Object] by ensuring all data is properly serialized
+  const errorInfo = error instanceof Error ? {
+    name: error.name,
+    message: error.message,
+    stack: error.stack
+  } : formatError(error);
+
+  // Clean additional data to prevent [object Object] issues
+  const cleanAdditionalData = additionalData ?
+    Object.fromEntries(
+      Object.entries(additionalData).map(([key, value]) => [
+        key,
+        typeof value === 'object' && value !== null ?
+          JSON.stringify(value) : String(value)
+      ])
+    ) : {};
+
   console.error(`[${context}]`, {
     message: errorMessage,
-    error: error instanceof Error ? {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    } : String(error),
-    ...additionalData
+    error: errorInfo,
+    timestamp: new Date().toISOString(),
+    ...cleanAdditionalData
   });
 };
 
