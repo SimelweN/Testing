@@ -100,7 +100,7 @@ const BookListing = () => {
       setBooks(paginatedBooks);
 
       if (booksArray.length === 0) {
-        console.log("No books found with current filters");
+        // No books found with current filters
       }
     } catch (error) {
       const errorDetails = {
