@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -204,7 +203,7 @@ const CampusBooks = ({
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0">
+      <CardContent className="pt-0 relative">
         {/* University and Year Info */}
         <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
           <div className="flex items-center gap-1">
@@ -234,6 +233,14 @@ const CampusBooks = ({
             {new Date(book.createdAt).toLocaleDateString()}
           </span>
         </div>
+
+        {/* Province/Location display - positioned in bottom right corner */}
+        {(book.province || book.location) && (
+          <div className="absolute bottom-2 right-2 flex items-center text-xs text-gray-500 bg-white bg-opacity-90 px-2 py-1 rounded-full shadow-sm">
+            <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+            <span className="truncate">{book.province || book.location}</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
