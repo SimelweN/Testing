@@ -569,10 +569,7 @@ const getUserBooksWithFallback = async (userId: string): Promise<Book[]> => {
         .maybeSingle();
 
       if (profileError) {
-        logDetailedError(
-          "getUserBooksWithFallback - profile query failed",
-          profileError,
-        );
+        logDetailedError("getUserBooksWithFallback - profile query failed", profileError);
       } else {
         profileData = profile;
         console.log(
