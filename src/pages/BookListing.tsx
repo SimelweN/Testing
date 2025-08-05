@@ -26,6 +26,7 @@ const BookListing = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalBooks, setTotalBooks] = useState(0);
   const booksPerPage = 12;
+  const pageTopRef = useRef<HTMLDivElement>(null);
 
   // Commit functionality
   const { commitBook } = useCommit();
