@@ -5,6 +5,7 @@ import { BookOpen, School, GraduationCap, MapPin, Clock } from "lucide-react";
 import { Book } from "@/types/book";
 import { toast } from "sonner";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
+import Pagination from "@/components/ui/pagination";
 
 interface BookGridProps {
   books: Book[];
@@ -12,6 +13,10 @@ interface BookGridProps {
   onClearFilters: () => void;
   currentUserId?: string | null;
   onCommitBook?: (bookId: string) => Promise<void>;
+  currentPage: number;
+  totalBooks: number;
+  booksPerPage: number;
+  onPageChange: (page: number) => void;
 }
 
 const BookGrid = ({
@@ -20,6 +25,10 @@ const BookGrid = ({
   onClearFilters,
   currentUserId,
   onCommitBook,
+  currentPage,
+  totalBooks,
+  booksPerPage,
+  onPageChange,
 }: BookGridProps) => {
   const handleCommit = async (bookId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -71,12 +80,11 @@ const BookGrid = ({
     <div className="lg:w-3/4">
       <div className="mb-4">
         <p className="text-gray-600">
-          Found {books.length} book{books.length !== 1 ? "s" : ""}
+          Found {totalBooks} book{totalBooks !== 1 ? "s" : ""}
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {books.map((book) => {
-          console.log("Rendering book:", book.id, book.title);
           const isUnavailable =
             (book as Book & { status?: string }).status === "unavailable";
           const isPendingCommit =
@@ -122,7 +130,7 @@ const BookGrid = ({
                       loading="lazy"
                       decoding="async"
                       onError={(e) => {
-                        console.log("Image failed to load for book:", book.id);
+
                         e.currentTarget.src =
                           "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=300&fit=crop&auto=format&q=80";
                       }}
@@ -197,10 +205,8 @@ const BookGrid = ({
                   onClick={(e) => {
                     if (!book.id) {
                       e.preventDefault();
-                      console.error("Book ID is missing for book:", book.title);
                       return;
                     }
-                    console.log("Navigating to book:", book.id);
                   }}
                 >
                   <div className="relative h-48 overflow-hidden">
@@ -213,7 +219,7 @@ const BookGrid = ({
                       loading="lazy"
                       decoding="async"
                       onError={(e) => {
-                        console.log("Image failed to load for book:", book.id);
+
                         e.currentTarget.src =
                           "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=300&fit=crop&auto=format&q=80";
                       }}
@@ -278,6 +284,14 @@ const BookGrid = ({
           );
         })}
       </div>
+
+      {/* Pagination Controls */}
+      <Pagination
+        currentPage={currentPage}
+        totalItems={totalBooks}
+        itemsPerPage={booksPerPage}
+        onPageChange={onPageChange}
+      />
     </div>
   );
 };

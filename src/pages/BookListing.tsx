@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
@@ -21,6 +21,12 @@ const BookListing = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isClearingBooks, setIsClearingBooks] = useState(false);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalBooks, setTotalBooks] = useState(0);
+  const booksPerPage = 12;
+  const pageTopRef = useRef<HTMLDivElement>(null);
 
   // Commit functionality
   const { commitBook } = useCommit();
@@ -80,17 +86,21 @@ const BookListing = () => {
       if (priceRange[0] > 0) filters.minPrice = priceRange[0];
       if (priceRange[1] < 1000) filters.maxPrice = priceRange[1];
 
-      console.log("Applied filters:", filters);
-
       const loadedBooks = await getBooks(filters);
-      console.log("Loaded books count:", loadedBooks.length);
 
       // Ensure we have an array
       const booksArray = Array.isArray(loadedBooks) ? loadedBooks : [];
-      setBooks(booksArray);
+      setTotalBooks(booksArray.length);
+
+      // Calculate pagination
+      const startIndex = (currentPage - 1) * booksPerPage;
+      const endIndex = startIndex + booksPerPage;
+      const paginatedBooks = booksArray.slice(startIndex, endIndex);
+
+      setBooks(paginatedBooks);
 
       if (booksArray.length === 0) {
-        console.log("No books found with current filters");
+        // No books found with current filters
       }
     } catch (error) {
       const errorDetails = {
@@ -100,7 +110,7 @@ const BookListing = () => {
         timestamp: new Date().toISOString(),
       };
 
-      console.error("[BookListing] Error loading books:", errorDetails);
+
 
       const userMessage =
         error instanceof Error && error.message.includes("Failed to fetch")
@@ -113,17 +123,15 @@ const BookListing = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [searchParams, selectedCondition, selectedUniversity, selectedProvince, priceRange]);
+  }, [searchParams, selectedCondition, selectedUniversity, selectedProvince, priceRange, currentPage]);
 
   // Initial load
   useEffect(() => {
-    console.log("BookListing component mounted");
     loadBooks();
   }, [loadBooks]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Search submitted with query:", searchQuery);
     updateFilters();
   };
 
@@ -146,6 +154,7 @@ const BookListing = () => {
       newSearchParams.set("province", selectedProvince);
     }
 
+    setCurrentPage(1); // Reset to first page when filters change
     setSearchParams(newSearchParams);
   }, [
     searchQuery,
@@ -166,6 +175,7 @@ const BookListing = () => {
     setSelectedProvince("");
     setPriceRange([0, 1000]);
     setBookType("all");
+    setCurrentPage(1); // Reset to first page when clearing filters
     setSearchParams(new URLSearchParams());
   }, [setSearchParams]);
 
@@ -182,6 +192,25 @@ const BookListing = () => {
       toast.error("Failed to commit sale. Please try again.");
     }
   };
+
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+
+    // Quick scroll to top without smooth behavior for better performance
+    requestAnimationFrame(() => {
+      if (pageTopRef.current) {
+        pageTopRef.current.scrollIntoView({
+          behavior: 'auto',
+          block: 'start'
+        });
+      } else {
+        window.scrollTo({
+          top: 0,
+          behavior: 'auto'
+        });
+      }
+    });
+  }, []);
 
   const handleClearAllBooks = async () => {
     if (
@@ -221,7 +250,7 @@ const BookListing = () => {
         url="https://www.rebookedsolutions.co.za/books"
       />
 
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <div ref={pageTopRef} className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-8 px-2 sm:px-0">
           <h1 className="text-2xl sm:text-3xl font-bold text-book-800 mb-4 sm:mb-0">
             Browse Books
@@ -276,6 +305,10 @@ const BookListing = () => {
             onClearFilters={clearFilters}
             currentUserId={user?.id}
             onCommitBook={handleCommitBook}
+            currentPage={currentPage}
+            totalBooks={totalBooks}
+            booksPerPage={booksPerPage}
+            onPageChange={handlePageChange}
           />
         </div>
       </div>
