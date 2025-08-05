@@ -389,15 +389,7 @@ export const getBookById = async (id: string): Promise<Book | null> => {
           timestamp: new Date().toISOString()
         });
 
-        logDetailedError("Error fetching book", {
-          error: {
-            message: bookError.message,
-            code: bookError.code,
-            details: bookError.details
-          },
-          bookId: id,
-          timestamp: new Date().toISOString()
-        });
+        logDetailedError("Error fetching book", bookError);
 
         throw new Error(
           `Failed to fetch book: ${bookError.message || "Unknown database error"}`,
