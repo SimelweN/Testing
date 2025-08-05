@@ -237,15 +237,25 @@ const BookGrid = ({
                       </div>
                     )}
                   </div>
-                  <div className="p-4 flex-grow flex flex-col relative">
+                  <div className="p-4 flex-grow flex flex-col">
                     <h3 className="font-bold text-lg mb-1 text-book-800 line-clamp-1">
                       {book.title}
                     </h3>
                     <p className="text-gray-600 mb-2">{book.author}</p>
-                    <p className="text-gray-500 text-sm mb-auto line-clamp-2">
+                    <p className="text-gray-500 text-sm mb-3 line-clamp-2 flex-grow">
                       {book.description}
                     </p>
-                    <div className="flex flex-wrap items-center justify-between mt-4 gap-1">
+
+                    {/* Province/Location display */}
+                    {book.province && (
+                      <div className="flex items-center text-xs text-gray-500 mb-3">
+                        <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                        <span className="truncate">{book.province}</span>
+                      </div>
+                    )}
+
+                    {/* Tags and badges */}
+                    <div className="flex flex-wrap items-center gap-2 mt-auto">
                       <span className="bg-book-100 text-book-800 px-2 py-1 rounded text-xs font-medium">
                         {book.condition}
                       </span>
@@ -261,18 +271,10 @@ const BookGrid = ({
                           {book.universityYear}
                         </span>
                       )}
-                      <span className="text-gray-500 text-xs">
+                      <span className="text-gray-500 text-xs ml-auto">
                         {book.category}
                       </span>
                     </div>
-
-                    {/* Province/Location display - positioned in bottom right corner */}
-                    {book.province && (
-                      <div className="absolute bottom-2 right-2 flex items-center text-xs text-gray-500 bg-white bg-opacity-90 px-2 py-1 rounded-full shadow-sm">
-                        <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-                        <span className="truncate">{book.province}</span>
-                      </div>
-                    )}
 
                     {/* Commit Button for Seller */}
                     {isPendingCommit && isOwner && onCommitBook && (
