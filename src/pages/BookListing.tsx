@@ -290,6 +290,10 @@ const BookListing = () => {
             onClearFilters={clearFilters}
             currentUserId={user?.id}
             onCommitBook={handleCommitBook}
+            currentPage={currentPage}
+            totalBooks={totalBooks}
+            booksPerPage={booksPerPage}
+            onPageChange={setCurrentPage}
           />
         </div>
       </div>
