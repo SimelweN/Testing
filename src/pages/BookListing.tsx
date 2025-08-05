@@ -179,6 +179,7 @@ const BookListing = () => {
     setSelectedProvince("");
     setPriceRange([0, 1000]);
     setBookType("all");
+    setCurrentPage(1); // Reset to first page when clearing filters
     setSearchParams(new URLSearchParams());
   }, [setSearchParams]);
 
