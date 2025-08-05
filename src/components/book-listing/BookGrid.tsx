@@ -129,6 +129,7 @@ const BookGrid = ({
                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                       loading="lazy"
                       decoding="async"
+                      fetchPriority="low"
                       onError={(e) => {
 
                         e.currentTarget.src =
@@ -218,6 +219,7 @@ const BookGrid = ({
                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                       loading="lazy"
                       decoding="async"
+                      fetchPriority="low"
                       onError={(e) => {
 
                         e.currentTarget.src =
