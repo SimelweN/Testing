@@ -25,6 +25,10 @@ const BookGrid = ({
   onClearFilters,
   currentUserId,
   onCommitBook,
+  currentPage,
+  totalBooks,
+  booksPerPage,
+  onPageChange,
 }: BookGridProps) => {
   const handleCommit = async (bookId: string, e: React.MouseEvent) => {
     e.preventDefault();
