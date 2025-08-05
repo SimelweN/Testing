@@ -92,7 +92,14 @@ const BookListing = () => {
 
       // Ensure we have an array
       const booksArray = Array.isArray(loadedBooks) ? loadedBooks : [];
-      setBooks(booksArray);
+      setTotalBooks(booksArray.length);
+
+      // Calculate pagination
+      const startIndex = (currentPage - 1) * booksPerPage;
+      const endIndex = startIndex + booksPerPage;
+      const paginatedBooks = booksArray.slice(startIndex, endIndex);
+
+      setBooks(paginatedBooks);
 
       if (booksArray.length === 0) {
         console.log("No books found with current filters");
