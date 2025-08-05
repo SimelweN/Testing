@@ -130,7 +130,7 @@ const BookGrid = ({
                       loading="lazy"
                       decoding="async"
                       onError={(e) => {
-                        console.log("Image failed to load for book:", book.id);
+
                         e.currentTarget.src =
                           "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=300&fit=crop&auto=format&q=80";
                       }}
@@ -221,7 +221,7 @@ const BookGrid = ({
                       loading="lazy"
                       decoding="async"
                       onError={(e) => {
-                        console.log("Image failed to load for book:", book.id);
+
                         e.currentTarget.src =
                           "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=300&fit=crop&auto=format&q=80";
                       }}
