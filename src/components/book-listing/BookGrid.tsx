@@ -236,7 +236,7 @@ const BookGrid = ({
                       </div>
                     )}
                   </div>
-                  <div className="p-4 flex-grow flex flex-col">
+                  <div className="p-4 flex-grow flex flex-col relative">
                     <h3 className="font-bold text-lg mb-1 text-book-800 line-clamp-1">
                       {book.title}
                     </h3>
@@ -264,6 +264,14 @@ const BookGrid = ({
                         {book.category}
                       </span>
                     </div>
+
+                    {/* Province/Location display - positioned in bottom right corner */}
+                    {book.province && (
+                      <div className="absolute bottom-2 right-2 flex items-center text-xs text-gray-500 bg-white bg-opacity-90 px-2 py-1 rounded-full shadow-sm">
+                        <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                        <span className="truncate">{book.province}</span>
+                      </div>
+                    )}
 
                     {/* Commit Button for Seller */}
                     {isPendingCommit && isOwner && onCommitBook && (
