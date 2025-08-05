@@ -205,10 +205,8 @@ const BookGrid = ({
                   onClick={(e) => {
                     if (!book.id) {
                       e.preventDefault();
-                      console.error("Book ID is missing for book:", book.title);
                       return;
                     }
-                    console.log("Navigating to book:", book.id);
                   }}
                 >
                   <div className="relative h-48 overflow-hidden">
