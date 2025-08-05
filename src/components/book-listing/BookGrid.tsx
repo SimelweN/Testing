@@ -80,7 +80,7 @@ const BookGrid = ({
     <div className="lg:w-3/4">
       <div className="mb-4">
         <p className="text-gray-600">
-          Found {books.length} book{books.length !== 1 ? "s" : ""}
+          Found {totalBooks} book{totalBooks !== 1 ? "s" : ""}
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
