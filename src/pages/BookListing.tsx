@@ -127,7 +127,6 @@ const BookListing = () => {
 
   // Initial load
   useEffect(() => {
-    console.log("BookListing component mounted");
     loadBooks();
   }, [loadBooks]);
 
