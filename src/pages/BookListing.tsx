@@ -198,6 +198,24 @@ const BookListing = () => {
     }
   };
 
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+
+    // Smooth scroll to top of the page
+    if (pageTopRef.current) {
+      pageTopRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    } else {
+      // Fallback to window scroll
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  }, []);
+
   const handleClearAllBooks = async () => {
     if (
       !window.confirm(
