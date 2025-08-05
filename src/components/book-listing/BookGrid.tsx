@@ -5,6 +5,7 @@ import { BookOpen, School, GraduationCap, MapPin, Clock } from "lucide-react";
 import { Book } from "@/types/book";
 import { toast } from "sonner";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
+import Pagination from "@/components/ui/pagination";
 
 interface BookGridProps {
   books: Book[];
@@ -12,6 +13,10 @@ interface BookGridProps {
   onClearFilters: () => void;
   currentUserId?: string | null;
   onCommitBook?: (bookId: string) => Promise<void>;
+  currentPage: number;
+  totalBooks: number;
+  booksPerPage: number;
+  onPageChange: (page: number) => void;
 }
 
 const BookGrid = ({
