@@ -86,10 +86,7 @@ const BookListing = () => {
       if (priceRange[0] > 0) filters.minPrice = priceRange[0];
       if (priceRange[1] < 1000) filters.maxPrice = priceRange[1];
 
-      console.log("Applied filters:", filters);
-
       const loadedBooks = await getBooks(filters);
-      console.log("Loaded books count:", loadedBooks.length);
 
       // Ensure we have an array
       const booksArray = Array.isArray(loadedBooks) ? loadedBooks : [];
