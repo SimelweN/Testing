@@ -132,7 +132,6 @@ const BookListing = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Search submitted with query:", searchQuery);
     updateFilters();
   };
 
