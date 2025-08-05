@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, ArrowRight } from "lucide-react";
+import { Star, ArrowRight, MapPin } from "lucide-react";
 import { getBooks } from "@/services/book/bookQueries";
 import { Book } from "@/types/book";
 import { logErrorSafely } from "@/utils/errorHandling";
