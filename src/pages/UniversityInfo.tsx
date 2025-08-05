@@ -217,7 +217,11 @@ const UniversityInfo = () => {
         resources: "Growing Daily",
       };
     } catch (error) {
-      console.error("Error calculating university statistics:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Error calculating university statistics:", {
+        message: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined
+      });
       return {
         universities: 0,
         students: "Error",
