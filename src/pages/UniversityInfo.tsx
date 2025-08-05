@@ -275,7 +275,11 @@ const UniversityInfo = () => {
         "You'll be notified when accommodation services are available!",
       );
     } catch (error) {
-      console.error("Error submitting notification request:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Error submitting notification request:", {
+        message: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined
+      });
       toast.error("Failed to submit notification request. Please try again.");
     } finally {
       setNotifyLoading(false);
