@@ -152,12 +152,7 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
             timestamp: new Date().toISOString()
           });
 
-          logDetailedError("Books query failed", {
-            error: booksError,
-            retryCount,
-            filters,
-            timestamp: new Date().toISOString()
-          });
+          logDetailedError("Books query failed", booksError);
 
           // If it's a connection error and we haven't retried too many times, try again
           if (retryCount < 3 && (
