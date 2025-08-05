@@ -262,16 +262,7 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
                 timestamp: new Date().toISOString()
               });
 
-              logDetailedError("Error fetching profiles", {
-                error: {
-                  message: profilesError.message,
-                  code: profilesError.code,
-                  details: profilesError.details
-                },
-                sellerIds: sellerIds.length,
-                retryCount,
-                timestamp: new Date().toISOString()
-              });
+              logDetailedError("Error fetching profiles", profilesError);
 
               // If it's a connection error and we haven't retried too many times, try again
               if (retryCount < 2 && (
