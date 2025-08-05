@@ -110,7 +110,7 @@ const BookListing = () => {
         timestamp: new Date().toISOString(),
       };
 
-      console.error("[BookListing] Error loading books:", errorDetails);
+
 
       const userMessage =
         error instanceof Error && error.message.includes("Failed to fetch")
