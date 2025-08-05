@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Star, ArrowRight } from "lucide-react";
 import { getBooks } from "@/services/book/bookQueries";
 import { Book } from "@/types/book";
+import { logErrorSafely } from "@/utils/errorHandling";
 
 const FeaturedBooks = () => {
   const [books, setBooks] = useState<Book[]>([]);
