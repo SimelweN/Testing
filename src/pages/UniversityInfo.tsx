@@ -202,7 +202,11 @@ const UniversityInfo = () => {
           );
         }, 0);
       } catch (programError) {
-        console.error("Error calculating programs:", programError);
+        const errorMessage = programError instanceof Error ? programError.message : String(programError);
+        console.error("Error calculating programs:", {
+          message: errorMessage,
+          stack: programError instanceof Error ? programError.stack : undefined
+        });
         totalPrograms = 0;
       }
 
