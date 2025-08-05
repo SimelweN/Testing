@@ -312,7 +312,7 @@ const BookListing = () => {
             currentPage={currentPage}
             totalBooks={totalBooks}
             booksPerPage={booksPerPage}
-            onPageChange={setCurrentPage}
+            onPageChange={handlePageChange}
           />
         </div>
       </div>
