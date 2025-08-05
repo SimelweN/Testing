@@ -201,19 +201,20 @@ const BookListing = () => {
   const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
 
-    // Smooth scroll to top of the page
-    if (pageTopRef.current) {
-      pageTopRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    } else {
-      // Fallback to window scroll
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-    }
+    // Quick scroll to top without smooth behavior for better performance
+    requestAnimationFrame(() => {
+      if (pageTopRef.current) {
+        pageTopRef.current.scrollIntoView({
+          behavior: 'auto',
+          block: 'start'
+        });
+      } else {
+        window.scrollTo({
+          top: 0,
+          behavior: 'auto'
+        });
+      }
+    });
   }, []);
 
   const handleClearAllBooks = async () => {
