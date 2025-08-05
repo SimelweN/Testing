@@ -545,10 +545,7 @@ const getUserBooksWithFallback = async (userId: string): Promise<Book[]> => {
         hint: booksError.hint || 'No hint'
       });
 
-      logDetailedError(
-        "getUserBooksWithFallback - books query failed",
-        booksError,
-      );
+      logDetailedError("getUserBooksWithFallback - books query failed", booksError);
       throw new Error(
         `Failed to fetch user books: ${booksError.message || "Unknown database error"}`,
       );
