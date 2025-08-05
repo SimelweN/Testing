@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -27,6 +26,7 @@ import {
   ExternalLink,
   Users,
   Star,
+  MapPin,
 } from "lucide-react";
 import { getBooks } from "@/services/book/bookQueries";
 import { Book } from "@/types/book";
@@ -205,6 +205,13 @@ const CampusBooks = ({
       </CardHeader>
 
       <CardContent className="pt-0">
+        {/* Description */}
+        {book.description && (
+          <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+            {book.description}
+          </p>
+        )}
+
         {/* University and Year Info */}
         <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
           <div className="flex items-center gap-1">
@@ -218,14 +225,15 @@ const CampusBooks = ({
           )}
         </div>
 
-        {/* Description */}
-        {book.description && (
-          <p className="text-sm text-gray-600 line-clamp-2 mb-3">
-            {book.description}
-          </p>
+        {/* Province/Location display */}
+        {(book.province || book.location) && (
+          <div className="flex items-center gap-1 text-xs text-gray-500 mb-3">
+            <MapPin className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">{book.province || book.location}</span>
+          </div>
         )}
 
-        {/* Category */}
+        {/* Category and Date */}
         <div className="flex items-center justify-between">
           <Badge variant="outline" className="text-xs">
             {book.category}

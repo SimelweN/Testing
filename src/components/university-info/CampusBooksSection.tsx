@@ -142,27 +142,28 @@ const CampusBooksSection = () => {
               {book.title}
             </h3>
             <p className="text-gray-600 mb-2">{book.author}</p>
-            <p className="text-gray-500 text-sm mb-auto line-clamp-2">
+            <p className="text-gray-500 text-sm mb-3 line-clamp-2 flex-grow">
               {book.description}
             </p>
 
             {/* University and Location Info */}
-            <div className="mt-2 space-y-1">
+            <div className="space-y-1 mb-3">
               <div className="flex items-center gap-1 text-xs text-gray-500">
                 <Building className="w-3 h-3 flex-shrink-0" />
                 <span className="truncate">
                   {universityInfo?.name || book.university}
                 </span>
               </div>
-              {book.location && (
+              {(book.province || book.location) && (
                 <div className="flex items-center gap-1 text-xs text-gray-500">
                   <MapPin className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate">{book.location}</span>
+                  <span className="truncate">{book.province || book.location}</span>
                 </div>
               )}
             </div>
 
-            <div className="flex flex-wrap items-center justify-between mt-4 gap-1">
+            {/* Tags and badges */}
+            <div className="flex flex-wrap items-center gap-2 mb-3">
               <span className="bg-book-100 text-book-800 px-2 py-1 rounded text-xs font-medium">
                 {book.condition}
               </span>
@@ -172,10 +173,10 @@ const CampusBooksSection = () => {
                   {book.universityYear}
                 </span>
               )}
-              <span className="text-gray-500 text-xs">{book.category}</span>
+              <span className="text-gray-500 text-xs ml-auto">{book.category}</span>
             </div>
 
-            <div className="mt-3 text-xs text-gray-500">
+            <div className="text-xs text-gray-500 mt-auto">
               <span className="truncate">Sold by: {book.seller.name}</span>
             </div>
           </div>

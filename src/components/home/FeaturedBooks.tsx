@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, ArrowRight } from "lucide-react";
+import { Star, ArrowRight, MapPin } from "lucide-react";
 import { getBooks } from "@/services/book/bookQueries";
 import { Book } from "@/types/book";
 import { logErrorSafely } from "@/utils/errorHandling";
@@ -167,6 +167,14 @@ const FeaturedBookCard = ({ book }: { book: Book }) => {
           <p className="text-gray-500 text-sm mb-3 line-clamp-2">
             {book.description}
           </p>
+
+          {/* Province/Location display */}
+          {book.province && (
+            <div className="flex items-center text-xs text-gray-500 mb-3">
+              <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+              <span className="truncate">{book.province}</span>
+            </div>
+          )}
 
           <div className="flex items-center justify-between">
             <Badge variant="outline" className="text-xs">
