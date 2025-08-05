@@ -55,7 +55,13 @@ const FeaturedBooks = () => {
         const shuffledBooks = shuffleArrayWithSeed(allBooks, dailySeed);
         setBooks(shuffledBooks.slice(0, 4));
       } catch (error) {
-        console.error("Error fetching featured books:", error);
+        // Properly format error to prevent [object Object] logging
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error("Error fetching featured books:", {
+          message: errorMessage,
+          stack: error instanceof Error ? error.stack : undefined,
+          timestamp: new Date().toISOString()
+        });
         setBooks([]);
       } finally {
         setIsLoading(false);
