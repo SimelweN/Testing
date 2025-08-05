@@ -749,7 +749,7 @@ const UniversityInfo = () => {
                     calculating your APS score to finding the right bursaries
                     and degree programs.
                   </p>
-                  <div className="grid md:grid-cols-2 gap-4 mt-6">
+                  <div className="grid md:grid-cols-3 gap-4 mt-6">
                     <div className="flex items-start gap-3">
                       <Users className="h-5 w-5 text-blue-600 mt-1" />
                       <div>
@@ -765,6 +765,23 @@ const UniversityInfo = () => {
                         <h4 className="font-semibold">Trusted Information</h4>
                         <p className="text-sm text-gray-600">
                           Accurate, up-to-date university data
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Bell className="h-5 w-5 text-orange-600 mt-1" />
+                      <div>
+                        <h4 className="font-semibold">Latest News</h4>
+                        <p className="text-sm text-gray-600">
+                          Stay updated with{" "}
+                          <a
+                            href="https://news.rebookedsolutions.co.za"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-book-600 hover:text-book-800 underline font-medium"
+                          >
+                            ReBooked News
+                          </a>
                         </p>
                       </div>
                     </div>
