@@ -466,14 +466,7 @@ export const getBookById = async (id: string): Promise<Book | null> => {
       timestamp: new Date().toISOString()
     });
 
-    logDetailedError("Error in getBookById", {
-      error: {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
-      },
-      bookId: id,
-      timestamp: new Date().toISOString()
-    });
+    logDetailedError("Error in getBookById", error);
 
     if (
       error instanceof Error &&
