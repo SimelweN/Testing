@@ -159,7 +159,7 @@ const FeaturedBookCard = ({ book }: { book: Book }) => {
           </div>
         </div>
 
-        <CardContent className="p-4 relative">
+        <CardContent className="p-4">
           <h3 className="font-bold text-lg mb-1 text-book-800 line-clamp-1 group-hover:text-book-600 transition-colors">
             {book.title}
           </h3>
@@ -167,6 +167,14 @@ const FeaturedBookCard = ({ book }: { book: Book }) => {
           <p className="text-gray-500 text-sm mb-3 line-clamp-2">
             {book.description}
           </p>
+
+          {/* Province/Location display */}
+          {book.province && (
+            <div className="flex items-center text-xs text-gray-500 mb-3">
+              <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+              <span className="truncate">{book.province}</span>
+            </div>
+          )}
 
           <div className="flex items-center justify-between">
             <Badge variant="outline" className="text-xs">
@@ -178,14 +186,6 @@ const FeaturedBookCard = ({ book }: { book: Book }) => {
               </Badge>
             )}
           </div>
-
-          {/* Province/Location display - positioned in bottom right corner */}
-          {book.province && (
-            <div className="absolute bottom-2 right-2 flex items-center text-xs text-gray-500 bg-white bg-opacity-90 px-2 py-1 rounded-full shadow-sm">
-              <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-              <span className="truncate">{book.province}</span>
-            </div>
-          )}
         </CardContent>
       </Link>
     </Card>
