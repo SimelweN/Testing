@@ -6,24 +6,57 @@ import { Button } from "@/components/ui/button";
 import { Star, ArrowRight } from "lucide-react";
 import { getBooks } from "@/services/book/bookQueries";
 import { Book } from "@/types/book";
+import { logErrorSafely } from "@/utils/errorHandling";
 
 const FeaturedBooks = () => {
   const [books, setBooks] = useState<Book[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Function to create a seeded random number generator
+  const seededRandom = (seed: number) => {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+  };
+
+  // Function to shuffle array using seeded random
+  const shuffleArrayWithSeed = <T,>(array: T[], seed: number): T[] => {
+    const shuffled = [...array];
+    let currentIndex = shuffled.length;
+    let randomIndex: number;
+
+    while (currentIndex !== 0) {
+      randomIndex = Math.floor(seededRandom(seed + currentIndex) * currentIndex);
+      currentIndex--;
+      [shuffled[currentIndex], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[currentIndex]];
+    }
+
+    return shuffled;
+  };
+
   useEffect(() => {
     const fetchFeaturedBooks = async () => {
       try {
         setIsLoading(true);
-        // Fetch 4 recent books in good condition
-        const allBooks = await getBooks({
-          condition: "Good",
-        });
+        // Fetch all available books
+        const allBooks = await getBooks({});
 
-        // Get the first 4 books as featured
-        setBooks(allBooks.slice(0, 4));
+        if (allBooks.length === 0) {
+          setBooks([]);
+          return;
+        }
+
+        // Create a daily seed based on current date (YYYY-MM-DD)
+        const today = new Date();
+        const dateString = today.getFullYear() + "-" +
+                          String(today.getMonth() + 1).padStart(2, '0') + "-" +
+                          String(today.getDate()).padStart(2, '0');
+        const dailySeed = dateString.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+        // Shuffle books using daily seed and take first 4
+        const shuffledBooks = shuffleArrayWithSeed(allBooks, dailySeed);
+        setBooks(shuffledBooks.slice(0, 4));
       } catch (error) {
-        console.error("Error fetching featured books:", error);
+        logErrorSafely("Error fetching featured books:", error);
         setBooks([]);
       } finally {
         setIsLoading(false);

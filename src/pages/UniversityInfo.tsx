@@ -116,9 +116,13 @@ const UniversityInfo = () => {
         ) || null
       );
     } catch (error) {
-      console.error("Error finding university:", error);
-            const errorMsg = error?.message || String(error) || 'University data processing failed';
-      const safeMsg = errorMsg === '[object Object]' ? 'University data processing failed' : errorMsg;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Error finding university:", {
+        message: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined,
+        selectedUniversityId
+      });
+      const safeMsg = errorMessage === '[object Object]' ? 'University data processing failed' : errorMessage;
       setError(`Error processing university data: ${safeMsg}`);
       return null;
     }
@@ -198,7 +202,11 @@ const UniversityInfo = () => {
           );
         }, 0);
       } catch (programError) {
-        console.error("Error calculating programs:", programError);
+        const errorMessage = programError instanceof Error ? programError.message : String(programError);
+        console.error("Error calculating programs:", {
+          message: errorMessage,
+          stack: programError instanceof Error ? programError.stack : undefined
+        });
         totalPrograms = 0;
       }
 
@@ -209,7 +217,11 @@ const UniversityInfo = () => {
         resources: "Growing Daily",
       };
     } catch (error) {
-      console.error("Error calculating university statistics:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Error calculating university statistics:", {
+        message: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined
+      });
       return {
         universities: 0,
         students: "Error",
@@ -263,7 +275,11 @@ const UniversityInfo = () => {
         "You'll be notified when accommodation services are available!",
       );
     } catch (error) {
-      console.error("Error submitting notification request:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Error submitting notification request:", {
+        message: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined
+      });
       toast.error("Failed to submit notification request. Please try again.");
     } finally {
       setNotifyLoading(false);
@@ -749,7 +765,7 @@ const UniversityInfo = () => {
                     calculating your APS score to finding the right bursaries
                     and degree programs.
                   </p>
-                  <div className="grid md:grid-cols-2 gap-4 mt-6">
+                  <div className="grid md:grid-cols-3 gap-4 mt-6">
                     <div className="flex items-start gap-3">
                       <Users className="h-5 w-5 text-blue-600 mt-1" />
                       <div>
@@ -765,6 +781,23 @@ const UniversityInfo = () => {
                         <h4 className="font-semibold">Trusted Information</h4>
                         <p className="text-sm text-gray-600">
                           Accurate, up-to-date university data
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Bell className="h-5 w-5 text-orange-600 mt-1" />
+                      <div>
+                        <h4 className="font-semibold">Latest News</h4>
+                        <p className="text-sm text-gray-600">
+                          Stay updated with{" "}
+                          <a
+                            href="https://news.rebookedsolutions.co.za"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-book-600 hover:text-book-800 underline font-medium"
+                          >
+                            ReBooked News
+                          </a>
                         </p>
                       </div>
                     </div>

@@ -152,12 +152,7 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
             timestamp: new Date().toISOString()
           });
 
-          logDetailedError("Books query failed", {
-            error: booksError,
-            retryCount,
-            filters,
-            timestamp: new Date().toISOString()
-          });
+          logDetailedError("Books query failed", booksError);
 
           // If it's a connection error and we haven't retried too many times, try again
           if (retryCount < 3 && (
@@ -184,12 +179,7 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
         console.log(`Successfully fetched ${booksData.length} books`);
         return booksData;
       } catch (networkError) {
-        logDetailedError("Network exception in books query", {
-          error: networkError,
-          retryCount,
-          filters,
-          timestamp: new Date().toISOString()
-        });
+        logDetailedError("Network exception in books query", networkError);
 
         // If it's a network error and we haven't retried too many times, try again
         if (retryCount < 3) {
@@ -272,16 +262,7 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
                 timestamp: new Date().toISOString()
               });
 
-              logDetailedError("Error fetching profiles", {
-                error: {
-                  message: profilesError.message,
-                  code: profilesError.code,
-                  details: profilesError.details
-                },
-                sellerIds: sellerIds.length,
-                retryCount,
-                timestamp: new Date().toISOString()
-              });
+              logDetailedError("Error fetching profiles", profilesError);
 
               // If it's a connection error and we haven't retried too many times, try again
               if (retryCount < 2 && (
@@ -321,14 +302,7 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
           timestamp: new Date().toISOString()
         });
 
-        logDetailedError("Critical exception in profile fetching", {
-          error: {
-            message: profileFetchError instanceof Error ? profileFetchError.message : String(profileFetchError),
-            stack: profileFetchError instanceof Error ? profileFetchError.stack : undefined
-          },
-          sellerIds,
-          timestamp: new Date().toISOString()
-        });
+        logDetailedError("Critical exception in profile fetching", profileFetchError);
 
         console.warn("Profile fetching failed completely, books will be returned without seller information");
       }
@@ -388,7 +362,7 @@ export const getBookById = async (id: string): Promise<Book | null> => {
       const error = new Error(
         "Invalid book ID format. Please check the link and try again.",
       );
-      logDetailedError("Invalid UUID format for book ID", { id, error });
+      logDetailedError("Invalid UUID format for book ID", error);
       throw error;
     }
 
@@ -415,15 +389,7 @@ export const getBookById = async (id: string): Promise<Book | null> => {
           timestamp: new Date().toISOString()
         });
 
-        logDetailedError("Error fetching book", {
-          error: {
-            message: bookError.message,
-            code: bookError.code,
-            details: bookError.details
-          },
-          bookId: id,
-          timestamp: new Date().toISOString()
-        });
+        logDetailedError("Error fetching book", bookError);
 
         throw new Error(
           `Failed to fetch book: ${bookError.message || "Unknown database error"}`,
@@ -500,14 +466,7 @@ export const getBookById = async (id: string): Promise<Book | null> => {
       timestamp: new Date().toISOString()
     });
 
-    logDetailedError("Error in getBookById", {
-      error: {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
-      },
-      bookId: id,
-      timestamp: new Date().toISOString()
-    });
+    logDetailedError("Error in getBookById", error);
 
     if (
       error instanceof Error &&
@@ -586,10 +545,7 @@ const getUserBooksWithFallback = async (userId: string): Promise<Book[]> => {
         hint: booksError.hint || 'No hint'
       });
 
-      logDetailedError(
-        "getUserBooksWithFallback - books query failed",
-        booksError,
-      );
+      logDetailedError("getUserBooksWithFallback - books query failed", booksError);
       throw new Error(
         `Failed to fetch user books: ${booksError.message || "Unknown database error"}`,
       );
@@ -613,10 +569,7 @@ const getUserBooksWithFallback = async (userId: string): Promise<Book[]> => {
         .maybeSingle();
 
       if (profileError) {
-        logDetailedError(
-          "getUserBooksWithFallback - profile query failed",
-          profileError,
-        );
+        logDetailedError("getUserBooksWithFallback - profile query failed", profileError);
       } else {
         profileData = profile;
         console.log(

@@ -6,33 +6,70 @@ export const formatError = (error: unknown): string => {
   if (error instanceof Error) {
     return error.message;
   }
-  
+
   if (typeof error === 'string') {
     return error;
   }
-  
+
+  if (error === null) {
+    return 'null';
+  }
+
+  if (error === undefined) {
+    return 'undefined';
+  }
+
   if (error && typeof error === 'object') {
     try {
-      return JSON.stringify(error);
+      // Handle common error object structures
+      const errorObj = error as any;
+      if (errorObj.message) {
+        return errorObj.message;
+      }
+      if (errorObj.error && typeof errorObj.error === 'string') {
+        return errorObj.error;
+      }
+      if (errorObj.details) {
+        return typeof errorObj.details === 'string' ? errorObj.details : JSON.stringify(errorObj.details);
+      }
+
+      // Try to stringify the object
+      const stringified = JSON.stringify(error);
+      return stringified === '{}' ? 'Empty object error' : stringified;
     } catch {
-      return String(error);
+      // If JSON.stringify fails, use a safe fallback
+      return `Error object (${Object.prototype.toString.call(error)})`;
     }
   }
-  
+
   return String(error);
 };
 
 export const safeLogError = (context: string, error: unknown, additionalData?: Record<string, any>) => {
   const errorMessage = formatError(error);
-  
+
+  // Prevent logging [object Object] by ensuring all data is properly serialized
+  const errorInfo = error instanceof Error ? {
+    name: error.name,
+    message: error.message,
+    stack: error.stack
+  } : formatError(error);
+
+  // Clean additional data to prevent [object Object] issues
+  const cleanAdditionalData = additionalData ?
+    Object.fromEntries(
+      Object.entries(additionalData).map(([key, value]) => [
+        key,
+        typeof value === 'object' && value !== null ?
+          JSON.stringify(value) : String(value)
+      ])
+    ) : {};
+
   console.error(`[${context}]`, {
     message: errorMessage,
-    error: error instanceof Error ? {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    } : String(error),
-    ...additionalData
+    error: errorInfo,
+    timestamp: new Date().toISOString(),
+    ...cleanAdditionalData
   });
 };
 

@@ -133,6 +133,16 @@ const Footer = () => {
                   Report Issue
                 </Link>
               </li>
+              <li>
+                <a
+                  href="https://news.rebookedsolutions.co.za"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-600 hover:text-book-600 text-sm"
+                >
+                  ReBooked News
+                </a>
+              </li>
 
               <li>
                 <Link
