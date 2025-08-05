@@ -22,6 +22,11 @@ const BookListing = () => {
   const [error, setError] = useState<string | null>(null);
   const [isClearingBooks, setIsClearingBooks] = useState(false);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalBooks, setTotalBooks] = useState(0);
+  const booksPerPage = 12;
+
   // Commit functionality
   const { commitBook } = useCommit();
   const { user } = useAuth();
