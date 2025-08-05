@@ -26,6 +26,7 @@ import {
   ExternalLink,
   Users,
   Star,
+  MapPin,
 } from "lucide-react";
 import { getBooks } from "@/services/book/bookQueries";
 import { Book } from "@/types/book";
