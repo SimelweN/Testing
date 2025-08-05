@@ -83,7 +83,7 @@ const BookGrid = ({
           Found {totalBooks} book{totalBooks !== 1 ? "s" : ""}
         </p>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 animate-in fade-in duration-500">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {books.map((book) => {
           console.log("Rendering book:", book.id, book.title);
           const isUnavailable =
