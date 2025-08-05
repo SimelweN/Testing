@@ -315,11 +315,19 @@ const EnhancedBursaryListing = () => {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl text-green-800 flex items-center justify-center gap-2">
             <BookOpen className="h-6 w-6" />
-            For High School Students: Plan Your University Bursary Journey
+            Stay Updated on Bursary Opportunities
           </CardTitle>
           <CardDescription className="text-lg text-green-700">
-            See what marks you need in Grade 11 and Matric to qualify for
-            university bursaries
+            Get the latest news on bursaries and educational funding. Check{" "}
+            <a
+              href="https://news.rebookedsolutions.co.za"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-green-600 hover:text-green-800 underline font-semibold"
+            >
+              ReBooked News
+            </a>{" "}
+            for updates on new opportunities and application deadlines
           </CardDescription>
         </CardHeader>
       </Card>
