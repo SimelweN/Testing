@@ -302,14 +302,7 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
           timestamp: new Date().toISOString()
         });
 
-        logDetailedError("Critical exception in profile fetching", {
-          error: {
-            message: profileFetchError instanceof Error ? profileFetchError.message : String(profileFetchError),
-            stack: profileFetchError instanceof Error ? profileFetchError.stack : undefined
-          },
-          sellerIds,
-          timestamp: new Date().toISOString()
-        });
+        logDetailedError("Critical exception in profile fetching", profileFetchError);
 
         console.warn("Profile fetching failed completely, books will be returned without seller information");
       }
