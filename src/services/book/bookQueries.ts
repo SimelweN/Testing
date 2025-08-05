@@ -362,7 +362,7 @@ export const getBookById = async (id: string): Promise<Book | null> => {
       const error = new Error(
         "Invalid book ID format. Please check the link and try again.",
       );
-      logDetailedError("Invalid UUID format for book ID", { id, error });
+      logDetailedError("Invalid UUID format for book ID", error);
       throw error;
     }
 
