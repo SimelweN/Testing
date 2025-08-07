@@ -147,8 +147,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsLoading(true);
         console.log("🔄 AuthContext register called with:", { email, name });
 
-        // First, check if user already exists in our profiles table
-        console.log('🔍 Checking if user already exists...');
+        // Check if user already exists in our profiles table
+        console.log('🔍 Checking if user already exists in profiles table...');
         const { data: existingProfile, error: checkError } = await supabase
           .from('profiles')
           .select('id, email, status')
@@ -157,9 +157,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
         if (existingProfile && !checkError) {
           console.log('❌ User already exists in profiles table:', existingProfile);
-          throw new Error(
-            "An account with this email already exists. Please try logging in instead."
-          );
+
+          // Try to resend verification email for existing profile users
+          try {
+            const { error: resendError } = await supabase.auth.resend({
+              type: 'signup',
+              email: email,
+              options: {
+                emailRedirectTo: `${window.location.origin}/auth/callback`
+              }
+            });
+
+            if (!resendError) {
+              console.log("✅ Resent verification email to existing profile user");
+              return {
+                needsVerification: true,
+                isExistingUnverified: true
+              };
+            } else if (resendError.message?.includes("already confirmed")) {
+              throw new Error("Your account already exists and is fully verified. Please log in instead.");
+            }
+          } catch (resendException) {
+            console.warn("⚠️ Could not resend to profile user:", resendException);
+          }
+
+          throw new Error("An account with this email already exists. Please try logging in instead.");
         }
 
         // If checkError is not "PGRST116" (no rows), then it's a real error
@@ -239,7 +261,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             });
 
             if (resendError) {
-              console.warn("⚠️ Resend confirmation email failed:", resendError);
+              console.warn("��️ Resend confirmation email failed:", resendError);
               // Don't fail registration, just log the warning
             } else {
               console.log("✅ Confirmation email sent successfully using resend method");
