@@ -65,11 +65,16 @@ export async function saveAPSProfile(
     };
 
     // 1️⃣ ALWAYS SAVE TO LOCALSTORAGE FIRST (immediate persistence)
-    localStorage.setItem(APS_STORAGE_KEY, JSON.stringify(profileWithTimestamp));
+    const profileJson = JSON.stringify(profileWithTimestamp);
+    localStorage.setItem(APS_STORAGE_KEY, profileJson);
+    console.log("💾 [APSPersistence] Saving to localStorage with key:", APS_STORAGE_KEY);
+    console.log("💾 [APSPersistence] Profile data size:", profileJson.length, "characters");
 
     // ✅ VERIFY SAVE SUCCESS
     const verification = localStorage.getItem(APS_STORAGE_KEY);
-    console.log("🔍 Profile saved and verified:", !!verification);
+    const savedSuccessfully = !!verification;
+    console.log("🔍 [APSPersistence] Profile saved and verified:", savedSuccessfully);
+    console.log("🔍 [APSPersistence] Stored data:", verification ? "EXISTS" : "MISSING");
 
     if (user) {
       try {
