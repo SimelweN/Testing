@@ -1123,95 +1123,106 @@ const Policies = () => {
                   <div className="prose max-w-none space-y-4 sm:space-y-6">
                     <section>
                       <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
-                        1.1 Scope and Application
-                      </h3>
-                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
-                        This Refund Policy applies to all users transacting on
-                        www.rebookedsolutions.co.za and governs the
-                        circumstances under which refunds may be issued.
-                        ReBooked Solutions operates as a digital intermediary
-                        between independent sellers and buyers and does not own
-                        or control the inventory sold on the platform.
-                      </p>
-                    </section>
-
-                    <section>
-                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
-                        1.2 Statutory Rights
-                      </h3>
-                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
-                        In terms of Section 20 and 56 of the Consumer Protection
-                        Act, consumers are entitled to return defective goods
-                        within six months of delivery if the item is unsafe,
-                        fails to perform as intended, or does not meet the
-                        description.
-                      </p>
-                    </section>
-
-                    <section>
-                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
-                        1.3 Platform-Specific Refund Conditions
+                        1. Scope and Application
                       </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        Refunds will be processed only if one of the following
-                        conditions is met:
+                        This Refund Policy applies to all users transacting on www.rebookedsolutions.co.za and governs the circumstances under which refunds may be issued. ReBooked Solutions operates solely as a digital intermediary between independent sellers and buyers and does not own, stock, inspect, or control the inventory sold on the platform.
+                      </p>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
+                        In terms of Sections 20 and 56 of the Consumer Protection Act (CPA), consumers are entitled to return defective goods within six months of delivery if the item is unsafe, fails to perform as intended, or does not meet the description. However, since ReBooked Solutions facilitates peer-to-peer resale of secondhand goods, a shorter, platform-specific refund window applies as detailed below.
+                      </p>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
+                        Refunds will be processed only if one or more of the following conditions are met, and the refund request is submitted within three (3) calendar days of delivery or the estimated delivery date:
                       </p>
                       <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
+                        <li>The item has not been received within fourteen (14) business days of dispatch confirmation.</li>
                         <li>
-                          The item has not been received within 14 business days
-                          of dispatch confirmation.
-                        </li>
-                        <li>
-                          The item delivered materially differs from the
-                          listing, including:
+                          The item delivered materially differs from the listing, including but not limited to:
                           <ul className="list-disc pl-6 mt-2 space-y-1">
-                            <li>
-                              Incorrect book (wrong edition, title, or author)
-                            </li>
-                            <li>
-                              Undisclosed major defects (e.g. missing pages,
-                              mold, water damage)
-                            </li>
+                            <li>Incorrect book (wrong edition, title, or author).</li>
+                            <li>Undisclosed major defects (e.g., missing pages, mold, water damage).</li>
                           </ul>
                         </li>
-                        <li>
-                          The item is counterfeit or an illegal reproduction
-                        </li>
-                        <li>Fraudulent or deceptive conduct by the seller</li>
+                        <li>The item is counterfeit or an illegal reproduction.</li>
+                        <li>Fraudulent or deceptive conduct by the seller.</li>
                       </ul>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mt-3 mb-3 sm:mb-4">
-                        All refund requests must be supported by photographic
-                        evidence and a formal complaint lodged within five (5)
-                        calendar days of delivery or the estimated delivery
-                        date. Submissions must be made to
-                        support@rebookedsolutions.co.za. The buyer must retain
-                        proof of delivery, shipping labels, and original
-                        packaging where applicable.
+                        All refund requests must be supported by clear photographic evidence and a formal complaint lodged to legal@rebookedsolutions.co.za within the specified refund period. The buyer must retain proof of delivery, shipping labels, and original packaging where applicable.
                       </p>
+                    </section>
+
+                    <section>
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
+                        2. Refund Request Procedure
+                      </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        Refunds are strictly not applicable in the following
-                        cases:
+                        To request a refund, the buyer must:
                       </p>
                       <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
+                        <li>Submit a formal complaint within three (3) calendar days of delivery or estimated delivery date.</li>
                         <li>
-                          Buyer remorse or change of mind (CPA Section 20 does
-                          not apply to second-hand goods unless sold by a
-                          business)
+                          Send an email to legal@rebookedsolutions.co.za including:
+                          <ul className="list-disc pl-6 mt-2 space-y-1">
+                            <li>Photographic evidence of the item received.</li>
+                            <li>A detailed description of the issue.</li>
+                            <li>Any relevant supporting documents (proof of delivery, shipping labels, original packaging).</li>
+                          </ul>
                         </li>
-                        <li>
-                          Wear and tear reasonably expected of pre-owned books
-                        </li>
-                        <li>
-                          Delays by couriers beyond the platform's control
-                        </li>
-                        <li>Items marked "non-refundable" in the listing</li>
+                        <li>Buyers must retain all original packaging and delivery documentation where applicable.</li>
+                      </ul>
+                    </section>
+
+                    <section>
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
+                        3. Exclusions
+                      </h3>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
+                        Refunds will not be granted for:
+                      </p>
+                      <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
+                        <li>Buyer's remorse or change of mind.</li>
+                        <li>Normal wear and tear consistent with secondhand goods.</li>
+                        <li>Delays caused by third-party couriers.</li>
+                        <li>Items damaged due to misuse, negligence, or improper handling by the buyer.</li>
+                        <li>Items returned with improper packaging that results in damage during transit.</li>
+                        <li>Items not returned in their original condition, packaging, or with missing components.</li>
+                        <li>Refund requests made after the specified refund period has expired.</li>
+                        <li>Issues arising from incorrect product use.</li>
+                      </ul>
+                    </section>
+
+                    <section>
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
+                        4. Buyer Responsibility and Verification
+                      </h3>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
+                        Users must ensure that all delivery and payment information provided is accurate and complete. If payment has been processed to the bank account details supplied by the user, ReBooked Solutions will provide:
+                      </p>
+                      <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
+                        <li>Proof of payment transaction,</li>
+                        <li>Recipient account information as entered,</li>
+                        <li>Relevant timestamps and references.</li>
                       </ul>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mt-3">
-                        ReBooked Solutions will act as an impartial mediator but
-                        makes no guarantee of refund unless the above criteria
-                        are objectively met and supported with documentation.
-                        Final decisions rest with the platform's resolution
-                        team.
+                        If a user disputes receipt of payment, the responsibility lies in verifying the accuracy of submitted details.
+                      </p>
+                    </section>
+
+                    <section>
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
+                        5. Dispute Resolution
+                      </h3>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
+                        If a seller disputes a refund claim, both parties may be required to submit evidence. ReBooked Solutions' Resolution Team will review all documentation impartially, and their decision will be final and binding.
+                      </p>
+                    </section>
+
+                    <section>
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
+                        6. Refund Timeframes
+                      </h3>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
+                        Approved refunds will be processed within 7–10 business days, subject to payment processor and banking timelines.
                       </p>
                     </section>
                   </div>
