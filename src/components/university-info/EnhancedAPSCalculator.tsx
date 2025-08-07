@@ -509,10 +509,7 @@ const EnhancedAPSCalculator: React.FC = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
-                clearAPSProfile();
-                toast.success("APS Profile cleared. You can start fresh!");
-              }}
+              onClick={handleClearAPSProfile}
               className="text-gray-600 border-gray-300 hover:bg-gray-50"
             >
               <X className="w-4 h-4 mr-2" />
