@@ -1651,97 +1651,88 @@ const Policies = () => {
                   <div className="prose max-w-none space-y-4 sm:space-y-6">
                     <section>
                       <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
-                        5.1 Dispute Submission
+                        5.1 Initiating a Dispute
                       </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        Buyers or sellers may raise a formal dispute by
-                        submitting an email to support@rebookedsolutions.co.za
-                        within seven (7) calendar days of the disputed event.
+                        If a buyer or seller believes that a transaction has resulted in unfair treatment, fraud, or a breach of ReBooked Solutions' policies, a formal dispute must be submitted within seven (7) calendar days of the event by emailing legal@rebookedsolutions.co.za.
                       </p>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        The complaint must include:
+                        The email must include:
                       </p>
                       <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
-                        <li>Order number</li>
-                        <li>Names of both parties</li>
-                        <li>Description of the issue</li>
-                        <li>
-                          All supporting documentation (photos, tracking,
-                          communication)
-                        </li>
+                        <li>Transaction reference number</li>
+                        <li>Order ID</li>
+                        <li>A detailed description of the dispute</li>
+                        <li>All supporting evidence (e.g., photographs, courier tracking, communication history)</li>
                       </ul>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mt-3">
-                        Failure to provide sufficient evidence may result in
-                        dismissal of the dispute without further investigation.
+                        Incomplete or unsupported disputes may be closed without investigation.
                       </p>
                     </section>
 
                     <section>
                       <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
-                        5.2 Internal Resolution
+                        5.2 Dispute Review Process
                       </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        ReBooked Solutions will assess disputes within 7–10
-                        business days and may request further evidence from both
-                        parties. The platform's decision will be based on:
+                        Once a valid dispute is received, ReBooked Solutions will:
                       </p>
                       <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
-                        <li>Consumer Protection Act principles of fairness</li>
-                        <li>Objective review of evidence</li>
-                        <li>Transaction history and user behaviour</li>
+                        <li>Acknowledge receipt within 2 business days</li>
+                        <li>Investigate the matter within 7–10 business days</li>
+                        <li>Request additional evidence if required</li>
                       </ul>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4 mt-3">
+                        Disputes will be assessed based on:
+                      </p>
+                      <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
+                        <li>Principles of fairness under the Consumer Protection Act (CPA)</li>
+                        <li>Objective review of all submitted documentation</li>
+                        <li>Verified transaction history and user conduct</li>
+                      </ul>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mt-3">
+                        ReBooked Solutions will deliver a written decision outlining the resolution. This decision will be final and binding within the platform, unless escalated externally (see 5.4).
+                      </p>
                     </section>
 
                     <section>
                       <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
-                        5.3 Platform Limitation of Liability
+                        5.3 Platform Liability and Limitation
                       </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        As per Section 56 of the CPA, remedies for defective
-                        goods are enforceable against the seller, not the
-                        platform. ReBooked Solutions is a digital facilitator
-                        and assumes no liability for:
+                        ReBooked Solutions acts solely as a digital intermediary and is not a contracting party to transactions between users. In accordance with Section 56 of the CPA, sellers are responsible for the goods they list.
+                      </p>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
+                        ReBooked Solutions accepts no liability for:
                       </p>
                       <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
-                        <li>Goods condition, legality, or delivery</li>
-                        <li>Buyer or seller conduct</li>
-                        <li>Courier issues</li>
-                        <li>Consequential losses or damages</li>
+                        <li>Product condition, accuracy, or authenticity</li>
+                        <li>Courier errors or delays</li>
+                        <li>Buyer or seller misconduct</li>
+                        <li>Indirect, special, or consequential damages</li>
                       </ul>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mt-3 mb-3 sm:mb-4">
-                        ReBooked Solutions' total liability in any dispute shall
-                        not exceed the commission earned on the disputed
-                        transaction. Under no circumstances will the platform be
-                        liable for:
+                        The platform's maximum liability is limited to the commission earned on the disputed transaction.
                       </p>
-                      <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
-                        <li>Loss of income or profits</li>
-                        <li>Emotional distress</li>
-                        <li>Indirect, incidental, or special damages</li>
-                      </ul>
-                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mt-3">
-                        Users accept that ReBooked Solutions acts only as a
-                        venue and not as a contracting party to the sale.
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
+                        By using the platform, users agree to these limitations and waive any additional claims against ReBooked Solutions.
                       </p>
                     </section>
 
                     <section>
                       <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
-                        5.4 External Remedies
+                        5.4 External Escalation
                       </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        If either party is dissatisfied with the internal
-                        resolution outcome, they may escalate to:
+                        If either party is dissatisfied with the internal outcome, they may escalate to:
                       </p>
                       <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
                         <li>The National Consumer Commission (NCC)</li>
                         <li>The Consumer Goods and Services Ombud (CGSO)</li>
-                        <li>Formal legal channels under South African law</li>
+                        <li>Formal legal proceedings under South African law</li>
                       </ul>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mt-3">
-                        ReBooked Solutions will comply with all lawful requests
-                        but will not be responsible for legal expenses incurred
-                        by users.
+                        ReBooked Solutions will comply with all lawful investigations but will not cover any legal costs incurred by either party.
                       </p>
                     </section>
                   </div>
