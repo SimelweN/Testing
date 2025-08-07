@@ -116,25 +116,28 @@ export async function saveAPSProfile(
 // 📂 LOAD PROFILE FUNCTION
 export function loadAPSProfile(): UserAPSProfile | null {
   try {
+    console.log("📂 [APSPersistence] Loading APS profile from localStorage with key:", APS_STORAGE_KEY);
+
     // 🔄 Try migration first
     migrateSessionToLocal();
 
     const stored = localStorage.getItem(APS_STORAGE_KEY);
     if (!stored) {
-      console.log("📂 No APS profile found in localStorage");
+      console.log("📂 [APSPersistence] No APS profile found in localStorage");
       return null;
     }
 
+    console.log("📂 [APSPersistence] Found stored data, size:", stored.length, "characters");
     const profile = JSON.parse(stored);
 
     // ✅ Validate profile structure
     if (!isValidAPSProfile(profile)) {
-      console.warn("❌ Invalid APS profile structure, clearing corrupted data");
+      console.warn("❌ [APSPersistence] Invalid APS profile structure, clearing corrupted data");
       localStorage.removeItem(APS_STORAGE_KEY);
       return null;
     }
 
-    console.log("📂 APS profile loaded from localStorage:", {
+    console.log("📂 [APSPersistence] APS profile loaded successfully:", {
       subjects: profile.subjects?.length || 0,
       totalAPS: profile.totalAPS,
       lastUpdated: profile.lastUpdated,
