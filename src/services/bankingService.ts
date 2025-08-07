@@ -278,11 +278,20 @@ export class BankingService {
       }
 
       // Save to local database
-      await this.saveBankingDetails(userId, {
-        ...bankingDetails,
-        subaccountCode: data.subaccount_code,
-        status: "active",
-      });
+      console.log("💾 About to save banking details locally...");
+      try {
+        await this.saveBankingDetails(userId, {
+          ...bankingDetails,
+          subaccountCode: data.subaccount_code,
+          status: "active",
+        });
+        console.log("✅ Banking details saved to local database successfully");
+      } catch (saveError) {
+        console.error("❌ Failed to save banking details locally:", saveError);
+        // Don't fail the entire operation if Paystack subaccount was created successfully
+        // but log the issue for debugging
+        console.warn("⚠️ Paystack subaccount created but local save failed - subaccount:", data.subaccount_code);
+      }
 
       return {
         success: true,
@@ -591,7 +600,7 @@ export class BankingService {
         (completedCount / requirements.length) * 100,
       );
 
-      console.log("�� [Final Requirements Summary]:", {
+      console.log("📊 [Final Requirements Summary]:", {
         userId,
         requirements: {
           hasBankingSetup,
