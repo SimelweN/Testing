@@ -52,7 +52,7 @@ interface AuthContextType {
     email: string,
     password: string,
     name: string,
-  ) => Promise<{ needsVerification?: boolean }>;
+  ) => Promise<{ needsVerification?: boolean; isExistingUnverified?: boolean }>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -148,7 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         console.log("🔄 AuthContext register called with:", { email, name });
 
         // First, check if user already exists in our profiles table
-        console.log('���� Checking if user already exists...');
+        console.log('🔍 Checking if user already exists...');
         const { data: existingProfile, error: checkError } = await supabase
           .from('profiles')
           .select('id, email, status')
