@@ -70,8 +70,13 @@ const Login = () => {
       return;
     }
 
+    setIsLoading(true);
+
     try {
+      console.log("📧 Resending verification email using same method as password reset...");
       const { supabase } = await import("@/integrations/supabase/client");
+
+      // Use the same reliable method as password reset
       const { error } = await supabase.auth.resend({
         type: "signup",
         email: email.trim(),
@@ -81,41 +86,40 @@ const Login = () => {
       });
 
       if (error) {
-        console.warn("Supabase resend failed, trying custom email service...");
+        console.warn("⚠️ Supabase resend failed:", error.message);
 
-        // Try custom email service as fallback
-        try {
-          const { emailService } = await import("@/services/emailService");
-          const verificationUrl = `${window.location.origin}/verify?email=${encodeURIComponent(email)}&manual=true`;
-
-          await emailService.sendEmailVerificationEmail(email, {
-            userName: email.split("@")[0], // Use email prefix as name
-            verificationUrl: verificationUrl,
-            expiryTime: "24 hours",
-          });
-
-          toast.success(
-            "Verification email sent via backup service! Please check your inbox and spam folder.",
-          );
-        } catch (customError) {
-          toast.error(
-            `Failed to resend verification email. Please contact support or try logging in directly.`,
-          );
-          console.error(
-            "Both Supabase and custom email service failed:",
-            error,
-            customError,
-          );
+        // Provide user-friendly error message
+        if (error.message.includes("Email not found") || error.message.includes("user not found")) {
+          toast.error("No account found with this email address. Please register first.");
+          setErrorType("register");
+          return;
         }
+
+        if (error.message.includes("email already confirmed")) {
+          toast.success("Your email is already verified! You can log in normally.");
+          setLoginError(null);
+          setErrorType(null);
+          return;
+        }
+
+        // Generic error - still try to help user
+        toast.error(
+          "Unable to resend verification email. Please contact support if this continues.",
+        );
+        console.error("Supabase resend error:", error);
       } else {
+        console.log("✅ Verification email sent successfully");
         toast.success(
-          "Verification email sent! Please check your inbox and spam folder.",
+          "📧 Verification email sent! Please check your inbox and spam folder.",
         );
         setLoginError(null);
         setErrorType(null);
       }
     } catch (error) {
-      toast.error("Failed to resend verification email");
+      console.error("❌ Exception during resend verification:", error);
+      toast.error("Failed to resend verification email. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
