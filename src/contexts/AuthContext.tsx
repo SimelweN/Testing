@@ -148,7 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         console.log("🔄 AuthContext register called with:", { email, name });
 
         // First, check if user already exists in our profiles table
-        console.log('🔍 Checking if user already exists...');
+        console.log('���� Checking if user already exists...');
         const { data: existingProfile, error: checkError } = await supabase
           .from('profiles')
           .select('id, email, status')
@@ -181,6 +181,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
         if (error) {
           console.error("❌ Supabase signup failed:", error);
+
+          // Handle specific Supabase auth errors more gracefully
+          if (error.message?.includes("User already registered") ||
+              error.message?.includes("already been registered") ||
+              error.message?.includes("already exists")) {
+
+            console.log("🔍 User exists in Supabase auth, checking if they need to verify email...");
+
+            // Try to check if the user just needs to verify their email
+            try {
+              const { error: resendError } = await supabase.auth.resend({
+                type: 'signup',
+                email: email,
+                options: {
+                  emailRedirectTo: `${window.location.origin}/auth/callback`
+                }
+              });
+
+              if (!resendError) {
+                // Email resent successfully - user exists but needs verification
+                console.log("✅ Resent verification email to existing unverified user");
+                return {
+                  needsVerification: true,
+                  isExistingUnverified: true
+                };
+              } else if (resendError.message?.includes("already confirmed")) {
+                // User exists and is already verified - they should just login
+                throw new Error("An account with this email already exists and is verified. Please log in instead.");
+              }
+            } catch (resendException) {
+              console.warn("⚠️ Could not resend verification email:", resendException);
+            }
+
+            // Default to asking user to login
+            throw new Error("An account with this email already exists. Please try logging in instead.");
+          }
+
+          // Handle other Supabase errors
           throw new Error(error.message);
         }
 
