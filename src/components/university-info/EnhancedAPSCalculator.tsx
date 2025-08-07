@@ -326,33 +326,55 @@ const EnhancedAPSCalculator: React.FC = () => {
   // 🔴 CLEAR APS PROFILE - Enhanced localStorage implementation
   const handleClearAPSProfile = useCallback(async () => {
     try {
-      // Use enhanced storage clear function
-      const success = await clearAPSProfileEnhanced();
+      console.log("🗑️ Starting APS profile clear process...");
 
-      if (success) {
-        // Clear legacy storage as well for compatibility
-        clearAPSProfile();
+      // Step 1: Clear enhanced storage system
+      const enhancedSuccess = await clearAPSProfileEnhanced();
+      console.log("🗑️ Enhanced storage cleared:", enhancedSuccess);
 
-        // Reset local component state
-        setSubjects([]);
-        setSelectedSubject("");
-        setSelectedMarks("");
-        setSearchResults([]);
-        setSelectedProgram(null);
-        setIsDetailsModalOpen(false);
-        setShowProgramsSection(false);
-        setUniversitySpecificScores(null);
+      // Step 2: Clear legacy storage system
+      clearAPSProfile();
+      console.log("🗑️ Legacy storage cleared");
 
-        // Clear errors
-        clearError();
-        clearStorageError();
+      // Step 3: Force clear any remaining localStorage keys
+      localStorage.removeItem("userAPSProfile");
+      localStorage.removeItem("apsSearchResults");
+      localStorage.removeItem("apsProfileBackup");
+      localStorage.removeItem("rebookedMarketplace-aps-profile");
+      localStorage.removeItem("reBooked-aps-profile");
+      sessionStorage.removeItem("userAPSProfile");
+      sessionStorage.removeItem("apsSearchResults");
 
+      // Step 4: Reset ALL local component state
+      setSubjects([]);
+      setSelectedSubject("");
+      setSelectedMarks("");
+      setSearchResults([]);
+      setSelectedProgram(null);
+      setIsDetailsModalOpen(false);
+      setShowProgramsSection(false);
+      setUniversitySpecificScores(null);
+
+      // Step 5: Clear all errors
+      clearError();
+      clearStorageError();
+
+      // Step 6: Trigger global clear events to notify other components
+      window.dispatchEvent(new CustomEvent("apsProfileCleared"));
+
+      // Step 7: Verify the clear was successful
+      const verification = localStorage.getItem("userAPSProfile");
+      console.log("🗑️ Clear verification - localStorage check:", verification === null ? "SUCCESS" : "FAILED");
+
+      if (verification === null) {
         toast.success("🗑️ APS profile cleared successfully");
       } else {
-        toast.error("Failed to clear APS profile");
+        console.error("❌ localStorage clear failed - data still exists");
+        toast.error("Failed to completely clear APS profile");
       }
+
     } catch (error) {
-      console.error("Error clearing APS profile:", error);
+      console.error("❌ Error clearing APS profile:", error);
       toast.error("Error clearing APS profile");
     }
   }, [clearAPSProfileEnhanced, clearAPSProfile, clearError, clearStorageError]);
