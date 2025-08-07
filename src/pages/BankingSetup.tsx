@@ -158,8 +158,12 @@ const BankingSetup: React.FC = () => {
             </div>
           </div>
 
-
-
+          {/* Debug Panel - Only show if user exists */}
+          {user && (
+            <div className="max-w-4xl mx-auto mb-8">
+              <BankingDebugPanel />
+            </div>
+          )}
 
           {/* Existing Banking Details */}
           {existingBanking && !showForm && (
