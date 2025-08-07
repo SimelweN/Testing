@@ -1397,19 +1397,29 @@ const Policies = () => {
                         3.1 Shipping Responsibility
                       </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        Sellers are solely responsible for dispatching and
-                        packaging goods sold on the platform. ReBooked Solutions
-                        does not handle physical goods and does not accept
-                        liability for loss, damage, or delays during shipping.
+                        ReBooked Solutions arranges all deliveries through third-party couriers, primarily Courier Guy, acting on behalf of the seller. However, sellers are fully responsible for preparing, packaging, and making the parcel available for collection when the courier arrives.
                       </p>
-                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
-                        All orders must be shipped within three (3) business
-                        days of payment confirmation. Sellers must use reliable
-                        third-party courier services and are encouraged to use
-                        traceable methods (e.g. Courier Guy, Pudo, Fastway,
-                        Paxi). Failure to dispatch within the required timeframe
-                        may result in forced cancellation and refund.
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
+                        Sellers must ensure parcels are ready for handover within three (3) business days of payment confirmation.
                       </p>
+                      <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
+                        <li>Packaging must be secure and tamper-resistant. Items must match the listed condition.</li>
+                        <li>Sellers must respond to courier collection requests in a timely manner.</li>
+                      </ul>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4 mt-3">
+                        If the parcel is not ready at the time of the courier's first collection attempt:
+                      </p>
+                      <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
+                        <li>ReBooked Solutions will cover the first rescheduling fee.</li>
+                        <li>
+                          Any further failed collection attempts due to seller negligence will:
+                          <ul className="list-disc pl-6 mt-2 space-y-1">
+                            <li>Be charged to the seller,</li>
+                            <li>Trigger a forced refund to the buyer, and</li>
+                            <li>Result in a temporary suspension of the seller's account pending review.</li>
+                          </ul>
+                        </li>
+                      </ul>
                     </section>
 
                     <section>
@@ -1417,47 +1427,50 @@ const Policies = () => {
                         3.2 Delivery Timeframes
                       </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        Delivery timeframes range between 2 and 7 business days
-                        after dispatch, depending on the courier and regional
-                        location. ReBooked Solutions does not guarantee any
-                        specific delivery timeline.
-                      </p>
-                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        In accordance with CPA Section 19(4), if delivery is not
-                        made within the agreed timeframe or within 14 business
-                        days, and the delay is not due to the buyer, the buyer
-                        may:
+                        Standard delivery timeframes are 2–7 business days from the date of successful collection. Delivery times depend on regional distance and courier capacity.
                       </p>
                       <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
-                        <li>
-                          Cancel the transaction and request a full refund
-                        </li>
-                        <li>Extend the delivery period, at their discretion</li>
+                        <li>ReBooked Solutions cannot guarantee delivery dates but will provide tracking updates via email or dashboard.</li>
+                        <li>Buyers are encouraged to monitor delivery status and collect from designated pickup points promptly.</li>
+                      </ul>
+                    </section>
+
+                    <section>
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
+                        3.3 Delays and CPA Compliance
+                      </h3>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
+                        As per the Consumer Protection Act (Section 19(4)), if a parcel is not delivered within the agreed timeframe or within 14 business days, and the delay is not due to the buyer, the buyer may:
+                      </p>
+                      <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
+                        <li>Cancel the transaction and receive a full refund, or</li>
+                        <li>Allow an extended delivery window at their discretion.</li>
                       </ul>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mt-3">
-                        All courier-related disputes (e.g., misdelivery, delays,
-                        damaged packaging) must be resolved directly with the
-                        courier unless seller error is proven.
+                        All courier-related issues (e.g. delays, damage, or misdelivery) will first be investigated by ReBooked Solutions in collaboration with Courier Guy.
                       </p>
                     </section>
 
                     <section>
                       <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
-                        3.3 Failed Deliveries and Returns
+                        3.4 Failed Deliveries & Redelivery Charges
                       </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        If a parcel is returned due to:
+                        If delivery fails due to:
                       </p>
                       <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
-                        <li>An incorrect or incomplete delivery address</li>
-                        <li>Buyer's unavailability</li>
-                        <li>Failure to collect from pick-up points</li>
+                        <li>Incorrect or incomplete delivery address,</li>
+                        <li>Buyer's unavailability during delivery,</li>
+                        <li>Failure to collect from pickup points,</li>
                       </ul>
-                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mt-3">
-                        Then the buyer may be liable for any redelivery costs.
-                        The platform will not issue refunds for failed
-                        deliveries unless the seller is at fault.
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4 mt-3">
+                        Then:
                       </p>
+                      <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
+                        <li>The buyer will bear any redelivery costs,</li>
+                        <li>Refunds will only be issued if the seller is found at fault (e.g. wrong item sent, incorrect packaging),</li>
+                        <li>Returned parcels not claimed within 7 calendar days may be subject to cancellation without refund.</li>
+                      </ul>
                     </section>
                   </div>
                 </CardContent>
