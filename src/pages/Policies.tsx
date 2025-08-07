@@ -497,7 +497,7 @@ const Policies = () => {
 
                     <section>
                       <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
-                        11. Children's Privacy
+                        12. Children's Privacy
                       </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
                         Our platform is not intended for users under the age of
@@ -510,7 +510,7 @@ const Policies = () => {
 
                     <section>
                       <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
-                        12. Third-Party Links
+                        13. Third-Party Links
                       </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
                         Our site may contain links to third-party websites,
@@ -523,7 +523,7 @@ const Policies = () => {
 
                     <section>
                       <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
-                        13. International Transfers
+                        14. International Transfers
                       </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
                         Although we are based in South Africa, some of our
@@ -537,7 +537,7 @@ const Policies = () => {
 
                     <section>
                       <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
-                        14. Policy Updates
+                        15. Policy Updates
                       </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
                         We reserve the right to update this Privacy Policy at
@@ -549,7 +549,7 @@ const Policies = () => {
 
                     <section>
                       <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
-                        15. Contact Us
+                        16. Contact Us
                       </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3">
                         If you have any questions, requests, or concerns
