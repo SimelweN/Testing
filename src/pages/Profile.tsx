@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { getUserBooks } from "@/services/book/bookQueries";
 import { deleteBook } from "@/services/book/bookMutations";
-import { saveUserAddresses, getUserAddresses } from "@/services/addressService";
+import { saveUserAddresses, getUserAddresses, updateBooksPickupAddress } from "@/services/addressService";
 import { Book } from "@/types/book";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
