@@ -398,7 +398,31 @@ const Policies = () => {
 
                     <section>
                       <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
-                        8. Data Security
+                        8. Bank Account Details and Payouts
+                      </h3>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
+                        To receive payouts from ReBooked Solutions (e.g. for successful textbook sales or reimbursements), users must submit valid and accurate banking details via the platform.
+                      </p>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
+                        By providing your banking information, you confirm that you are the rightful owner of the account or are authorized to use it.
+                      </p>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
+                        It is your sole responsibility to ensure that all banking details you provide are complete, correct, and up to date. ReBooked Solutions will process payments using the exact information you submit. If a payment is made to the account number you provided, it will be deemed successful and completed.
+                      </p>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
+                        If you later claim that you did not receive payment, we will provide you with proof of payment, including transaction receipts, the bank account number the funds were sent to, and the exact details you entered at the time of submission.
+                      </p>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
+                        ReBooked Solutions is not liable for any losses or delays resulting from incorrect, incomplete, or fraudulent banking information provided by the user.
+                      </p>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
+                        We reserve the right to verify any banking details you submit and to withhold or cancel payouts if suspicious activity is detected.
+                      </p>
+                    </section>
+
+                    <section>
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
+                        9. Data Security
                       </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
                         We implement industry-standard technical and
