@@ -78,6 +78,10 @@ const Register = () => {
           },
         );
 
+        // Set email sent state to show confirmation UI
+        setEmailSent(true);
+        setUserEmail(email);
+
         setTimeout(() => {
           navigate("/login", {
             state: {
@@ -86,7 +90,7 @@ const Register = () => {
               email,
             },
           });
-        }, 2000);
+        }, 3000);
       } else if (result?.emailWarning) {
         // Registration successful but email confirmation may have failed
         toast.success("Account created successfully! You can now log in.", {
