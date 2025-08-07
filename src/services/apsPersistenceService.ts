@@ -150,7 +150,11 @@ export function loadAPSProfile(): UserAPSProfile | null {
 // 🗑️ CLEAR FUNCTION - Only triggered by user action
 export function clearAPSProfile(): boolean {
   try {
-    console.log("🗑️ Clearing APS profile from localStorage");
+    console.log("🗑️ [APSPersistence] Starting APS profile clear from localStorage");
+
+    // Store initial state for debugging
+    const beforeClear = localStorage.getItem(APS_STORAGE_KEY);
+    console.log("🗑️ [APSPersistence] Profile before clear:", beforeClear ? "EXISTS" : "NONE");
 
     // Clear ALL APS-related storage
     localStorage.removeItem(APS_STORAGE_KEY);
@@ -158,16 +162,23 @@ export function clearAPSProfile(): boolean {
     localStorage.removeItem("apsProfileBackup");
     localStorage.removeItem("reBooked-aps-profile"); // Legacy key
     localStorage.removeItem("reBooked-aps-search-results"); // Legacy key
+    localStorage.removeItem("rebookedMarketplace-aps-profile"); // Another legacy key
     sessionStorage.removeItem(APS_STORAGE_KEY);
     sessionStorage.removeItem("apsSearchResults");
 
+    // Verify the clear worked
+    const afterClear = localStorage.getItem(APS_STORAGE_KEY);
+    console.log("🗑️ [APSPersistence] Profile after clear:", afterClear ? "STILL EXISTS" : "CLEARED");
+
     // 📡 TRIGGER GLOBAL CLEAR EVENT (for other components)
     window.dispatchEvent(new CustomEvent("apsProfileCleared"));
+    console.log("🗑️ [APSPersistence] Dispatched apsProfileCleared event");
 
-    console.log("✅ APS Profile cleared successfully");
-    return true;
+    const success = afterClear === null;
+    console.log(success ? "✅ [APSPersistence] APS Profile cleared successfully" : "❌ [APSPersistence] Clear failed - data still exists");
+    return success;
   } catch (error) {
-    console.error("❌ Failed to clear APS profile:", {
+    console.error("❌ [APSPersistence] Failed to clear APS profile:", {
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     });
