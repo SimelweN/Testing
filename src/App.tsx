@@ -237,6 +237,12 @@ function App() {
                           element={<TestAuth />}
                         />
                       )}
+                      {import.meta.env.DEV && (
+                        <Route
+                          path="/test-email"
+                          element={<TestEmailSystem />}
+                        />
+                      )}
                       <Route
                         path="/activity"
                         element={
