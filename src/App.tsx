@@ -66,6 +66,7 @@ import NotificationTest from "./pages/NotificationTest";
 import ClearNotifications from "./pages/ClearNotifications";
 import RestoreBooks from "./pages/RestoreBooks";
 import TestAuth from "./pages/TestAuth";
+import TestEmailSystem from "./pages/TestEmailSystem";
 import ActivityLog from "./pages/ActivityLog";
 import BankingSetup from "./pages/BankingSetup";
 import UserProfile from "./pages/UserProfile";
@@ -234,6 +235,12 @@ function App() {
                         <Route
                           path="/test-auth"
                           element={<TestAuth />}
+                        />
+                      )}
+                      {import.meta.env.DEV && (
+                        <Route
+                          path="/test-email"
+                          element={<TestEmailSystem />}
                         />
                       )}
                       <Route

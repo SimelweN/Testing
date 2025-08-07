@@ -66,27 +66,46 @@ const Register = () => {
 
       // Handle different registration outcomes
       if (result?.needsVerification) {
-        // Email verification required
-        toast.success("🎉 Account created successfully!", {
-          duration: 4000,
-        });
+        if (result?.isExistingUnverified) {
+          // Existing user who needs verification
+          toast.info("Account found! Verification email resent.", {
+            duration: 4000,
+          });
 
-        toast.info(
-          "📧 Please check your email (including spam folder) for the verification link. If you don't receive it, try the 'Resend Email' option on the login page.",
-          {
-            duration: 8000,
-          },
-        );
+          toast.info(
+            "📧 Your account exists but needs email verification. Please check your inbox (including spam folder) for the verification link.",
+            {
+              duration: 8000,
+            },
+          );
+        } else {
+          // New account created
+          toast.success("🎉 Account created successfully!", {
+            duration: 4000,
+          });
+
+          toast.info(
+            "📧 Please check your email (including spam folder) for the verification link. If you don't receive it, try the 'Resend Email' option on the login page.",
+            {
+              duration: 8000,
+            },
+          );
+        }
+
+        // Set email sent state to show confirmation UI
+        setEmailSent(true);
+        setUserEmail(email);
 
         setTimeout(() => {
           navigate("/login", {
             state: {
-              message:
-                "Account created! Please check your email for the verification link. You can resend the email if needed.",
+              message: result?.isExistingUnverified
+                ? "Your account needs email verification. Check your email for the verification link."
+                : "Account created! Please check your email for the verification link. You can resend the email if needed.",
               email,
             },
           });
-        }, 2000);
+        }, 3000);
       } else if (result?.emailWarning) {
         // Registration successful but email confirmation may have failed
         toast.success("Account created successfully! You can now log in.", {
@@ -132,8 +151,29 @@ const Register = () => {
           ? error.message
           : "Registration failed. Please try again.";
 
-      // Check if it's an email-related error
-      if (
+      // Handle specific error types with better user guidance
+      if (errorMessage.includes("already exists") || errorMessage.includes("already registered")) {
+        toast.error("Account Already Exists", {
+          duration: 6000,
+        });
+
+        toast.info(
+          "📧 An account with this email already exists. Please try logging in instead. If you forgot your password, use the 'Forgot Password' option.",
+          {
+            duration: 8000,
+          }
+        );
+
+        // Redirect to login with the email prefilled
+        setTimeout(() => {
+          navigate("/login", {
+            state: {
+              message: "Account already exists. Please log in or reset your password if needed.",
+              email,
+            },
+          });
+        }, 2000);
+      } else if (
         errorMessage.toLowerCase().includes("email") ||
         errorMessage.toLowerCase().includes("confirmation") ||
         errorMessage.toLowerCase().includes("smtp") ||
