@@ -151,8 +151,29 @@ const Register = () => {
           ? error.message
           : "Registration failed. Please try again.";
 
-      // Check if it's an email-related error
-      if (
+      // Handle specific error types with better user guidance
+      if (errorMessage.includes("already exists") || errorMessage.includes("already registered")) {
+        toast.error("Account Already Exists", {
+          duration: 6000,
+        });
+
+        toast.info(
+          "📧 An account with this email already exists. Please try logging in instead. If you forgot your password, use the 'Forgot Password' option.",
+          {
+            duration: 8000,
+          }
+        );
+
+        // Redirect to login with the email prefilled
+        setTimeout(() => {
+          navigate("/login", {
+            state: {
+              message: "Account already exists. Please log in or reset your password if needed.",
+              email,
+            },
+          });
+        }, 2000);
+      } else if (
         errorMessage.toLowerCase().includes("email") ||
         errorMessage.toLowerCase().includes("confirmation") ||
         errorMessage.toLowerCase().includes("smtp") ||
