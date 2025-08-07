@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import Layout from "@/components/Layout";
 import BankingDetailsForm from "@/components/banking/BankingDetailsForm";
-import BankingDebugPanel from "@/components/debug/BankingDebugPanel";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { PaystackSubaccountService } from "@/services/paystackSubaccountService";
