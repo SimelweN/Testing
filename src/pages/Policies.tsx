@@ -460,7 +460,7 @@ const Policies = () => {
 
                     <section>
                       <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3">
-                        10. User Rights Under POPIA
+                        11. User Rights Under POPIA
                       </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
                         Under South African data protection law, you have the
