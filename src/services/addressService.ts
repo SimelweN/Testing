@@ -159,22 +159,46 @@ export const getUserAddresses = async (userId: string) => {
   }
 };
 
-// Update all user's book listings with new pickup address
+// Update all user's book listings with new pickup address and province
 export const updateBooksPickupAddress = async (
   userId: string,
   newPickupAddress: any,
 ): Promise<{ success: boolean; updatedCount: number; error?: string }> => {
   try {
-    console.log("Updating pickup address for all books of user:", userId);
+    console.log("Updating pickup address and province for all books of user:", userId);
+
+    // Extract province from the new pickup address
+    let province = null;
+    if (newPickupAddress?.province) {
+      province = newPickupAddress.province;
+    } else if (typeof newPickupAddress === "string") {
+      // Fallback for string-based addresses
+      const addressStr = newPickupAddress.toLowerCase();
+      if (addressStr.includes("western cape")) province = "Western Cape";
+      else if (addressStr.includes("gauteng")) province = "Gauteng";
+      else if (addressStr.includes("kwazulu")) province = "KwaZulu-Natal";
+      else if (addressStr.includes("eastern cape")) province = "Eastern Cape";
+      else if (addressStr.includes("free state")) province = "Free State";
+      else if (addressStr.includes("limpopo")) province = "Limpopo";
+      else if (addressStr.includes("mpumalanga")) province = "Mpumalanga";
+      else if (addressStr.includes("northern cape")) province = "Northern Cape";
+      else if (addressStr.includes("north west")) province = "North West";
+    }
+
+    // Update both pickup_address and province
+    const updateData: any = { pickup_address: newPickupAddress };
+    if (province) {
+      updateData.province = province;
+    }
 
     const { data, error } = await supabase
       .from("books")
-      .update({ pickup_address: newPickupAddress })
+      .update(updateData)
       .eq("seller_id", userId)
       .select("id");
 
     if (error) {
-      console.error("Error updating books pickup address:", error);
+      console.error("Error updating books pickup address and province:", error);
       return {
         success: false,
         updatedCount: 0,
@@ -184,7 +208,7 @@ export const updateBooksPickupAddress = async (
 
     const updatedCount = data?.length || 0;
     console.log(
-      `Successfully updated pickup address for ${updatedCount} book listings`,
+      `Successfully updated pickup address and province for ${updatedCount} book listings${province ? ` with province: ${province}` : ""}`,
     );
 
     return {

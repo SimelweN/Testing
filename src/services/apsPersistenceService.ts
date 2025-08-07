@@ -65,11 +65,16 @@ export async function saveAPSProfile(
     };
 
     // 1️⃣ ALWAYS SAVE TO LOCALSTORAGE FIRST (immediate persistence)
-    localStorage.setItem(APS_STORAGE_KEY, JSON.stringify(profileWithTimestamp));
+    const profileJson = JSON.stringify(profileWithTimestamp);
+    localStorage.setItem(APS_STORAGE_KEY, profileJson);
+    console.log("💾 [APSPersistence] Saving to localStorage with key:", APS_STORAGE_KEY);
+    console.log("💾 [APSPersistence] Profile data size:", profileJson.length, "characters");
 
     // ✅ VERIFY SAVE SUCCESS
     const verification = localStorage.getItem(APS_STORAGE_KEY);
-    console.log("🔍 Profile saved and verified:", !!verification);
+    const savedSuccessfully = !!verification;
+    console.log("🔍 [APSPersistence] Profile saved and verified:", savedSuccessfully);
+    console.log("🔍 [APSPersistence] Stored data:", verification ? "EXISTS" : "MISSING");
 
     if (user) {
       try {
@@ -111,25 +116,28 @@ export async function saveAPSProfile(
 // 📂 LOAD PROFILE FUNCTION
 export function loadAPSProfile(): UserAPSProfile | null {
   try {
+    console.log("📂 [APSPersistence] Loading APS profile from localStorage with key:", APS_STORAGE_KEY);
+
     // 🔄 Try migration first
     migrateSessionToLocal();
 
     const stored = localStorage.getItem(APS_STORAGE_KEY);
     if (!stored) {
-      console.log("📂 No APS profile found in localStorage");
+      console.log("📂 [APSPersistence] No APS profile found in localStorage");
       return null;
     }
 
+    console.log("📂 [APSPersistence] Found stored data, size:", stored.length, "characters");
     const profile = JSON.parse(stored);
 
     // ✅ Validate profile structure
     if (!isValidAPSProfile(profile)) {
-      console.warn("❌ Invalid APS profile structure, clearing corrupted data");
+      console.warn("❌ [APSPersistence] Invalid APS profile structure, clearing corrupted data");
       localStorage.removeItem(APS_STORAGE_KEY);
       return null;
     }
 
-    console.log("📂 APS profile loaded from localStorage:", {
+    console.log("📂 [APSPersistence] APS profile loaded successfully:", {
       subjects: profile.subjects?.length || 0,
       totalAPS: profile.totalAPS,
       lastUpdated: profile.lastUpdated,
@@ -150,7 +158,11 @@ export function loadAPSProfile(): UserAPSProfile | null {
 // 🗑️ CLEAR FUNCTION - Only triggered by user action
 export function clearAPSProfile(): boolean {
   try {
-    console.log("🗑️ Clearing APS profile from localStorage");
+    console.log("🗑️ [APSPersistence] Starting APS profile clear from localStorage");
+
+    // Store initial state for debugging
+    const beforeClear = localStorage.getItem(APS_STORAGE_KEY);
+    console.log("🗑️ [APSPersistence] Profile before clear:", beforeClear ? "EXISTS" : "NONE");
 
     // Clear ALL APS-related storage
     localStorage.removeItem(APS_STORAGE_KEY);
@@ -158,16 +170,23 @@ export function clearAPSProfile(): boolean {
     localStorage.removeItem("apsProfileBackup");
     localStorage.removeItem("reBooked-aps-profile"); // Legacy key
     localStorage.removeItem("reBooked-aps-search-results"); // Legacy key
+    localStorage.removeItem("rebookedMarketplace-aps-profile"); // Another legacy key
     sessionStorage.removeItem(APS_STORAGE_KEY);
     sessionStorage.removeItem("apsSearchResults");
 
+    // Verify the clear worked
+    const afterClear = localStorage.getItem(APS_STORAGE_KEY);
+    console.log("🗑️ [APSPersistence] Profile after clear:", afterClear ? "STILL EXISTS" : "CLEARED");
+
     // 📡 TRIGGER GLOBAL CLEAR EVENT (for other components)
     window.dispatchEvent(new CustomEvent("apsProfileCleared"));
+    console.log("🗑️ [APSPersistence] Dispatched apsProfileCleared event");
 
-    console.log("✅ APS Profile cleared successfully");
-    return true;
+    const success = afterClear === null;
+    console.log(success ? "✅ [APSPersistence] APS Profile cleared successfully" : "❌ [APSPersistence] Clear failed - data still exists");
+    return success;
   } catch (error) {
-    console.error("❌ Failed to clear APS profile:", {
+    console.error("❌ [APSPersistence] Failed to clear APS profile:", {
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     });

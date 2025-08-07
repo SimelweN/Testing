@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { getUserBooks } from "@/services/book/bookQueries";
 import { deleteBook } from "@/services/book/bookMutations";
-import { saveUserAddresses, getUserAddresses } from "@/services/addressService";
+import { saveUserAddresses, getUserAddresses, updateBooksPickupAddress } from "@/services/addressService";
 import { Book } from "@/types/book";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -162,6 +162,18 @@ const Profile = () => {
     try {
       await saveUserAddresses(user.id, pickup, shipping, same);
       await loadUserAddresses();
+
+      // Update all user's book listings with the new pickup address and province
+      try {
+        const updateResult = await updateBooksPickupAddress(user.id, pickup);
+        if (updateResult.success && updateResult.updatedCount > 0) {
+          console.log(`Updated ${updateResult.updatedCount} book listings with new address and province`);
+        }
+      } catch (bookUpdateError) {
+        console.warn("Failed to update book listings with new address:", bookUpdateError);
+        // Don't fail the whole operation if book updates fail
+      }
+
       toast.success("Addresses saved successfully");
     } catch (error) {
       console.error("Error saving addresses:", error);

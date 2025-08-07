@@ -197,7 +197,7 @@ export function useEnhancedAPSStorage() {
   // 🗑️ CLEAR FUNCTION - Only triggered by user action
   const clearUserProfile = useCallback(async () => {
     try {
-      console.log("🗑️ [DEBUG] Starting to clear APS profile from localStorage");
+      console.log("🗑️ [EnhancedAPSStorage] Starting to clear APS profile from localStorage");
       console.log("���️ [DEBUG] Current userProfile state:", userProfile);
 
       const success = clearAPSProfile();
