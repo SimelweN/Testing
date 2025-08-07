@@ -44,7 +44,7 @@ const Policies = () => {
                 <span>
                   <strong>Support:</strong>{" "}
                   <span className="break-all">
-                    support@rebookedsolutions.co.za
+                    legal@rebookedsolutions.co.za
                   </span>
                 </span>
               </div>
@@ -164,7 +164,7 @@ const Policies = () => {
                       <span>
                         <strong>Contact:</strong>{" "}
                         <span className="break-all">
-                          support@rebookedsolutions.co.za
+                          legal@rebookedsolutions.co.za
                         </span>
                       </span>
                     </div>
@@ -451,7 +451,7 @@ const Policies = () => {
                       </p>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
                         You may request deletion of your data by contacting
-                        support@rebookedsolutions.co.za. However, we may retain
+                        legal@rebookedsolutions.co.za. However, we may retain
                         certain information if required for legal compliance,
                         fraud prevention, dispute resolution, or transaction
                         history.
@@ -490,7 +490,7 @@ const Policies = () => {
                       </ul>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mt-3">
                         To exercise any of these rights, please contact
-                        support@rebookedsolutions.co.za. We may require proof of
+                        legal@rebookedsolutions.co.za. We may require proof of
                         identity before processing any request.
                       </p>
                     </section>
@@ -562,7 +562,7 @@ const Policies = () => {
                           <br />
                           Email:{" "}
                           <span className="break-all">
-                            support@rebookedsolutions.co.za
+                            legal@rebookedsolutions.co.za
                           </span>
                           <br />
                           Based in the Republic of South Africa
@@ -604,7 +604,7 @@ const Policies = () => {
                         <span>
                           <strong>Support:</strong>{" "}
                           <span className="break-all">
-                            support@rebookedsolutions.co.za
+                            legal@rebookedsolutions.co.za
                           </span>
                         </span>
                       </div>
@@ -1080,7 +1080,7 @@ const Policies = () => {
                         <p className="text-blue-800 text-sm sm:text-base">
                           Email:{" "}
                           <span className="break-all">
-                            support@rebookedsolutions.co.za
+                            legal@rebookedsolutions.co.za
                           </span>
                           <br />
                           ReBooked Solutions (Pty) Ltd – Registered in South
@@ -1123,7 +1123,7 @@ const Policies = () => {
                         <span>
                           <strong>Support:</strong>{" "}
                           <span className="break-all">
-                            support@rebookedsolutions.co.za
+                            legal@rebookedsolutions.co.za
                           </span>
                         </span>
                       </div>
@@ -1284,7 +1284,7 @@ const Policies = () => {
                         <span>
                           <strong>Support:</strong>{" "}
                           <span className="break-all">
-                            support@rebookedsolutions.co.za
+                            legal@rebookedsolutions.co.za
                           </span>
                         </span>
                       </div>
@@ -1394,7 +1394,7 @@ const Policies = () => {
                         <span>
                           <strong>Support:</strong>{" "}
                           <span className="break-all">
-                            support@rebookedsolutions.co.za
+                            legal@rebookedsolutions.co.za
                           </span>
                         </span>
                       </div>
@@ -1531,7 +1531,7 @@ const Policies = () => {
                         <span>
                           <strong>Support:</strong>{" "}
                           <span className="break-all">
-                            support@rebookedsolutions.co.za
+                            legal@rebookedsolutions.co.za
                           </span>
                         </span>
                       </div>
@@ -1651,7 +1651,7 @@ const Policies = () => {
                         <span>
                           <strong>Support:</strong>{" "}
                           <span className="break-all">
-                            support@rebookedsolutions.co.za
+                            legal@rebookedsolutions.co.za
                           </span>
                         </span>
                       </div>
@@ -1785,7 +1785,7 @@ const Policies = () => {
                   <p className="text-blue-700 text-sm sm:text-base">
                     <strong>Email:</strong>{" "}
                     <span className="break-all">
-                      support@rebookedsolutions.co.za
+                      legal@rebookedsolutions.co.za
                     </span>
                   </p>
                   <p className="text-blue-700 text-sm sm:text-base">
