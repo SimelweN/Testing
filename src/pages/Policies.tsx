@@ -1287,24 +1287,16 @@ const Policies = () => {
                         2.1 Buyer Cancellations
                       </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        Buyers may cancel an order only if it has not yet been
-                        marked as "Dispatched" by the seller. Once dispatch has
-                        occurred, the buyer must follow the return and refund
-                        procedures.
+                        Buyers may only cancel an order if it has not yet been marked as "Dispatched" by the seller on the platform. Once an item is marked as dispatched, the transaction is considered binding, and the buyer must follow the formal return and refund procedures as outlined in Section 4.
                       </p>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        Cancellations made before dispatch will be processed
-                        with full reimbursement to the original payment method
-                        within 5–10 business days, excluding delays caused by
-                        third-party payment processors. Buyers are responsible
-                        for ensuring their payment details are correct.
+                        All valid cancellations made prior to dispatch will be refunded in full to the original payment method within 5–10 business days, excluding any delays from third-party payment processors. Buyers are solely responsible for ensuring the accuracy of their payment information.
+                      </p>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
+                        <strong>Important:</strong> In terms of the Electronic Communications and Transactions Act (ECTA), Section 44, ReBooked Solutions is an intermediary and not the direct seller of goods. As such, the 7-day cooling-off period does not apply to transactions on this platform unless the specific seller is a registered business and explicitly states otherwise.
                       </p>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
-                        In terms of the Electronic Communications and
-                        Transactions Act, Section 44 does not apply to digital
-                        platforms acting as intermediaries and not selling goods
-                        directly. Therefore, no automatic 7-day cooling-off
-                        period is enforceable unless otherwise stated.
+                        ReBooked Solutions reserves the right to deny abuse-driven cancellation patterns, and repeated cancellations may lead to account review or restriction.
                       </p>
                     </section>
 
@@ -1313,28 +1305,34 @@ const Policies = () => {
                         2.2 Seller Cancellations
                       </h3>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        Sellers may cancel a transaction only under exceptional
-                        circumstances, including stock unavailability or listing
-                        errors. Cancellations must occur within 48 hours of
-                        order receipt, and the seller must notify the buyer via
-                        platform messaging and the ReBooked support email.
+                        Sellers may cancel an order only under exceptional and justifiable circumstances, including but not limited to:
+                      </p>
+                      <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
+                        <li>Stock unavailability due to a prior offline sale</li>
+                        <li>Material listing errors (e.g. wrong edition or pricing mistake)</li>
+                        <li>Account or listing flagged for fraud, duplicate posting, or breach of terms</li>
+                      </ul>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4 mt-3">
+                        Such cancellations must occur within 48 hours of receiving the order and require notification to the buyer via in-platform messaging and to legal@rebookedsolutions.co.za for tracking and transparency purposes.
                       </p>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        Frequent or unjustified cancellations by sellers may
-                        result in:
+                        Unwarranted or frequent cancellations by sellers may result in the following actions:
                       </p>
                       <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
                         <li>Temporary suspension of selling privileges</li>
-                        <li>Penalties, including administrative fees</li>
-                        <li>
-                          Permanent account termination in severe or repeat
-                          cases
-                        </li>
+                        <li>Administrative penalties or listing limitations</li>
+                        <li>Permanent account termination in cases of repeated violation or misconduct</li>
+                      </ul>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4 mt-3">
+                        ReBooked Solutions reserves the right to cancel any order at its discretion, particularly in instances involving:
+                      </p>
+                      <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
+                        <li>Suspected fraudulent activity</li>
+                        <li>Misuse or manipulation of the platform</li>
+                        <li>Breaches of this policy or the platform's Terms of Use</li>
                       </ul>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mt-3">
-                        ReBooked Solutions reserves the right to cancel any
-                        order at its sole discretion, especially where fraud,
-                        abuse, or system manipulation is detected.
+                        All cancellations — whether buyer- or seller-initiated — must be traceable through an Order ID and Transaction Number. For privacy and data protection, parties will not be granted access to each other's contact details unless legally required.
                       </p>
                     </section>
                   </div>
