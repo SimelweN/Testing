@@ -66,17 +66,31 @@ const Register = () => {
 
       // Handle different registration outcomes
       if (result?.needsVerification) {
-        // Email verification required
-        toast.success("🎉 Account created successfully!", {
-          duration: 4000,
-        });
+        if (result?.isExistingUnverified) {
+          // Existing user who needs verification
+          toast.info("Account found! Verification email resent.", {
+            duration: 4000,
+          });
 
-        toast.info(
-          "📧 Please check your email (including spam folder) for the verification link. If you don't receive it, try the 'Resend Email' option on the login page.",
-          {
-            duration: 8000,
-          },
-        );
+          toast.info(
+            "📧 Your account exists but needs email verification. Please check your inbox (including spam folder) for the verification link.",
+            {
+              duration: 8000,
+            },
+          );
+        } else {
+          // New account created
+          toast.success("🎉 Account created successfully!", {
+            duration: 4000,
+          });
+
+          toast.info(
+            "📧 Please check your email (including spam folder) for the verification link. If you don't receive it, try the 'Resend Email' option on the login page.",
+            {
+              duration: 8000,
+            },
+          );
+        }
 
         // Set email sent state to show confirmation UI
         setEmailSent(true);
@@ -85,8 +99,9 @@ const Register = () => {
         setTimeout(() => {
           navigate("/login", {
             state: {
-              message:
-                "Account created! Please check your email for the verification link. You can resend the email if needed.",
+              message: result?.isExistingUnverified
+                ? "Your account needs email verification. Check your email for the verification link."
+                : "Account created! Please check your email for the verification link. You can resend the email if needed.",
               email,
             },
           });
