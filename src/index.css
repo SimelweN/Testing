@@ -5,6 +5,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Welcome toast styling for email confirmation */
+.welcome-toast {
+  box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3), 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+  animation: welcomeSlideIn 0.5s ease-out !important;
+  font-size: 15px !important;
+  min-width: 320px !important;
+}
+
+@keyframes welcomeSlideIn {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Mobile-specific welcome toast adjustments */
+@media (max-width: 768px) {
+  .welcome-toast {
+    min-width: calc(100vw - 32px) !important;
+    max-width: calc(100vw - 32px) !important;
+    margin: 0 16px !important;
+    font-size: 14px !important;
+  }
+}
+
 /* Custom book animation for password visibility toggle */
 @keyframes bookOpen {
   0% {
