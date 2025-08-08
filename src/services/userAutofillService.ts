@@ -25,7 +25,15 @@ export class UserAutofillService {
         email: user.email || "",
       };
     } catch (error) {
-      console.error("Error in getUserInfo:", error);
+      console.error("Error in getUserInfo:", {
+        message: error instanceof Error ? error.message : String(error),
+        error: error instanceof Error ? {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        } : error,
+        timestamp: new Date().toISOString()
+      });
       return null;
     }
   }
