@@ -157,9 +157,6 @@ const BankingSetup: React.FC = () => {
             </div>
           </div>
 
-
-
-
           {/* Existing Banking Details */}
           {existingBanking && !showForm && (
             <div className="max-w-2xl mx-auto space-y-6">

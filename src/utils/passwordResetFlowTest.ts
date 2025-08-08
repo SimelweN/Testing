@@ -52,7 +52,11 @@ export const testPasswordResetFlow = () => {
     }
     
     if (error) {
-      console.log("❌ Error in auth callback:", error, error_description);
+      console.error("❌ Error in auth callback:", {
+        error: error,
+        errorDescription: error_description,
+        timestamp: new Date().toISOString()
+      });
     }
   } else if (window.location.pathname === "/reset-password") {
     console.log("📍 Currently on ResetPassword page");

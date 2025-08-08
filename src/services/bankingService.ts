@@ -278,11 +278,20 @@ export class BankingService {
       }
 
       // Save to local database
-      await this.saveBankingDetails(userId, {
-        ...bankingDetails,
-        subaccountCode: data.subaccount_code,
-        status: "active",
-      });
+      console.log("💾 About to save banking details locally...");
+      try {
+        await this.saveBankingDetails(userId, {
+          ...bankingDetails,
+          subaccountCode: data.subaccount_code,
+          status: "active",
+        });
+        console.log("✅ Banking details saved to local database successfully");
+      } catch (saveError) {
+        console.error("❌ Failed to save banking details locally:", saveError);
+        // Don't fail the entire operation if Paystack subaccount was created successfully
+        // but log the issue for debugging
+        console.warn("⚠️ Paystack subaccount created but local save failed - subaccount:", data.subaccount_code);
+      }
 
       return {
         success: true,
@@ -367,34 +376,84 @@ export class BankingService {
     userId: string,
     bankingDetails: BankingDetails & { subaccountCode: string },
   ): Promise<void> {
-    const { error } = await supabase.from("banking_subaccounts").upsert(
-      {
-        user_id: userId,
-        subaccount_code: bankingDetails.subaccountCode,
-        business_name: bankingDetails.businessName,
-        bank_name: bankingDetails.bankName,
-        bank_code: bankingDetails.bankCode,
-        account_number: bankingDetails.accountNumber,
-        email: bankingDetails.email,
-        status: bankingDetails.status,
-        created_at: new Date().toISOString(),
-      },
-      {
+    console.log("💾 Saving banking details to database:", {
+      userId,
+      subaccountCode: bankingDetails.subaccountCode,
+      businessName: bankingDetails.businessName,
+      bankName: bankingDetails.bankName,
+      status: bankingDetails.status
+    });
+
+    const bankingRecord = {
+      user_id: userId,
+      subaccount_code: bankingDetails.subaccountCode,
+      business_name: bankingDetails.businessName,
+      bank_name: bankingDetails.bankName,
+      bank_code: bankingDetails.bankCode,
+      account_number: bankingDetails.accountNumber,
+      email: bankingDetails.email,
+      status: bankingDetails.status || 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    console.log("💾 Banking record to save:", bankingRecord);
+
+    const { data, error } = await supabase
+      .from("banking_subaccounts")
+      .upsert(bankingRecord, {
         onConflict: "user_id",
-      },
-    );
+      })
+      .select();
+
+    console.log("💾 Upsert result:", { data, error });
 
     if (error) {
-      console.error("Error saving banking details:", {
+      console.error("❌ Error saving banking details:", {
         code: error.code,
         message: error.message,
         details: error.details,
         hint: error.hint,
-        fullError: error,
+        fullError: JSON.stringify(error, null, 2),
       });
+
+      // Check for specific error types
+      if (error.code === "23505") {
+        throw new Error("Banking account already exists for this user");
+      } else if (error.code === "42P01") {
+        throw new Error("Banking system not properly configured - table missing");
+      } else if (error.code === "42501") {
+        throw new Error("Permission denied - unable to save banking details");
+      }
+
       throw new Error(
         `Failed to save banking details to database: ${error.message || "Unknown error"}`,
       );
+    }
+
+    console.log("✅ Banking details saved successfully:", data);
+
+    // Also update user profile for immediate access
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({
+        subaccount_code: bankingDetails.subaccountCode,
+        preferences: {
+          banking_setup_complete: true,
+          business_name: bankingDetails.businessName,
+          bank_details: {
+            bank_name: bankingDetails.bankName,
+            account_number_masked: `****${bankingDetails.accountNumber.slice(-4)}`
+          }
+        }
+      })
+      .eq("id", userId);
+
+    if (profileError) {
+      console.error("⚠️ Warning: Failed to update profile with banking info:", profileError);
+      // Don't throw error here as banking was saved successfully
+    } else {
+      console.log("✅ Profile updated with banking info");
     }
   }
 

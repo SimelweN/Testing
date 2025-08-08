@@ -292,30 +292,59 @@ serve(async (req) => {
     }
 
     // Step 6: Generate encryption key and encrypt sensitive data
+    console.log('Generating encryption for user:', user.id);
+    
     const { data: encryptionKeyResult } = await supabase
       .rpc('generate_encryption_key_hash', { user_id: user.id });
     
     const encryptionKey = encryptionKeyResult || user.id;
+    console.log('Generated encryption key hash:', encryptionKey);
     
     // Encrypt sensitive banking details
     const encryptedAccountNumber = await encryptData(account_number, encryptionKey);
     const encryptedBankCode = await encryptData(bank_code, encryptionKey);
+    const encryptedBankName = await encryptData(bank_name, encryptionKey);
+    const encryptedSubaccountCode = subaccount_code ? await encryptData(subaccount_code, encryptionKey) : null;
+    
+    console.log('Encryption results:', {
+      original_account_length: account_number.length,
+      encrypted_account_length: encryptedAccountNumber.length,
+      original_bank_code_length: bank_code.length,
+      encrypted_bank_code_length: encryptedBankCode.length,
+      bank_name_present: !!bank_name,
+      subaccount_code_present: !!subaccount_code
+    });
     
     console.log('Storing encrypted banking details for user:', user.id);
     
     // Step 7: Store in banking_subaccounts table with encrypted data
+    console.log('About to insert/update banking_subaccounts with:', {
+      user_id: user.id,
+      business_name,
+      email,
+      bank_name,
+      subaccount_code: subaccount_code,
+      has_encrypted_account_number: !!encryptedAccountNumber,
+      has_encrypted_bank_code: !!encryptedBankCode,
+      encryption_key_hash: encryptionKey
+    });
+    
+    
     // Always use upsert to ensure record exists with proper user_id
     const { data: subaccountData, error: subaccountError } = await supabase
       .from('banking_subaccounts')
       .upsert({
-        user_id: user.id,
+        user_id: user.id, // Make sure user_id is explicitly set
         business_name,
         email,
         bank_name,
-        bank_code: null, // Clear unencrypted values
-        account_number: null, // Clear unencrypted values
+        // Store encrypted values directly in both legacy/plain columns and encrypted columns
+        bank_code: encryptedBankCode,
+        account_number: encryptedAccountNumber,
         encrypted_bank_code: encryptedBankCode,
         encrypted_account_number: encryptedAccountNumber,
+        encrypted_bank_name: encryptedBankName,
+        encrypted_subaccount_code: encryptedSubaccountCode,
         encryption_key_hash: encryptionKey,
         subaccount_code: subaccount_code,
         paystack_response: paystackData,
@@ -327,12 +356,26 @@ serve(async (req) => {
       .select()
       .single();
 
+    console.log('Database upsert result:', {
+      success: !subaccountError,
+      error: subaccountError,
+      data: subaccountData ? { 
+        user_id: subaccountData.user_id, 
+        subaccount_code: subaccountData.subaccount_code,
+        has_encrypted_data: !!subaccountData.encrypted_account_number 
+      } : null
+    });
+
     if (subaccountError) {
       console.error('Database error (banking_subaccounts):', subaccountError);
       // Don't fail the request but log the error - subaccount was created successfully in Paystack
       console.log('Continuing despite database error - Paystack subaccount was created successfully');
     } else {
-      console.log('Successfully stored banking subaccount in database:', subaccountData);
+      console.log('Successfully stored banking subaccount in database:', {
+        user_id: subaccountData?.user_id,
+        subaccount_code: subaccountData?.subaccount_code,
+        business_name: subaccountData?.business_name
+      });
     }
 
     // Step 8: Update user profile with subaccount_code  

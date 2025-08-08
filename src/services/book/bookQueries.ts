@@ -11,8 +11,7 @@ import {
   getErrorMessage,
   logDatabaseError,
 } from "@/utils/errorUtils";
-import { safeLogError } from "@/utils/errorHandling";
-import { safeLogError as safelog, formatSupabaseError } from "@/utils/safeErrorLogger";
+import { formatSupabaseError } from "@/utils/safeErrorLogger";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 // Simple retry function to replace the missing connectionHealthCheck
 const retryWithConnection = async <T>(
@@ -77,12 +76,21 @@ const logDetailedError = (context: string, error: unknown) => {
   }
 
   // Use safe error logging to prevent [object Object] issues
-  safeLogError(`BookQueries - ${context}`, error);
+  const errorMessage = error instanceof Error ? error.message :
+                      (typeof error === 'object' && error !== null) ?
+                      JSON.stringify(error, Object.getOwnPropertyNames(error)) :
+                      String(error);
+
+  console.error(`[BookQueries - ${context}]`, {
+    message: errorMessage,
+    error: error,
+    stack: error instanceof Error ? error.stack : undefined,
+    timestamp: new Date().toISOString()
+  });
 
   // Also log to our error utility with safe message extraction (but don't spam it)
   if (logError && bookQueryErrorCount <= 3) {
-    const safeMessage = error instanceof Error ? error.message : String(error);
-    logError(context, new Error(safeMessage));
+    logError(context, new Error(errorMessage));
   }
 };
 

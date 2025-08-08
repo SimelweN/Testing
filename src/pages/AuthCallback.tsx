@@ -8,11 +8,13 @@ import { toast } from "sonner";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { attemptManualVerification, getConfirmationLinkErrorMessage } from "@/utils/confirmationLinkFixer";
+import { useEmailConfirmationWelcome } from "@/hooks/useEmailConfirmationWelcome";
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { markEmailConfirmation } = useEmailConfirmationWelcome();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
 
@@ -46,6 +48,12 @@ const AuthCallback = () => {
       // If user is authenticated but came via confirmation link, show success message
       if (type === "signup" || token_hash || access_token) {
         console.log("✅ User already authenticated via confirmation link");
+
+        // Mark email confirmation for welcome message if this is a signup
+        if (type === "signup") {
+          markEmailConfirmation();
+        }
+
         toast.success("Email already verified! You are logged in.");
         navigate("/", { replace: true });
         return;
@@ -86,6 +94,7 @@ const AuthCallback = () => {
             toast.success("Reset link verified! Set your new password.");
             navigate("/reset-password", { replace: true });
           } else if (type === "signup") {
+            markEmailConfirmation();
             setMessage("Email verified successfully! Welcome to ReBooked Solutions.");
             toast.success("Email verified! Welcome!");
             setTimeout(() => navigate("/", { replace: true }), 1500);
@@ -180,6 +189,7 @@ const AuthCallback = () => {
             setStatus("success");
 
             if (type === "signup") {
+              markEmailConfirmation();
               setMessage("Email verified successfully! Welcome to ReBooked Solutions.");
               toast.success("Email verified! Welcome!");
               // Redirect to dashboard/profile or home page after a delay
@@ -245,6 +255,7 @@ const AuthCallback = () => {
             setStatus("success");
 
             if (type === "signup") {
+              markEmailConfirmation();
               setMessage("Email verified successfully! Welcome to ReBooked Solutions.");
               toast.success("Email verified! Welcome!");
               setTimeout(() => {
@@ -311,7 +322,7 @@ const AuthCallback = () => {
         }
 
         // Try manual verification as a last resort
-        console.warn("⚠️ No valid auth parameters found, attempting manual verification");
+        console.warn("⚠��� No valid auth parameters found, attempting manual verification");
         console.log("Available parameters:", {
           searchParams: Object.fromEntries(searchParams.entries()),
           hashParams: window.location.hash ? Object.fromEntries(new URLSearchParams(window.location.hash.substring(1)).entries()) : {}
@@ -330,6 +341,7 @@ const AuthCallback = () => {
             setStatus("success");
 
             if (type === "signup") {
+              markEmailConfirmation();
               setMessage("Email verified successfully! Welcome to ReBooked Solutions.");
               toast.success("Email verified! Welcome!");
               setTimeout(() => navigate("/", { replace: true }), 1500);

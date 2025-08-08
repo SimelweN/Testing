@@ -6,10 +6,12 @@ import Layout from "@/components/Layout";
 import { Loader2, CheckCircle, XCircle, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useEmailConfirmationWelcome } from "@/hooks/useEmailConfirmationWelcome";
 
 const Confirm = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { markEmailConfirmation } = useEmailConfirmationWelcome();
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     "loading",
   );
@@ -77,13 +79,19 @@ const Confirm = () => {
           }
 
           if (data.session) {
-            console.log("Email confirmed successfully with token hash");
-            setStatus("success");
-            setMessage("Email confirmed successfully! You are now logged in.");
-            toast.success("Email confirmed successfully!");
-            setTimeout(() => navigate("/"), 2000);
-            return;
+          console.log("Email confirmed successfully with token hash");
+          setStatus("success");
+          setMessage("Email confirmed successfully! You are now logged in.");
+
+          // Mark email confirmation for welcome message if this is a signup
+          if (type === "signup" || type === "email") {
+            markEmailConfirmation();
           }
+
+          toast.success("Email confirmed successfully!");
+          setTimeout(() => navigate("/"), 2000);
+          return;
+        }
         }
 
         // Method 2: Check if OAuth redirect is being handled
@@ -110,6 +118,12 @@ const Confirm = () => {
           console.log("Code exchange successful");
           setStatus("success");
           setMessage("Email confirmed successfully! You are now logged in.");
+
+          // Mark email confirmation for welcome message if this is a signup
+          if (type === "signup" || type === "email") {
+            markEmailConfirmation();
+          }
+
           toast.success("Email confirmed successfully!");
           setTimeout(() => navigate("/"), 2000);
           return;

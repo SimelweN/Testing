@@ -74,7 +74,15 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
 
       if (error) {
         logError("Error fetching orders (Supabase query)", error);
-        console.log("🔍 Error loading orders:", error);
+        console.error("🔍 Error loading orders:", {
+          message: error instanceof Error ? error.message : String(error),
+          error: error instanceof Error ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+          } : error,
+          timestamp: new Date().toISOString()
+        });
 
         // Simple error message extraction
         let errorMsg = 'Failed to load orders';

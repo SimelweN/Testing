@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import ConnectionStatus from "./ConnectionStatus";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useEmailConfirmationWelcome } from "@/hooks/useEmailConfirmationWelcome";
 
 interface LayoutProps {
   children: ReactNode;
@@ -12,6 +13,9 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const { user } = useAuth();
+
+  // Initialize email confirmation welcome hook (this will handle showing the welcome message)
+  useEmailConfirmationWelcome();
 
   // Check if user is admin - multiple ways to detect admin status
   const isAdmin = user && (
