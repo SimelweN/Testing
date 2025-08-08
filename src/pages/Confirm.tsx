@@ -6,6 +6,7 @@ import Layout from "@/components/Layout";
 import { Loader2, CheckCircle, XCircle, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useEmailConfirmationWelcome } from "@/hooks/useEmailConfirmationWelcome";
 
 const Confirm = () => {
   const navigate = useNavigate();
