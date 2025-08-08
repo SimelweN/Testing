@@ -284,7 +284,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         console.log("✅ Registration completed successfully");
         return { needsVerification: false };
       } catch (error) {
-        console.log("❌ AuthContext register caught error:", error);
+        console.error("❌ AuthContext register caught error:", {
+          message: error instanceof Error ? error.message : String(error),
+          error: error instanceof Error ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+          } : error,
+          timestamp: new Date().toISOString()
+        });
 
         // Provide more specific error messages
         const errorMessage =
