@@ -88,6 +88,7 @@ const AuthCallback = () => {
             toast.success("Reset link verified! Set your new password.");
             navigate("/reset-password", { replace: true });
           } else if (type === "signup") {
+            markEmailConfirmation();
             setMessage("Email verified successfully! Welcome to ReBooked Solutions.");
             toast.success("Email verified! Welcome!");
             setTimeout(() => navigate("/", { replace: true }), 1500);
@@ -182,6 +183,7 @@ const AuthCallback = () => {
             setStatus("success");
 
             if (type === "signup") {
+              markEmailConfirmation();
               setMessage("Email verified successfully! Welcome to ReBooked Solutions.");
               toast.success("Email verified! Welcome!");
               // Redirect to dashboard/profile or home page after a delay
@@ -247,6 +249,7 @@ const AuthCallback = () => {
             setStatus("success");
 
             if (type === "signup") {
+              markEmailConfirmation();
               setMessage("Email verified successfully! Welcome to ReBooked Solutions.");
               toast.success("Email verified! Welcome!");
               setTimeout(() => {
@@ -332,6 +335,7 @@ const AuthCallback = () => {
             setStatus("success");
 
             if (type === "signup") {
+              markEmailConfirmation();
               setMessage("Email verified successfully! Welcome to ReBooked Solutions.");
               toast.success("Email verified! Welcome!");
               setTimeout(() => navigate("/", { replace: true }), 1500);
