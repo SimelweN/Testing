@@ -118,6 +118,12 @@ const Confirm = () => {
           console.log("Code exchange successful");
           setStatus("success");
           setMessage("Email confirmed successfully! You are now logged in.");
+
+          // Mark email confirmation for welcome message if this is a signup
+          if (type === "signup" || type === "email") {
+            markEmailConfirmation();
+          }
+
           toast.success("Email confirmed successfully!");
           setTimeout(() => navigate("/"), 2000);
           return;
