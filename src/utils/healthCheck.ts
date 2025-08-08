@@ -84,7 +84,14 @@ export const performHealthChecks = async () => {
   console.log("- Connection:", canConnect ? "✅ Connected" : "❌ Disconnected");
 
   if (!dbHealth.isHealthy) {
-    console.log("- Error:", dbHealth.error);
+    console.error("- Database Health Error:", {
+      error: dbHealth.error instanceof Error ? {
+        name: dbHealth.error.name,
+        message: dbHealth.error.message,
+        stack: dbHealth.error.stack
+      } : dbHealth.error,
+      timestamp: new Date().toISOString()
+    });
   }
 
   return {
