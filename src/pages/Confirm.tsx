@@ -79,13 +79,19 @@ const Confirm = () => {
           }
 
           if (data.session) {
-            console.log("Email confirmed successfully with token hash");
-            setStatus("success");
-            setMessage("Email confirmed successfully! You are now logged in.");
-            toast.success("Email confirmed successfully!");
-            setTimeout(() => navigate("/"), 2000);
-            return;
+          console.log("Email confirmed successfully with token hash");
+          setStatus("success");
+          setMessage("Email confirmed successfully! You are now logged in.");
+
+          // Mark email confirmation for welcome message if this is a signup
+          if (type === "signup" || type === "email") {
+            markEmailConfirmation();
           }
+
+          toast.success("Email confirmed successfully!");
+          setTimeout(() => navigate("/"), 2000);
+          return;
+        }
         }
 
         // Method 2: Check if OAuth redirect is being handled
