@@ -29,18 +29,23 @@ export const useEmailConfirmationWelcome = () => {
     
     if (shouldShowWelcome) {
       // Show welcome toast with custom styling for top-right positioning
+      const isMobile = window.innerWidth <= 768;
+
       toast.success("Welcome to ReBooked Solutions! 🎉", {
-        description: "Your email has been verified and you're now logged in.",
-        duration: 6000,
+        description: isMobile
+          ? "Email verified • You're logged in!"
+          : "Your email has been verified and you're now logged in.",
+        duration: isMobile ? 5000 : 6000,
         className: "welcome-toast",
         style: {
           background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)',
           color: 'white',
           border: '1px solid #10b981',
           fontWeight: '500',
+          borderRadius: '12px',
         },
         action: {
-          label: "Got it!",
+          label: isMobile ? "✓" : "Got it!",
           onClick: () => clearWelcomeFlag(),
         },
       });
