@@ -11,6 +11,7 @@ import { useEmailConfirmationWelcome } from "@/hooks/useEmailConfirmationWelcome
 const Confirm = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { markEmailConfirmation } = useEmailConfirmationWelcome();
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     "loading",
   );
