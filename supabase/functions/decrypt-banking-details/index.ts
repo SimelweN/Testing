@@ -87,13 +87,13 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get encrypted banking details for the user
-    const { data: bankingDetails, error: fetchError } = await supabase
-      .from('banking_subaccounts')
-      .select('encrypted_account_number, encrypted_bank_code, encryption_key_hash, bank_name, business_name')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .single();
+  // Get encrypted banking details for the user (with fallback to legacy columns)
+  const { data: bankingDetails, error: fetchError } = await supabase
+    .from('banking_subaccounts')
+    .select('encrypted_account_number, encrypted_bank_code, encrypted_bank_name, encrypted_subaccount_code, account_number, bank_code, bank_name, subaccount_code, encryption_key_hash, business_name')
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .maybeSingle();
 
     if (fetchError || !bankingDetails) {
       console.error('No banking details found for user:', user.id);
@@ -103,11 +103,24 @@ serve(async (req) => {
       );
     }
 
-    if (!bankingDetails.encrypted_account_number || !bankingDetails.encrypted_bank_code) {
-      console.error('Banking details not encrypted for user:', user.id);
+    const encAccount = bankingDetails.encrypted_account_number || bankingDetails.account_number;
+    const encCode = bankingDetails.encrypted_bank_code || bankingDetails.bank_code;
+    const encBankName = bankingDetails.encrypted_bank_name || bankingDetails.bank_name;
+    const encSub = bankingDetails.encrypted_subaccount_code || bankingDetails.subaccount_code;
+
+    const sources = {
+      account_number: bankingDetails.encrypted_account_number ? 'encrypted_account_number' : (bankingDetails.account_number ? 'account_number' : null),
+      bank_code: bankingDetails.encrypted_bank_code ? 'encrypted_bank_code' : (bankingDetails.bank_code ? 'bank_code' : null),
+      bank_name: bankingDetails.encrypted_bank_name ? 'encrypted_bank_name' : (bankingDetails.bank_name ? 'bank_name' : null),
+      subaccount_code: bankingDetails.encrypted_subaccount_code ? 'encrypted_subaccount_code' : (bankingDetails.subaccount_code ? 'subaccount_code' : null)
+    } as const;
+
+    // Validate required encrypted fields
+    if (!encAccount || !encCode) {
+      console.error('Banking details not properly stored for user:', user.id);
       return new Response(
-        JSON.stringify({ error: 'Banking details not properly encrypted' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Banking details not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -115,8 +128,17 @@ serve(async (req) => {
     const encryptionKey = bankingDetails.encryption_key_hash;
     
     try {
-      const decryptedAccountNumber = await decryptData(bankingDetails.encrypted_account_number, encryptionKey);
-      const decryptedBankCode = await decryptData(bankingDetails.encrypted_bank_code, encryptionKey);
+      const decryptedAccountNumber = await decryptData(encAccount, encryptionKey);
+      const decryptedBankCode = await decryptData(encCode, encryptionKey);
+
+      let decryptedBankName: string | null = null;
+      let decryptedSubaccount: string | null = null;
+      try {
+        decryptedBankName = encBankName ? await decryptData(encBankName, encryptionKey) : null;
+      } catch (_) { decryptedBankName = null; }
+      try {
+        decryptedSubaccount = encSub ? await decryptData(encSub, encryptionKey) : null;
+      } catch (_) { decryptedSubaccount = null; }
 
       console.log('Successfully decrypted banking details for user:', user.id);
 
@@ -126,12 +148,15 @@ serve(async (req) => {
           data: {
             account_number: decryptedAccountNumber,
             bank_code: decryptedBankCode,
-            bank_name: bankingDetails.bank_name,
-            business_name: bankingDetails.business_name
-          }
+            bank_name: decryptedBankName ?? bankingDetails.bank_name ?? null,
+            business_name: bankingDetails.business_name,
+            subaccount_code: decryptedSubaccount ?? bankingDetails.subaccount_code ?? null
+          },
+          sources
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+
 
     } catch (decryptError) {
       console.error('Failed to decrypt banking details:', decryptError);
