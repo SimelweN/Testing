@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import ConnectionStatus from "./ConnectionStatus";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useEmailConfirmationWelcome } from "@/hooks/useEmailConfirmationWelcome";
 
 interface LayoutProps {
   children: ReactNode;
