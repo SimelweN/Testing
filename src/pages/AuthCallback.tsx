@@ -48,6 +48,12 @@ const AuthCallback = () => {
       // If user is authenticated but came via confirmation link, show success message
       if (type === "signup" || token_hash || access_token) {
         console.log("✅ User already authenticated via confirmation link");
+
+        // Mark email confirmation for welcome message if this is a signup
+        if (type === "signup") {
+          markEmailConfirmation();
+        }
+
         toast.success("Email already verified! You are logged in.");
         navigate("/", { replace: true });
         return;
@@ -316,7 +322,7 @@ const AuthCallback = () => {
         }
 
         // Try manual verification as a last resort
-        console.warn("⚠️ No valid auth parameters found, attempting manual verification");
+        console.warn("⚠��� No valid auth parameters found, attempting manual verification");
         console.log("Available parameters:", {
           searchParams: Object.fromEntries(searchParams.entries()),
           hashParams: window.location.hash ? Object.fromEntries(new URLSearchParams(window.location.hash.substring(1)).entries()) : {}
