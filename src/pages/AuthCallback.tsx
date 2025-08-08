@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { attemptManualVerification, getConfirmationLinkErrorMessage } from "@/utils/confirmationLinkFixer";
+import { useEmailConfirmationWelcome } from "@/hooks/useEmailConfirmationWelcome";
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
