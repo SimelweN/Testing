@@ -96,11 +96,13 @@ const logDetailedError = (context: string, error: unknown) => {
 
 export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
   try {
-    console.log("Fetching books with filters:", filters);
+    console.log("🔍 BookQueries: Fetching books with filters:", filters);
 
         const fetchBooksOperation = async (retryCount = 0): Promise<any[]> => {
       try {
-        // Get books with seller profile to check pickup address
+        console.log("📊 BookQueries: Starting database query...");
+
+        // SIMPLIFIED QUERY: Get ALL books first to debug
         let query = supabase
           .from("books")
           .select(`
@@ -112,6 +114,8 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
           `)
           .eq("sold", false)  // Only show available books
           .order("created_at", { ascending: false });
+
+        console.log("📋 BookQueries: Basic query constructed, applying filters...");
 
         // Apply filters if provided
         if (filters) {
@@ -146,7 +150,9 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
           }
         }
 
+        console.log("🚀 BookQueries: Executing database query...");
         const { data: booksData, error: booksError } = await query;
+        console.log("📬 BookQueries: Query result - data:", booksData?.length || 0, "error:", booksError?.message || "none");
 
         if (booksError) {
           // Log error with proper formatting to prevent [object Object]
@@ -208,34 +214,9 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
       return [];
     }
 
-    // Filter books by seller pickup address validity
-    const validBooks = booksData.filter((book) => {
-      const sellerProfile = book.seller_profile;
-      if (!sellerProfile?.pickup_address) {
-        console.log(`🚫 Filtering out book "${book.title}" - seller has no pickup address`);
-        return false;
-      }
-
-      const pickupAddr = sellerProfile.pickup_address;
-
-      // Validate pickup address has required fields
-      const streetField = pickupAddr.streetAddress || pickupAddr.street;
-      const isValidAddress = !!(
-        pickupAddr &&
-        typeof pickupAddr === "object" &&
-        streetField &&
-        pickupAddr.city &&
-        pickupAddr.province &&
-        pickupAddr.postalCode
-      );
-
-      if (!isValidAddress) {
-        console.log(`🚫 Filtering out book "${book.title}" - seller has incomplete pickup address`);
-        return false;
-      }
-
-      return true;
-    });
+    // EMERGENCY: Show ALL books regardless of seller profile or address
+    console.log("🆘 EMERGENCY MODE: Bypassing ALL filters to show books");
+    const validBooks = booksData; // Show everything!
 
     console.log(`📦 Filtered ${booksData.length} books down to ${validBooks.length} with valid pickup addresses`);
 

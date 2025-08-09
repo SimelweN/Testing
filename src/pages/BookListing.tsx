@@ -12,6 +12,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { clearAllBrowseBooks } from "@/utils/clearBrowseBooks";
 import { Button } from "@/components/ui/button";
 import GoogleAdsense from "@/components/GoogleAdsense";
+import { debugBookFetching, fixBooksWithMissingAddresses } from "@/utils/debugBooks";
+import { emergencyBookTest } from "@/utils/emergencyBookTest";
 
 
 const BookListing = () => {
@@ -53,6 +55,7 @@ const BookListing = () => {
 
   // Memoize loadBooks function to prevent infinite loops
   const loadBooks = useCallback(async () => {
+    console.log("🔍 BookListing: Starting to load books...");
     setIsLoading(true);
     setError(null);
 
@@ -86,21 +89,27 @@ const BookListing = () => {
       if (priceRange[0] > 0) filters.minPrice = priceRange[0];
       if (priceRange[1] < 1000) filters.maxPrice = priceRange[1];
 
+      console.log("📋 BookListing: Applying filters:", filters);
+
       const loadedBooks = await getBooks(filters);
+      console.log("📚 BookListing: Received books from service:", loadedBooks?.length || 0);
 
       // Ensure we have an array
       const booksArray = Array.isArray(loadedBooks) ? loadedBooks : [];
       setTotalBooks(booksArray.length);
+      console.log("📊 BookListing: Total books set to:", booksArray.length);
 
       // Calculate pagination
       const startIndex = (currentPage - 1) * booksPerPage;
       const endIndex = startIndex + booksPerPage;
       const paginatedBooks = booksArray.slice(startIndex, endIndex);
+      console.log("📄 BookListing: Paginated books for display:", paginatedBooks.length);
 
       setBooks(paginatedBooks);
+      console.log("✅ BookListing: Books loaded successfully, displaying:", paginatedBooks.length, "books");
 
       if (booksArray.length === 0) {
-        // No books found with current filters
+        console.log("⚠️ BookListing: No books found with current filters");
       }
     } catch (error) {
       const errorDetails = {
@@ -120,13 +129,16 @@ const BookListing = () => {
       toast.error(userMessage);
       setBooks([]);
       setError(error instanceof Error ? error.message : String(error));
+      console.error("❌ BookListing: Error loading books:", errorDetails);
     } finally {
       setIsLoading(false);
+      console.log("🏁 BookListing: Loading complete, isLoading set to false");
     }
   }, [searchParams, selectedCondition, selectedUniversity, selectedProvince, priceRange, currentPage]);
 
   // Initial load
   useEffect(() => {
+    console.log("🎬 BookListing: Component mounted, starting initial book load...");
     loadBooks();
   }, [loadBooks]);
 
@@ -241,6 +253,39 @@ const BookListing = () => {
     }
   };
 
+  const handleDebugBooks = async () => {
+    console.log("🔍 Running book debug analysis...");
+    const result = await debugBookFetching();
+    if (result) {
+      toast.success(`Found ${result.totalBooks} total books, ${result.validBooks} valid books showing`);
+    }
+  };
+
+  const handleFixBooks = async () => {
+    if (!window.confirm("This will add default addresses to sellers missing pickup addresses. Continue?")) {
+      return;
+    }
+    console.log("🔧 Fixing books with missing addresses...");
+    const fixedCount = await fixBooksWithMissingAddresses();
+    if (fixedCount > 0) {
+      toast.success(`Fixed ${fixedCount} books with missing addresses`);
+      // Reload books after fixing
+      loadBooks();
+    } else {
+      toast.info("No books needed fixing");
+    }
+  };
+
+  const handleEmergencyTest = async () => {
+    console.log("🆘 Running emergency book database test...");
+    const result = await emergencyBookTest();
+    if (result.success) {
+      toast.success(`Emergency test complete! Found ${result.totalBooks} total books, ${result.availableBooks} available`);
+    } else {
+      toast.error(`Emergency test failed: ${result.error}`);
+    }
+  };
+
   return (
     <Layout>
       <SEO
@@ -256,14 +301,38 @@ const BookListing = () => {
             Browse Books
           </h1>
           {user?.email === "admin@rebookedsolutions.co.za" && (
-            <Button
-              onClick={handleClearAllBooks}
-              disabled={isClearingBooks}
-              variant="destructive"
-              size="sm"
-            >
-              {isClearingBooks ? "Clearing..." : "Clear All Books"}
-            </Button>
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                onClick={handleEmergencyTest}
+                variant="default"
+                size="sm"
+                className="bg-red-600 hover:bg-red-700"
+              >
+                ��� Emergency Test
+              </Button>
+              <Button
+                onClick={handleDebugBooks}
+                variant="outline"
+                size="sm"
+              >
+                Debug Books
+              </Button>
+              <Button
+                onClick={handleFixBooks}
+                variant="secondary"
+                size="sm"
+              >
+                Fix Addresses
+              </Button>
+              <Button
+                onClick={handleClearAllBooks}
+                disabled={isClearingBooks}
+                variant="destructive"
+                size="sm"
+              >
+                {isClearingBooks ? "Clearing..." : "Clear All Books"}
+              </Button>
+            </div>
           )}
         </div>
 
@@ -271,6 +340,7 @@ const BookListing = () => {
         <div className="mb-4 sm:mb-8 flex justify-center">
           <GoogleAdsense />
         </div>
+
 
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
           <BookFilters
