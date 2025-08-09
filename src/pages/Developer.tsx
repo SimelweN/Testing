@@ -1843,13 +1843,15 @@ const Developer = () => {
 
                             // Show some sample locker info
                             const sampleLocker = lockers[0];
-                            console.log('📍 Sample real locker:', {
-                              id: sampleLocker.id,
-                              name: sampleLocker.name,
-                              city: sampleLocker.city,
-                              province: sampleLocker.province,
-                              coordinates: `${sampleLocker.latitude}, ${sampleLocker.longitude}`
-                            });
+                            if (sampleLocker) {
+                              console.log('📍 Sample real locker:', {
+                                id: sampleLocker.id,
+                                name: sampleLocker.name,
+                                city: sampleLocker.city,
+                                province: sampleLocker.province,
+                                coordinates: `${sampleLocker.latitude}, ${sampleLocker.longitude}`
+                              });
+                            }
 
                             toast.success('🎉 CORS bypass successful - real locker data active!');
                           }
