@@ -11,18 +11,24 @@ interface SimpleAddress {
 // Decrypt an address using the decrypt-address edge function
 const decryptAddress = async (params: { table: string; target_id: string; address_type?: string }) => {
   try {
+    console.log("🔐 Calling decrypt-address edge function with params:", params);
+
     const { data, error } = await supabase.functions.invoke('decrypt-address', {
       body: {
         fetch: params
       }
     });
 
+    console.log("🔐 Edge function response:", { data, error });
+
     if (error) {
       console.warn("Decryption not available:", error.message);
       return null;
     }
 
-    return data?.data || null;
+    const result = data?.data || null;
+    console.log("🔐 Final decryption result:", result);
+    return result;
   } catch (error) {
     console.warn("Decryption service unavailable:", error instanceof Error ? error.message : String(error));
     return null;
