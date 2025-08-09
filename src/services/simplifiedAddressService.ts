@@ -87,13 +87,18 @@ export const getSellerDeliveryAddress = async (
 
     // Fallback to plaintext address
     console.log("Step 2: Falling back to plaintext address...");
-    const { data: profile, error } = await supabase
+    const { data: profiles, error } = await supabase
       .from("profiles")
       .select("pickup_address")
-      .eq("id", sellerId)
-      .single();
+      .eq("id", sellerId);
 
-    console.log("📊 Plaintext query result:", { profile, error });
+    console.log("📊 Plaintext query result:", {
+      profiles,
+      error,
+      profile_count: profiles?.length || 0
+    });
+
+    const profile = profiles && profiles.length > 0 ? profiles[0] : null;
 
     if (error || !profile?.pickup_address) {
       console.log("❌ No plaintext address found");
