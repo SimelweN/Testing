@@ -162,17 +162,24 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
         console.log("📊 Direct database check:", { profile, profileError });
 
-        // If no profile found, check if seller_id exists as a user at all
+        // If no profile found, do some additional debugging
         if (!profile && profileError?.code === 'PGRST116') {
-          console.log("🔍 Profile not found - checking if seller_id exists as auth user...");
+          console.log("🔍 Profile not found - doing additional checks...");
 
-          // Check if this seller_id exists in auth.users (admin query)
-          const { data: authCheck, error: authError } = await supabase.auth.admin.getUserById(bookData.seller_id);
-          console.log("🔑 Auth user check:", { authCheck, authError });
+          // Check if there are any profiles at all (to see if DB connection works)
+          const { count, error: countError } = await supabase
+            .from("profiles")
+            .select("id", { count: 'exact', head: true });
 
-          if (!authCheck.user) {
-            console.error("💥 CRITICAL: Book seller_id points to non-existent user!");
-          }
+          console.log("📊 Total profiles in database:", { count, countError });
+
+          // Check if there are any books with this seller_id
+          const { count: bookCount, error: bookCountError } = await supabase
+            .from("books")
+            .select("id", { count: 'exact', head: true })
+            .eq("seller_id", bookData.seller_id);
+
+          console.log("📚 Books by this seller:", { bookCount, bookCountError });
         }
 
         // Provide specific guidance based on what's missing
