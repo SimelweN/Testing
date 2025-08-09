@@ -207,25 +207,28 @@ export const getUserAddresses = async (userId: string) => {
   try {
     console.log("Fetching addresses for user:", userId);
 
-    // Try to get encrypted addresses first
+    // Try to get encrypted addresses first (non-blocking)
+    let pickupAddress = null;
+    let shippingAddress = null;
+
     try {
-      const pickupAddress = await decryptAddress({
+      pickupAddress = await decryptAddress({
         table: 'profiles',
         target_id: userId,
         address_type: 'pickup'
       });
 
-      const shippingAddress = await decryptAddress({
+      shippingAddress = await decryptAddress({
         table: 'profiles',
         target_id: userId,
         address_type: 'shipping'
       });
 
       if (pickupAddress || shippingAddress) {
-        console.log("Successfully fetched encrypted addresses");
+        console.log("✅ Successfully fetched encrypted addresses");
         // Determine if addresses are the same
-        const addressesSame = pickupAddress && shippingAddress ? 
-          JSON.stringify(pickupAddress) === JSON.stringify(shippingAddress) : 
+        const addressesSame = pickupAddress && shippingAddress ?
+          JSON.stringify(pickupAddress) === JSON.stringify(shippingAddress) :
           !shippingAddress;
 
         return {
@@ -235,7 +238,7 @@ export const getUserAddresses = async (userId: string) => {
         };
       }
     } catch (error) {
-      console.log("Encrypted addresses not found or failed to decrypt, falling back to plaintext");
+      console.warn("⚠️ Encryption service unavailable, using plaintext addresses");
     }
 
     // Fallback to plaintext addresses (during transition period)
