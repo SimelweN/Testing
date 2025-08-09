@@ -463,6 +463,22 @@ const BankingProfileTab = () => {
         </Card>
       )}
 
+      {/* Update Banking Details Dialog */}
+      <Dialog open={showUpdateDialog} onOpenChange={setShowUpdateDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Update Banking Details</DialogTitle>
+            <DialogDescription>
+              Update your banking information securely. All changes are encrypted and stored safely.
+            </DialogDescription>
+          </DialogHeader>
+          <BankingForm
+            onSuccess={handleUpdateSuccess}
+            onCancel={() => setShowUpdateDialog(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
       {/* Additional information for new banking system */}
       {hasBankingSetup && (
         <Card>
