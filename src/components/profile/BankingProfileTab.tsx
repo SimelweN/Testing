@@ -405,13 +405,18 @@ const BankingProfileTab = () => {
                 </div>
               )}
 
-              <Alert>
-                <Shield className="h-4 w-4" />
-                <AlertDescription>
-                  Banking details are securely encrypted and only decrypted when you click "View Details".
-                  All transactions are processed securely through Paystack's verified payment system.
-                </AlertDescription>
-              </Alert>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-green-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-green-900 mb-1">Security & Privacy</h4>
+                    <p className="text-sm text-green-800">
+                      Your banking details are encrypted at rest and only decrypted when you explicitly
+                      click "View Details". All payments are processed through Paystack's secure infrastructure.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>
