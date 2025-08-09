@@ -8,10 +8,71 @@ interface SimpleAddress {
   postalCode: string;
 }
 
+// Decrypt an address using the decrypt-address edge function
+const decryptAddress = async (params: { table: string; target_id: string; address_type?: string }) => {
+  try {
+    const { data, error } = await supabase.functions.invoke('decrypt-address', {
+      body: {
+        fetch: params
+      }
+    });
+
+    if (error) {
+      console.error("Error decrypting address:", error);
+      return null;
+    }
+
+    return data?.data || null;
+  } catch (error) {
+    console.error("Error in decryptAddress:", error);
+    return null;
+  }
+};
+
+// Encrypt an address using the encrypt-address edge function
+const encryptAddress = async (address: SimpleAddress, options?: { save?: { table: string; target_id: string; address_type: string } }) => {
+  try {
+    const { data, error } = await supabase.functions.invoke('encrypt-address', {
+      body: {
+        object: address,
+        ...options
+      }
+    });
+
+    if (error) {
+      console.error("Error encrypting address:", error);
+      throw new Error(`Encryption failed: ${error.message}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in encryptAddress:", error);
+    throw error;
+  }
+};
+
 export const getSellerDeliveryAddress = async (
   sellerId: string,
 ): Promise<CheckoutAddress | null> => {
   try {
+    // Try to get encrypted address first
+    const decryptedAddress = await decryptAddress({
+      table: 'profiles',
+      target_id: sellerId,
+      address_type: 'pickup'
+    });
+
+    if (decryptedAddress) {
+      return {
+        street: decryptedAddress.streetAddress || decryptedAddress.street || "",
+        city: decryptedAddress.city || "",
+        province: decryptedAddress.province || "",
+        postal_code: decryptedAddress.postalCode || decryptedAddress.postal_code || "",
+        country: "South Africa",
+      };
+    }
+
+    // Fallback to plaintext address
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("pickup_address")
@@ -38,6 +99,28 @@ export const getSellerDeliveryAddress = async (
 
 export const getSimpleUserAddresses = async (userId: string) => {
   try {
+    // Try to get encrypted addresses first
+    const [decryptedPickup, decryptedShipping] = await Promise.all([
+      decryptAddress({
+        table: 'profiles',
+        target_id: userId,
+        address_type: 'pickup'
+      }),
+      decryptAddress({
+        table: 'profiles',
+        target_id: userId,
+        address_type: 'shipping'
+      })
+    ]);
+
+    if (decryptedPickup || decryptedShipping) {
+      return {
+        pickup_address: decryptedPickup,
+        shipping_address: decryptedShipping || decryptedPickup,
+      };
+    }
+
+    // Fallback to plaintext addresses
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("pickup_address, shipping_address")
@@ -53,7 +136,7 @@ export const getSimpleUserAddresses = async (userId: string) => {
       shipping_address: profile.shipping_address,
     };
   } catch (error) {
-    console.error("Error getting user addresses:", error);
+    console.error("Error getting addresses:", error);
     return null;
   }
 };
@@ -65,12 +148,33 @@ export const saveSimpleUserAddresses = async (
   addressesAreSame: boolean = false,
 ) => {
   try {
-    const updateData: any = {};
+    // Encrypt and save pickup address
+    if (pickupAddress) {
+      await encryptAddress(pickupAddress, {
+        save: {
+          table: 'profiles',
+          target_id: userId,
+          address_type: 'pickup'
+        }
+      });
+    }
 
+    // Encrypt and save shipping address (if different)
+    if (shippingAddress && !addressesAreSame) {
+      await encryptAddress(shippingAddress, {
+        save: {
+          table: 'profiles',
+          target_id: userId,
+          address_type: 'shipping'
+        }
+      });
+    }
+
+    // Also update plaintext addresses for backward compatibility (transition period)
+    const updateData: any = {};
     if (pickupAddress) {
       updateData.pickup_address = pickupAddress;
     }
-
     if (shippingAddress) {
       updateData.shipping_address = shippingAddress;
     }
@@ -87,6 +191,38 @@ export const saveSimpleUserAddresses = async (
     return { success: true };
   } catch (error) {
     console.error("Error saving addresses:", error);
+    throw error;
+  }
+};
+
+// Function to save encrypted shipping address to orders table during checkout
+export const saveOrderShippingAddress = async (
+  orderId: string,
+  shippingAddress: SimpleAddress
+) => {
+  try {
+    // Encrypt and save shipping address to orders table
+    await encryptAddress(shippingAddress, {
+      save: {
+        table: 'orders',
+        target_id: orderId,
+        address_type: 'shipping'
+      }
+    });
+
+    // Also save plaintext for backward compatibility
+    const { error } = await supabase
+      .from("orders")
+      .update({ shipping_address: shippingAddress })
+      .eq("id", orderId);
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error saving order shipping address:", error);
     throw error;
   }
 };
