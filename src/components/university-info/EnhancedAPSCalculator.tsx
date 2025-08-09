@@ -554,20 +554,20 @@ const EnhancedAPSCalculator: React.FC = () => {
           discover which university programs you qualify for across all 26 South
           African universities
         </p>
-        {hasValidProfile && (
+        {(hasValidProfile || hasProfile || subjects.length > 0) && (
           <div className="flex flex-col items-center gap-2 pt-2">
             <div className="text-sm text-green-600 flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
-              Your APS profile is saved and will persist between sessions
+              💾 Your APS profile is saved in localStorage (persistent storage)
             </div>
             <Button
-              variant="outline"
               size="sm"
+              variant="outline"
               onClick={handleClearAPSProfile}
-              className="text-gray-600 border-gray-300 hover:bg-gray-50"
+              className="text-red-600 border-red-200 hover:bg-red-50"
+              title="Clear APS profile from localStorage (permanent storage)"
             >
-              <X className="w-4 h-4 mr-2" />
-              Clear APS Profile
+              🗑️ Clear Profile
             </Button>
           </div>
         )}
