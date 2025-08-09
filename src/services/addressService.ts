@@ -72,27 +72,37 @@ export const saveUserAddresses = async (
       addressesSame,
     );
 
-    // Encrypt and save pickup address
-    await encryptAddress(pickupAddress, {
-      save: {
-        table: 'profiles',
-        target_id: userId,
-        address_type: 'pickup'
-      }
-    });
-
-    // Encrypt and save shipping address (if different)
-    if (!addressesSame) {
-      await encryptAddress(shippingAddress, {
+    // Try to encrypt and save pickup address (non-blocking)
+    try {
+      await encryptAddress(pickupAddress, {
         save: {
           table: 'profiles',
           target_id: userId,
-          address_type: 'shipping'
+          address_type: 'pickup'
         }
       });
+      console.log("✅ Pickup address encrypted successfully");
+    } catch (encryptError) {
+      console.warn("⚠️ Pickup address encryption failed, continuing with plaintext only");
     }
 
-    // Update addresses_same flag and keep legacy plaintext for now (transition period)
+    // Try to encrypt and save shipping address (if different, non-blocking)
+    if (!addressesSame) {
+      try {
+        await encryptAddress(shippingAddress, {
+          save: {
+            table: 'profiles',
+            target_id: userId,
+            address_type: 'shipping'
+          }
+        });
+        console.log("✅ Shipping address encrypted successfully");
+      } catch (encryptError) {
+        console.warn("⚠️ Shipping address encryption failed, continuing with plaintext only");
+      }
+    }
+
+    // Update addresses_same flag and keep legacy plaintext (always save plaintext)
     const { error } = await supabase
       .from("profiles")
       .update({
