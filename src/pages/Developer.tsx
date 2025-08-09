@@ -1266,6 +1266,7 @@ const Developer = () => {
     
     const allTests = [
       { name: 'Health Check', func: testHealthTest },
+      { name: 'Address Decryption Test', func: testAddressDecryption },
       { name: 'Create Order', func: testCreateOrder },
       { name: 'Process Book Purchase', func: testProcessBookPurchase },
       { name: 'Process Multi-Seller Purchase', func: testProcessMultiSellerPurchase },
@@ -1732,7 +1733,7 @@ const Developer = () => {
                         try {
                           const { lockerService } = await import('@/services/lockerService');
                           console.log('🧪 Testing real PUDO API directly...');
-                          toast.info('��� Testing real PUDO API format...');
+                          toast.info('🧪 Testing real PUDO API format...');
 
                           const result = await lockerService.testRealPudoApi();
 
