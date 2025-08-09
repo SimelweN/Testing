@@ -181,6 +181,12 @@ const ActivityLog = () => {
             Saved
           </Badge>
         );
+      case "banking_updated":
+        return (
+          <Badge variant="secondary" className="bg-orange-50 text-orange-700 border-orange-200">
+            Updated
+          </Badge>
+        );
       default:
         return null;
     }
