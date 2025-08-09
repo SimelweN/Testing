@@ -315,11 +315,24 @@ const EnhancedAPSCalculator: React.FC = () => {
     toast.success("Subject added and saved");
   }, [selectedSubject, selectedMarks, subjects, updateSubjectsWithStorage]);
 
-  // Remove subject function
-  const removeSubject = useCallback((index: number) => {
-    setSubjects((prev) => prev.filter((_, i) => i !== index));
+  // Remove subject function with auto-save
+  const removeSubject = useCallback(async (index: number) => {
+    const newSubjects = subjects.filter((_, i) => i !== index);
+    setSubjects(newSubjects);
+
+    // Auto-save the updated subjects list
+    if (newSubjects.length > 0) {
+      const apsSubjects: APSSubject[] = newSubjects.map((subject) => ({
+        name: subject.name,
+        marks: subject.marks,
+        level: subject.level,
+        points: subject.points,
+      }));
+      await updateSubjectsWithStorage(apsSubjects);
+    }
+
     toast.success("Subject removed");
-  }, []);
+  }, [subjects, updateSubjectsWithStorage]);
 
   // Clear all subjects function with complete reset
   const clearAllSubjects = useCallback(() => {
