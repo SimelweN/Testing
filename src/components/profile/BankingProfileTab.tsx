@@ -58,6 +58,12 @@ const BankingProfileTab = () => {
     navigate("/banking-setup");
   };
 
+  const handleUpdateSuccess = () => {
+    setShowUpdateDialog(false);
+    refreshBankingDetails();
+    toast.success("Banking details updated successfully!");
+  };
+
   const handleDecryptAndView = async () => {
     setIsDecrypting(true);
     try {
