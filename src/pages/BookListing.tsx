@@ -242,6 +242,29 @@ const BookListing = () => {
     }
   };
 
+  const handleDebugBooks = async () => {
+    console.log("🔍 Running book debug analysis...");
+    const result = await debugBookFetching();
+    if (result) {
+      toast.success(`Found ${result.totalBooks} total books, ${result.validBooks} valid books showing`);
+    }
+  };
+
+  const handleFixBooks = async () => {
+    if (!window.confirm("This will add default addresses to sellers missing pickup addresses. Continue?")) {
+      return;
+    }
+    console.log("🔧 Fixing books with missing addresses...");
+    const fixedCount = await fixBooksWithMissingAddresses();
+    if (fixedCount > 0) {
+      toast.success(`Fixed ${fixedCount} books with missing addresses`);
+      // Reload books after fixing
+      loadBooks();
+    } else {
+      toast.info("No books needed fixing");
+    }
+  };
+
   return (
     <Layout>
       <SEO
