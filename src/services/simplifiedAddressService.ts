@@ -40,14 +40,14 @@ const encryptAddress = async (address: SimpleAddress, options?: { save?: { table
     });
 
     if (error) {
-      console.error("Error encrypting address:", error);
-      throw new Error(`Encryption failed: ${error.message}`);
+      console.warn("Encryption not available:", error.message);
+      return null;
     }
 
     return data;
   } catch (error) {
-    console.error("Error in encryptAddress:", error);
-    throw error;
+    console.warn("Encryption service unavailable:", error instanceof Error ? error.message : String(error));
+    return null;
   }
 };
 
