@@ -1589,7 +1589,7 @@ const Developer = () => {
                       </SelectTrigger>
                       <SelectContent>
                         {books && books.length > 0 ? books.filter(book => book && book.id && typeof book.id === 'string').map(book => (
-                          <SelectItem key={book.id} value={book.id}>
+                          <SelectItem key={book.id || 'unknown'} value={book.id || 'unknown'}>
                             {book.title} - R{book.price} ({book.seller_name})
                           </SelectItem>
                         )) : (
