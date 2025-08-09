@@ -150,7 +150,9 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
           }
         }
 
+        console.log("🚀 BookQueries: Executing database query...");
         const { data: booksData, error: booksError } = await query;
+        console.log("📬 BookQueries: Query result - data:", booksData?.length || 0, "error:", booksError?.message || "none");
 
         if (booksError) {
           // Log error with proper formatting to prevent [object Object]
