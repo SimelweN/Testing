@@ -290,6 +290,36 @@ export function createAPSBackup(): boolean {
   }
 }
 
+// 🗑️ SIMPLE CLEAR FUNCTION - Returns boolean for compatibility
+export function clearAPSProfileSimple(): boolean {
+  try {
+    console.log("🗑️ [APSPersistence] Starting simple APS profile clear");
+
+    // Clear localStorage and sessionStorage
+    localStorage.removeItem(APS_STORAGE_KEY);
+    localStorage.removeItem(APS_BACKUP_KEY);
+    localStorage.removeItem("apsSearchResults");
+    localStorage.removeItem("reBooked-aps-profile");
+    localStorage.removeItem("reBooked-aps-search-results");
+    localStorage.removeItem("rebookedMarketplace-aps-profile");
+    sessionStorage.removeItem(APS_STORAGE_KEY);
+    sessionStorage.removeItem("apsSearchResults");
+
+    // Verify the clear worked
+    const afterClear = localStorage.getItem(APS_STORAGE_KEY);
+    const success = afterClear === null;
+
+    // Trigger global clear event
+    window.dispatchEvent(new CustomEvent("apsProfileCleared"));
+    console.log("🗑️ [APSPersistence] Simple clear completed:", success ? "SUCCESS" : "FAILED");
+
+    return success;
+  } catch (error) {
+    console.error("❌ [APSPersistence] Simple clear failed:", error);
+    return false;
+  }
+}
+
 // 🔄 RESTORE FROM BACKUP
 export function restoreAPSBackup(): UserAPSProfile | null {
   try {
