@@ -634,6 +634,26 @@ const BankingProfileTab = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Setup Banking Details Dialog */}
+      <Dialog open={showSetupDialog} onOpenChange={handleCancelSetup}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Set Up Banking Details
+            </DialogTitle>
+            <DialogDescription>
+              Add your banking information to start selling books and receive payments securely.
+              All information is encrypted and stored safely.
+            </DialogDescription>
+          </DialogHeader>
+          <BankingForm
+            onSuccess={handleSetupSuccess}
+            onCancel={handleCancelSetup}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
