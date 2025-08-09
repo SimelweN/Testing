@@ -1361,7 +1361,7 @@ const Developer = () => {
         throw new Error("Please log in to test address decryption");
       }
 
-      console.log("🔐 Testing address decryption for user:", user.id);
+      console.log("🔐 Testing address decryption for user:", user?.id);
 
       // Test getting seller delivery address (this will try encrypted first, then fallback)
       const startTime = Date.now();
