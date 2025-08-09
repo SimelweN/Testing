@@ -241,7 +241,19 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         error: errorMessage,
         loading: false,
       }));
-      toast.error(errorMessage);
+
+      // If this is the seller's own book, offer to go to profile
+      if (user?.id === bookData.seller_id) {
+        toast.error(errorMessage, {
+          description: "Click here to update your pickup address",
+          action: {
+            label: "Go to Profile",
+            onClick: () => navigate("/profile")
+          }
+        });
+      } else {
+        toast.error(errorMessage);
+      }
     }
   };
 
