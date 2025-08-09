@@ -153,12 +153,19 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
         console.log("📚 Book verification:", { bookCheck, bookError });
 
-        // Then check the profile
-        const { data: profile, error: profileError } = await supabase
+        // Then check the profile (without .single() to avoid PGRST116 error)
+        const { data: profiles, error: profileError } = await supabase
           .from("profiles")
           .select("id, pickup_address, pickup_address_encrypted, name, email")
-          .eq("id", bookData.seller_id)
-          .single();
+          .eq("id", bookData.seller_id);
+
+        const profile = profiles && profiles.length > 0 ? profiles[0] : null;
+        console.log("📊 Profile query result:", {
+          profiles,
+          profileError,
+          profile_count: profiles?.length || 0,
+          first_profile: profile
+        });
 
         console.log("📊 Direct database check:", { profile, profileError });
 
