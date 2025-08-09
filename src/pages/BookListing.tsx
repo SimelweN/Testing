@@ -276,6 +276,16 @@ const BookListing = () => {
     }
   };
 
+  const handleEmergencyTest = async () => {
+    console.log("🆘 Running emergency book database test...");
+    const result = await emergencyBookTest();
+    if (result.success) {
+      toast.success(`Emergency test complete! Found ${result.totalBooks} total books, ${result.availableBooks} available`);
+    } else {
+      toast.error(`Emergency test failed: ${result.error}`);
+    }
+  };
+
   return (
     <Layout>
       <SEO
