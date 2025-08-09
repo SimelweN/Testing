@@ -1201,7 +1201,69 @@ const Developer = () => {
     await callEdgeFunction('health-test', payload);
   };
 
-  // 8. ADDRESS DECRYPTION TEST
+  // 8. DATA INTEGRITY CHECKS
+  const testDataIntegrity = async () => {
+    try {
+      console.log("🔍 Checking for data integrity issues...");
+
+      // Find books with missing seller profiles
+      const { data: books, error: booksError } = await supabase
+        .from("books")
+        .select("id, title, seller_id")
+        .limit(100);
+
+      if (booksError) throw booksError;
+
+      const orphanedBooks = [];
+
+      for (const book of books || []) {
+        const { data: profiles, error } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", book.seller_id);
+
+        if (!error && (!profiles || profiles.length === 0)) {
+          orphanedBooks.push(book);
+        }
+      }
+
+      const result = {
+        total_books_checked: books?.length || 0,
+        orphaned_books: orphanedBooks.length,
+        orphaned_details: orphanedBooks
+      };
+
+      console.log("📊 Data integrity check result:", result);
+
+      setTestResults(prev => [...prev, {
+        function: 'Data Integrity Check',
+        status: orphanedBooks.length > 0 ? 'error' : 'success',
+        response: result,
+        error: orphanedBooks.length > 0 ? `Found ${orphanedBooks.length} books with missing seller profiles` : undefined,
+        duration: 0
+      }]);
+
+      if (orphanedBooks.length > 0) {
+        toast.error(`Found ${orphanedBooks.length} books with missing seller profiles!`, {
+          description: "Check console for details. These books need admin attention."
+        });
+      } else {
+        toast.success("No data integrity issues found!");
+      }
+
+    } catch (error) {
+      console.error("❌ Data integrity check failed:", error);
+      setTestResults(prev => [...prev, {
+        function: 'Data Integrity Check',
+        status: 'error',
+        error: error instanceof Error ? error.message : String(error),
+        duration: 0
+      }]);
+      toast.error("Data integrity check failed: " + (error instanceof Error ? error.message : String(error)));
+    }
+  };
+
+  // 9. ADDRESS DECRYPTION TEST
   const testAddressDecryption = async () => {
     try {
       // Import the address service
