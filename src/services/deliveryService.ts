@@ -71,7 +71,7 @@ export const createDeliveryBooking = async (
 ) => {
   try {
     console.log("Creating delivery booking:", { quote, fromAddress, toAddress, packageDetails });
-    
+
     const { data, error } = await supabase.functions.invoke('create-delivery-booking', {
       body: {
         quote,
@@ -90,6 +90,53 @@ export const createDeliveryBooking = async (
     return data;
   } catch (error) {
     console.error("Error in createDeliveryBooking:", error);
+    throw error;
+  }
+};
+
+// Get delivery quotes using encrypted addresses from order and book
+export const getDeliveryQuotesForOrder = async (
+  orderId: string,
+  bookId: string,
+  weight: number = 1
+): Promise<DeliveryQuote[]> => {
+  try {
+    console.log("Getting delivery quotes for order using encrypted addresses:", { orderId, bookId, weight });
+
+    // Get encrypted addresses
+    const [pickupAddress, shippingAddress] = await Promise.all([
+      getBookPickupAddress(bookId),
+      getOrderShippingAddress(orderId)
+    ]);
+
+    if (!pickupAddress) {
+      throw new Error("Pickup address not found for book");
+    }
+
+    if (!shippingAddress) {
+      throw new Error("Shipping address not found for order");
+    }
+
+    // Convert to DeliveryAddress format
+    const fromAddress: DeliveryAddress = {
+      streetAddress: pickupAddress.streetAddress || pickupAddress.street || '',
+      suburb: pickupAddress.suburb || pickupAddress.city || '',
+      city: pickupAddress.city || pickupAddress.suburb || '',
+      province: pickupAddress.province || '',
+      postalCode: pickupAddress.postalCode || ''
+    };
+
+    const toAddress: DeliveryAddress = {
+      streetAddress: shippingAddress.streetAddress || shippingAddress.street || '',
+      suburb: shippingAddress.suburb || shippingAddress.city || '',
+      city: shippingAddress.city || shippingAddress.suburb || '',
+      province: shippingAddress.province || '',
+      postalCode: shippingAddress.postalCode || ''
+    };
+
+    return getDeliveryQuotes(fromAddress, toAddress, weight);
+  } catch (error) {
+    console.error("Error in getDeliveryQuotesForOrder:", error);
     throw error;
   }
 };
