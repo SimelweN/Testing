@@ -44,7 +44,93 @@ serve(async (req) => {
     if (!bodyResult.success) {
       return bodyResult.errorResponse!;
     }
-    const { fromAddress, toAddress, weight } = bodyResult.data;
+    let { fromAddress, toAddress, weight, fromBookId, toOrderId, fromSellerId, useEncryption } = bodyResult.data;
+
+    // If encryption is enabled and IDs are provided, decrypt addresses
+    if (useEncryption && (fromBookId || toOrderId || fromSellerId)) {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } },
+      });
+
+      try {
+        // Decrypt pickup address
+        if (fromBookId && !fromAddress) {
+          const { data, error } = await supabase.functions.invoke('decrypt-address', {
+            body: {
+              fetch: {
+                table: 'books',
+                target_id: fromBookId,
+                address_type: 'pickup'
+              }
+            }
+          });
+
+          if (!error && data?.success && data?.data) {
+            const decryptedAddress = data.data;
+            fromAddress = {
+              streetAddress: decryptedAddress.streetAddress || decryptedAddress.street || '',
+              suburb: decryptedAddress.suburb || decryptedAddress.city || '',
+              city: decryptedAddress.city || decryptedAddress.suburb || '',
+              province: decryptedAddress.province || '',
+              postalCode: decryptedAddress.postalCode || ''
+            };
+          }
+        }
+
+        // Alternative: decrypt from seller profile
+        if (fromSellerId && !fromAddress) {
+          const { data, error } = await supabase.functions.invoke('decrypt-address', {
+            body: {
+              fetch: {
+                table: 'profiles',
+                target_id: fromSellerId,
+                address_type: 'pickup'
+              }
+            }
+          });
+
+          if (!error && data?.success && data?.data) {
+            const decryptedAddress = data.data;
+            fromAddress = {
+              streetAddress: decryptedAddress.streetAddress || decryptedAddress.street || '',
+              suburb: decryptedAddress.suburb || decryptedAddress.city || '',
+              city: decryptedAddress.city || decryptedAddress.suburb || '',
+              province: decryptedAddress.province || '',
+              postalCode: decryptedAddress.postalCode || ''
+            };
+          }
+        }
+
+        // Decrypt shipping address
+        if (toOrderId && !toAddress) {
+          const { data, error } = await supabase.functions.invoke('decrypt-address', {
+            body: {
+              fetch: {
+                table: 'orders',
+                target_id: toOrderId,
+                address_type: 'shipping'
+              }
+            }
+          });
+
+          if (!error && data?.success && data?.data) {
+            const decryptedAddress = data.data;
+            toAddress = {
+              streetAddress: decryptedAddress.streetAddress || decryptedAddress.street || '',
+              suburb: decryptedAddress.suburb || decryptedAddress.city || '',
+              city: decryptedAddress.city || decryptedAddress.suburb || '',
+              province: decryptedAddress.province || '',
+              postalCode: decryptedAddress.postalCode || ''
+            };
+          }
+        }
+      } catch (decryptError) {
+        console.error("Error decrypting addresses:", decryptError);
+        // Continue with provided addresses or fallback
+      }
+    }
 
     // Enhanced validation with specific error messages
     const validationErrors = [];
