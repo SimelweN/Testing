@@ -147,6 +147,8 @@ const ActivityLog = () => {
         return <User className="h-4 w-4 text-purple-500" />;
       case "login":
         return <LogIn className="h-4 w-4 text-teal-600" />;
+      case "banking_updated":
+        return <CreditCard className="h-4 w-4 text-orange-600" />;
       default:
         return <ActivityIcon className="h-4 w-4 text-slate-500" />;
     }
