@@ -269,8 +269,8 @@ const EnhancedAPSCalculator: React.FC = () => {
     setValidationWarnings(warningMessages);
   }, [apsCalculation.validationResult]);
 
-  // Add subject function
-  const addSubject = useCallback(() => {
+  // Add subject function with auto-save
+  const addSubject = useCallback(async () => {
     if (!selectedSubject || !selectedMarks) {
       toast.error("Please select a subject and enter marks");
       return;
@@ -298,11 +298,22 @@ const EnhancedAPSCalculator: React.FC = () => {
       ),
     };
 
-    setSubjects((prev) => [...prev, newSubject]);
+    const newSubjects = [...subjects, newSubject];
+    setSubjects(newSubjects);
     setSelectedSubject("");
     setSelectedMarks("");
-    toast.success("Subject added successfully");
-  }, [selectedSubject, selectedMarks, subjects]);
+
+    // Auto-save to localStorage immediately
+    const apsSubjects: APSSubject[] = newSubjects.map((subject) => ({
+      name: subject.name,
+      marks: subject.marks,
+      level: subject.level,
+      points: subject.points,
+    }));
+    await updateSubjectsWithStorage(apsSubjects);
+
+    toast.success("Subject added and saved");
+  }, [selectedSubject, selectedMarks, subjects, updateSubjectsWithStorage]);
 
   // Remove subject function
   const removeSubject = useCallback((index: number) => {
