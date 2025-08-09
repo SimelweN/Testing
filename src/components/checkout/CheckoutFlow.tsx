@@ -124,13 +124,35 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
       // Get seller address using the proper service that handles encryption
       console.log("🔐 Fetching seller pickup address (checking encrypted first)...");
+      console.log("Seller ID:", bookData.seller_id);
+
       const sellerAddress = await getSellerDeliveryAddress(bookData.seller_id);
 
+      console.log("🔍 Raw seller address result:", sellerAddress);
+
       if (!sellerAddress) {
+        // Let's check what's in the database directly for debugging
+        console.log("❌ getSellerDeliveryAddress returned null, checking database directly...");
+
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("pickup_address, pickup_address_encrypted")
+          .eq("id", bookData.seller_id)
+          .single();
+
+        console.log("📊 Direct database check:", { profile, profileError });
+
         throw new Error(
-          "Seller address is incomplete. The seller needs to update their pickup address.",
+          `Seller address not found. Debug info: seller_id=${bookData.seller_id}, has_profile=${!!profile}, has_pickup=${!!profile?.pickup_address}, has_encrypted=${!!profile?.pickup_address_encrypted}`,
         );
       }
+
+      console.log("✅ Seller address retrieved:", {
+        street: sellerAddress.street,
+        city: sellerAddress.city,
+        province: sellerAddress.province,
+        postal_code: sellerAddress.postal_code
+      });
 
       if (
         !sellerAddress.street ||
@@ -139,7 +161,12 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         !sellerAddress.postal_code
       ) {
         throw new Error(
-          "Seller address is incomplete. The seller needs to update their pickup address.",
+          `Seller address is incomplete. Missing fields: ${[
+            !sellerAddress.street && 'street',
+            !sellerAddress.city && 'city',
+            !sellerAddress.province && 'province',
+            !sellerAddress.postal_code && 'postal_code'
+          ].filter(Boolean).join(', ')}. Raw address: ${JSON.stringify(sellerAddress)}`,
         );
       }
 
