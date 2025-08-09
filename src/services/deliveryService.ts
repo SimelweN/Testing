@@ -1,5 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
+import { getBookPickupAddress, getOrderShippingAddress } from "./addressService";
 
 export interface DeliveryQuote {
   courier: 'fastway' | 'courier-guy';
