@@ -208,12 +208,18 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
       return [];
     }
 
-    // Filter books by seller pickup address validity
+    // Filter books by seller pickup address validity - TEMPORARILY RELAXED
     const validBooks = booksData.filter((book) => {
       const sellerProfile = book.seller_profile;
-      if (!sellerProfile?.pickup_address) {
-        console.log(`🚫 Filtering out book "${book.title}" - seller has no pickup address`);
+      if (!sellerProfile) {
+        console.log(`🚫 Filtering out book "${book.title}" - no seller profile found`);
         return false;
+      }
+
+      // TEMPORARILY: Allow books without pickup addresses to show
+      if (!sellerProfile?.pickup_address) {
+        console.log(`⚠️ Showing book "${book.title}" despite missing pickup address`);
+        return true; // Changed from false to true
       }
 
       const pickupAddr = sellerProfile.pickup_address;
@@ -230,8 +236,8 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
       );
 
       if (!isValidAddress) {
-        console.log(`🚫 Filtering out book "${book.title}" - seller has incomplete pickup address`);
-        return false;
+        console.log(`⚠️ Showing book "${book.title}" despite incomplete pickup address`);
+        return true; // Changed from false to true
       }
 
       return true;
