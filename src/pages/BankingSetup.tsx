@@ -33,6 +33,7 @@ const BankingSetup: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [useNewForm, setUseNewForm] = useState(false);
   const [isPasswordVerified, setIsPasswordVerified] = useState(false);
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
 
 
   useEffect(() => {
