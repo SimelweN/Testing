@@ -96,7 +96,7 @@ const logDetailedError = (context: string, error: unknown) => {
 
 export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
   try {
-    console.log("Fetching books with filters:", filters);
+    console.log("🔍 BookQueries: Fetching books with filters:", filters);
 
         const fetchBooksOperation = async (retryCount = 0): Promise<any[]> => {
       try {
