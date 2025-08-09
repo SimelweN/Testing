@@ -140,7 +140,7 @@ const NotificationsNew = () => {
       description: "Get started with buying and selling textbooks",
       icon: <Gift className="h-5 w-5" />,
       color: "purple",
-      enabled: true,
+      enabled: false,
       notifications: [
         {
           id: "welcome-1",
