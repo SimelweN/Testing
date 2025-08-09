@@ -349,6 +349,10 @@ export class ActivityService {
         return "login";
       case "profile":
       case "profile_updated":
+        return "profile_updated";
+      case "banking":
+      case "banking_updated":
+        return "banking_updated";
       default:
         return "profile_updated";
     }
