@@ -100,7 +100,9 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
 
         const fetchBooksOperation = async (retryCount = 0): Promise<any[]> => {
       try {
-        // Get books with seller profile to check pickup address
+        console.log("📊 BookQueries: Starting database query...");
+
+        // SIMPLIFIED QUERY: Get ALL books first to debug
         let query = supabase
           .from("books")
           .select(`
@@ -112,6 +114,8 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
           `)
           .eq("sold", false)  // Only show available books
           .order("created_at", { ascending: false });
+
+        console.log("📋 BookQueries: Basic query constructed, applying filters...");
 
         // Apply filters if provided
         if (filters) {
