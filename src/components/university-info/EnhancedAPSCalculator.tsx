@@ -234,6 +234,36 @@ const EnhancedAPSCalculator: React.FC = () => {
     }
   }, [apsCalculation.fullCalculation]);
 
+  // Auto-save before navigation or page unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (subjects.length > 0) {
+        try {
+          const profile = {
+            subjects: subjects.map((s) => ({
+              name: s.name,
+              marks: s.marks,
+              level: s.level,
+              points: s.points,
+            })),
+            totalAPS: apsCalculation.totalAPS || 0,
+            lastUpdated: new Date().toISOString(),
+            isValid: apsCalculation.isCalculationValid,
+          };
+          localStorage.setItem("userAPSProfile", JSON.stringify(profile));
+          console.log("💾 [APS] Auto-saved before navigation");
+        } catch (error) {
+          console.warn("⚠️ Failed to save APS profile before navigation:", error);
+        }
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [subjects, apsCalculation]);
+
   // Listen for global APS profile clearing event
   useEffect(() => {
     const handleAPSProfileCleared = () => {
@@ -269,8 +299,8 @@ const EnhancedAPSCalculator: React.FC = () => {
     setValidationWarnings(warningMessages);
   }, [apsCalculation.validationResult]);
 
-  // Add subject function
-  const addSubject = useCallback(() => {
+  // Add subject function with auto-save
+  const addSubject = useCallback(async () => {
     if (!selectedSubject || !selectedMarks) {
       toast.error("Please select a subject and enter marks");
       return;
@@ -298,17 +328,41 @@ const EnhancedAPSCalculator: React.FC = () => {
       ),
     };
 
-    setSubjects((prev) => [...prev, newSubject]);
+    const newSubjects = [...subjects, newSubject];
+    setSubjects(newSubjects);
     setSelectedSubject("");
     setSelectedMarks("");
-    toast.success("Subject added successfully");
-  }, [selectedSubject, selectedMarks, subjects]);
 
-  // Remove subject function
-  const removeSubject = useCallback((index: number) => {
-    setSubjects((prev) => prev.filter((_, i) => i !== index));
+    // Auto-save to localStorage immediately
+    const apsSubjects: APSSubject[] = newSubjects.map((subject) => ({
+      name: subject.name,
+      marks: subject.marks,
+      level: subject.level,
+      points: subject.points,
+    }));
+    await updateSubjectsWithStorage(apsSubjects);
+
+    toast.success("Subject added and saved");
+  }, [selectedSubject, selectedMarks, subjects, updateSubjectsWithStorage]);
+
+  // Remove subject function with auto-save
+  const removeSubject = useCallback(async (index: number) => {
+    const newSubjects = subjects.filter((_, i) => i !== index);
+    setSubjects(newSubjects);
+
+    // Auto-save the updated subjects list
+    if (newSubjects.length > 0) {
+      const apsSubjects: APSSubject[] = newSubjects.map((subject) => ({
+        name: subject.name,
+        marks: subject.marks,
+        level: subject.level,
+        points: subject.points,
+      }));
+      await updateSubjectsWithStorage(apsSubjects);
+    }
+
     toast.success("Subject removed");
-  }, []);
+  }, [subjects, updateSubjectsWithStorage]);
 
   // Clear all subjects function with complete reset
   const clearAllSubjects = useCallback(() => {
@@ -323,18 +377,18 @@ const EnhancedAPSCalculator: React.FC = () => {
     toast.success("All data cleared");
   }, [clearError]);
 
-  // 🔴 CLEAR APS PROFILE - Enhanced localStorage implementation
+  // 🔴 CLEAR APS PROFILE - Manual clear only (user button click)
   const handleClearAPSProfile = useCallback(async () => {
     try {
-      console.log("🗑️ Starting APS profile clear process...");
+      console.log("🗑️ [Manual Clear] Starting APS profile clear process...");
 
       // Step 1: Clear enhanced storage system
       const enhancedSuccess = await clearAPSProfileEnhanced();
-      console.log("🗑️ Enhanced storage cleared:", enhancedSuccess);
+      console.log("🗑️ [Manual Clear] Enhanced storage cleared:", enhancedSuccess);
 
       // Step 2: Clear legacy storage system
-      clearAPSProfile();
-      console.log("🗑️ Legacy storage cleared");
+      const legacySuccess = await clearAPSProfile();
+      console.log("🗑️ [Manual Clear] Legacy storage cleared:", legacySuccess);
 
       // Step 3: Force clear any remaining localStorage keys
       localStorage.removeItem("userAPSProfile");
@@ -364,17 +418,17 @@ const EnhancedAPSCalculator: React.FC = () => {
 
       // Step 7: Verify the clear was successful
       const verification = localStorage.getItem("userAPSProfile");
-      console.log("🗑️ Clear verification - localStorage check:", verification === null ? "SUCCESS" : "FAILED");
+      console.log("🗑️ [Manual Clear] Verification - localStorage:", verification === null ? "SUCCESS" : "FAILED");
 
       if (verification === null) {
-        toast.success("🗑️ APS profile cleared successfully");
+        toast.success("🗑️ APS profile cleared from all storage locations");
       } else {
-        console.error("❌ localStorage clear failed - data still exists");
+        console.error("❌ [Manual Clear] localStorage clear failed - data still exists");
         toast.error("Failed to completely clear APS profile");
       }
 
     } catch (error) {
-      console.error("❌ Error clearing APS profile:", error);
+      console.error("❌ [Manual Clear] Error clearing APS profile:", error);
       toast.error("Error clearing APS profile");
     }
   }, [clearAPSProfileEnhanced, clearAPSProfile, clearError, clearStorageError]);
@@ -500,20 +554,20 @@ const EnhancedAPSCalculator: React.FC = () => {
           discover which university programs you qualify for across all 26 South
           African universities
         </p>
-        {hasValidProfile && (
+        {(hasValidProfile || hasProfile || subjects.length > 0) && (
           <div className="flex flex-col items-center gap-2 pt-2">
             <div className="text-sm text-green-600 flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
-              Your APS profile is saved and will persist between sessions
+              💾 Your APS profile is saved in localStorage (persistent storage)
             </div>
             <Button
-              variant="outline"
               size="sm"
+              variant="outline"
               onClick={handleClearAPSProfile}
-              className="text-gray-600 border-gray-300 hover:bg-gray-50"
+              className="text-red-600 border-red-200 hover:bg-red-50"
+              title="Clear APS profile from localStorage (permanent storage)"
             >
-              <X className="w-4 h-4 mr-2" />
-              Clear APS Profile
+              🗑️ Clear Profile
             </Button>
           </div>
         )}
@@ -660,15 +714,15 @@ const EnhancedAPSCalculator: React.FC = () => {
               </div>
 
               {/* 💾 Storage Status Indicator */}
-              {(hasProfile || enhancedProfile) && (
+              {(hasProfile || enhancedProfile || subjects.length > 0) && (
                 <Alert className="border-green-200 bg-green-50">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-green-800">
-                    💾 APS Profile saved to localStorage (persistent storage)
-                    {enhancedProfile?.lastUpdated && (
+                    💾 APS Profile auto-saved to localStorage (persistent until manually cleared)
+                    {(enhancedProfile?.lastUpdated || userProfile?.lastUpdated) && (
                       <span className="ml-2 text-sm opacity-75">
                         Last updated:{" "}
-                        {new Date(enhancedProfile.lastUpdated).toLocaleString()}
+                        {new Date((enhancedProfile?.lastUpdated || userProfile?.lastUpdated || new Date().toISOString())).toLocaleString()}
                       </span>
                     )}
                   </AlertDescription>
@@ -692,7 +746,7 @@ const EnhancedAPSCalculator: React.FC = () => {
                       >
                         Clear All
                       </Button>
-                      {(hasValidProfile || hasProfile) && (
+                      {(hasValidProfile || hasProfile || subjects.length > 0) && (
                         <Button
                           size="sm"
                           variant="outline"
@@ -700,7 +754,7 @@ const EnhancedAPSCalculator: React.FC = () => {
                           className="text-red-600 border-red-200 hover:bg-red-50"
                           title="Clear APS profile from localStorage (permanent storage)"
                         >
-                          🗑️ Clear APS Profile
+                          🗑️ Clear Profile
                         </Button>
                       )}
                     </div>

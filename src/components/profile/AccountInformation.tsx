@@ -104,15 +104,6 @@ const AccountInformation = ({
             </div>
           </div>
 
-          <div className="mt-6 pt-6 border-t">
-            <Button
-              onClick={() => setIsEditDialogOpen(true)}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Profile Information
-            </Button>
-          </div>
         </CardContent>
       </Card>
 

@@ -31,14 +31,24 @@ export interface APSAwareState {
   lastSearchResults: CoursesForUniversityResult | null;
 }
 
-// Custom hook for localStorage (persistent storage)
+// Enhanced localStorage hook with persistence protection
 function useLocalStorage<T>(key: string, initialValue: T) {
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
+      console.log(`📦 [useLocalStorage] Loading from key: ${key}`);
       const item = localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
+      console.log(`📦 [useLocalStorage] Raw stored data:`, item);
+
+      if (item) {
+        const parsed = JSON.parse(item);
+        console.log(`✅ [useLocalStorage] Parsed data for ${key}:`, parsed);
+        return parsed;
+      } else {
+        console.log(`ℹ️ [useLocalStorage] No data found for ${key}, using initial value`);
+        return initialValue;
+      }
     } catch (error) {
-      console.warn(`Error reading localStorage key "${key}":`, error);
+      console.warn(`❌ [useLocalStorage] Error reading localStorage key "${key}":`, error);
       return initialValue;
     }
   });
@@ -51,12 +61,18 @@ function useLocalStorage<T>(key: string, initialValue: T) {
         setStoredValue(valueToStore);
 
         if (valueToStore === null || valueToStore === undefined) {
+          console.log(`🗑️ [useLocalStorage] Removing key: ${key}`);
           localStorage.removeItem(key);
         } else {
+          console.log(`💾 [useLocalStorage] Saving to key: ${key}`, valueToStore);
           localStorage.setItem(key, JSON.stringify(valueToStore));
+
+          // Verify save
+          const verification = localStorage.getItem(key);
+          console.log(`🔍 [useLocalStorage] Save verification:`, !!verification);
         }
       } catch (error) {
-        console.warn(`Error setting localStorage key "${key}":`, error);
+        console.warn(`❌ [useLocalStorage] Error setting localStorage key "${key}":`, error);
       }
     },
     [key, storedValue],
@@ -72,19 +88,37 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
     null,
   );
 
-  // Debug logging to verify persistence
-  useEffect(() => {
-    const stored = localStorage.getItem("userAPSProfile");
-    console.log("🔍 [APS Debug] Initial load check:", {
-      hasStoredData: !!stored,
-      userProfile: !!userProfile,
-      storedLength: stored?.length || 0
-    });
+  // Load profile from localStorage on mount - Enhanced with debugging
+  const loadProfile = useCallback(() => {
+    try {
+      console.log("📦 [APS Debug] Loading APS profile from localStorage...");
+      console.log("📦 [APS Debug] All localStorage keys:", Object.keys(localStorage));
+      const stored = localStorage.getItem("userAPSProfile");
+      console.log("📦 [APS Debug] Raw stored data:", stored);
 
-    if (stored && !userProfile) {
-      console.warn("⚠️ [APS Debug] LocalStorage has data but hook doesn't - potential sync issue");
+      if (stored) {
+        const profile = JSON.parse(stored);
+        console.log("✅ [APS Debug] APS Profile loaded from localStorage:", profile);
+        console.log("✅ [APS Debug] Profile has subjects:", profile.subjects?.length || 0);
+        setUserProfile(profile);
+        return profile;
+      } else {
+        console.log("ℹ️ [APS Debug] No APS profile found in localStorage");
+        setUserProfile(null);
+        return null;
+      }
+    } catch (error) {
+      console.error("❌ [APS Debug] Failed to load APS profile from localStorage:", error);
+      setUserProfile(null);
+      return null;
     }
-  }, [userProfile]);
+  }, [setUserProfile]);
+
+  // Load profile on component mount
+  useEffect(() => {
+    console.log("🚀 [APS Debug] Component mounted, loading profile...");
+    loadProfile();
+  }, [loadProfile]);
 
   // Component state
   const [isLoading, setIsLoading] = useState(false);
@@ -122,6 +156,41 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
     };
   }, [setUserProfile]);
 
+  // Save profile to localStorage - Enhanced with verification
+  const saveProfile = useCallback(async (profile: UserAPSProfile) => {
+    try {
+      console.log("💾 [APS Debug] Saving APS profile to localStorage:", profile);
+
+      // Add timestamp to ensure we track when it was saved
+      const profileWithTimestamp = {
+        ...profile,
+        lastUpdated: new Date().toISOString(),
+        savedAt: Date.now(),
+      };
+
+      localStorage.setItem(
+        "userAPSProfile",
+        JSON.stringify(profileWithTimestamp),
+      );
+      setUserProfile(profileWithTimestamp);
+
+      // Verify it was actually saved
+      const verification = localStorage.getItem("userAPSProfile");
+      console.log("🔍 [APS Debug] Verification - saved data exists:", !!verification);
+
+      if (verification) {
+        console.log("✅ [APS Debug] APS Profile saved and verified successfully");
+        return true;
+      } else {
+        console.error("❌ [APS Debug] APS Profile save verification failed");
+        return false;
+      }
+    } catch (error) {
+      console.error("❌ [APS Debug] Failed to save APS profile:", error);
+      return false;
+    }
+  }, [setUserProfile]);
+
   /**
    * Update user's APS subjects and recalculate profile
    */
@@ -139,7 +208,8 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
         }
 
         // Calculate total APS
-        const totalAPS = calculateAPS(subjects);
+        const apsResult = calculateAPS(subjects);
+        const totalAPS = apsResult.totalScore || 0;
 
         // Create profile
         const profile: UserAPSProfile = {
@@ -149,19 +219,15 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
           isValid: true,
         };
 
-        // Save to localStorage (persistent storage)
-        setUserProfile(profile);
-
-        // Verify persistence
-        const saved = localStorage.getItem("userAPSProfile");
-        const persisted = !!saved;
+        // Save to localStorage with enhanced verification
+        const saved = await saveProfile(profile);
         console.log("💾 [APS Debug] Profile saved:", {
-          persisted,
+          saved,
           totalAPS: profile.totalAPS,
           subjectCount: profile.subjects.length
         });
 
-        return persisted;
+        return saved;
       } catch (error) {
         console.error("Error updating user subjects:", error);
         setError("Failed to update subjects. Please try again.");
@@ -170,7 +236,7 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
         setIsLoading(false);
       }
     },
-    [setUserProfile],
+    [saveProfile],
   );
 
   /**
@@ -241,33 +307,48 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
     [userProfile],
   );
 
-  /**
-   * Clear user's APS profile
-   */
-  const clearAPSProfile = useCallback(() => {
+  // Clear profile from localStorage - Enhanced with verification
+  const clearProfile = useCallback(async () => {
     try {
+      console.log("🗑️ [APS Debug] Clearing APS profile from localStorage");
+
+      // Clear all APS-related localStorage keys
       localStorage.removeItem("userAPSProfile");
       localStorage.removeItem("apsSearchResults");
-      // Also remove legacy keys for migration
+      localStorage.removeItem("apsProfileBackup");
       localStorage.removeItem("rebookedMarketplace-aps-profile");
       localStorage.removeItem("rebookedMarketplace-aps-search-results");
+      localStorage.removeItem("reBooked-aps-profile");
+      localStorage.removeItem("reBooked-aps-search-results");
+      sessionStorage.removeItem("userAPSProfile");
+      sessionStorage.removeItem("apsSearchResults");
+
+      // Reset component state
       setUserProfile(null);
       setLastSearchResults(null);
       setError(null);
 
-      // Verify clearing worked
-      const stillExists = localStorage.getItem("userAPSProfile");
-      console.log("🗑️ [APS Debug] Profile cleared:", {
-        cleared: !stillExists,
-        wasCleared: stillExists === null
-      });
+      // Verify clear was successful
+      const verification = localStorage.getItem("userAPSProfile");
+      const success = verification === null;
 
       // Trigger global state reset event
       window.dispatchEvent(new CustomEvent("apsProfileCleared"));
+      console.log("✅ [APS Debug] APS Profile cleared:", success ? "SUCCESS" : "FAILED");
+
+      return success;
     } catch (error) {
-      console.error("Error clearing APS profile:", error);
+      console.error("❌ [APS Debug] Failed to clear APS profile:", error);
+      return false;
     }
   }, [setUserProfile]);
+
+  /**
+   * Clear user's APS profile - Only when manually triggered
+   */
+  const clearAPSProfile = useCallback(() => {
+    return clearProfile();
+  }, [clearProfile]);
 
   /**
    * Clear any errors
@@ -295,6 +376,9 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
     checkProgramEligibility,
     clearAPSProfile,
     clearError,
+    saveProfile,
+    loadProfile,
+    clearProfile,
   };
 }
 

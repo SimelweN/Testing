@@ -5,7 +5,8 @@ import { calculateAPS, validateAPSSubjects } from "@/utils/apsCalculation";
 import {
   saveAPSProfile,
   loadAPSProfile,
-  clearAPSProfile,
+  clearAPSProfile as clearAPSProfileAsync,
+  clearAPSProfileSimple,
   createAPSBackup,
   loadAPSProfileFromDatabase,
 } from "@/services/apsPersistenceService";
@@ -200,8 +201,8 @@ export function useEnhancedAPSStorage() {
       console.log("🗑️ [EnhancedAPSStorage] Starting to clear APS profile from localStorage");
       console.log("���️ [DEBUG] Current userProfile state:", userProfile);
 
-      const success = clearAPSProfile();
-      console.log("🗑️ [DEBUG] clearAPSProfile returned:", success);
+      const success = clearAPSProfileSimple();
+      console.log("🗑️ [DEBUG] clearAPSProfileSimple returned:", success);
 
       if (success) {
         setUserProfileState(null);

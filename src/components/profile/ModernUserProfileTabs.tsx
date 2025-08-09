@@ -711,7 +711,6 @@ const ModernUserProfileTabs = ({
         <ProfileEditDialog
           isOpen={isEditDialogOpen}
           onClose={() => setIsEditDialogOpen(false)}
-          currentProfile={profile}
         />
       )}
     </div>
