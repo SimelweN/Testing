@@ -133,21 +133,19 @@ export const getSellerPickupAddress = async (sellerId: string) => {
   try {
     console.log("Fetching pickup address for seller:", sellerId);
 
-    // Try to get encrypted address first
-    try {
-      const decryptedAddress = await decryptAddress({
-        table: 'profiles',
-        target_id: sellerId,
-        address_type: 'pickup'
-      });
+    // Try to get encrypted address first (non-blocking)
+    const decryptedAddress = await decryptAddress({
+      table: 'profiles',
+      target_id: sellerId,
+      address_type: 'pickup'
+    });
 
-      if (decryptedAddress) {
-        console.log("Successfully fetched encrypted seller pickup address");
-        return decryptedAddress;
-      }
-    } catch (error) {
-      console.log("Encrypted address not found or failed to decrypt, falling back to plaintext");
+    if (decryptedAddress) {
+      console.log("✅ Successfully fetched encrypted seller pickup address");
+      return decryptedAddress;
     }
+
+    console.log("ℹ️ No encrypted address found, using plaintext fallback");
 
     // Fallback to plaintext address (during transition period)
     const { data, error } = await supabase
