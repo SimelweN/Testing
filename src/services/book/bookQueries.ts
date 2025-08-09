@@ -275,6 +275,10 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
                 // Show user-friendly message for network issues
                 if (!navigator.onLine) {
                   console.error("📡 Device appears to be offline - check internet connection");
+                  // Could add a toast notification here if needed:
+                  // toast.error("You appear to be offline. Please check your internet connection.");
+                } else {
+                  console.error("🔌 Network request failed despite being online - possible server connectivity issue");
                 }
               }
 
