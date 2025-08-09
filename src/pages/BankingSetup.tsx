@@ -39,6 +39,9 @@ const BankingSetup: React.FC = () => {
   const [useNewForm, setUseNewForm] = useState(false);
   const [isPasswordVerified, setIsPasswordVerified] = useState(false);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [showFullAccount, setShowFullAccount] = useState(false);
+  const [decryptedDetails, setDecryptedDetails] = useState(null);
+  const [isDecrypting, setIsDecrypting] = useState(false);
 
 
   useEffect(() => {
