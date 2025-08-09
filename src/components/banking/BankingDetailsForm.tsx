@@ -30,6 +30,7 @@ import {
 import { toast } from "sonner";
 import { PaystackSubaccountService } from "@/services/paystackSubaccountService";
 import { UserAutofillService } from "@/services/userAutofillService";
+import { ActivityService } from "@/services/activityService";
 
 interface BankInfo {
   name: string;
@@ -293,6 +294,15 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
           : "Banking setup completed successfully! You can now start selling books.";
 
         toast.success(successMessage);
+
+        // Log the banking update activity
+        try {
+          await ActivityService.logBankingUpdate(session.user.id, editMode);
+          console.log("✅ Banking update activity logged");
+        } catch (activityError) {
+          console.warn("⚠️ Failed to log banking update activity:", activityError);
+          // Don't fail the entire operation for activity logging issues
+        }
 
         // 🔗 AUTOMATICALLY LINK ALL USER'S BOOKS TO NEW SUBACCOUNT
         if (result.subaccount_code) {
