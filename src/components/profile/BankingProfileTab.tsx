@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import type { BankingSubaccount } from "@/types/banking";
 import SubaccountView from "@/components/banking/SubaccountView";
 import SubaccountEditForm from "@/components/banking/SubaccountEditForm";
+import BankingForm from "@/components/banking/BankingForm";
 import { PaystackSubaccountService } from "@/services/paystackSubaccountService";
 import BankingDecryptionService, { type DecryptedBankingDetails } from "@/services/bankingDecryptionService";
 
@@ -50,6 +51,7 @@ const BankingProfileTab = () => {
   const [decryptedDetails, setDecryptedDetails] = useState<DecryptedBankingDetails | null>(null);
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [showFullAccount, setShowFullAccount] = useState(false);
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
 
   const handleSetupBanking = () => {
     navigate("/banking-setup");
