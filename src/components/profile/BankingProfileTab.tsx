@@ -58,7 +58,7 @@ const BankingProfileTab = () => {
   const [isPasswordVerified, setIsPasswordVerified] = useState(false);
 
   const handleSetupBanking = () => {
-    navigate("/banking-setup");
+    setShowSetupDialog(true);
   };
 
   const handleUpdateSuccess = () => {
