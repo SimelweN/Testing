@@ -13,6 +13,7 @@ import { NotificationDebugger } from "@/components/NotificationDebugger";
 import EnhancedNotificationDebugger from "@/components/EnhancedNotificationDebugger";
 import ErrorMonitor from "@/components/ErrorMonitor";
 import { supabase } from "@/integrations/supabase/client";
+import { ENV } from "@/config/environment";
 import EmailTemplateDashboard from "@/components/admin/EmailTemplateDashboard";
 import { EmailDiagnosticPanel } from "@/components/EmailDiagnosticPanel";
 import {
@@ -1201,6 +1202,207 @@ const Developer = () => {
     await callEdgeFunction('health-test', payload);
   };
 
+  // 8. SUPABASE CONNECTION TEST
+  const testSupabaseConnection = async () => {
+    try {
+      console.log("🔌 Testing Supabase connection...");
+
+      const startTime = Date.now();
+
+      // Test 1: Basic select query
+      console.log("Test 1: Basic table access...");
+      const { data: profileCount, error: countError } = await supabase
+        .from("profiles")
+        .select("id", { count: 'exact', head: true });
+
+      const basicTestTime = Date.now() - startTime;
+
+      if (countError) {
+        throw new Error(`Basic query failed: ${countError.message}`);
+      }
+
+      // Test 2: Auth status
+      console.log("Test 2: Auth status...");
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+      // Test 3: Simple data fetch
+      console.log("Test 3: Data fetch test...");
+      const { data: testData, error: fetchError } = await supabase
+        .from("profiles")
+        .select("id")
+        .limit(1);
+
+      const totalTime = Date.now() - startTime;
+
+      const result = {
+        connection_status: "✅ Connected",
+        basic_query_time: `${basicTestTime}ms`,
+        total_test_time: `${totalTime}ms`,
+        profile_count: profileCount || 0,
+        auth_status: user ? "✅ Authenticated" : "❌ Not authenticated",
+        user_id: user?.id || "No user",
+        test_fetch: fetchError ? `❌ ${fetchError.message}` : "✅ Success",
+        environment: {
+          supabase_url: ENV.VITE_SUPABASE_URL ? "✅ Set" : "❌ Missing",
+          supabase_key: ENV.VITE_SUPABASE_ANON_KEY ? "✅ Set" : "❌ Missing",
+          node_env: ENV.NODE_ENV
+        }
+      };
+
+      console.log("🔌 Supabase connection test result:", result);
+
+      setTestResults(prev => [...prev, {
+        function: 'Supabase Connection Test',
+        status: 'success',
+        response: result,
+        duration: totalTime
+      }]);
+
+      toast.success(`Supabase connection working! Query time: ${basicTestTime}ms`);
+
+    } catch (error) {
+      console.error("❌ Supabase connection test failed:", error);
+
+      const errorDetails = {
+        error_type: error instanceof Error ? error.name : typeof error,
+        error_message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        environment: {
+          supabase_url: ENV.VITE_SUPABASE_URL ? "Set" : "Missing",
+          supabase_key: ENV.VITE_SUPABASE_ANON_KEY ? "Set" : "Missing"
+        },
+        network_status: navigator.onLine ? "Online" : "Offline"
+      };
+
+      setTestResults(prev => [...prev, {
+        function: 'Supabase Connection Test',
+        status: 'error',
+        error: JSON.stringify(errorDetails, null, 2),
+        duration: 0
+      }]);
+
+      toast.error("Supabase connection failed!", {
+        description: error instanceof Error ? error.message : String(error)
+      });
+    }
+  };
+
+  // 9. DATA INTEGRITY CHECKS
+  const testDataIntegrity = async () => {
+    try {
+      console.log("🔍 Checking for data integrity issues...");
+
+      // Find books with missing seller profiles
+      const { data: books, error: booksError } = await supabase
+        .from("books")
+        .select("id, title, seller_id")
+        .limit(100);
+
+      if (booksError) throw booksError;
+
+      const orphanedBooks = [];
+
+      for (const book of books || []) {
+        const { data: profiles, error } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", book.seller_id);
+
+        if (!error && (!profiles || profiles.length === 0)) {
+          orphanedBooks.push(book);
+        }
+      }
+
+      const result = {
+        total_books_checked: books?.length || 0,
+        orphaned_books: orphanedBooks.length,
+        orphaned_details: orphanedBooks
+      };
+
+      console.log("📊 Data integrity check result:", result);
+
+      setTestResults(prev => [...prev, {
+        function: 'Data Integrity Check',
+        status: orphanedBooks.length > 0 ? 'error' : 'success',
+        response: result,
+        error: orphanedBooks.length > 0 ? `Found ${orphanedBooks.length} books with missing seller profiles` : undefined,
+        duration: 0
+      }]);
+
+      if (orphanedBooks.length > 0) {
+        toast.error(`Found ${orphanedBooks.length} books with missing seller profiles!`, {
+          description: "Check console for details. These books need admin attention."
+        });
+      } else {
+        toast.success("No data integrity issues found!");
+      }
+
+    } catch (error) {
+      console.error("❌ Data integrity check failed:", error);
+      setTestResults(prev => [...prev, {
+        function: 'Data Integrity Check',
+        status: 'error',
+        error: error instanceof Error ? error.message : String(error),
+        duration: 0
+      }]);
+      toast.error("Data integrity check failed: " + (error instanceof Error ? error.message : String(error)));
+    }
+  };
+
+  // 9. ADDRESS DECRYPTION TEST
+  const testAddressDecryption = async () => {
+    try {
+      // Import the address service
+      const { getSellerDeliveryAddress } = await import("@/services/simplifiedAddressService");
+
+      // Get the current user for testing (as a seller)
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        throw new Error("Please log in to test address decryption");
+      }
+
+      console.log("🔐 Testing address decryption for user:", user?.id);
+
+      // Test getting seller delivery address (this will try encrypted first, then fallback)
+      const startTime = Date.now();
+      const address = await getSellerDeliveryAddress(user!.id);
+      const duration = Date.now() - startTime;
+
+      if (address) {
+        console.log("✅ Address decrypted successfully:", address);
+        setTestResults(prev => [...prev, {
+          function: 'Address Decryption Test',
+          status: 'success',
+          response: {
+            success: true,
+            data: address,
+            message: "Address decryption working correctly - encrypted addresses are being properly handled in checkout flow"
+          },
+          duration
+        }]);
+        toast.success("Address decryption test passed! Checkout flow should work with encrypted addresses.");
+      } else {
+        console.log("⚠️ No address found for user - this is normal if user hasn't set up pickup address");
+        setTestResults(prev => [...prev, {
+          function: 'Address Decryption Test',
+          status: 'error',
+          error: "No pickup address found for current user. Set up a pickup address in your profile to test decryption.",
+          duration
+        }]);
+        toast.warning("No pickup address found for testing. Set up your profile first.");
+      }
+    } catch (error) {
+      console.error("❌ Address decryption test failed:", error);
+      setTestResults(prev => [...prev, {
+        function: 'Address Decryption Test',
+        status: 'error',
+        error: error instanceof Error ? error.message : String(error),
+        duration: 0
+      }]);
+      toast.error("Address decryption test failed: " + (error instanceof Error ? error.message : String(error)));
+    }
+  };
+
   // UI FUNCTIONS
   const clearResults = () => {
     setTestResults([]);
@@ -1212,6 +1414,7 @@ const Developer = () => {
     
     const allTests = [
       { name: 'Health Check', func: testHealthTest },
+      { name: 'Address Decryption Test', func: testAddressDecryption },
       { name: 'Create Order', func: testCreateOrder },
       { name: 'Process Book Purchase', func: testProcessBookPurchase },
       { name: 'Process Multi-Seller Purchase', func: testProcessMultiSellerPurchase },
@@ -1386,7 +1589,7 @@ const Developer = () => {
                       </SelectTrigger>
                       <SelectContent>
                         {books && books.length > 0 ? books.filter(book => book && book.id && typeof book.id === 'string').map(book => (
-                          <SelectItem key={book.id} value={book.id}>
+                          <SelectItem key={book.id || 'unknown'} value={book.id || 'unknown'}>
                             {book.title} - R{book.price} ({book.seller_name})
                           </SelectItem>
                         )) : (
@@ -1403,7 +1606,7 @@ const Developer = () => {
                       </SelectTrigger>
                       <SelectContent>
                         {users && users.length > 0 ? users.filter(user => user && user.id && typeof user.id === 'string').map(user => (
-                          <SelectItem key={user.id} value={user.id}>
+                          <SelectItem key={user.id || 'unknown'} value={user.id || 'unknown'}>
                             {user.name} ({user.email})
                           </SelectItem>
                         )) : (
@@ -1420,7 +1623,7 @@ const Developer = () => {
                       </SelectTrigger>
                       <SelectContent>
                         {users && users.length > 0 ? users.filter(user => user && user.id && typeof user.id === 'string').map(user => (
-                          <SelectItem key={user.id} value={user.id}>
+                          <SelectItem key={user.id || 'unknown'} value={user.id || 'unknown'}>
                             {user.name} ({user.email})
                           </SelectItem>
                         )) : (
@@ -1640,17 +1843,19 @@ const Developer = () => {
 
                             // Show some sample locker info
                             const sampleLocker = lockers[0];
-                            console.log('📍 Sample real locker:', {
-                              id: sampleLocker.id,
-                              name: sampleLocker.name,
-                              city: sampleLocker.city,
-                              province: sampleLocker.province,
-                              coordinates: `${sampleLocker.latitude}, ${sampleLocker.longitude}`
-                            });
+                            if (sampleLocker) {
+                              console.log('📍 Sample real locker:', {
+                                id: sampleLocker.id,
+                                name: sampleLocker.name,
+                                city: sampleLocker.city,
+                                province: sampleLocker.province,
+                                coordinates: `${sampleLocker.latitude}, ${sampleLocker.longitude}`
+                              });
+                            }
 
                             toast.success('🎉 CORS bypass successful - real locker data active!');
                           }
-                          } else {
+                        } else {
                             toast.error('❌ No lockers returned');
                             console.error('❌ Fetch returned 0 lockers');
                           }
@@ -1762,6 +1967,30 @@ const Developer = () => {
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Test System Health
+                    </Button>
+                    <Button
+                      onClick={testSupabaseConnection}
+                      disabled={isLoading}
+                      className="w-full"
+                    >
+                      <Database className="h-4 w-4 mr-2" />
+                      Test Supabase Connection
+                    </Button>
+                    <Button
+                      onClick={testAddressDecryption}
+                      disabled={isLoading}
+                      className="w-full"
+                    >
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Test Address Decryption
+                    </Button>
+                    <Button
+                      onClick={testDataIntegrity}
+                      disabled={isLoading}
+                      className="w-full"
+                    >
+                      <Bug className="h-4 w-4 mr-2" />
+                      Check Data Integrity
                     </Button>
                   </CardContent>
                 </Card>

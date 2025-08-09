@@ -122,29 +122,167 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           .eq("id", bookData.id);
       }
 
-      // Get seller address from profile (since book table columns don't exist yet)
-      const { data: sellerProfileData, error: sellerProfileError } =
-        await supabase
-          .from("profiles")
-          .select("pickup_address")
-          .eq("id", bookData.seller_id)
-          .single();
-
-      if (sellerProfileError || !sellerProfileData?.pickup_address) {
-        throw new Error(
-          "Seller address is incomplete. The seller needs to update their pickup address.",
-        );
+      // Validate seller_id first
+      if (!bookData.seller_id) {
+        throw new Error("Book has no seller_id - this book listing is corrupted");
       }
 
-      const pickupAddress = sellerProfileData.pickup_address as any;
-      const sellerAddress = {
-        street: pickupAddress.streetAddress || pickupAddress.street || "",
-        city: pickupAddress.city || "",
-        province: pickupAddress.province || "",
-        postal_code:
-          pickupAddress.postalCode || pickupAddress.postal_code || "",
-        country: "South Africa",
-      };
+      if (typeof bookData.seller_id !== 'string' || bookData.seller_id.length < 10) {
+        throw new Error(`Invalid seller_id format: ${bookData.seller_id} (type: ${typeof bookData.seller_id})`);
+      }
+
+      // Get seller address using the proper service that handles encryption
+      console.log("🔐 Fetching seller pickup address (checking encrypted first)...");
+      console.log("Seller ID:", bookData.seller_id);
+      console.log("Book data:", { id: bookData.id, title: bookData.title, seller_id: bookData.seller_id });
+
+      const sellerAddress = await getSellerDeliveryAddress(bookData.seller_id);
+
+      console.log("🔍 Raw seller address result:", sellerAddress);
+
+      if (!sellerAddress) {
+        // Let's check what's in the database directly for debugging
+        console.log("❌ getSellerDeliveryAddress returned null, checking database directly...");
+
+        // First, let's verify the book's seller_id is correct
+        const { data: bookCheck, error: bookError } = await supabase
+          .from("books")
+          .select("id, seller_id, title")
+          .eq("id", bookData.id)
+          .single();
+
+        console.log("📚 Book verification:", { bookCheck, bookError });
+
+        // Then check the profile (without .single() to avoid PGRST116 error)
+        const { data: profiles, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, pickup_address, pickup_address_encrypted, name, email")
+          .eq("id", bookData.seller_id);
+
+        const profile = profiles && profiles.length > 0 ? profiles[0] : null;
+        console.log("📊 Profile query result:", {
+          profiles,
+          profileError,
+          profile_count: profiles?.length || 0,
+          first_profile: profile
+        });
+
+        console.log("📊 Direct database check:", { profile, profileError });
+
+        // If no profile found, do some additional debugging
+        if (!profile && profileError?.code === 'PGRST116') {
+          console.log("🔍 Profile not found - doing additional checks...");
+
+          // Check if there are any profiles at all (to see if DB connection works)
+          const { count, error: countError } = await supabase
+            .from("profiles")
+            .select("id", { count: 'exact', head: true });
+
+          console.log("📊 Total profiles in database:", { count, countError });
+
+          // Check if there are any books with this seller_id
+          const { count: bookCount, error: bookCountError } = await supabase
+            .from("books")
+            .select("id", { count: 'exact', head: true })
+            .eq("seller_id", bookData.seller_id);
+
+          console.log("📚 Books by this seller:", { bookCount, bookCountError });
+        }
+
+        // Handle missing profile case specifically
+        if (!profile && profiles?.length === 0) {
+          console.error("💥 DATA INTEGRITY ISSUE: Book has seller_id but no profile exists");
+
+          // Check if this is a systemic issue or isolated case
+          const { count: orphanedBooks } = await supabase
+            .from("books")
+            .select("id", { count: 'exact', head: true })
+            .eq("seller_id", bookData.seller_id);
+
+          console.log(`📊 Total books by this seller: ${orphanedBooks}`);
+
+          // This is a data integrity issue - the book exists but seller profile doesn't
+          const errorMessage = `This book is currently unavailable due to a profile setup issue. Book ID: ${bookData.id}. ` +
+            (user?.id === bookData.seller_id
+              ? "Please contact support to restore your seller profile."
+              : "Please contact support or try a different book.");
+
+          console.error("Seller profile missing - possible solutions:", {
+            issue: "Book exists but seller profile missing",
+            seller_id: bookData.seller_id,
+            book_id: bookData.id,
+            books_by_seller: orphanedBooks,
+            possible_causes: [
+              "Profile was deleted but books weren't cleaned up",
+              "User registered but never created profile",
+              "Database inconsistency"
+            ],
+            admin_actions_needed: [
+              "Check if seller_id exists in auth.users",
+              "Create missing profile or reassign books",
+              "Clean up orphaned books if seller no longer exists"
+            ]
+          });
+
+          throw new Error(errorMessage);
+        }
+
+        // Provide specific guidance based on what's missing
+        let errorMessage = "This book is temporarily unavailable for purchase. ";
+
+        if (!profile) {
+          errorMessage += "The seller's profile setup is incomplete.";
+        } else if (!profile.pickup_address && !profile.pickup_address_encrypted) {
+          errorMessage += "The seller hasn't set up their pickup address yet.";
+        } else {
+          errorMessage += "There was an issue retrieving the seller's address.";
+        }
+
+        // If this is the current user's book, give them guidance
+        if (user?.id === bookData.seller_id) {
+          errorMessage += " You can fix this by updating your pickup address in your profile settings.";
+        } else {
+          errorMessage += " Please try again later or contact the seller.";
+        }
+
+        console.error("Seller address debug info:", JSON.stringify({
+          book_verification: {
+            book_id: bookData.id,
+            book_title: bookData.title,
+            book_seller_id: bookData.seller_id,
+            fresh_book_data: bookCheck,
+            book_error: bookError?.message
+          },
+          seller_validation: {
+            seller_id: bookData.seller_id,
+            seller_id_type: typeof bookData.seller_id,
+            seller_id_length: bookData.seller_id?.length,
+            seller_id_valid: !!(bookData.seller_id && typeof bookData.seller_id === 'string' && bookData.seller_id.length > 10)
+          },
+          profile_check: {
+            has_profile: !!profile,
+            profile_error_code: profileError?.code,
+            profile_error_message: profileError?.message,
+            profile_data: profile ? {
+              id: profile.id,
+              name: profile.name,
+              email: profile.email,
+              has_pickup: !!profile.pickup_address,
+              has_encrypted: !!profile.pickup_address_encrypted
+            } : null
+          },
+          current_user: user?.id
+        }, null, 2));
+
+        throw new Error(errorMessage);
+      }
+
+      console.log("✅ Seller address retrieved:", {
+        street: sellerAddress.street,
+        city: sellerAddress.city,
+        province: sellerAddress.province,
+        postal_code: sellerAddress.postal_code
+      });
 
       if (
         !sellerAddress.street ||
@@ -153,7 +291,12 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         !sellerAddress.postal_code
       ) {
         throw new Error(
-          "Seller address is incomplete. The seller needs to update their pickup address.",
+          `Seller address is incomplete. Missing fields: ${[
+            !sellerAddress.street && 'street',
+            !sellerAddress.city && 'city',
+            !sellerAddress.province && 'province',
+            !sellerAddress.postal_code && 'postal_code'
+          ].filter(Boolean).join(', ')}. Raw address: ${JSON.stringify(sellerAddress)}`,
         );
       }
 
@@ -204,7 +347,19 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         error: errorMessage,
         loading: false,
       }));
-      toast.error(errorMessage);
+
+      // If this is the seller's own book, offer to go to profile
+      if (user?.id === bookData.seller_id) {
+        toast.error(errorMessage, {
+          description: "Click here to update your pickup address",
+          action: {
+            label: "Go to Profile",
+            onClick: () => navigate("/profile")
+          }
+        });
+      } else {
+        toast.error(errorMessage);
+      }
     }
   };
 

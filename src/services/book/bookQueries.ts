@@ -83,8 +83,12 @@ const logDetailedError = (context: string, error: unknown) => {
 
   console.error(`[BookQueries - ${context}]`, {
     message: errorMessage,
-    error: error,
-    stack: error instanceof Error ? error.stack : undefined,
+    error_type: error instanceof Error ? 'Error' : typeof error,
+    error_details: error instanceof Error ? {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    } : error,
     timestamp: new Date().toISOString()
   });
 
@@ -253,13 +257,34 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
 
               logDetailedError("Error fetching profiles", profilesError);
 
-              // If it's a connection error and we haven't retried too many times, try again
-              if (retryCount < 2 && (
+              // Check network connectivity
+              const isNetworkError = (
                 profilesError.message?.includes('fetch') ||
                 profilesError.message?.includes('network') ||
-                profilesError.message?.includes('Failed to fetch')
-              )) {
-                console.log(`Retrying profile fetch (attempt ${retryCount + 1}/3)...`);
+                profilesError.message?.includes('Failed to fetch') ||
+                profilesError.message?.includes('NetworkError')
+              );
+
+              if (isNetworkError) {
+                console.warn("🔌 Network connectivity issue detected:", {
+                  online_status: navigator.onLine,
+                  error_message: profilesError.message,
+                  retry_count: retryCount
+                });
+
+                // Show user-friendly message for network issues
+                if (!navigator.onLine) {
+                  console.error("📡 Device appears to be offline - check internet connection");
+                  // Could add a toast notification here if needed:
+                  // toast.error("You appear to be offline. Please check your internet connection.");
+                } else {
+                  console.error("🔌 Network request failed despite being online - possible server connectivity issue");
+                }
+              }
+
+              // If it's a connection error and we haven't retried too many times, try again
+              if (retryCount < 2 && isNetworkError) {
+                console.log(`🔄 Retrying profile fetch (attempt ${retryCount + 1}/3) in ${(retryCount + 1)}s...`);
                 await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
                 return fetchProfiles(retryCount + 1);
               }

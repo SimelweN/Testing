@@ -11,18 +11,24 @@ interface SimpleAddress {
 // Decrypt an address using the decrypt-address edge function
 const decryptAddress = async (params: { table: string; target_id: string; address_type?: string }) => {
   try {
+    console.log("🔐 Calling decrypt-address edge function with params:", params);
+
     const { data, error } = await supabase.functions.invoke('decrypt-address', {
       body: {
         fetch: params
       }
     });
 
+    console.log("🔐 Edge function response:", { data, error });
+
     if (error) {
       console.warn("Decryption not available:", error.message);
       return null;
     }
 
-    return data?.data || null;
+    const result = data?.data || null;
+    console.log("🔐 Final decryption result:", result);
+    return result;
   } catch (error) {
     console.warn("Decryption service unavailable:", error instanceof Error ? error.message : String(error));
     return null;
@@ -55,44 +61,62 @@ export const getSellerDeliveryAddress = async (
   sellerId: string,
 ): Promise<CheckoutAddress | null> => {
   try {
+    console.log("🔍 getSellerDeliveryAddress called for seller:", sellerId);
+
     // Try to get encrypted address first
+    console.log("Step 1: Attempting to decrypt address...");
     const decryptedAddress = await decryptAddress({
       table: 'profiles',
       target_id: sellerId,
       address_type: 'pickup'
     });
 
+    console.log("🔐 Decryption result:", decryptedAddress);
+
     if (decryptedAddress) {
-      return {
+      const address = {
         street: decryptedAddress.streetAddress || decryptedAddress.street || "",
         city: decryptedAddress.city || "",
         province: decryptedAddress.province || "",
         postal_code: decryptedAddress.postalCode || decryptedAddress.postal_code || "",
         country: "South Africa",
       };
+      console.log("✅ Returning decrypted address:", address);
+      return address;
     }
 
     // Fallback to plaintext address
-    const { data: profile, error } = await supabase
+    console.log("Step 2: Falling back to plaintext address...");
+    const { data: profiles, error } = await supabase
       .from("profiles")
       .select("pickup_address")
-      .eq("id", sellerId)
-      .single();
+      .eq("id", sellerId);
+
+    console.log("📊 Plaintext query result:", {
+      profiles,
+      error,
+      profile_count: profiles?.length || 0
+    });
+
+    const profile = profiles && profiles.length > 0 ? profiles[0] : null;
 
     if (error || !profile?.pickup_address) {
+      console.log("❌ No plaintext address found");
       return null;
     }
 
     const addr = profile.pickup_address as any;
-    return {
+    const address = {
       street: addr.streetAddress || addr.street || "",
       city: addr.city || "",
       province: addr.province || "",
       postal_code: addr.postalCode || addr.postal_code || "",
       country: "South Africa",
     };
+    console.log("✅ Returning plaintext address:", address);
+    return address;
   } catch (error) {
-    console.error("Error getting seller address:", error);
+    console.error("❌ Error getting seller address:", error);
     return null;
   }
 };
@@ -160,7 +184,7 @@ export const saveSimpleUserAddresses = async (
         });
         console.log("✅ Pickup address encrypted successfully");
       } catch (encryptError) {
-        console.warn("⚠️ Pickup address encryption failed, continuing with plaintext only");
+        console.warn("���️ Pickup address encryption failed, continuing with plaintext only");
       }
     }
 
