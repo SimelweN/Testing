@@ -311,20 +311,32 @@ export function useAPSAwareCourseAssignment(universityId?: string) {
   const clearProfile = useCallback(async () => {
     try {
       console.log("🗑️ [APS Debug] Clearing APS profile from localStorage");
+
+      // Clear all APS-related localStorage keys
       localStorage.removeItem("userAPSProfile");
       localStorage.removeItem("apsSearchResults");
+      localStorage.removeItem("apsProfileBackup");
       localStorage.removeItem("rebookedMarketplace-aps-profile");
       localStorage.removeItem("rebookedMarketplace-aps-search-results");
+      localStorage.removeItem("reBooked-aps-profile");
+      localStorage.removeItem("reBooked-aps-search-results");
       sessionStorage.removeItem("userAPSProfile");
       sessionStorage.removeItem("apsSearchResults");
+
+      // Reset component state
       setUserProfile(null);
       setLastSearchResults(null);
       setError(null);
 
+      // Verify clear was successful
+      const verification = localStorage.getItem("userAPSProfile");
+      const success = verification === null;
+
       // Trigger global state reset event
       window.dispatchEvent(new CustomEvent("apsProfileCleared"));
-      console.log("✅ [APS Debug] APS Profile cleared successfully");
-      return true;
+      console.log("✅ [APS Debug] APS Profile cleared:", success ? "SUCCESS" : "FAILED");
+
+      return success;
     } catch (error) {
       console.error("❌ [APS Debug] Failed to clear APS profile:", error);
       return false;
