@@ -122,9 +122,19 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           .eq("id", bookData.id);
       }
 
+      // Validate seller_id first
+      if (!bookData.seller_id) {
+        throw new Error("Book has no seller_id - this book listing is corrupted");
+      }
+
+      if (typeof bookData.seller_id !== 'string' || bookData.seller_id.length < 10) {
+        throw new Error(`Invalid seller_id format: ${bookData.seller_id} (type: ${typeof bookData.seller_id})`);
+      }
+
       // Get seller address using the proper service that handles encryption
       console.log("🔐 Fetching seller pickup address (checking encrypted first)...");
       console.log("Seller ID:", bookData.seller_id);
+      console.log("Book data:", { id: bookData.id, title: bookData.title, seller_id: bookData.seller_id });
 
       const sellerAddress = await getSellerDeliveryAddress(bookData.seller_id);
 
@@ -134,9 +144,19 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         // Let's check what's in the database directly for debugging
         console.log("❌ getSellerDeliveryAddress returned null, checking database directly...");
 
+        // First, let's verify the book's seller_id is correct
+        const { data: bookCheck, error: bookError } = await supabase
+          .from("books")
+          .select("id, seller_id, title")
+          .eq("id", bookData.id)
+          .single();
+
+        console.log("📚 Book verification:", { bookCheck, bookError });
+
+        // Then check the profile
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("pickup_address, pickup_address_encrypted")
+          .select("id, pickup_address, pickup_address_encrypted, name, email")
           .eq("id", bookData.seller_id)
           .single();
 
