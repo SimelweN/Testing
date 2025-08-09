@@ -122,29 +122,15 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           .eq("id", bookData.id);
       }
 
-      // Get seller address from profile (since book table columns don't exist yet)
-      const { data: sellerProfileData, error: sellerProfileError } =
-        await supabase
-          .from("profiles")
-          .select("pickup_address")
-          .eq("id", bookData.seller_id)
-          .single();
+      // Get seller address using the proper service that handles encryption
+      console.log("🔐 Fetching seller pickup address (checking encrypted first)...");
+      const sellerAddress = await getSellerDeliveryAddress(bookData.seller_id);
 
-      if (sellerProfileError || !sellerProfileData?.pickup_address) {
+      if (!sellerAddress) {
         throw new Error(
           "Seller address is incomplete. The seller needs to update their pickup address.",
         );
       }
-
-      const pickupAddress = sellerProfileData.pickup_address as any;
-      const sellerAddress = {
-        street: pickupAddress.streetAddress || pickupAddress.street || "",
-        city: pickupAddress.city || "",
-        province: pickupAddress.province || "",
-        postal_code:
-          pickupAddress.postalCode || pickupAddress.postal_code || "",
-        country: "South Africa",
-      };
 
       if (
         !sellerAddress.street ||
