@@ -396,6 +396,34 @@ const BankingSetup: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Update Banking Details Dialog - Same as BankingProfileTab */}
+      <Dialog open={showUpdateDialog} onOpenChange={handleCancelUpdate}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {!isPasswordVerified ? "Security Verification" : "Update Banking Details"}
+            </DialogTitle>
+            <DialogDescription>
+              {!isPasswordVerified
+                ? "Please verify your password to access and update your banking information."
+                : "Update your banking information securely. All changes are encrypted and stored safely."
+              }
+            </DialogDescription>
+          </DialogHeader>
+          {!isPasswordVerified ? (
+            <PasswordVerificationForm
+              onVerified={handlePasswordVerified}
+              onCancel={handleCancelUpdate}
+            />
+          ) : (
+            <BankingForm
+              onSuccess={handleUpdateSuccess}
+              onCancel={handleCancelUpdate}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
