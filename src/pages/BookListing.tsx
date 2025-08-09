@@ -13,6 +13,7 @@ import { clearAllBrowseBooks } from "@/utils/clearBrowseBooks";
 import { Button } from "@/components/ui/button";
 import GoogleAdsense from "@/components/GoogleAdsense";
 import { debugBookFetching, fixBooksWithMissingAddresses } from "@/utils/debugBooks";
+import { emergencyBookTest } from "@/utils/emergencyBookTest";
 
 
 const BookListing = () => {
