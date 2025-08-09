@@ -33,6 +33,7 @@ import {
   Filter,
   Calendar,
   Activity as ActivityIcon,
+  CreditCard,
 } from "lucide-react";
 import OrderManagementView from "@/components/orders/OrderManagementView";
 import OrderNotificationSystem from "@/components/notifications/OrderNotificationSystem";
