@@ -746,7 +746,7 @@ const EnhancedAPSCalculator: React.FC = () => {
                       >
                         Clear All
                       </Button>
-                      {(hasValidProfile || hasProfile) && (
+                      {(hasValidProfile || hasProfile || subjects.length > 0) && (
                         <Button
                           size="sm"
                           variant="outline"
@@ -754,7 +754,7 @@ const EnhancedAPSCalculator: React.FC = () => {
                           className="text-red-600 border-red-200 hover:bg-red-50"
                           title="Clear APS profile from localStorage (permanent storage)"
                         >
-                          🗑️ Clear APS Profile
+                          🗑️ Clear Profile
                         </Button>
                       )}
                     </div>
