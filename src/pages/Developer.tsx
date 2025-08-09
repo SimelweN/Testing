@@ -1201,7 +1201,92 @@ const Developer = () => {
     await callEdgeFunction('health-test', payload);
   };
 
-  // 8. DATA INTEGRITY CHECKS
+  // 8. SUPABASE CONNECTION TEST
+  const testSupabaseConnection = async () => {
+    try {
+      console.log("🔌 Testing Supabase connection...");
+
+      const startTime = Date.now();
+
+      // Test 1: Basic select query
+      console.log("Test 1: Basic table access...");
+      const { data: profileCount, error: countError } = await supabase
+        .from("profiles")
+        .select("id", { count: 'exact', head: true });
+
+      const basicTestTime = Date.now() - startTime;
+
+      if (countError) {
+        throw new Error(`Basic query failed: ${countError.message}`);
+      }
+
+      // Test 2: Auth status
+      console.log("Test 2: Auth status...");
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+      // Test 3: Simple data fetch
+      console.log("Test 3: Data fetch test...");
+      const { data: testData, error: fetchError } = await supabase
+        .from("profiles")
+        .select("id")
+        .limit(1);
+
+      const totalTime = Date.now() - startTime;
+
+      const result = {
+        connection_status: "✅ Connected",
+        basic_query_time: `${basicTestTime}ms`,
+        total_test_time: `${totalTime}ms`,
+        profile_count: profileCount || 0,
+        auth_status: user ? "✅ Authenticated" : "❌ Not authenticated",
+        user_id: user?.id || "No user",
+        test_fetch: fetchError ? `❌ ${fetchError.message}` : "✅ Success",
+        environment: {
+          supabase_url: ENV.VITE_SUPABASE_URL ? "✅ Set" : "❌ Missing",
+          supabase_key: ENV.VITE_SUPABASE_ANON_KEY ? "✅ Set" : "❌ Missing",
+          node_env: ENV.NODE_ENV
+        }
+      };
+
+      console.log("🔌 Supabase connection test result:", result);
+
+      setTestResults(prev => [...prev, {
+        function: 'Supabase Connection Test',
+        status: 'success',
+        response: result,
+        duration: totalTime
+      }]);
+
+      toast.success(`Supabase connection working! Query time: ${basicTestTime}ms`);
+
+    } catch (error) {
+      console.error("❌ Supabase connection test failed:", error);
+
+      const errorDetails = {
+        error_type: error instanceof Error ? error.name : typeof error,
+        error_message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        environment: {
+          supabase_url: ENV.VITE_SUPABASE_URL ? "Set" : "Missing",
+          supabase_key: ENV.VITE_SUPABASE_ANON_KEY ? "Set" : "Missing"
+        },
+        network_status: navigator.onLine ? "Online" : "Offline"
+      };
+
+      setTestResults(prev => [...prev, {
+        function: 'Supabase Connection Test',
+        status: 'error',
+        error: JSON.stringify(errorDetails, null, 2),
+        duration: 0
+      }]);
+
+      toast.error("Supabase connection failed!", {
+        description: error instanceof Error ? error.message : String(error)
+      });
+    }
+  };
+
+  // 9. DATA INTEGRITY CHECKS
   const testDataIntegrity = async () => {
     try {
       console.log("🔍 Checking for data integrity issues...");
