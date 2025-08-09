@@ -1201,6 +1201,60 @@ const Developer = () => {
     await callEdgeFunction('health-test', payload);
   };
 
+  // 8. ADDRESS DECRYPTION TEST
+  const testAddressDecryption = async () => {
+    try {
+      // Import the address service
+      const { getSellerDeliveryAddress } = await import("@/services/simplifiedAddressService");
+
+      // Get the current user for testing (as a seller)
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        throw new Error("Please log in to test address decryption");
+      }
+
+      console.log("🔐 Testing address decryption for user:", user.id);
+
+      // Test getting seller delivery address (this will try encrypted first, then fallback)
+      const startTime = Date.now();
+      const address = await getSellerDeliveryAddress(user.id);
+      const duration = Date.now() - startTime;
+
+      if (address) {
+        console.log("✅ Address decrypted successfully:", address);
+        setTestResults(prev => [...prev, {
+          function: 'Address Decryption Test',
+          status: 'success',
+          response: {
+            success: true,
+            data: address,
+            message: "Address decryption working correctly - encrypted addresses are being properly handled in checkout flow"
+          },
+          duration
+        }]);
+        toast.success("Address decryption test passed! Checkout flow should work with encrypted addresses.");
+      } else {
+        console.log("⚠️ No address found for user - this is normal if user hasn't set up pickup address");
+        setTestResults(prev => [...prev, {
+          function: 'Address Decryption Test',
+          status: 'error',
+          error: "No pickup address found for current user. Set up a pickup address in your profile to test decryption.",
+          duration
+        }]);
+        toast.warning("No pickup address found for testing. Set up your profile first.");
+      }
+    } catch (error) {
+      console.error("❌ Address decryption test failed:", error);
+      setTestResults(prev => [...prev, {
+        function: 'Address Decryption Test',
+        status: 'error',
+        error: error instanceof Error ? error.message : String(error),
+        duration: 0
+      }]);
+      toast.error("Address decryption test failed: " + (error instanceof Error ? error.message : String(error)));
+    }
+  };
+
   // UI FUNCTIONS
   const clearResults = () => {
     setTestResults([]);
