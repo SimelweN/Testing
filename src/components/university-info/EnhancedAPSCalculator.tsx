@@ -377,18 +377,18 @@ const EnhancedAPSCalculator: React.FC = () => {
     toast.success("All data cleared");
   }, [clearError]);
 
-  // 🔴 CLEAR APS PROFILE - Enhanced localStorage implementation
+  // 🔴 CLEAR APS PROFILE - Manual clear only (user button click)
   const handleClearAPSProfile = useCallback(async () => {
     try {
-      console.log("🗑️ Starting APS profile clear process...");
+      console.log("🗑️ [Manual Clear] Starting APS profile clear process...");
 
       // Step 1: Clear enhanced storage system
       const enhancedSuccess = await clearAPSProfileEnhanced();
-      console.log("🗑️ Enhanced storage cleared:", enhancedSuccess);
+      console.log("🗑️ [Manual Clear] Enhanced storage cleared:", enhancedSuccess);
 
       // Step 2: Clear legacy storage system
-      clearAPSProfile();
-      console.log("🗑️ Legacy storage cleared");
+      const legacySuccess = await clearAPSProfile();
+      console.log("🗑️ [Manual Clear] Legacy storage cleared:", legacySuccess);
 
       // Step 3: Force clear any remaining localStorage keys
       localStorage.removeItem("userAPSProfile");
@@ -418,17 +418,17 @@ const EnhancedAPSCalculator: React.FC = () => {
 
       // Step 7: Verify the clear was successful
       const verification = localStorage.getItem("userAPSProfile");
-      console.log("🗑️ Clear verification - localStorage check:", verification === null ? "SUCCESS" : "FAILED");
+      console.log("🗑️ [Manual Clear] Verification - localStorage:", verification === null ? "SUCCESS" : "FAILED");
 
       if (verification === null) {
-        toast.success("🗑️ APS profile cleared successfully");
+        toast.success("🗑️ APS profile cleared from all storage locations");
       } else {
-        console.error("❌ localStorage clear failed - data still exists");
+        console.error("❌ [Manual Clear] localStorage clear failed - data still exists");
         toast.error("Failed to completely clear APS profile");
       }
 
     } catch (error) {
-      console.error("❌ Error clearing APS profile:", error);
+      console.error("❌ [Manual Clear] Error clearing APS profile:", error);
       toast.error("Error clearing APS profile");
     }
   }, [clearAPSProfileEnhanced, clearAPSProfile, clearError, clearStorageError]);
