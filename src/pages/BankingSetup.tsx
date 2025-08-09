@@ -17,6 +17,7 @@ import {
 import Layout from "@/components/Layout";
 import BankingDetailsForm from "@/components/banking/BankingDetailsForm";
 import BankingForm from "@/components/banking/BankingForm";
+import PasswordVerificationForm from "@/components/banking/PasswordVerificationForm";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { PaystackSubaccountService } from "@/services/paystackSubaccountService";
@@ -29,6 +30,7 @@ const BankingSetup: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [useNewForm, setUseNewForm] = useState(false);
+  const [isPasswordVerified, setIsPasswordVerified] = useState(false);
 
 
   useEffect(() => {
@@ -330,18 +332,38 @@ const BankingSetup: React.FC = () => {
               {useNewForm ? (
                 <div className="max-w-2xl mx-auto">
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                    <h3 className="font-medium text-blue-900 mb-2">Enhanced Banking Form</h3>
+                    <h3 className="font-medium text-blue-900 mb-2">
+                      {!isPasswordVerified ? "Security Verification Required" : "Enhanced Banking Form"}
+                    </h3>
                     <p className="text-sm text-blue-700">
-                      This form allows you to update your existing banking details securely.
+                      {!isPasswordVerified
+                        ? "Please verify your password before updating your banking details."
+                        : "This form allows you to update your existing banking details securely."
+                      }
                     </p>
                   </div>
-                  <BankingForm
-                    onSuccess={handleSetupSuccess}
-                    onCancel={() => {
-                      setShowForm(false);
-                      setUseNewForm(false);
-                    }}
-                  />
+                  {!isPasswordVerified ? (
+                    <PasswordVerificationForm
+                      onVerified={() => setIsPasswordVerified(true)}
+                      onCancel={() => {
+                        setShowForm(false);
+                        setUseNewForm(false);
+                        setIsPasswordVerified(false);
+                      }}
+                    />
+                  ) : (
+                    <BankingForm
+                      onSuccess={() => {
+                        handleSetupSuccess();
+                        setIsPasswordVerified(false);
+                      }}
+                      onCancel={() => {
+                        setShowForm(false);
+                        setUseNewForm(false);
+                        setIsPasswordVerified(false);
+                      }}
+                    />
+                  )}
                 </div>
               ) : (
                 <BankingDetailsForm
