@@ -132,6 +132,29 @@ const BankingSetup: React.FC = () => {
     setIsPasswordVerified(false);
   };
 
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard`);
+  };
+
+  const handleDecryptAndView = async () => {
+    setIsDecrypting(true);
+    try {
+      // Simulate decryption - in real app this would call the decryption service
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setDecryptedDetails({
+        account_number: existingBanking?.account_number || "1234567890",
+        bank_code: "250655"
+      });
+      setShowFullAccount(true);
+      toast.success("Banking details decrypted successfully");
+    } catch (error) {
+      toast.error("Failed to decrypt banking details");
+    } finally {
+      setIsDecrypting(false);
+    }
+  };
+
   if (!user) {
     return (
       <Layout>
