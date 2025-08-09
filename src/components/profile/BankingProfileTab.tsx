@@ -54,10 +54,11 @@ const BankingProfileTab = () => {
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [showFullAccount, setShowFullAccount] = useState(false);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [showSetupDialog, setShowSetupDialog] = useState(false);
   const [isPasswordVerified, setIsPasswordVerified] = useState(false);
 
   const handleSetupBanking = () => {
-    navigate("/banking-setup");
+    setShowSetupDialog(true);
   };
 
   const handleUpdateSuccess = () => {
@@ -73,6 +74,18 @@ const BankingProfileTab = () => {
 
   const handleCancelUpdate = () => {
     setShowUpdateDialog(false);
+    setIsPasswordVerified(false);
+  };
+
+  const handleSetupSuccess = () => {
+    setShowSetupDialog(false);
+    setIsPasswordVerified(false);
+    refreshBankingDetails();
+    toast.success("Banking details setup successfully!");
+  };
+
+  const handleCancelSetup = () => {
+    setShowSetupDialog(false);
     setIsPasswordVerified(false);
   };
 
@@ -225,23 +238,78 @@ const BankingProfileTab = () => {
           </Alert>
 
           {!hasBankingSetup && (
-            <div className="text-center py-8">
-              <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Set Up Banking Information
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Add your banking details to start selling books and receive
-                payments securely through our integrated payment system.
-              </p>
-              <Button
-                onClick={handleSetupBanking}
-                className="bg-book-600 hover:bg-book-700"
-              >
-                <CreditCard className="h-4 w-4 mr-2" />
-                Set Up Banking
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
+            <div className="space-y-6">
+              {/* Modern Banking Setup Card */}
+              <div className="bg-gradient-to-r from-book-50 to-green-50 p-6 rounded-lg border border-book-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-book-700">
+                      Business Name
+                    </label>
+                    <p className="text-book-900 font-semibold text-gray-500">Not Set</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-book-700">
+                      Bank
+                    </label>
+                    <p className="text-book-900 font-semibold text-gray-500">Not Selected</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-book-700">
+                      Account Number
+                    </label>
+                    <p className="text-book-900 font-mono font-semibold text-gray-500">****</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-book-700">
+                      Status
+                    </label>
+                    <div>
+                      <Badge variant="outline" className="border-orange-500 text-orange-700">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        Setup Required
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-book-700">
+                      Email
+                    </label>
+                    <p className="text-book-900">{user?.email || "Not Set"}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-book-700">
+                      Setup Date
+                    </label>
+                    <p className="text-book-900 text-gray-500">Not Completed</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  onClick={handleSetupBanking}
+                  className="bg-book-600 hover:bg-book-700 flex items-center gap-2"
+                >
+                  <CreditCard className="h-4 w-4" />
+                  Set Up Banking
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-green-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-green-900 mb-1">Ready to Get Started?</h4>
+                    <p className="text-sm text-green-800">
+                      Set up your banking details to start selling books and receive payments automatically.
+                      Your information will be encrypted and stored securely.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -564,6 +632,26 @@ const BankingProfileTab = () => {
               onCancel={handleCancelUpdate}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Setup Banking Details Dialog */}
+      <Dialog open={showSetupDialog} onOpenChange={handleCancelSetup}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Set Up Banking Details
+            </DialogTitle>
+            <DialogDescription>
+              Add your banking information to start selling books and receive payments securely.
+              All information is encrypted and stored safely.
+            </DialogDescription>
+          </DialogHeader>
+          <BankingForm
+            onSuccess={handleSetupSuccess}
+            onCancel={handleCancelSetup}
+          />
         </DialogContent>
       </Dialog>
     </div>
