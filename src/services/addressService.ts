@@ -46,14 +46,14 @@ const decryptAddress = async (params: { table: string; target_id: string; addres
     });
 
     if (error) {
-      console.error("Error decrypting address:", error);
-      throw new Error(`Decryption failed: ${error.message}`);
+      console.warn("Decryption not available or failed:", error.message);
+      return null; // Return null instead of throwing error for graceful fallback
     }
 
     return data?.data || null;
   } catch (error) {
-    console.error("Error in decryptAddress:", error);
-    throw error;
+    console.warn("Decryption service unavailable, falling back to plaintext:", error instanceof Error ? error.message : String(error));
+    return null; // Return null for graceful fallback
   }
 };
 
