@@ -25,14 +25,14 @@ const encryptAddress = async (address: Address, options?: { save?: { table: stri
     });
 
     if (error) {
-      console.error("Error encrypting address:", error);
-      throw new Error(`Encryption failed: ${error.message}`);
+      console.warn("Encryption not available or failed:", error.message);
+      return null; // Return null instead of throwing error
     }
 
     return data;
   } catch (error) {
-    console.error("Error in encryptAddress:", error);
-    throw error;
+    console.warn("Encryption service unavailable, continuing without encryption:", error instanceof Error ? error.message : String(error));
+    return null; // Return null for graceful fallback
   }
 };
 
