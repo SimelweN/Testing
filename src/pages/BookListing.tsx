@@ -301,7 +301,15 @@ const BookListing = () => {
             Browse Books
           </h1>
           {user?.email === "admin@rebookedsolutions.co.za" && (
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                onClick={handleEmergencyTest}
+                variant="default"
+                size="sm"
+                className="bg-red-600 hover:bg-red-700"
+              >
+                🆘 Emergency Test
+              </Button>
               <Button
                 onClick={handleDebugBooks}
                 variant="outline"
