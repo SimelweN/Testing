@@ -162,11 +162,28 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
         console.log("📊 Direct database check:", { profile, profileError });
 
+        // If no profile found, check if seller_id exists as a user at all
+        if (!profile && profileError?.code === 'PGRST116') {
+          console.log("🔍 Profile not found - checking if seller_id exists as auth user...");
+
+          // Check if this seller_id exists in auth.users (admin query)
+          const { data: authCheck, error: authError } = await supabase.auth.admin.getUserById(bookData.seller_id);
+          console.log("🔑 Auth user check:", { authCheck, authError });
+
+          if (!authCheck.user) {
+            console.error("💥 CRITICAL: Book seller_id points to non-existent user!");
+          }
+        }
+
         // Provide specific guidance based on what's missing
         let errorMessage = "This book is temporarily unavailable for purchase. ";
 
         if (!profile) {
-          errorMessage += "The seller's profile is not set up properly.";
+          if (profileError?.code === 'PGRST116') {
+            errorMessage += "The seller account no longer exists.";
+          } else {
+            errorMessage += "The seller's profile is not set up properly.";
+          }
         } else if (!profile.pickup_address && !profile.pickup_address_encrypted) {
           errorMessage += "The seller hasn't set up their pickup address yet.";
         } else {
