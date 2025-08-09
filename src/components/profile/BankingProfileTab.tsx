@@ -27,6 +27,7 @@ import type { BankingSubaccount } from "@/types/banking";
 import SubaccountView from "@/components/banking/SubaccountView";
 import SubaccountEditForm from "@/components/banking/SubaccountEditForm";
 import BankingForm from "@/components/banking/BankingForm";
+import PasswordVerificationForm from "@/components/banking/PasswordVerificationForm";
 import { PaystackSubaccountService } from "@/services/paystackSubaccountService";
 import BankingDecryptionService, { type DecryptedBankingDetails } from "@/services/bankingDecryptionService";
 
@@ -53,6 +54,7 @@ const BankingProfileTab = () => {
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [showFullAccount, setShowFullAccount] = useState(false);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [isPasswordVerified, setIsPasswordVerified] = useState(false);
 
   const handleSetupBanking = () => {
     navigate("/banking-setup");
@@ -60,8 +62,18 @@ const BankingProfileTab = () => {
 
   const handleUpdateSuccess = () => {
     setShowUpdateDialog(false);
+    setIsPasswordVerified(false);
     refreshBankingDetails();
     toast.success("Banking details updated successfully!");
+  };
+
+  const handlePasswordVerified = () => {
+    setIsPasswordVerified(true);
+  };
+
+  const handleCancelUpdate = () => {
+    setShowUpdateDialog(false);
+    setIsPasswordVerified(false);
   };
 
   const handleDecryptAndView = async () => {
