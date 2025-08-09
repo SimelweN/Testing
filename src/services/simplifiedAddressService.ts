@@ -18,13 +18,13 @@ const decryptAddress = async (params: { table: string; target_id: string; addres
     });
 
     if (error) {
-      console.error("Error decrypting address:", error);
+      console.warn("Decryption not available:", error.message);
       return null;
     }
 
     return data?.data || null;
   } catch (error) {
-    console.error("Error in decryptAddress:", error);
+    console.warn("Decryption service unavailable:", error instanceof Error ? error.message : String(error));
     return null;
   }
 };
