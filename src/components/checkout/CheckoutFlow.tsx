@@ -142,9 +142,33 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
         console.log("📊 Direct database check:", { profile, profileError });
 
-        throw new Error(
-          `Seller address not found. Debug info: seller_id=${bookData.seller_id}, has_profile=${!!profile}, has_pickup=${!!profile?.pickup_address}, has_encrypted=${!!profile?.pickup_address_encrypted}`,
-        );
+        // Provide specific guidance based on what's missing
+        let errorMessage = "This book is temporarily unavailable for purchase. ";
+
+        if (!profile) {
+          errorMessage += "The seller's profile is not set up properly.";
+        } else if (!profile.pickup_address && !profile.pickup_address_encrypted) {
+          errorMessage += "The seller hasn't set up their pickup address yet.";
+        } else {
+          errorMessage += "There was an issue retrieving the seller's address.";
+        }
+
+        // If this is the current user's book, give them guidance
+        if (user?.id === bookData.seller_id) {
+          errorMessage += " You can fix this by updating your pickup address in your profile settings.";
+        } else {
+          errorMessage += " Please try again later or contact the seller.";
+        }
+
+        console.error("Seller address debug info:", {
+          seller_id: bookData.seller_id,
+          has_profile: !!profile,
+          has_pickup: !!profile?.pickup_address,
+          has_encrypted: !!profile?.pickup_address_encrypted,
+          current_user: user?.id
+        });
+
+        throw new Error(errorMessage);
       }
 
       console.log("✅ Seller address retrieved:", {
