@@ -280,14 +280,30 @@ const BookListing = () => {
             Browse Books
           </h1>
           {user?.email === "admin@rebookedsolutions.co.za" && (
-            <Button
-              onClick={handleClearAllBooks}
-              disabled={isClearingBooks}
-              variant="destructive"
-              size="sm"
-            >
-              {isClearingBooks ? "Clearing..." : "Clear All Books"}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleDebugBooks}
+                variant="outline"
+                size="sm"
+              >
+                Debug Books
+              </Button>
+              <Button
+                onClick={handleFixBooks}
+                variant="secondary"
+                size="sm"
+              >
+                Fix Addresses
+              </Button>
+              <Button
+                onClick={handleClearAllBooks}
+                disabled={isClearingBooks}
+                variant="destructive"
+                size="sm"
+              >
+                {isClearingBooks ? "Clearing..." : "Clear All Books"}
+              </Button>
+            </div>
           )}
         </div>
 
