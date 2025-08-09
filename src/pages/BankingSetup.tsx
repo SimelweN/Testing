@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Layout from "@/components/Layout";
 import BankingDetailsForm from "@/components/banking/BankingDetailsForm";
+import BankingForm from "@/components/banking/BankingForm";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { PaystackSubaccountService } from "@/services/paystackSubaccountService";
@@ -27,6 +28,7 @@ const BankingSetup: React.FC = () => {
   const [existingBanking, setExistingBanking] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [useNewForm, setUseNewForm] = useState(false);
 
 
   useEffect(() => {
@@ -204,14 +206,20 @@ const BankingSetup: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t border-green-200">
+                    <div className="pt-4 border-t border-green-200 space-y-3">
                       <Button
-                        onClick={handleEditBanking}
+                        onClick={() => {
+                          setUseNewForm(true);
+                          setShowForm(true);
+                        }}
                         variant="outline"
-                        className="border-green-300 text-green-700 hover:bg-green-100"
+                        className="border-green-300 text-green-700 hover:bg-green-100 w-full"
                       >
                         Update Banking Details
                       </Button>
+                      <p className="text-xs text-green-600 text-center">
+                        Use our enhanced form to update your banking information
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -319,13 +327,31 @@ const BankingSetup: React.FC = () => {
               )}
 
               {/* Form */}
-              <BankingDetailsForm
-                onSuccess={handleSetupSuccess}
-                onCancel={
-                  existingBanking ? () => setShowForm(false) : undefined
-                }
-                editMode={!!existingBanking}
-              />
+              {useNewForm ? (
+                <div className="max-w-2xl mx-auto">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <h3 className="font-medium text-blue-900 mb-2">Enhanced Banking Form</h3>
+                    <p className="text-sm text-blue-700">
+                      This form allows you to update your existing banking details securely.
+                    </p>
+                  </div>
+                  <BankingForm
+                    onSuccess={handleSetupSuccess}
+                    onCancel={() => {
+                      setShowForm(false);
+                      setUseNewForm(false);
+                    }}
+                  />
+                </div>
+              ) : (
+                <BankingDetailsForm
+                  onSuccess={handleSetupSuccess}
+                  onCancel={
+                    existingBanking ? () => setShowForm(false) : undefined
+                  }
+                  editMode={!!existingBanking}
+                />
+              )}
             </div>
           )}
         </div>
