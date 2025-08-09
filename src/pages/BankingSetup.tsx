@@ -107,6 +107,23 @@ const BankingSetup: React.FC = () => {
     setShowForm(true);
   };
 
+  const handleUpdateSuccess = () => {
+    setShowUpdateDialog(false);
+    setIsPasswordVerified(false);
+    toast.success("Banking details updated successfully!");
+    // Refresh the page to show updated data
+    window.location.reload();
+  };
+
+  const handlePasswordVerified = () => {
+    setIsPasswordVerified(true);
+  };
+
+  const handleCancelUpdate = () => {
+    setShowUpdateDialog(false);
+    setIsPasswordVerified(false);
+  };
+
   if (!user) {
     return (
       <Layout>
