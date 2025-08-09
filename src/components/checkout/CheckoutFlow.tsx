@@ -160,13 +160,17 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           errorMessage += " Please try again later or contact the seller.";
         }
 
-        console.error("Seller address debug info:", {
+        console.error("Seller address debug info:", JSON.stringify({
           seller_id: bookData.seller_id,
+          seller_id_type: typeof bookData.seller_id,
+          seller_id_length: bookData.seller_id?.length,
           has_profile: !!profile,
+          profile_error: profileError?.message || "No error",
           has_pickup: !!profile?.pickup_address,
           has_encrypted: !!profile?.pickup_address_encrypted,
-          current_user: user?.id
-        });
+          current_user: user?.id,
+          book_id: bookData.id
+        }, null, 2));
 
         throw new Error(errorMessage);
       }
