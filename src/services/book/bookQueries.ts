@@ -83,8 +83,12 @@ const logDetailedError = (context: string, error: unknown) => {
 
   console.error(`[BookQueries - ${context}]`, {
     message: errorMessage,
-    error: error,
-    stack: error instanceof Error ? error.stack : undefined,
+    error_type: error instanceof Error ? 'Error' : typeof error,
+    error_details: error instanceof Error ? {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    } : error,
     timestamp: new Date().toISOString()
   });
 
