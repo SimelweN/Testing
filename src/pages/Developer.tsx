@@ -1966,6 +1966,14 @@ const Developer = () => {
                       Test System Health
                     </Button>
                     <Button
+                      onClick={testSupabaseConnection}
+                      disabled={isLoading}
+                      className="w-full"
+                    >
+                      <Database className="h-4 w-4 mr-2" />
+                      Test Supabase Connection
+                    </Button>
+                    <Button
                       onClick={testAddressDecryption}
                       disabled={isLoading}
                       className="w-full"
