@@ -230,17 +230,15 @@ const BankingSetup: React.FC = () => {
 
                     <div className="pt-4 border-t border-green-200 space-y-3">
                       <Button
-                        onClick={() => {
-                          setUseNewForm(true);
-                          setShowForm(true);
-                        }}
+                        onClick={() => setShowUpdateDialog(true)}
                         variant="outline"
                         className="border-green-300 text-green-700 hover:bg-green-100 w-full"
                       >
+                        <Settings className="h-4 w-4 mr-2" />
                         Update Banking Details
                       </Button>
                       <p className="text-xs text-green-600 text-center">
-                        Use our enhanced form to update your banking information
+                        Update your banking information securely with password verification
                       </p>
                     </div>
                   </div>
