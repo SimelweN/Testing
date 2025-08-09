@@ -54,6 +54,7 @@ const BookListing = () => {
 
   // Memoize loadBooks function to prevent infinite loops
   const loadBooks = useCallback(async () => {
+    console.log("🔍 BookListing: Starting to load books...");
     setIsLoading(true);
     setError(null);
 
@@ -87,16 +88,21 @@ const BookListing = () => {
       if (priceRange[0] > 0) filters.minPrice = priceRange[0];
       if (priceRange[1] < 1000) filters.maxPrice = priceRange[1];
 
+      console.log("📋 BookListing: Applying filters:", filters);
+
       const loadedBooks = await getBooks(filters);
+      console.log("📚 BookListing: Received books from service:", loadedBooks?.length || 0);
 
       // Ensure we have an array
       const booksArray = Array.isArray(loadedBooks) ? loadedBooks : [];
       setTotalBooks(booksArray.length);
+      console.log("📊 BookListing: Total books set to:", booksArray.length);
 
       // Calculate pagination
       const startIndex = (currentPage - 1) * booksPerPage;
       const endIndex = startIndex + booksPerPage;
       const paginatedBooks = booksArray.slice(startIndex, endIndex);
+      console.log("📄 BookListing: Paginated books for display:", paginatedBooks.length);
 
       setBooks(paginatedBooks);
 
