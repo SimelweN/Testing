@@ -148,29 +148,39 @@ export const saveSimpleUserAddresses = async (
   addressesAreSame: boolean = false,
 ) => {
   try {
-    // Encrypt and save pickup address
+    // Try to encrypt and save pickup address (non-blocking)
     if (pickupAddress) {
-      await encryptAddress(pickupAddress, {
-        save: {
-          table: 'profiles',
-          target_id: userId,
-          address_type: 'pickup'
-        }
-      });
+      try {
+        await encryptAddress(pickupAddress, {
+          save: {
+            table: 'profiles',
+            target_id: userId,
+            address_type: 'pickup'
+          }
+        });
+        console.log("✅ Pickup address encrypted successfully");
+      } catch (encryptError) {
+        console.warn("⚠️ Pickup address encryption failed, continuing with plaintext only");
+      }
     }
 
-    // Encrypt and save shipping address (if different)
+    // Try to encrypt and save shipping address (if different, non-blocking)
     if (shippingAddress && !addressesAreSame) {
-      await encryptAddress(shippingAddress, {
-        save: {
-          table: 'profiles',
-          target_id: userId,
-          address_type: 'shipping'
-        }
-      });
+      try {
+        await encryptAddress(shippingAddress, {
+          save: {
+            table: 'profiles',
+            target_id: userId,
+            address_type: 'shipping'
+          }
+        });
+        console.log("✅ Shipping address encrypted successfully");
+      } catch (encryptError) {
+        console.warn("⚠️ Shipping address encryption failed, continuing with plaintext only");
+      }
     }
 
-    // Also update plaintext addresses for backward compatibility (transition period)
+    // Always update plaintext addresses (required for functionality)
     const updateData: any = {};
     if (pickupAddress) {
       updateData.pickup_address = pickupAddress;
