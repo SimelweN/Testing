@@ -54,6 +54,7 @@ const BankingProfileTab = () => {
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [showFullAccount, setShowFullAccount] = useState(false);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [showSetupDialog, setShowSetupDialog] = useState(false);
   const [isPasswordVerified, setIsPasswordVerified] = useState(false);
 
   const handleSetupBanking = () => {
