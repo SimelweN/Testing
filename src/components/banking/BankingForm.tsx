@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { ActivityService } from "@/services/activityService";
 
 const SOUTH_AFRICAN_BANKS = [
   { name: "ABSA Bank", branchCode: "632005" },
@@ -139,6 +140,15 @@ export default function BankingForm({ onSuccess, onCancel }: BankingFormProps) {
 
       if (error) throw new Error(error.message || "Failed to submit banking details");
       if (!data?.success) throw new Error(data?.error || "Failed to process subaccount");
+
+      // Log the banking update activity
+      try {
+        await ActivityService.logBankingUpdate(session.user.id, isEditMode);
+        console.log("✅ Banking update activity logged");
+      } catch (activityError) {
+        console.warn("⚠️ Failed to log banking update activity:", activityError);
+        // Don't fail the entire operation for activity logging issues
+      }
 
       toast({ title: "Success!", description: data.message });
       if (onSuccess) {
