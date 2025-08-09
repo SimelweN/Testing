@@ -1855,7 +1855,7 @@ const Developer = () => {
 
                             toast.success('🎉 CORS bypass successful - real locker data active!');
                           }
-                          } else {
+                        } else {
                             toast.error('❌ No lockers returned');
                             console.error('❌ Fetch returned 0 lockers');
                           }
