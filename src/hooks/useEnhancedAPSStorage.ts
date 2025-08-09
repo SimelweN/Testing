@@ -5,7 +5,8 @@ import { calculateAPS, validateAPSSubjects } from "@/utils/apsCalculation";
 import {
   saveAPSProfile,
   loadAPSProfile,
-  clearAPSProfile,
+  clearAPSProfile as clearAPSProfileAsync,
+  clearAPSProfileSimple,
   createAPSBackup,
   loadAPSProfileFromDatabase,
 } from "@/services/apsPersistenceService";
