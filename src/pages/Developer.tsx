@@ -1888,6 +1888,14 @@ const Developer = () => {
                       <MapPin className="h-4 w-4 mr-2" />
                       Test Address Decryption
                     </Button>
+                    <Button
+                      onClick={testDataIntegrity}
+                      disabled={isLoading}
+                      className="w-full"
+                    >
+                      <Bug className="h-4 w-4 mr-2" />
+                      Check Data Integrity
+                    </Button>
                   </CardContent>
                 </Card>
 
