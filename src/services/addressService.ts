@@ -14,6 +14,49 @@ interface Address {
   [key: string]: string | number | boolean | null;
 }
 
+// Encrypt an address using the encrypt-address edge function
+const encryptAddress = async (address: Address, options?: { save?: { table: string; target_id: string; address_type: string } }) => {
+  try {
+    const { data, error } = await supabase.functions.invoke('encrypt-address', {
+      body: {
+        object: address,
+        ...options
+      }
+    });
+
+    if (error) {
+      console.error("Error encrypting address:", error);
+      throw new Error(`Encryption failed: ${error.message}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in encryptAddress:", error);
+    throw error;
+  }
+};
+
+// Decrypt an address using the decrypt-address edge function
+const decryptAddress = async (params: { table: string; target_id: string; address_type?: string }) => {
+  try {
+    const { data, error } = await supabase.functions.invoke('decrypt-address', {
+      body: {
+        fetch: params
+      }
+    });
+
+    if (error) {
+      console.error("Error decrypting address:", error);
+      throw new Error(`Decryption failed: ${error.message}`);
+    }
+
+    return data?.data || null;
+  } catch (error) {
+    console.error("Error in decryptAddress:", error);
+    throw error;
+  }
+};
+
 export const saveUserAddresses = async (
   userId: string,
   pickupAddress: Address,
@@ -21,6 +64,7 @@ export const saveUserAddresses = async (
   addressesSame: boolean,
 ) => {
   try {
+    // First validate addresses (keep existing validation)
     const result = await updateAddressValidation(
       userId,
       pickupAddress,
@@ -28,21 +72,45 @@ export const saveUserAddresses = async (
       addressesSame,
     );
 
-    const { data, error } = await supabase
+    // Encrypt and save pickup address
+    await encryptAddress(pickupAddress, {
+      save: {
+        table: 'profiles',
+        target_id: userId,
+        address_type: 'pickup'
+      }
+    });
+
+    // Encrypt and save shipping address (if different)
+    if (!addressesSame) {
+      await encryptAddress(shippingAddress, {
+        save: {
+          table: 'profiles',
+          target_id: userId,
+          address_type: 'shipping'
+        }
+      });
+    }
+
+    // Update addresses_same flag and keep legacy plaintext for now (transition period)
+    const { error } = await supabase
       .from("profiles")
-      .select("pickup_address, shipping_address, addresses_same")
-      .eq("id", userId)
-      .single();
+      .update({
+        pickup_address: pickupAddress,
+        shipping_address: addressesSame ? pickupAddress : shippingAddress,
+        addresses_same: addressesSame,
+      })
+      .eq("id", userId);
 
     if (error) {
-      safeLogError("Error fetching updated addresses", error);
+      safeLogError("Error updating profile addresses", error);
       throw error;
     }
 
     return {
-      pickup_address: data.pickup_address,
-      shipping_address: data.shipping_address,
-      addresses_same: data.addresses_same,
+      pickup_address: pickupAddress,
+      shipping_address: addressesSame ? pickupAddress : shippingAddress,
+      addresses_same: addressesSame,
       canListBooks: result.canListBooks,
     };
   } catch (error) {
@@ -55,6 +123,23 @@ export const getSellerPickupAddress = async (sellerId: string) => {
   try {
     console.log("Fetching pickup address for seller:", sellerId);
 
+    // Try to get encrypted address first
+    try {
+      const decryptedAddress = await decryptAddress({
+        table: 'profiles',
+        target_id: sellerId,
+        address_type: 'pickup'
+      });
+
+      if (decryptedAddress) {
+        console.log("Successfully fetched encrypted seller pickup address");
+        return decryptedAddress;
+      }
+    } catch (error) {
+      console.log("Encrypted address not found or failed to decrypt, falling back to plaintext");
+    }
+
+    // Fallback to plaintext address (during transition period)
     const { data, error } = await supabase
       .from("profiles")
       .select("pickup_address")
@@ -112,6 +197,38 @@ export const getUserAddresses = async (userId: string) => {
   try {
     console.log("Fetching addresses for user:", userId);
 
+    // Try to get encrypted addresses first
+    try {
+      const pickupAddress = await decryptAddress({
+        table: 'profiles',
+        target_id: userId,
+        address_type: 'pickup'
+      });
+
+      const shippingAddress = await decryptAddress({
+        table: 'profiles',
+        target_id: userId,
+        address_type: 'shipping'
+      });
+
+      if (pickupAddress || shippingAddress) {
+        console.log("Successfully fetched encrypted addresses");
+        // Determine if addresses are the same
+        const addressesSame = pickupAddress && shippingAddress ? 
+          JSON.stringify(pickupAddress) === JSON.stringify(shippingAddress) : 
+          !shippingAddress;
+
+        return {
+          pickup_address: pickupAddress,
+          shipping_address: shippingAddress || pickupAddress,
+          addresses_same: addressesSame,
+        };
+      }
+    } catch (error) {
+      console.log("Encrypted addresses not found or failed to decrypt, falling back to plaintext");
+    }
+
+    // Fallback to plaintext addresses (during transition period)
     const { data, error } = await supabase
       .from("profiles")
       .select("pickup_address, shipping_address, addresses_same")
@@ -185,7 +302,42 @@ export const updateBooksPickupAddress = async (
       else if (addressStr.includes("north west")) province = "North West";
     }
 
-    // Update both pickup_address and province
+    // Get all user's books
+    const { data: books, error: fetchError } = await supabase
+      .from("books")
+      .select("id")
+      .eq("seller_id", userId);
+
+    if (fetchError) {
+      console.error("Error fetching user books:", fetchError);
+      return {
+        success: false,
+        updatedCount: 0,
+        error: fetchError.message || "Failed to fetch book listings",
+      };
+    }
+
+    if (!books || books.length === 0) {
+      return {
+        success: true,
+        updatedCount: 0,
+      };
+    }
+
+    // Encrypt address for each book
+    const encryptPromises = books.map(book => 
+      encryptAddress(newPickupAddress, {
+        save: {
+          table: 'books',
+          target_id: book.id,
+          address_type: 'pickup'
+        }
+      })
+    );
+
+    await Promise.all(encryptPromises);
+
+    // Update both pickup_address (plaintext) and province for backward compatibility
     const updateData: any = { pickup_address: newPickupAddress };
     if (province) {
       updateData.province = province;
@@ -222,5 +374,91 @@ export const updateBooksPickupAddress = async (
       updatedCount: 0,
       error: error instanceof Error ? error.message : "Unknown error",
     };
+  }
+};
+
+// Get encrypted book pickup address for shipping calculations
+export const getBookPickupAddress = async (bookId: string) => {
+  try {
+    console.log("Fetching pickup address for book:", bookId);
+
+    // Try to get encrypted address first
+    try {
+      const decryptedAddress = await decryptAddress({
+        table: 'books',
+        target_id: bookId,
+        address_type: 'pickup'
+      });
+
+      if (decryptedAddress) {
+        console.log("Successfully fetched encrypted book pickup address");
+        return decryptedAddress;
+      }
+    } catch (error) {
+      console.log("Encrypted address not found or failed to decrypt, falling back to plaintext");
+    }
+
+    // Fallback to plaintext address (during transition period)
+    const { data, error } = await supabase
+      .from("books")
+      .select("pickup_address")
+      .eq("id", bookId)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        console.log("No pickup address found for book");
+        return null;
+      }
+      throw new Error(`Failed to fetch book pickup address: ${error.message}`);
+    }
+
+    return data?.pickup_address || null;
+  } catch (error) {
+    console.error("Error in getBookPickupAddress:", error);
+    throw error;
+  }
+};
+
+// Get encrypted order shipping address for delivery
+export const getOrderShippingAddress = async (orderId: string) => {
+  try {
+    console.log("Fetching shipping address for order:", orderId);
+
+    // Try to get encrypted address first
+    try {
+      const decryptedAddress = await decryptAddress({
+        table: 'orders',
+        target_id: orderId,
+        address_type: 'shipping'
+      });
+
+      if (decryptedAddress) {
+        console.log("Successfully fetched encrypted order shipping address");
+        return decryptedAddress;
+      }
+    } catch (error) {
+      console.log("Encrypted address not found or failed to decrypt, falling back to plaintext");
+    }
+
+    // Fallback to plaintext address (during transition period)
+    const { data, error } = await supabase
+      .from("orders")
+      .select("shipping_address")
+      .eq("id", orderId)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        console.log("No shipping address found for order");
+        return null;
+      }
+      throw new Error(`Failed to fetch order shipping address: ${error.message}`);
+    }
+
+    return data?.shipping_address || null;
+  } catch (error) {
+    console.error("Error in getOrderShippingAddress:", error);
+    throw error;
   }
 };
