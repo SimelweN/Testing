@@ -308,7 +308,7 @@ const BookListing = () => {
                 size="sm"
                 className="bg-red-600 hover:bg-red-700"
               >
-                🆘 Emergency Test
+                ��� Emergency Test
               </Button>
               <Button
                 onClick={handleDebugBooks}
@@ -341,15 +341,6 @@ const BookListing = () => {
           <GoogleAdsense />
         </div>
 
-        {/* Debug Status Display */}
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="text-sm text-blue-800">
-            <strong>Debug Status:</strong>
-            {isLoading ? " Loading books..." :
-             error ? ` Error: ${error}` :
-             ` Loaded ${books.length} books (Total: ${totalBooks})`}
-          </div>
-        </div>
 
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
           <BookFilters
