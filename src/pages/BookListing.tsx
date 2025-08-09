@@ -128,8 +128,10 @@ const BookListing = () => {
       toast.error(userMessage);
       setBooks([]);
       setError(error instanceof Error ? error.message : String(error));
+      console.error("❌ BookListing: Error loading books:", errorDetails);
     } finally {
       setIsLoading(false);
+      console.log("🏁 BookListing: Loading complete, isLoading set to false");
     }
   }, [searchParams, selectedCondition, selectedUniversity, selectedProvince, priceRange, currentPage]);
 
