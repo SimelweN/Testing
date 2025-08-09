@@ -1732,7 +1732,7 @@ const Developer = () => {
                         try {
                           const { lockerService } = await import('@/services/lockerService');
                           console.log('🧪 Testing real PUDO API directly...');
-                          toast.info('🧪 Testing real PUDO API format...');
+                          toast.info('��� Testing real PUDO API format...');
 
                           const result = await lockerService.testRealPudoApi();
 
@@ -1816,6 +1816,14 @@ const Developer = () => {
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Test System Health
+                    </Button>
+                    <Button
+                      onClick={testAddressDecryption}
+                      disabled={isLoading}
+                      className="w-full"
+                    >
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Test Address Decryption
                     </Button>
                   </CardContent>
                 </Card>
