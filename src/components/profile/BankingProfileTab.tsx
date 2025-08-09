@@ -344,6 +344,15 @@ const BankingProfileTab = () => {
                 >
                   Refresh Status
                 </Button>
+                <Button
+                  onClick={() => setShowUpdateDialog(true)}
+                  variant="outline"
+                  size="sm"
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Update Details
+                </Button>
               </div>
 
               {/* Decrypted Details Display */}
