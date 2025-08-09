@@ -105,9 +105,10 @@ const BookListing = () => {
       console.log("📄 BookListing: Paginated books for display:", paginatedBooks.length);
 
       setBooks(paginatedBooks);
+      console.log("✅ BookListing: Books loaded successfully, displaying:", paginatedBooks.length, "books");
 
       if (booksArray.length === 0) {
-        // No books found with current filters
+        console.log("⚠️ BookListing: No books found with current filters");
       }
     } catch (error) {
       const errorDetails = {
