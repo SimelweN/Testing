@@ -189,15 +189,49 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           console.log("📚 Books by this seller:", { bookCount, bookCountError });
         }
 
+        // Handle missing profile case specifically
+        if (!profile && profiles?.length === 0) {
+          console.error("💥 DATA INTEGRITY ISSUE: Book has seller_id but no profile exists");
+
+          // Check if this is a systemic issue or isolated case
+          const { count: orphanedBooks } = await supabase
+            .from("books")
+            .select("id", { count: 'exact', head: true })
+            .eq("seller_id", bookData.seller_id);
+
+          console.log(`📊 Total books by this seller: ${orphanedBooks}`);
+
+          // This is a data integrity issue - the book exists but seller profile doesn't
+          const errorMessage = `This book is currently unavailable due to a profile setup issue. Book ID: ${bookData.id}. ` +
+            (user?.id === bookData.seller_id
+              ? "Please contact support to restore your seller profile."
+              : "Please contact support or try a different book.");
+
+          console.error("Seller profile missing - possible solutions:", {
+            issue: "Book exists but seller profile missing",
+            seller_id: bookData.seller_id,
+            book_id: bookData.id,
+            books_by_seller: orphanedBooks,
+            possible_causes: [
+              "Profile was deleted but books weren't cleaned up",
+              "User registered but never created profile",
+              "Database inconsistency"
+            ],
+            admin_actions_needed: [
+              "Check if seller_id exists in auth.users",
+              "Create missing profile or reassign books",
+              "Clean up orphaned books if seller no longer exists"
+            ]
+          });
+
+          throw new Error(errorMessage);
+        }
+
         // Provide specific guidance based on what's missing
         let errorMessage = "This book is temporarily unavailable for purchase. ";
 
         if (!profile) {
-          if (profileError?.code === 'PGRST116') {
-            errorMessage += "The seller account no longer exists.";
-          } else {
-            errorMessage += "The seller's profile is not set up properly.";
-          }
+          errorMessage += "The seller's profile setup is incomplete.";
         } else if (!profile.pickup_address && !profile.pickup_address_encrypted) {
           errorMessage += "The seller hasn't set up their pickup address yet.";
         } else {
