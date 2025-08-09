@@ -77,6 +77,18 @@ const BankingProfileTab = () => {
     setIsPasswordVerified(false);
   };
 
+  const handleSetupSuccess = () => {
+    setShowSetupDialog(false);
+    setIsPasswordVerified(false);
+    refreshBankingDetails();
+    toast.success("Banking details setup successfully!");
+  };
+
+  const handleCancelSetup = () => {
+    setShowSetupDialog(false);
+    setIsPasswordVerified(false);
+  };
+
   const handleDecryptAndView = async () => {
     setIsDecrypting(true);
     try {
