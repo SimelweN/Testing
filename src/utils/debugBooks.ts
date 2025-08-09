@@ -11,6 +11,17 @@ export const debugBookFetching = async () => {
 
     console.log("📊 Total books in database:", totalBooks);
 
+    // Quick test: Try to get just 5 books to see if basic query works
+    const { data: testBooks, error: testError } = await supabase
+      .from("books")
+      .select("id, title, sold")
+      .limit(5);
+
+    console.log("🧪 Test query - 5 books:", testBooks?.length || 0, "error:", testError?.message || "none");
+    if (testBooks && testBooks.length > 0) {
+      console.log("📝 Sample books:", testBooks.map(b => ({ id: b.id, title: b.title, sold: b.sold })));
+    }
+
     if (countError) {
       console.error("❌ Error counting books:", countError);
       return;
