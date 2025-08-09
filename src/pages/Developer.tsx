@@ -13,6 +13,7 @@ import { NotificationDebugger } from "@/components/NotificationDebugger";
 import EnhancedNotificationDebugger from "@/components/EnhancedNotificationDebugger";
 import ErrorMonitor from "@/components/ErrorMonitor";
 import { supabase } from "@/integrations/supabase/client";
+import { ENV } from "@/config/environment";
 import EmailTemplateDashboard from "@/components/admin/EmailTemplateDashboard";
 import { EmailDiagnosticPanel } from "@/components/EmailDiagnosticPanel";
 import {
