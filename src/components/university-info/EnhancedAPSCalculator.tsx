@@ -714,15 +714,15 @@ const EnhancedAPSCalculator: React.FC = () => {
               </div>
 
               {/* 💾 Storage Status Indicator */}
-              {(hasProfile || enhancedProfile) && (
+              {(hasProfile || enhancedProfile || subjects.length > 0) && (
                 <Alert className="border-green-200 bg-green-50">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-green-800">
-                    💾 APS Profile saved to localStorage (persistent storage)
-                    {enhancedProfile?.lastUpdated && (
+                    💾 APS Profile auto-saved to localStorage (persistent until manually cleared)
+                    {(enhancedProfile?.lastUpdated || userProfile?.lastUpdated) && (
                       <span className="ml-2 text-sm opacity-75">
                         Last updated:{" "}
-                        {new Date(enhancedProfile.lastUpdated).toLocaleString()}
+                        {new Date((enhancedProfile?.lastUpdated || userProfile?.lastUpdated || new Date().toISOString())).toLocaleString()}
                       </span>
                     )}
                   </AlertDescription>
