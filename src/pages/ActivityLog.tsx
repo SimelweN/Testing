@@ -33,6 +33,7 @@ import {
   Filter,
   Calendar,
   Activity as ActivityIcon,
+  CreditCard,
 } from "lucide-react";
 import OrderManagementView from "@/components/orders/OrderManagementView";
 import OrderNotificationSystem from "@/components/notifications/OrderNotificationSystem";
@@ -147,6 +148,8 @@ const ActivityLog = () => {
         return <User className="h-4 w-4 text-purple-500" />;
       case "login":
         return <LogIn className="h-4 w-4 text-teal-600" />;
+      case "banking_updated":
+        return <CreditCard className="h-4 w-4 text-orange-600" />;
       default:
         return <ActivityIcon className="h-4 w-4 text-slate-500" />;
     }
@@ -177,6 +180,12 @@ const ActivityLog = () => {
         return (
           <Badge variant="secondary" className="bg-rose-50 text-rose-700 border-rose-200">
             Saved
+          </Badge>
+        );
+      case "banking_updated":
+        return (
+          <Badge variant="secondary" className="bg-orange-50 text-orange-700 border-orange-200">
+            Updated
           </Badge>
         );
       default:

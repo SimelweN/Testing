@@ -6,7 +6,8 @@ export type ActivityType =
   | "purchase"
   | "sale"
   | "listing_created"
-  | "login";
+  | "login"
+  | "banking_updated";
 
 export interface Activity {
   id: string;
@@ -51,6 +52,51 @@ export class ActivityService {
 
     } catch (error) {
       console.error("Error logging profile update activity:", {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+    }
+  }
+
+  /**
+   * Log a banking details update activity
+   */
+  static async logBankingUpdate(userId: string, isUpdate: boolean = true): Promise<void> {
+    try {
+      if (!userId) {
+        console.warn("❌ No userId provided for banking update logging");
+        return;
+      }
+
+      const title = isUpdate ? "Banking Details Updated" : "Banking Details Added";
+      const description = isUpdate
+        ? "Your banking information has been successfully updated"
+        : "Your banking information has been successfully added";
+
+      // Log to console
+      console.log(`🏦 Banking details ${isUpdate ? 'updated' : 'added'} for user: ${userId}`);
+
+      // Log the activity
+      const result = await this.logActivity(
+        userId,
+        "banking_updated",
+        title,
+        description,
+        {
+          action: isUpdate ? "update" : "create",
+          timestamp: new Date().toISOString(),
+          secure: true
+        }
+      );
+
+      if (result.success) {
+        console.log("✅ Banking update activity logged successfully");
+      } else {
+        console.warn("⚠️ Banking update activity logging failed:", result.error);
+      }
+
+    } catch (error) {
+      console.error("Error logging banking update activity:", {
         message: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });
@@ -276,6 +322,7 @@ export class ActivityService {
       sale: "success",
       listing_created: "info",
       login: "info",
+      banking_updated: "success",
     };
     return typeMap[activityType] || "info";
   }
@@ -302,6 +349,10 @@ export class ActivityService {
         return "login";
       case "profile":
       case "profile_updated":
+        return "profile_updated";
+      case "banking":
+      case "banking_updated":
+        return "banking_updated";
       default:
         return "profile_updated";
     }

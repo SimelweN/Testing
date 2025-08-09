@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Shield,
   CreditCard,
@@ -25,6 +26,8 @@ import { toast } from "sonner";
 import type { BankingSubaccount } from "@/types/banking";
 import SubaccountView from "@/components/banking/SubaccountView";
 import SubaccountEditForm from "@/components/banking/SubaccountEditForm";
+import BankingForm from "@/components/banking/BankingForm";
+import PasswordVerificationForm from "@/components/banking/PasswordVerificationForm";
 import { PaystackSubaccountService } from "@/services/paystackSubaccountService";
 import BankingDecryptionService, { type DecryptedBankingDetails } from "@/services/bankingDecryptionService";
 
@@ -50,9 +53,27 @@ const BankingProfileTab = () => {
   const [decryptedDetails, setDecryptedDetails] = useState<DecryptedBankingDetails | null>(null);
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [showFullAccount, setShowFullAccount] = useState(false);
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [isPasswordVerified, setIsPasswordVerified] = useState(false);
 
   const handleSetupBanking = () => {
     navigate("/banking-setup");
+  };
+
+  const handleUpdateSuccess = () => {
+    setShowUpdateDialog(false);
+    setIsPasswordVerified(false);
+    refreshBankingDetails();
+    toast.success("Banking details updated successfully!");
+  };
+
+  const handlePasswordVerified = () => {
+    setIsPasswordVerified(true);
+  };
+
+  const handleCancelUpdate = () => {
+    setShowUpdateDialog(false);
+    setIsPasswordVerified(false);
   };
 
   const handleDecryptAndView = async () => {
@@ -341,6 +362,15 @@ const BankingProfileTab = () => {
                 >
                   Refresh Status
                 </Button>
+                <Button
+                  onClick={() => setShowUpdateDialog(true)}
+                  variant="outline"
+                  size="sm"
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Update Details
+                </Button>
               </div>
 
               {/* Decrypted Details Display */}
@@ -508,6 +538,34 @@ const BankingProfileTab = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Update Banking Details Dialog */}
+      <Dialog open={showUpdateDialog} onOpenChange={handleCancelUpdate}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {!isPasswordVerified ? "Security Verification" : "Update Banking Details"}
+            </DialogTitle>
+            <DialogDescription>
+              {!isPasswordVerified
+                ? "Please verify your password to access and update your banking information."
+                : "Update your banking information securely. All changes are encrypted and stored safely."
+              }
+            </DialogDescription>
+          </DialogHeader>
+          {!isPasswordVerified ? (
+            <PasswordVerificationForm
+              onVerified={handlePasswordVerified}
+              onCancel={handleCancelUpdate}
+            />
+          ) : (
+            <BankingForm
+              onSuccess={handleUpdateSuccess}
+              onCancel={handleCancelUpdate}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
