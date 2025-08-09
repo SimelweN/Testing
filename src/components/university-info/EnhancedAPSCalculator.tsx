@@ -234,6 +234,36 @@ const EnhancedAPSCalculator: React.FC = () => {
     }
   }, [apsCalculation.fullCalculation]);
 
+  // Auto-save before navigation or page unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (subjects.length > 0) {
+        try {
+          const profile = {
+            subjects: subjects.map((s) => ({
+              name: s.name,
+              marks: s.marks,
+              level: s.level,
+              points: s.points,
+            })),
+            totalAPS: apsCalculation.totalAPS || 0,
+            lastUpdated: new Date().toISOString(),
+            isValid: apsCalculation.isCalculationValid,
+          };
+          localStorage.setItem("userAPSProfile", JSON.stringify(profile));
+          console.log("💾 [APS] Auto-saved before navigation");
+        } catch (error) {
+          console.warn("⚠️ Failed to save APS profile before navigation:", error);
+        }
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [subjects, apsCalculation]);
+
   // Listen for global APS profile clearing event
   useEffect(() => {
     const handleAPSProfileCleared = () => {
