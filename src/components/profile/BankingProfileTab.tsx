@@ -13,8 +13,9 @@ import {
   ArrowRight,
   Building2,
   Eye,
-  Edit3,
   Settings,
+  Loader2,
+  Copy,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { BankingService } from "@/services/bankingService";
@@ -25,6 +26,7 @@ import type { BankingSubaccount } from "@/types/banking";
 import SubaccountView from "@/components/banking/SubaccountView";
 import SubaccountEditForm from "@/components/banking/SubaccountEditForm";
 import { PaystackSubaccountService } from "@/services/paystackSubaccountService";
+import BankingDecryptionService, { type DecryptedBankingDetails } from "@/services/bankingDecryptionService";
 
 const BankingProfileTab = () => {
   const { user } = useAuth();
@@ -45,13 +47,36 @@ const BankingProfileTab = () => {
   );
   const [subaccountCode, setSubaccountCode] = useState<string | null>(null);
   const [loadingSubaccount, setLoadingSubaccount] = useState(false);
+  const [decryptedDetails, setDecryptedDetails] = useState<DecryptedBankingDetails | null>(null);
+  const [isDecrypting, setIsDecrypting] = useState(false);
+  const [showFullAccount, setShowFullAccount] = useState(false);
 
   const handleSetupBanking = () => {
     navigate("/banking-setup");
   };
 
-  const handleEditBanking = () => {
-    setViewMode("edit");
+  const handleDecryptAndView = async () => {
+    setIsDecrypting(true);
+    try {
+      const result = await BankingDecryptionService.decryptBankingDetails();
+      if (result.success && result.data) {
+        setDecryptedDetails(result.data);
+        setShowFullAccount(true);
+        toast.success("Banking details decrypted successfully");
+      } else {
+        toast.error(result.error || "Failed to decrypt banking details");
+      }
+    } catch (error) {
+      console.error("Decryption error:", error);
+      toast.error("Failed to decrypt banking details");
+    } finally {
+      setIsDecrypting(false);
+    }
+  };
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard`);
   };
 
   const handleViewDetailed = async () => {
@@ -200,101 +225,198 @@ const BankingProfileTab = () => {
           )}
 
           {hasBankingSetup && bankingDetails && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Business Name
-                  </label>
-                  <p className="text-sm text-gray-900 mt-1">{businessName}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Bank
-                  </label>
-                  <p className="text-sm text-gray-900 mt-1">{bankName}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Account Number
-                  </label>
-                  <p className="text-sm text-gray-900 mt-1 font-mono">
-                    {maskedAccountNumber}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Status
-                  </label>
-                  <div className="mt-1">
-                    <Badge
-                      variant={isActive ? "default" : "outline"}
-                      className={
-                        isActive
-                          ? "bg-green-100 text-green-800"
-                          : "border-orange-500 text-orange-700"
-                      }
-                    >
-                      {bankingDetails.status}
-                    </Badge>
+            <div className="space-y-6">
+              {/* Banking Overview Card */}
+              <div className="bg-gradient-to-r from-book-50 to-green-50 p-6 rounded-lg border border-book-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-book-700">
+                      Business Name
+                    </label>
+                    <p className="text-book-900 font-semibold">{businessName}</p>
                   </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Email
-                  </label>
-                  <p className="text-sm text-gray-900 mt-1">
-                    {bankingDetails.email}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Setup Date
-                  </label>
-                  <p className="text-sm text-gray-900 mt-1">
-                    {new Date(bankingDetails.created_at).toLocaleDateString()}
-                  </p>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-book-700">
+                      Bank
+                    </label>
+                    <p className="text-book-900 font-semibold">{bankName}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-book-700">
+                      Account Number
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <p className="text-book-900 font-mono font-semibold">
+                        {showFullAccount && decryptedDetails?.account_number
+                          ? decryptedDetails.account_number
+                          : maskedAccountNumber}
+                      </p>
+                      {showFullAccount && decryptedDetails?.account_number && (
+                        <Button
+                          onClick={() => copyToClipboard(decryptedDetails.account_number, "Account Number")}
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-book-600 hover:text-book-800"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-book-700">
+                      Status
+                    </label>
+                    <div>
+                      <Badge
+                        variant={isActive ? "default" : "outline"}
+                        className={
+                          isActive
+                            ? "bg-green-100 text-green-800 border-green-200"
+                            : "border-orange-500 text-orange-700"
+                        }
+                      >
+                        {isActive ? (
+                          <>
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Active
+                          </>
+                        ) : (
+                          <>
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            {bankingDetails.status}
+                          </>
+                        )}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-book-700">
+                      Email
+                    </label>
+                    <p className="text-book-900">{bankingDetails.email}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-book-700">
+                      Setup Date
+                    </label>
+                    <p className="text-book-900">
+                      {new Date(bankingDetails.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-3 pt-4">
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-3">
                 <Button
-                  onClick={handleViewDetailed}
+                  onClick={showFullAccount ? handleViewDetailed : handleDecryptAndView}
                   className="bg-book-600 hover:bg-book-700 flex items-center gap-2"
-                  disabled={loadingSubaccount}
+                  disabled={isDecrypting || loadingSubaccount}
                 >
-                  {loadingSubaccount ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  {isDecrypting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Eye className="h-4 w-4" />
                   )}
-                  View Details
+                  {showFullAccount ? "View Full Details" : "View Details"}
                 </Button>
-                <Button
-                  onClick={handleEditBanking}
-                  variant="outline"
-                  className="border-book-200 text-book-600 hover:bg-book-50 flex items-center gap-2"
-                >
-                  <Edit3 className="h-4 w-4" />
-                  Edit Details
-                </Button>
+                {showFullAccount && (
+                  <Button
+                    onClick={() => {
+                      setShowFullAccount(false);
+                      setDecryptedDetails(null);
+                    }}
+                    variant="outline"
+                    className="border-book-200 text-book-600 hover:bg-book-50"
+                  >
+                    Hide Details
+                  </Button>
+                )}
                 <Button
                   onClick={refreshBankingDetails}
                   variant="outline"
                   size="sm"
+                  className="border-book-200 text-book-600 hover:bg-book-50"
                 >
                   Refresh Status
                 </Button>
               </div>
 
-              <Alert>
-                <Lock className="h-4 w-4" />
-                <AlertDescription>
-                  Banking details are securely managed through Paystack. Updates
-                  require verification to protect your account from unauthorized
-                  changes.
-                </AlertDescription>
-              </Alert>
+              {/* Decrypted Details Display */}
+              {showFullAccount && decryptedDetails && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                    <Lock className="h-4 w-4" />
+                    Decrypted Banking Details
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <label className="font-medium text-blue-800">Full Account Number:</label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <code className="bg-blue-100 px-2 py-1 rounded text-blue-900 font-mono">
+                          {decryptedDetails.account_number}
+                        </code>
+                        <Button
+                          onClick={() => copyToClipboard(decryptedDetails.account_number, "Account Number")}
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="font-medium text-blue-800">Bank Code:</label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <code className="bg-blue-100 px-2 py-1 rounded text-blue-900 font-mono">
+                          {decryptedDetails.bank_code}
+                        </code>
+                        <Button
+                          onClick={() => copyToClipboard(decryptedDetails.bank_code, "Bank Code")}
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    {decryptedDetails.subaccount_code && (
+                      <div>
+                        <label className="font-medium text-blue-800">Subaccount Code:</label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <code className="bg-blue-100 px-2 py-1 rounded text-blue-900 font-mono">
+                            {decryptedDetails.subaccount_code}
+                          </code>
+                          <Button
+                            onClick={() => copyToClipboard(decryptedDetails.subaccount_code!, "Subaccount Code")}
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-green-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-green-900 mb-1">Security & Privacy</h4>
+                    <p className="text-sm text-green-800">
+                      Your banking details are encrypted at rest and only decrypted when you explicitly
+                      click "View Details". All payments are processed through Paystack's secure infrastructure.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>
