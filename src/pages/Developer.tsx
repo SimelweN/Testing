@@ -1365,7 +1365,7 @@ const Developer = () => {
 
       // Test getting seller delivery address (this will try encrypted first, then fallback)
       const startTime = Date.now();
-      const address = await getSellerDeliveryAddress(user.id);
+      const address = await getSellerDeliveryAddress(user!.id);
       const duration = Date.now() - startTime;
 
       if (address) {
