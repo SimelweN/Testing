@@ -18,9 +18,14 @@ interface DeliveryAddress {
 }
 
 interface QuoteRequest {
-  fromAddress: DeliveryAddress;
-  toAddress: DeliveryAddress;
+  fromAddress?: DeliveryAddress;
+  toAddress?: DeliveryAddress;
   weight: number;
+  // Encrypted address lookup options
+  fromBookId?: string;     // Lookup encrypted pickup address from books table
+  toOrderId?: string;      // Lookup encrypted shipping address from orders table
+  fromSellerId?: string;   // Lookup encrypted pickup address from profiles table
+  useEncryption?: boolean; // Flag to enable encrypted address lookup
 }
 
 serve(async (req) => {
