@@ -205,15 +205,32 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         }
 
         console.error("Seller address debug info:", JSON.stringify({
-          seller_id: bookData.seller_id,
-          seller_id_type: typeof bookData.seller_id,
-          seller_id_length: bookData.seller_id?.length,
-          has_profile: !!profile,
-          profile_error: profileError?.message || "No error",
-          has_pickup: !!profile?.pickup_address,
-          has_encrypted: !!profile?.pickup_address_encrypted,
-          current_user: user?.id,
-          book_id: bookData.id
+          book_verification: {
+            book_id: bookData.id,
+            book_title: bookData.title,
+            book_seller_id: bookData.seller_id,
+            fresh_book_data: bookCheck,
+            book_error: bookError?.message
+          },
+          seller_validation: {
+            seller_id: bookData.seller_id,
+            seller_id_type: typeof bookData.seller_id,
+            seller_id_length: bookData.seller_id?.length,
+            seller_id_valid: !!(bookData.seller_id && typeof bookData.seller_id === 'string' && bookData.seller_id.length > 10)
+          },
+          profile_check: {
+            has_profile: !!profile,
+            profile_error_code: profileError?.code,
+            profile_error_message: profileError?.message,
+            profile_data: profile ? {
+              id: profile.id,
+              name: profile.name,
+              email: profile.email,
+              has_pickup: !!profile.pickup_address,
+              has_encrypted: !!profile.pickup_address_encrypted
+            } : null
+          },
+          current_user: user?.id
         }, null, 2));
 
         throw new Error(errorMessage);
