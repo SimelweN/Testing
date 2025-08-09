@@ -4,6 +4,7 @@ import { UserAPSProfile } from "@/hooks/useAPSAwareCourseAssignment";
 
 // 📦 PRIMARY STORAGE: localStorage with key "userAPSProfile"
 const APS_STORAGE_KEY = "userAPSProfile";
+const APS_BACKUP_KEY = "apsProfileBackup";
 
 /**
  * Enhanced APS Persistence Service
@@ -113,50 +114,58 @@ export async function saveAPSProfile(
   }
 }
 
-// 📂 LOAD PROFILE FUNCTION
-export function loadAPSProfile(): UserAPSProfile | null {
+// 📂 LOAD PROFILE FUNCTION - Enhanced with backup recovery
+function getLocalStorageProfile(): UserAPSProfile | null {
   try {
-    console.log("📂 [APSPersistence] Loading APS profile from localStorage with key:", APS_STORAGE_KEY);
-
-    // 🔄 Try migration first
-    migrateSessionToLocal();
-
     const stored = localStorage.getItem(APS_STORAGE_KEY);
     if (!stored) {
       console.log("📂 [APSPersistence] No APS profile found in localStorage");
       return null;
     }
 
-    console.log("📂 [APSPersistence] Found stored data, size:", stored.length, "characters");
-    const profile = JSON.parse(stored);
+    const parsed = JSON.parse(stored);
+    const isValid = isValidAPSProfile(parsed);
 
-    // ✅ Validate profile structure
-    if (!isValidAPSProfile(profile)) {
-      console.warn("❌ [APSPersistence] Invalid APS profile structure, clearing corrupted data");
+    if (isValid) {
+      console.log("✅ [APSPersistence] Valid APS profile loaded from localStorage:", parsed);
+      return parsed;
+    } else {
+      console.warn("❌ [APSPersistence] Invalid APS profile structure in localStorage, clearing it");
       localStorage.removeItem(APS_STORAGE_KEY);
       return null;
     }
-
-    console.log("📂 [APSPersistence] APS profile loaded successfully:", {
-      subjects: profile.subjects?.length || 0,
-      totalAPS: profile.totalAPS,
-      lastUpdated: profile.lastUpdated,
-    });
-
-    return profile;
   } catch (error) {
-    console.error("❌ Error loading APS profile:", {
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    });
-    // Clear corrupted data
-    localStorage.removeItem(APS_STORAGE_KEY);
+    console.warn("❌ [APSPersistence] Failed to parse localStorage APS profile:", error);
+    localStorage.removeItem(APS_STORAGE_KEY); // Clear corrupted data
     return null;
   }
 }
 
-// 🗑️ CLEAR FUNCTION - Only triggered by user action
-export function clearAPSProfile(): boolean {
+export function loadAPSProfile(): UserAPSProfile | null {
+  try {
+    console.log("📂 [APSPersistence] Loading APS profile from localStorage...");
+    console.log("📂 [APSPersistence] All localStorage keys:", Object.keys(localStorage));
+
+    // 🔄 Try migration first
+    migrateSessionToLocal();
+
+    const profile = getLocalStorageProfile();
+    if (profile) {
+      console.log("✅ [APSPersistence] APS Profile loaded from localStorage:", profile);
+      console.log("✅ [APSPersistence] Profile has subjects:", profile.subjects?.length || 0);
+      return profile;
+    } else {
+      console.log("ℹ️ [APSPersistence] No APS profile found in localStorage");
+      return null;
+    }
+  } catch (error) {
+    console.error("❌ [APSPersistence] Failed to load APS profile from localStorage:", error);
+    return null;
+  }
+}
+
+// 🗑️ CLEAR FUNCTION - Only triggered by user action (manual clear button)
+export async function clearAPSProfile(user?: User): Promise<{success: boolean; source?: string; error?: string}> {
   try {
     console.log("🗑️ [APSPersistence] Starting APS profile clear from localStorage");
 
@@ -164,15 +173,45 @@ export function clearAPSProfile(): boolean {
     const beforeClear = localStorage.getItem(APS_STORAGE_KEY);
     console.log("🗑️ [APSPersistence] Profile before clear:", beforeClear ? "EXISTS" : "NONE");
 
-    // Clear ALL APS-related storage
+    // Clear localStorage and sessionStorage
     localStorage.removeItem(APS_STORAGE_KEY);
+    localStorage.removeItem(APS_BACKUP_KEY);
     localStorage.removeItem("apsSearchResults");
-    localStorage.removeItem("apsProfileBackup");
     localStorage.removeItem("reBooked-aps-profile"); // Legacy key
     localStorage.removeItem("reBooked-aps-search-results"); // Legacy key
     localStorage.removeItem("rebookedMarketplace-aps-profile"); // Another legacy key
     sessionStorage.removeItem(APS_STORAGE_KEY);
     sessionStorage.removeItem("apsSearchResults");
+
+    if (user) {
+      // For authenticated users, also clear from database
+      try {
+        const { error } = await supabase.rpc("clear_user_aps_profile", {
+          user_id: user.id,
+        });
+
+        if (error) {
+          console.warn("⚠️ [APSPersistence] Database clear failed:", error);
+          return {
+            success: true,
+            source: "localStorage",
+            error: `Database clear failed: ${error.message}`,
+          };
+        }
+
+        return {
+          success: true,
+          source: "database",
+        };
+      } catch (dbError) {
+        console.warn("⚠️ [APSPersistence] Database connection failed during clear:", dbError);
+        return {
+          success: true,
+          source: "localStorage",
+          error: "Database unavailable",
+        };
+      }
+    }
 
     // Verify the clear worked
     const afterClear = localStorage.getItem(APS_STORAGE_KEY);
@@ -184,13 +223,20 @@ export function clearAPSProfile(): boolean {
 
     const success = afterClear === null;
     console.log(success ? "✅ [APSPersistence] APS Profile cleared successfully" : "❌ [APSPersistence] Clear failed - data still exists");
-    return success;
+
+    return {
+      success,
+      source: "localStorage",
+    };
   } catch (error) {
     console.error("❌ [APSPersistence] Failed to clear APS profile:", {
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     });
-    return false;
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 }
 
