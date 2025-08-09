@@ -1606,7 +1606,7 @@ const Developer = () => {
                       </SelectTrigger>
                       <SelectContent>
                         {users && users.length > 0 ? users.filter(user => user && user.id && typeof user.id === 'string').map(user => (
-                          <SelectItem key={user.id} value={user.id}>
+                          <SelectItem key={user.id || 'unknown'} value={user.id || 'unknown'}>
                             {user.name} ({user.email})
                           </SelectItem>
                         )) : (
