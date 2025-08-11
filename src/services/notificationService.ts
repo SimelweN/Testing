@@ -134,23 +134,31 @@ export async function markNotificationAsRead(notificationId: string): Promise<bo
 
 export class NotificationService {
   /**
-   * Create a notification for a user
+   * Create a notification for a user with retry logic
    */
-  static async createNotification(data: CreateNotificationData) {
+  static async createNotification(data: CreateNotificationData, retryCount = 0) {
+    const maxRetries = 2;
+
     try {
       // Validate required fields
       if (!data.userId || !data.type || !data.title || !data.message) {
         throw new Error('Missing required notification data: userId, type, title, and message are required');
       }
 
+      // Validate userId format (should be UUID)
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(data.userId)) {
+        throw new Error(`Invalid userId format: ${data.userId}`);
+      }
+
       console.log('Creating notification with data:', {
         user_id: data.userId,
         type: data.type,
         title: data.title,
-        message: data.message.substring(0, 100) + '...' // Log truncated message
+        message: data.message.substring(0, 100) + '...',
+        retry_attempt: retryCount
       });
 
-      const { error } = await supabase
+      const { data: insertedData, error } = await supabase
         .from('notifications')
         .insert({
           user_id: data.userId,
@@ -158,27 +166,59 @@ export class NotificationService {
           title: data.title,
           message: data.message,
           read: false,
-        });
+        })
+        .select('id')
+        .single();
 
       if (error) {
         const serializedError = serializeError(error);
         console.error('Failed to create notification:', {
           ...serializedError,
           attemptedData: data,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          retry_attempt: retryCount
         });
+
+        // Retry on certain errors (network issues, temporary database errors)
+        if (retryCount < maxRetries &&
+            (error.message?.includes('network') ||
+             error.message?.includes('timeout') ||
+             error.message?.includes('connection'))) {
+          console.log(`🔄 Retrying notification creation (attempt ${retryCount + 1}/${maxRetries + 1})`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
+          return this.createNotification(data, retryCount + 1);
+        }
+
         return false;
       }
 
-      console.log(`📧 Notification created for user ${data.userId}:`, data.title);
+      console.log(`📧 Notification created successfully for user ${data.userId}:`, {
+        id: insertedData?.id,
+        title: data.title,
+        type: data.type
+      });
+
+      // Clear cache for this user so they get fresh notifications
+      clearNotificationCache(data.userId);
+
       return true;
     } catch (error) {
       const serializedError = serializeError(error);
       console.error('Error creating notification:', {
         ...serializedError,
         attemptedData: data,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        retry_attempt: retryCount
       });
+
+      // Retry on network errors
+      if (retryCount < maxRetries && error instanceof Error &&
+          (error.message.includes('network') || error.message.includes('fetch'))) {
+        console.log(`🔄 Retrying notification creation after error (attempt ${retryCount + 1}/${maxRetries + 1})`);
+        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+        return this.createNotification(data, retryCount + 1);
+      }
+
       return false;
     }
   }
