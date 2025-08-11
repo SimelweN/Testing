@@ -40,6 +40,15 @@ const AccountInformation = ({
           <CardTitle className="text-xl md:text-2xl flex items-center gap-3">
             <User className="h-6 w-6 text-purple-600" />
             Personal Information
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditDialogOpen(true)}
+              className="ml-auto"
+            >
+              <Edit className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">

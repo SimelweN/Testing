@@ -284,7 +284,7 @@ const BankingDebugPanel: React.FC = () => {
                 <div className="text-xs space-y-1">
                   <div><strong>Subaccount Code:</strong> {profileData.subaccount_code || "None"}</div>
                   <div><strong>Banking Setup Complete:</strong> {profileData.preferences?.banking_setup_complete ? "Yes" : "No"}</div>
-                  <div><strong>Business Name:</strong> {profileData.preferences?.business_name || "None"}</div>
+                  <div><strong>Your Name:</strong> {profileData.preferences?.business_name || "None"}</div>
                 </div>
               </div>
             )}

@@ -305,7 +305,7 @@ const SubaccountView: React.FC<SubaccountViewProps> = ({
           <div className="space-y-4">
             <div>
               <Label className="text-sm font-medium text-gray-600">
-                Business Name
+                Your Name
               </Label>
               <p className="font-semibold">
                 {paystack_data.business_name || "Not provided"}

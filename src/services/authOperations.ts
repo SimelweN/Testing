@@ -435,20 +435,7 @@ export const createUserProfile = async (user: User): Promise<Profile> => {
       isAdmin,
     );
 
-    // Create welcome notification for new user
-    try {
-      const { NotificationService } = await import('./notificationService');
-      await NotificationService.createNotification({
-        userId: user.id,
-        type: "info", // Change from "welcome" to "info" for database compatibility
-        title: "Welcome to ReBooked Solutions! 🎉",
-        message: `Hi ${newProfile.name}! Welcome to South Africa's premier textbook marketplace. Start browsing textbooks, set up your profile, and join our community of students!`,
-      });
-      console.log("✅ Welcome notification created for new user");
-    } catch (notifError) {
-      console.warn("Failed to create welcome notification:", notifError);
-      // Don't fail user creation if notification fails
-    }
+    // Welcome notification removed as requested - users will get guidance through the UI instead
 
     return {
       id: newProfile.id,

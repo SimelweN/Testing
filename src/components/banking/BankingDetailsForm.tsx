@@ -437,7 +437,7 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
             {/* Business Name */}
             <div className="space-y-2">
               <Label htmlFor="businessName" className="text-sm font-medium">
-                Business Name *{" "}
+                Your Name *{" "}
                 {hasAutofilled && !editMode && (
                   <span className="text-xs text-gray-500">(from account)</span>
                 )}
@@ -462,7 +462,7 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
                         ? "border-green-300 focus:border-green-500"
                         : ""
                   }`}
-                  placeholder="Your business or trading name"
+                  placeholder="Your full name"
                   required
                   minLength={2}
                   maxLength={100}
@@ -476,7 +476,7 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
               {formData.businessName.trim().length > 0 &&
                 formData.businessName.trim().length < 2 && (
                   <p className="text-xs text-red-600">
-                    Business name must be at least 2 characters
+                    Name must be at least 2 characters
                   </p>
                 )}
             </div>

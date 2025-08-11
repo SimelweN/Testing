@@ -11,23 +11,36 @@ const APS_BACKUP_KEY = "apsProfileBackup";
  * Dual Storage Strategy: localStorage (primary) + database (backup for authenticated users)
  */
 
-// ✅ PROFILE STRUCTURE VALIDATION
+// ✅ PROFILE STRUCTURE VALIDATION - Enhanced to be less aggressive
 function isValidAPSProfile(profile: any): profile is UserAPSProfile {
-  if (!profile || typeof profile !== "object") return false;
-
-  const required = ["subjects", "totalAPS", "lastUpdated"];
-  for (const field of required) {
-    if (!(field in profile)) {
-      console.warn(`Missing required field: ${field}`);
-      return false;
-    }
+  if (!profile || typeof profile !== "object") {
+    console.warn("❌ APS Profile: Not an object or null");
+    return false;
   }
 
-  return (
-    Array.isArray(profile.subjects) &&
-    typeof profile.totalAPS === "number" &&
-    typeof profile.lastUpdated === "string"
-  );
+  // Check for required fields with more lenient validation
+  if (!("subjects" in profile)) {
+    console.warn("❌ APS Profile: Missing subjects field");
+    return false;
+  }
+
+  if (!Array.isArray(profile.subjects)) {
+    console.warn("❌ APS Profile: subjects is not an array");
+    return false;
+  }
+
+  // More lenient validation - allow missing or default values
+  const totalAPS = profile.totalAPS !== undefined ? profile.totalAPS : 0;
+  const lastUpdated = profile.lastUpdated || new Date().toISOString();
+
+  // Only validate that subjects is a valid array
+  if (typeof totalAPS !== "number" || totalAPS < 0) {
+    console.warn("❌ APS Profile: Invalid totalAPS value:", totalAPS);
+    return false;
+  }
+
+  console.log("✅ APS Profile validation passed");
+  return true;
 }
 
 // 🔄 MIGRATION & RECOVERY
@@ -130,7 +143,33 @@ function getLocalStorageProfile(): UserAPSProfile | null {
       console.log("✅ [APSPersistence] Valid APS profile loaded from localStorage:", parsed);
       return parsed;
     } else {
-      console.warn("❌ [APSPersistence] Invalid APS profile structure in localStorage, clearing it");
+      console.warn("❌ [APSPersistence] Invalid APS profile structure detected");
+      console.warn("❌ [APSPersistence] Profile data:", parsed);
+
+      // Instead of clearing immediately, try to repair the profile
+      if (parsed && typeof parsed === "object" && Array.isArray(parsed.subjects)) {
+        console.log("🔧 [APSPersistence] Attempting to repair profile...");
+        const repairedProfile = {
+          subjects: parsed.subjects,
+          totalAPS: parsed.totalAPS || 0,
+          lastUpdated: parsed.lastUpdated || new Date().toISOString(),
+          savedAt: parsed.savedAt || Date.now(),
+          isValid: true
+        };
+
+        // Try to save the repaired profile
+        try {
+          localStorage.setItem(APS_STORAGE_KEY, JSON.stringify(repairedProfile));
+          console.log("✅ [APSPersistence] Profile repaired and saved");
+          return repairedProfile;
+        } catch (error) {
+          console.warn("❌ [APSPersistence] Failed to repair profile:", error);
+        }
+      }
+
+      // Only clear as last resort
+      console.warn("❌ [APSPersistence] Cannot repair profile, creating backup before clearing");
+      localStorage.setItem(APS_STORAGE_KEY + "_backup", stored);
       localStorage.removeItem(APS_STORAGE_KEY);
       return null;
     }

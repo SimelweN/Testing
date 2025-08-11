@@ -24,6 +24,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import Index from "./pages/Index";
 import BookListing from "./pages/BookListing";
 import BookDetails from "./pages/BookDetails";
+import EditBook from "./pages/EditBook";
 import Profile from "./pages/Profile";
 import CreateListing from "./pages/CreateListing";
 import Cart from "./pages/Cart";
@@ -109,6 +110,14 @@ function App() {
                       <Route path="/" element={<Index />} />
                       <Route path="/books" element={<BookListing />} />
                       <Route path="/books/:id" element={<BookDetails />} />
+                      <Route
+                        path="/edit-book/:id"
+                        element={
+                          <ProtectedRoute>
+                            <EditBook />
+                          </ProtectedRoute>
+                        }
+                      />
                       <Route
                         path="/university-info"
                         element={<UniversityInfo />}

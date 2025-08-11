@@ -122,9 +122,9 @@ const BankingSetupForm: React.FC<BankingSetupFormProps> = ({
     switch (step) {
       case "business":
         if (!formData.businessName.trim()) {
-          stepErrors.push("Business name is required");
+          stepErrors.push("Your name is required");
         } else if (formData.businessName.trim().length < 2) {
-          stepErrors.push("Business name must be at least 2 characters");
+          stepErrors.push("Your name must be at least 2 characters");
         }
 
         if (!formData.email.trim()) {
@@ -173,7 +173,7 @@ const BankingSetupForm: React.FC<BankingSetupFormProps> = ({
     if (stepErrors.length > 0) {
       const errorObj: BankingValidationErrors = {};
       stepErrors.forEach((error) => {
-        if (error.includes("Business name")) errorObj.businessName = error;
+        if (error.includes("Your name")) errorObj.businessName = error;
         if (error.includes("Email")) errorObj.email = error;
         if (error.includes("bank")) errorObj.bankName = error;
         if (error.includes("Account number")) errorObj.accountNumber = error;
@@ -401,14 +401,14 @@ const BankingSetupForm: React.FC<BankingSetupFormProps> = ({
 
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="businessName">Business Name *</Label>
+                  <Label htmlFor="businessName">Your Name *</Label>
                   <Input
                     id="businessName"
                     value={formData.businessName}
                     onChange={(e) =>
                       updateFormData("businessName", e.target.value)
                     }
-                    placeholder="Your business or trading name"
+                    placeholder="Your name or trading name"
                     className={errors.businessName ? "border-red-500" : ""}
                   />
                   {errors.businessName && (
@@ -587,7 +587,7 @@ const BankingSetupForm: React.FC<BankingSetupFormProps> = ({
                 <Card className="bg-gray-50">
                   <CardContent className="p-4 space-y-3">
                     <div className="flex justify-between">
-                      <span className="font-medium">Business Name:</span>
+                      <span className="font-medium">Your Name:</span>
                       <span>{formData.businessName}</span>
                     </div>
                     <div className="flex justify-between">

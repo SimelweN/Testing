@@ -35,6 +35,7 @@ import ModernAddressTab from "@/components/profile/ModernAddressTab";
 import BankingProfileTab from "@/components/profile/BankingProfileTab";
 import ShareProfileDialog from "@/components/ShareProfileDialog";
 import ShareReminderBanner from "@/components/ShareReminderBanner";
+import ProfileEditDialog from "@/components/ProfileEditDialog";
 import { UserProfile, AddressData, Address } from "@/types/address";
 
 const Profile = () => {
@@ -48,6 +49,7 @@ const Profile = () => {
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
   const [deletingBooks, setDeletingBooks] = useState<Set<string>>(new Set());
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const loadActiveListings = useCallback(async () => {
     if (!user?.id) return;
@@ -565,7 +567,11 @@ const Profile = () => {
                       readOnly
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
                     />
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsEditDialogOpen(true)}
+                    >
                       <Edit className="w-4 h-4 mr-1" />
                       Edit
                     </Button>
@@ -619,6 +625,11 @@ const Profile = () => {
         userId={user?.id || ""}
         userName={profile?.name || "Anonymous User"}
         isOwnProfile={true}
+      />
+
+      <ProfileEditDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
       />
     </Layout>
   );
