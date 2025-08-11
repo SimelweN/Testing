@@ -116,7 +116,7 @@ const SimpleAddressDialog = ({
           <DialogTitle>Edit Your Addresses</DialogTitle>
           <DialogDescription>
             Set your pickup and shipping addresses. The pickup address is where
-            buyers can collect books, and the shipping address is where you want
+            our couriers can pick up your books, and the shipping address is where you want
             to receive deliveries.
           </DialogDescription>
         </DialogHeader>
