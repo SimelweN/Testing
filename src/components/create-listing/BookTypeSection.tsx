@@ -201,6 +201,28 @@ export const BookTypeSection = ({
               <p className="text-sm text-red-500 mt-1">{errors.universityYear}</p>
             )}
           </div>
+
+          {/* University Selection - Optional */}
+          <div>
+            <Label htmlFor="university" className="text-base font-medium">
+              University <span className="text-gray-400">(Optional)</span>
+            </Label>
+            <Select
+              value={formData.university || ""}
+              onValueChange={(value) => onSelectChange("university", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select university (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {SOUTH_AFRICAN_UNIVERSITIES_SIMPLE.map((university) => (
+                  <SelectItem key={university.id} value={university.id}>
+                    {university.abbreviation} - {university.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </>
       )}
     </div>
