@@ -160,7 +160,7 @@ const ModernAddressTab = ({
             <Info className="h-4 w-4" />
             <AlertDescription>
               Set up your pickup and shipping addresses to enable book sales and
-              deliveries. The pickup address is where buyers can collect books,
+              deliveries. The pickup address is where our couriers can pick up your books,
               and the shipping address is where you'll receive books you
               purchase.
             </AlertDescription>
