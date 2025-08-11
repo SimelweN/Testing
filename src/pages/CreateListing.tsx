@@ -157,6 +157,10 @@ const CreateListing = () => {
       newErrors.grade = "Grade is required for school books";
     }
 
+    if (bookType === "university" && !formData.universityYear) {
+      newErrors.universityYear = "University Year is required for university books";
+    }
+
     if (!bookImages.frontCover)
       newErrors.frontCover = "Front cover photo is required";
     if (!bookImages.backCover)
