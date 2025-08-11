@@ -190,7 +190,7 @@ const ModernAddressTab = ({
           <CardContent className="p-6">
             <div className="space-y-4">
               <p className="text-sm text-gray-600">
-                Where buyers can meet you to collect their books
+                Where our couriers can pick up your books
               </p>
 
               {pickupAddress && editMode !== "pickup" && editMode !== "both" ? (
