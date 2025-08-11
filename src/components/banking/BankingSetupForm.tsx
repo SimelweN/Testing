@@ -587,7 +587,7 @@ const BankingSetupForm: React.FC<BankingSetupFormProps> = ({
                 <Card className="bg-gray-50">
                   <CardContent className="p-4 space-y-3">
                     <div className="flex justify-between">
-                      <span className="font-medium">Business Name:</span>
+                      <span className="font-medium">Your Name:</span>
                       <span>{formData.businessName}</span>
                     </div>
                     <div className="flex justify-between">
