@@ -166,6 +166,13 @@ const BookGrid = ({
                     <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full text-sm font-semibold text-book-800">
                       R{book.price.toLocaleString()}
                     </div>
+                    <button
+                      onClick={(e) => handleShareBook(book, e)}
+                      className="absolute top-2 left-2 bg-white/90 hover:bg-white p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                      title="Share this book"
+                    >
+                      <Share2 className="h-4 w-4 text-book-600" />
+                    </button>
                     {book.sold && (
                       <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                         <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
