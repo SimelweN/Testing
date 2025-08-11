@@ -183,7 +183,7 @@ const SubaccountEditForm: React.FC<SubaccountEditFormProps> = ({
 
   const validateForm = () => {
     if (!formData.business_name?.trim()) {
-      toast.error("Business name is required");
+      toast.error("Your name is required");
       return false;
     }
 
@@ -463,7 +463,7 @@ const SubaccountEditForm: React.FC<SubaccountEditFormProps> = ({
                 </h3>
 
                 <div className="space-y-2">
-                  <Label htmlFor="businessName">Business Name *</Label>
+                  <Label htmlFor="businessName">Your Name *</Label>
                   <Input
                     id="businessName"
                     type="text"
@@ -475,7 +475,7 @@ const SubaccountEditForm: React.FC<SubaccountEditFormProps> = ({
                       }))
                     }
                     className="h-11 rounded-lg border-2 focus:border-book-600"
-                    placeholder="Your business or trading name"
+                    placeholder="Your name or trading name"
                     required
                   />
                 </div>
