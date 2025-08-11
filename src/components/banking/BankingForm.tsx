@@ -167,7 +167,7 @@ export default function BankingForm({ onSuccess, onCancel }: BankingFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Business Name */}
       <div className="space-y-2">
-        <Label htmlFor="businessName">Business Name *</Label>
+        <Label htmlFor="businessName">Your Name *</Label>
         <Input 
           id="businessName" 
           value={formData.businessName}
