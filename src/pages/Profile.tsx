@@ -626,6 +626,11 @@ const Profile = () => {
         userName={profile?.name || "Anonymous User"}
         isOwnProfile={true}
       />
+
+      <ProfileEditDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+      />
     </Layout>
   );
 };
