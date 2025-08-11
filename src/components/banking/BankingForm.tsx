@@ -85,7 +85,7 @@ export default function BankingForm({ onSuccess, onCancel }: BankingFormProps) {
 
   const validateForm = () => {
     if (!formData.businessName.trim()) { 
-      toast({ title: "Business name is required", variant: "destructive" }); 
+      toast({ title: "Name is required", variant: "destructive" }); 
       return false; 
     }
     if (!formData.email.includes("@")) { 
