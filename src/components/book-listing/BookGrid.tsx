@@ -122,7 +122,7 @@ const BookGrid = ({
           return (
             <div
               key={book.id}
-              className={`bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-200 book-card-hover flex flex-col relative ${
+              className={`bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-200 book-card-hover flex flex-col relative group ${
                 isUnavailable ? "opacity-60 grayscale" : ""
               }`}
             >
