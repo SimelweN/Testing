@@ -35,6 +35,7 @@ import ModernAddressTab from "@/components/profile/ModernAddressTab";
 import BankingProfileTab from "@/components/profile/BankingProfileTab";
 import ShareProfileDialog from "@/components/ShareProfileDialog";
 import ShareReminderBanner from "@/components/ShareReminderBanner";
+import ProfileEditDialog from "@/components/ProfileEditDialog";
 import { UserProfile, AddressData, Address } from "@/types/address";
 
 const Profile = () => {
