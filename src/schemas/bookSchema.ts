@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 
 export const BookSchema = z.object({
@@ -7,6 +6,9 @@ export const BookSchema = z.object({
   description: z.string().min(10, 'Description must be at least 10 characters'),
   price: z.number().min(0, 'Price must be positive'),
   categoryId: z.string().min(1, 'Category is required'),
+  universityYear: z.string().optional(),
+  university: z.string().optional(),
+  grade: z.string().optional(),
   frontCover: z.string().optional(),
   backCover: z.string().optional(),
   insidePages: z.string().optional(),
