@@ -111,6 +111,14 @@ function App() {
                       <Route path="/books" element={<BookListing />} />
                       <Route path="/books/:id" element={<BookDetails />} />
                       <Route
+                        path="/edit-book/:id"
+                        element={
+                          <ProtectedRoute>
+                            <EditBook />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
                         path="/university-info"
                         element={<UniversityInfo />}
                       />
