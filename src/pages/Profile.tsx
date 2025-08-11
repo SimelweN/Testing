@@ -567,7 +567,11 @@ const Profile = () => {
                       readOnly
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
                     />
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsEditDialogOpen(true)}
+                    >
                       <Edit className="w-4 h-4 mr-1" />
                       Edit
                     </Button>
