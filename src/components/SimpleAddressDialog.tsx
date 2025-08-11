@@ -126,7 +126,7 @@ const SimpleAddressDialog = ({
           <div>
             <h3 className="text-lg font-semibold mb-4">Pickup Address</h3>
             <p className="text-sm text-gray-600 mb-4">
-              This is where buyers can meet you to collect their books
+              This is where our couriers can pick up your books
             </p>
             <SimpleAddressInput
               label="Pickup Address"
