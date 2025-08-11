@@ -7,6 +7,7 @@ import {
   BookOpen,
   Star,
   ArrowLeft,
+  Share2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -128,6 +129,37 @@ const SellerProfile = () => {
     navigate("/books");
   };
 
+  const handleShareProfile = async () => {
+    if (!seller) return;
+
+    const profileUrl = `${window.location.origin}/seller/${seller.id}`;
+    const shareData = {
+      title: `${seller.name}'s ReBooked Mini`,
+      text: `Check out ${seller.name}'s books on ReBooked! They have ${books.length} books available.`,
+      url: profileUrl,
+    };
+
+    console.log("Sharing seller profile with URL:", profileUrl);
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        toast.success("Profile shared successfully!");
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          // User cancelled sharing, don't show error
+          return;
+        }
+        // Fallback to clipboard
+        navigator.clipboard.writeText(profileUrl);
+        toast.success("Profile link copied to clipboard!");
+      }
+    } else {
+      navigator.clipboard.writeText(profileUrl);
+      toast.success("Profile link copied to clipboard!");
+    }
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -205,11 +237,21 @@ const SellerProfile = () => {
                   <p className="text-gray-700 mt-2 max-w-2xl">{seller.bio}</p>
                 )}
               </div>
-              <div className="text-right">
-                <div className="text-sm text-gray-500">Books Available</div>
-                <div className="text-2xl font-bold text-book-600">
-                  {books.length}
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <div className="text-sm text-gray-500">Books Available</div>
+                  <div className="text-2xl font-bold text-book-600">
+                    {books.length}
+                  </div>
                 </div>
+                <Button
+                  onClick={handleShareProfile}
+                  variant="outline"
+                  className="flex items-center gap-2 hover:bg-book-50 hover:border-book-300 transition-colors"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Share Profile</span>
+                </Button>
               </div>
             </div>
           </div>

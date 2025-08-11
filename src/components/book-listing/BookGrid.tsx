@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, School, GraduationCap, MapPin, Clock } from "lucide-react";
+import { BookOpen, School, GraduationCap, MapPin, Clock, Share2 } from "lucide-react";
 import { Book } from "@/types/book";
 import { toast } from "sonner";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
@@ -43,6 +43,34 @@ const BookGrid = ({
       const errorMessage = getSafeErrorMessage(error, "Failed to commit sale");
       console.error("Failed to commit sale:", errorMessage, { originalError: error });
       toast.error("Failed to commit sale. Please try again.");
+    }
+  };
+
+  const handleShareBook = async (book: Book, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const bookUrl = `${window.location.origin}/books/${book.id}`;
+    const shareData = {
+      title: `${book.title} by ${book.author}`,
+      text: `Check out this book on ReBooked: ${book.title} by ${book.author} for R${book.price}`,
+      url: bookUrl,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        toast.success("Book shared successfully!");
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
+        navigator.clipboard.writeText(bookUrl);
+        toast.success("Book link copied to clipboard!");
+      }
+    } else {
+      navigator.clipboard.writeText(bookUrl);
+      toast.success("Book link copied to clipboard!");
     }
   };
   if (isLoading) {
@@ -94,7 +122,7 @@ const BookGrid = ({
           return (
             <div
               key={book.id}
-              className={`bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-200 book-card-hover flex flex-col relative ${
+              className={`bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-200 book-card-hover flex flex-col relative group ${
                 isUnavailable ? "opacity-60 grayscale" : ""
               }`}
             >
@@ -138,6 +166,13 @@ const BookGrid = ({
                     <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full text-sm font-semibold text-book-800">
                       R{book.price.toLocaleString()}
                     </div>
+                    <button
+                      onClick={(e) => handleShareBook(book, e)}
+                      className="absolute top-2 left-2 bg-white/90 hover:bg-white p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                      title="Share this book"
+                    >
+                      <Share2 className="h-4 w-4 text-book-600" />
+                    </button>
                     {book.sold && (
                       <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                         <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
@@ -229,6 +264,13 @@ const BookGrid = ({
                     <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full text-sm font-semibold text-book-800">
                       R{book.price.toLocaleString()}
                     </div>
+                    <button
+                      onClick={(e) => handleShareBook(book, e)}
+                      className="absolute top-2 left-2 bg-white/90 hover:bg-white p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                      title="Share this book"
+                    >
+                      <Share2 className="h-4 w-4 text-book-600" />
+                    </button>
                     {book.sold && (
                       <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                         <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
