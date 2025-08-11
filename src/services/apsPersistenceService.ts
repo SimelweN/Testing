@@ -143,7 +143,33 @@ function getLocalStorageProfile(): UserAPSProfile | null {
       console.log("✅ [APSPersistence] Valid APS profile loaded from localStorage:", parsed);
       return parsed;
     } else {
-      console.warn("❌ [APSPersistence] Invalid APS profile structure in localStorage, clearing it");
+      console.warn("❌ [APSPersistence] Invalid APS profile structure detected");
+      console.warn("❌ [APSPersistence] Profile data:", parsed);
+
+      // Instead of clearing immediately, try to repair the profile
+      if (parsed && typeof parsed === "object" && Array.isArray(parsed.subjects)) {
+        console.log("🔧 [APSPersistence] Attempting to repair profile...");
+        const repairedProfile = {
+          subjects: parsed.subjects,
+          totalAPS: parsed.totalAPS || 0,
+          lastUpdated: parsed.lastUpdated || new Date().toISOString(),
+          savedAt: parsed.savedAt || Date.now(),
+          isValid: true
+        };
+
+        // Try to save the repaired profile
+        try {
+          localStorage.setItem(APS_STORAGE_KEY, JSON.stringify(repairedProfile));
+          console.log("✅ [APSPersistence] Profile repaired and saved");
+          return repairedProfile;
+        } catch (error) {
+          console.warn("❌ [APSPersistence] Failed to repair profile:", error);
+        }
+      }
+
+      // Only clear as last resort
+      console.warn("❌ [APSPersistence] Cannot repair profile, creating backup before clearing");
+      localStorage.setItem(APS_STORAGE_KEY + "_backup", stored);
       localStorage.removeItem(APS_STORAGE_KEY);
       return null;
     }
