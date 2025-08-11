@@ -24,6 +24,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import Index from "./pages/Index";
 import BookListing from "./pages/BookListing";
 import BookDetails from "./pages/BookDetails";
+import EditBook from "./pages/EditBook";
 import Profile from "./pages/Profile";
 import CreateListing from "./pages/CreateListing";
 import Cart from "./pages/Cart";
