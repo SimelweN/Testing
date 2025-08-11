@@ -28,16 +28,30 @@ const BookDetails = () => {
 
   // Validate and debug book ID
   useEffect(() => {
-
-    const validId = extractBookId(id);
-
-    if (!validId) {
-      console.error("Invalid or missing book ID in URL:", id);
+    if (!id) {
+      console.error("No book ID provided in URL");
       toast.error("Invalid book link - redirecting to browse books");
-      // Add a small delay to ensure the user sees the error message
       setTimeout(() => {
         navigate("/books");
       }, 2000);
+      return;
+    }
+
+    console.log("BookDetails: Validating book ID:", id);
+    const validId = extractBookId(id);
+
+    if (!validId) {
+      console.error("Invalid book ID format in URL:", {
+        provided: id,
+        length: id?.length,
+        sample_valid_uuid: "123e4567-e89b-12d3-a456-426614174000"
+      });
+      toast.error("Invalid book link format - redirecting to browse books");
+      setTimeout(() => {
+        navigate("/books");
+      }, 2000);
+    } else {
+      console.log("BookDetails: Valid book ID confirmed:", validId);
     }
   }, [id, navigate]);
 
@@ -108,26 +122,35 @@ const BookDetails = () => {
   const handleShare = async () => {
     if (!book) return;
 
+    const bookUrl = `${window.location.origin}/books/${book.id}`;
     const shareData = {
       title: `${book.title} by ${book.author}`,
       text: `Check out this book on ReBooked: ${book.title} by ${book.author} for R${book.price}`,
-      url: window.location.href,
+      url: bookUrl,
     };
+
+    console.log("Sharing book with URL:", bookUrl);
 
     if (navigator.share) {
       try {
         await navigator.share(shareData);
+        toast.success("Book shared successfully!");
       } catch (error) {
-        fallbackShare();
+        if (error instanceof Error && error.name === 'AbortError') {
+          // User cancelled sharing, don't show error
+          return;
+        }
+        fallbackShare(bookUrl);
       }
     } else {
-      fallbackShare();
+      fallbackShare(bookUrl);
     }
   };
 
-  const fallbackShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast.success("Link copied to clipboard!");
+  const fallbackShare = (url?: string) => {
+    const urlToShare = url || `${window.location.origin}/books/${book?.id}`;
+    navigator.clipboard.writeText(urlToShare);
+    toast.success("Book link copied to clipboard!");
   };
 
   const handleViewSellerProfile = () => {
