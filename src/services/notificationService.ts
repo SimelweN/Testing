@@ -279,4 +279,84 @@ export class NotificationService {
       message: `Payment of R${amount.toFixed(2)} for "${bookTitle}" has been processed successfully. Your order is now confirmed. Order ID: ${orderId}`,
     });
   }
+
+  /**
+   * Test notification creation for debugging
+   */
+  static async createTestNotification(userId: string) {
+    console.log('🧪 Creating test notification for user:', userId);
+
+    const testData = {
+      userId,
+      type: 'info',
+      title: '🧪 Test Notification',
+      message: `This is a test notification created at ${new Date().toISOString()} to verify the notification system is working correctly.`,
+    };
+
+    const result = await this.createNotification(testData);
+
+    if (result) {
+      console.log('✅ Test notification created successfully');
+      return { success: true, message: 'Test notification created successfully' };
+    } else {
+      console.error('❌ Test notification failed');
+      return { success: false, message: 'Test notification creation failed' };
+    }
+  }
+
+  /**
+   * Verify notification system health
+   */
+  static async verifyNotificationSystem(userId: string) {
+    try {
+      console.log('🔍 Verifying notification system health for user:', userId);
+
+      // Test 1: Check if we can read notifications
+      const notifications = await getNotifications(userId);
+      console.log('📋 Current notification count:', notifications.length);
+
+      // Test 2: Try to create a test notification
+      const testResult = await this.createTestNotification(userId);
+
+      // Test 3: Check if notification was actually created
+      if (testResult.success) {
+        const updatedNotifications = await getNotifications(userId);
+        const notificationCreated = updatedNotifications.length > notifications.length;
+
+        if (notificationCreated) {
+          console.log('✅ Notification system verification successful');
+          return {
+            success: true,
+            message: 'Notification system is working correctly',
+            details: {
+              initialCount: notifications.length,
+              finalCount: updatedNotifications.length,
+              testNotificationCreated: true
+            }
+          };
+        } else {
+          console.error('❌ Test notification was not found in database');
+          return {
+            success: false,
+            message: 'Test notification creation appeared successful but notification not found',
+            details: {
+              initialCount: notifications.length,
+              finalCount: updatedNotifications.length,
+              testNotificationCreated: false
+            }
+          };
+        }
+      }
+
+      return testResult;
+    } catch (error) {
+      const serializedError = serializeError(error);
+      console.error('❌ Notification system verification failed:', serializedError);
+      return {
+        success: false,
+        message: 'Notification system verification failed',
+        error: serializedError
+      };
+    }
+  }
 }
