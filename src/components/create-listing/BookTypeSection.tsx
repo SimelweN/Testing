@@ -177,20 +177,19 @@ export const BookTypeSection = ({
         </div>
       ) : (
         <>
-          {/* University Year Selection - Optional */}
+          {/* University Year Selection - Required */}
           <div>
             <Label htmlFor="universityYear" className="text-base font-medium">
-              University Year <span className="text-gray-400">(Optional)</span>
+              University Year <span className="text-red-500">*</span>
             </Label>
             <Select
-              value={formData.universityYear || "not-specified"}
-              onValueChange={(value) => onSelectChange("universityYear", value === "not-specified" ? "" : value)}
+              value={formData.universityYear || ""}
+              onValueChange={(value) => onSelectChange("universityYear", value)}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select university year (optional)" />
+              <SelectTrigger className={errors.universityYear ? "border-red-500" : ""}>
+                <SelectValue placeholder="Select university year" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="not-specified">Not specified</SelectItem>
                 {UNIVERSITY_YEARS.map((year) => (
                   <SelectItem key={year} value={year}>
                     {year}
@@ -198,6 +197,9 @@ export const BookTypeSection = ({
                 ))}
               </SelectContent>
             </Select>
+            {errors.universityYear && (
+              <p className="text-sm text-red-500 mt-1">{errors.universityYear}</p>
+            )}
           </div>
         </>
       )}
