@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ShoppingCart, CreditCard, Edit, User, Clock } from "lucide-react";
+import { ShoppingCart, CreditCard, Edit, User, Clock, Share2 } from "lucide-react";
 import { Book } from "@/types/book";
 import { UserProfile } from "@/types/address"; // UserProfile includes id
 import { toast } from "sonner";
@@ -11,10 +11,10 @@ interface BookActionsProps {
   onBuyNow: () => void;
   onAddToCart: () => void;
   onEditBook: () => void;
-  onCommit?: () => void; // New commit action
-  onShare: () => void; // This prop seems unused in the component
-  onViewSellerProfile: () => void; // This prop seems unused in the component
-  showCommitButton?: boolean; // Flag to show commit button
+  onCommit?: () => void;
+  onShare: () => void;
+  onViewSellerProfile: () => void;
+  showCommitButton?: boolean;
 }
 
 const BookActions = ({
@@ -24,9 +24,9 @@ const BookActions = ({
   onAddToCart,
   onEditBook,
   onCommit,
+  onShare,
+  onViewSellerProfile,
   showCommitButton = false,
-  // onShare, // Prop was unused
-  // onViewSellerProfile, // Prop was unused
 }: BookActionsProps) => {
   const isOwner = user?.id === book.seller?.id; // seller is an object with id
   const isSold = book.sold;
@@ -112,28 +112,35 @@ const BookActions = ({
 
           {/* Secondary Actions */}
           <div className="pt-3 border-t border-gray-200 space-y-2">
-            <Button
-              onClick={() => {
-                // seller_id on book type might be string | undefined or seller object.
-                // Assuming seller object exists from `isOwner` check
-                const sellerId = book.seller?.id;
-                if (sellerId) {
-                  const listingsUrl = `${window.location.origin}/books?seller=${sellerId}`;
-                  navigator.clipboard.writeText(listingsUrl);
-                  toast.success("Seller listings link copied to clipboard!"); // Using toast for better UX
-                } else {
-                  toast.error(
-                    "Could not find seller information for this book.",
-                  );
-                }
-              }}
-              variant="outline"
-              className="w-full"
-              size="sm"
-            >
-              <User className="mr-2 h-4 w-4" />
-              Share Listings
-            </Button>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                onClick={onShare}
+                variant="outline"
+                className="flex-1"
+                size="sm"
+              >
+                <Share2 className="mr-2 h-4 w-4" />
+                Share Book
+              </Button>
+              <Button
+                onClick={() => {
+                  const sellerId = book.seller?.id;
+                  if (sellerId) {
+                    const listingsUrl = `${window.location.origin}/seller/${sellerId}`;
+                    navigator.clipboard.writeText(listingsUrl);
+                    toast.success("Seller profile link copied!");
+                  } else {
+                    toast.error("Could not find seller information.");
+                  }
+                }}
+                variant="outline"
+                className="flex-1"
+                size="sm"
+              >
+                <User className="mr-2 h-4 w-4" />
+                Share Seller
+              </Button>
+            </div>
           </div>
         </div>
       </CardContent>
