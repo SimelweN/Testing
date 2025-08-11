@@ -45,6 +45,34 @@ const BookGrid = ({
       toast.error("Failed to commit sale. Please try again.");
     }
   };
+
+  const handleShareBook = async (book: Book, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const bookUrl = `${window.location.origin}/books/${book.id}`;
+    const shareData = {
+      title: `${book.title} by ${book.author}`,
+      text: `Check out this book on ReBooked: ${book.title} by ${book.author} for R${book.price}`,
+      url: bookUrl,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        toast.success("Book shared successfully!");
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
+        navigator.clipboard.writeText(bookUrl);
+        toast.success("Book link copied to clipboard!");
+      }
+    } else {
+      navigator.clipboard.writeText(bookUrl);
+      toast.success("Book link copied to clipboard!");
+    }
+  };
   if (isLoading) {
     return (
       <div className="lg:w-3/4">
