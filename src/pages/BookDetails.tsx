@@ -37,23 +37,12 @@ const BookDetails = () => {
       return;
     }
 
-    console.log("BookDetails: Validating book ID:", id);
-    const validId = extractBookId(id);
+    console.log("BookDetails: Book ID from URL:", id);
+    console.log("BookDetails: Current URL:", window.location.href);
+    console.log("BookDetails: Path:", window.location.pathname);
 
-    if (!validId) {
-      console.error("Invalid book ID format in URL:", {
-        provided: id,
-        length: id?.length,
-        currentUrl: window.location.href,
-        sample_valid_uuid: "123e4567-e89b-12d3-a456-426614174000"
-      });
-
-      // Don't redirect immediately - wait for the book query to complete
-      // The error will be handled by the query logic
-      console.log("BookDetails: Will let book query handle the invalid ID");
-    } else {
-      console.log("BookDetails: Valid book ID confirmed:", validId);
-    }
+    // Temporarily disable validation to debug direct URL access
+    console.log("BookDetails: Proceeding with book ID (validation temporarily disabled):", id);
   }, [id, navigate]);
 
   const { book, isLoading, error } = useBookDetails(id || "");
