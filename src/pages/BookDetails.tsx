@@ -37,12 +37,18 @@ const BookDetails = () => {
       return;
     }
 
-    console.log("BookDetails: Book ID from URL:", id);
-    console.log("BookDetails: Current URL:", window.location.href);
-    console.log("BookDetails: Path:", window.location.pathname);
+    console.log("BookDetails: Processing book ID:", {
+      id,
+      url: window.location.href,
+      pathname: window.location.pathname
+    });
 
-    // Temporarily disable validation to debug direct URL access
-    console.log("BookDetails: Proceeding with book ID (validation temporarily disabled):", id);
+    const validId = extractBookId(id);
+    if (!validId) {
+      console.warn("Invalid book ID format, but will let query handle it:", id);
+    } else {
+      console.log("BookDetails: Valid book ID confirmed:", validId);
+    }
   }, [id, navigate]);
 
   const { book, isLoading, error } = useBookDetails(id || "");
