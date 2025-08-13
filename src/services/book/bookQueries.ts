@@ -369,19 +369,26 @@ export const getBookById = async (id: string): Promise<Book | null> => {
   try {
     console.log("Fetching book by ID:", id);
 
-    // Temporarily disable strict UUID validation for debugging
-    console.log("Book ID received:", id);
-    console.log("Book ID type:", typeof id);
-    console.log("Book ID length:", id?.length);
+    // UUID validation - allow any format that looks like a UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-    // Only check that it's a non-empty string for now
-    if (!id || typeof id !== 'string' || id.trim().length === 0) {
-      const error = new Error("Empty or invalid book ID provided.");
-      logDetailedError("Empty book ID", error);
-      throw error;
+    console.log("Book ID validation:", {
+      id,
+      length: id?.length,
+      isValidFormat: uuidRegex.test(id),
+      url: window?.location?.href
+    });
+
+    if (!uuidRegex.test(id)) {
+      console.error("Invalid UUID format for book ID:", {
+        provided: id,
+        expected: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        url: window?.location?.href
+      });
+
+      // Return null instead of throwing to let the component handle it gracefully
+      return null;
     }
-
-    console.log("Proceeding with book ID (UUID validation temporarily disabled):", id);
 
     const fetchBookOperation = async () => {
       // Get book first
