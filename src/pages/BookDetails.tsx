@@ -44,12 +44,13 @@ const BookDetails = () => {
       console.error("Invalid book ID format in URL:", {
         provided: id,
         length: id?.length,
+        currentUrl: window.location.href,
         sample_valid_uuid: "123e4567-e89b-12d3-a456-426614174000"
       });
-      toast.error("Invalid book link format - redirecting to browse books");
-      setTimeout(() => {
-        navigate("/books");
-      }, 2000);
+
+      // Don't redirect immediately - wait for the book query to complete
+      // The error will be handled by the query logic
+      console.log("BookDetails: Will let book query handle the invalid ID");
     } else {
       console.log("BookDetails: Valid book ID confirmed:", validId);
     }
