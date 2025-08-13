@@ -369,15 +369,25 @@ export const getBookById = async (id: string): Promise<Book | null> => {
   try {
     console.log("Fetching book by ID:", id);
 
-    // Validate UUID format before making database call
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    // UUID validation - allow any format that looks like a UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    console.log("Book ID validation:", {
+      id,
+      length: id?.length,
+      isValidFormat: uuidRegex.test(id),
+      url: window?.location?.href
+    });
+
     if (!uuidRegex.test(id)) {
-      const error = new Error(
-        "Invalid book ID format. Please check the link and try again.",
-      );
-      logDetailedError("Invalid UUID format for book ID", error);
-      throw error;
+      console.error("Invalid UUID format for book ID:", {
+        provided: id,
+        expected: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        url: window?.location?.href
+      });
+
+      // Return null instead of throwing to let the component handle it gracefully
+      return null;
     }
 
     const fetchBookOperation = async () => {

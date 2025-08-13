@@ -37,19 +37,15 @@ const BookDetails = () => {
       return;
     }
 
-    console.log("BookDetails: Validating book ID:", id);
-    const validId = extractBookId(id);
+    console.log("BookDetails: Processing book ID:", {
+      id,
+      url: window.location.href,
+      pathname: window.location.pathname
+    });
 
+    const validId = extractBookId(id);
     if (!validId) {
-      console.error("Invalid book ID format in URL:", {
-        provided: id,
-        length: id?.length,
-        sample_valid_uuid: "123e4567-e89b-12d3-a456-426614174000"
-      });
-      toast.error("Invalid book link format - redirecting to browse books");
-      setTimeout(() => {
-        navigate("/books");
-      }, 2000);
+      console.warn("Invalid book ID format, but will let query handle it:", id);
     } else {
       console.log("BookDetails: Valid book ID confirmed:", validId);
     }

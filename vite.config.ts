@@ -10,6 +10,10 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    // Enable history API fallback for client-side routing
+    historyApiFallback: true,
+  },
   define: {
     // Provide default values for environment variables in development
     'import.meta.env.VITE_GOOGLE_MAPS_API_KEY': JSON.stringify(
