@@ -105,7 +105,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           .from("profiles")
           .select("subaccount_code")
           .eq("id", bookData.seller_id)
-          .single();
+          .maybeSingle();
 
         if (sellerProfileError || !sellerProfile?.subaccount_code) {
           throw new Error(
