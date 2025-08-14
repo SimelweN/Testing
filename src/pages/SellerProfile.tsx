@@ -57,9 +57,9 @@ const SellerProfile = () => {
         .from("profiles")
         .select("id, name, email, bio, profile_picture_url, created_at")
         .eq("id", sellerId)
-        .single();
+        .maybeSingle();
 
-      if (sellerError) {
+      if (sellerError || !sellerData) {
         throw new Error("Seller not found");
       }
 
