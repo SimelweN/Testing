@@ -191,6 +191,11 @@ const Checkout: React.FC = () => {
         throw new Error("Book not found");
       }
 
+      // Validate essential book data fields
+      if (!bookData.id || !bookData.seller_id) {
+        throw new Error("Invalid book data - missing required fields");
+      }
+
       console.log("Book data loaded:", {
         id: bookData.id,
         title: bookData.title,
@@ -221,10 +226,12 @@ const Checkout: React.FC = () => {
           .from("profiles")
           .select("id, name, email")
           .eq("id", bookData.seller_id)
-          .single();
+          .maybeSingle();
 
         if (!sellerError && seller) {
           sellerData = seller;
+        } else if (sellerError) {
+          console.warn(`Could not fetch seller profile for ${bookData.seller_id}:`, sellerError.message);
         }
       }
 
