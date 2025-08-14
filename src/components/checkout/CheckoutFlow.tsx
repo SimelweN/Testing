@@ -90,7 +90,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         .from("profiles")
         .select("id, name, email")
         .eq("id", bookData.seller_id)
-        .single();
+        .maybeSingle();
 
       if (sellerError) {
         console.warn("Could not fetch seller profile:", sellerError);
