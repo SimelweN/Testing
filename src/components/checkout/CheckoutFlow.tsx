@@ -85,6 +85,11 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         throw new Error("Failed to load book details");
       }
 
+      // Explicit type guard to ensure bookData is not null
+      if (!bookData.id || !bookData.seller_id) {
+        throw new Error("Invalid book data - missing required fields");
+      }
+
       // Get seller profile separately
       const { data: sellerProfile, error: sellerError } = await supabase
         .from("profiles")
