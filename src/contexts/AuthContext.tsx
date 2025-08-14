@@ -153,7 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           .from('profiles')
           .select('id, email, status')
           .eq('email', email)
-          .single();
+          .maybeSingle();
 
         if (existingProfile && !checkError) {
           console.log('❌ User already exists in profiles table:', existingProfile);
