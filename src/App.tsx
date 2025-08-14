@@ -8,6 +8,8 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import "./utils/suppressResizeObserverError";
 // Loading state manager to prevent white screens
 import "./utils/loadingStateManager";
+// Test Supabase connection in development
+import "./utils/testSupabaseConnection";
 
 import { ThemeProvider } from "next-themes";
 import ErrorBoundary from "./components/ErrorBoundary";
