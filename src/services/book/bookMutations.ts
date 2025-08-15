@@ -21,47 +21,47 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
     let paystackSubaccountCode = null;
 
     try {
-      const { data: profileData } = await supabase
+      // Get encrypted address from profile - required for book creation
+      const { data: encryptedAddressData, error: decryptError } = await supabase.functions.invoke('decrypt-address', {
+        body: {
+          fetch: {
+            table: 'profiles',
+            target_id: user.id,
+            address_type: 'pickup'
+          }
+        }
+      });
+
+      if (encryptedAddressData && encryptedAddressData.success && encryptedAddressData.data) {
+        pickupAddress = encryptedAddressData.data;
+        console.log("✅ Using encrypted pickup address from profile for book listing");
+
+        // Extract province from encrypted address
+        if (pickupAddress?.province) {
+          province = pickupAddress.province;
+        }
+      } else {
+        console.error("❌ No encrypted pickup address found in profile");
+        throw new Error("You must set up your pickup address in your profile before listing a book. Please go to your profile and add your address.");
+      }
+
+      // Get subaccount code from profile
+      const { data: bankingData } = await supabase
         .from("profiles")
-        .select("pickup_address, subaccount_code")
+        .select("subaccount_code")
         .eq("id", user.id)
         .single();
 
-      if (profileData?.pickup_address) {
-        pickupAddress = profileData.pickup_address;
-
-        // Extract province from pickup address
-        const addressObj = profileData.pickup_address as any;
-        if (addressObj?.province) {
-          province = addressObj.province;
-        } else if (typeof addressObj === "string") {
-          // If pickup_address is a string, try to extract province from it
-          // This is a fallback for older address formats
-          const addressStr = addressObj.toLowerCase();
-          if (addressStr.includes("western cape")) province = "Western Cape";
-          else if (addressStr.includes("gauteng")) province = "Gauteng";
-          else if (addressStr.includes("kwazulu")) province = "KwaZulu-Natal";
-          else if (addressStr.includes("eastern cape"))
-            province = "Eastern Cape";
-          else if (addressStr.includes("free state")) province = "Free State";
-          else if (addressStr.includes("limpopo")) province = "Limpopo";
-          else if (addressStr.includes("mpumalanga")) province = "Mpumalanga";
-          else if (addressStr.includes("northern cape"))
-            province = "Northern Cape";
-          else if (addressStr.includes("north west")) province = "North West";
-        }
-      }
-
-      // Get Paystack subaccount code if available
-      if (profileData?.subaccount_code) {
-        paystackSubaccountCode = profileData.subaccount_code;
+      if (bankingData?.subaccount_code) {
+        paystackSubaccountCode = bankingData.subaccount_code;
       }
     } catch (addressError) {
-      console.warn("Could not fetch user address for province:", addressError);
-      // Continue without province - it's not critical for book creation
+      console.error("Could not fetch encrypted user address:", addressError);
+      // Re-throw error since address is required for book creation
+      throw addressError;
     }
 
-    // Create book data with all required fields
+    // Create book data with all required fields (no plaintext address storage)
     const fullBookData = {
       seller_id: user.id,
       title: bookData.title,
@@ -77,7 +77,6 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
       grade: bookData.grade,
       university_year: bookData.universityYear,
       province: province,
-      pickup_address: pickupAddress,
       seller_subaccount_code: paystackSubaccountCode,
       requires_banking_setup: false, // Set to false since user passed banking requirements
     };
@@ -96,6 +95,30 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
 
     if (error) {
       handleBookServiceError(error, "create book");
+    }
+
+    // Encrypt and save pickup address to books table if we have an address
+    if (pickupAddress && book.id) {
+      try {
+        const { data: encryptResult, error: encryptError } = await supabase.functions.invoke('encrypt-address', {
+          body: {
+            object: pickupAddress,
+            save: {
+              table: 'books',
+              target_id: book.id,
+              address_type: 'pickup'
+            }
+          }
+        });
+
+        if (encryptResult && encryptResult.success) {
+          console.log("✅ Book pickup address encrypted and saved successfully");
+        } else {
+          console.warn("⚠️ Failed to encrypt book pickup address:", encryptResult?.error);
+        }
+      } catch (encryptError) {
+        console.warn("⚠️ Exception encrypting book pickup address:", encryptError);
+      }
     }
 
     // Fetch seller profile

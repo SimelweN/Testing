@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
+import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -25,6 +26,7 @@ import {
   X,
   CheckCircle,
   AlertCircle,
+  AlertTriangle,
   XCircle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -79,55 +81,95 @@ const NotificationsNew = () => {
 
   // Convert database notifications to our category format
   const categorizeNotifications = (dbNotifications: any[]) => {
-    const commitNotifications = dbNotifications.filter(
-      (n) =>
-        n.title?.toLowerCase().includes("commit") ||
+    // Create arrays to track categorized notifications
+    const categorizedIds = new Set();
+
+    const commitNotifications = dbNotifications.filter((n) => {
+      const isCommit = n.title?.toLowerCase().includes("commit") ||
         n.message?.toLowerCase().includes("commit") ||
         n.title?.includes("⏰") ||
-        (n.type === "warning" && (n.title?.includes("Commit") || n.message?.includes("commit"))),
-    );
+        (n.type === "warning" && (n.title?.includes("Commit") || n.message?.includes("commit")));
+      if (isCommit) categorizedIds.add(n.id);
+      return isCommit;
+    });
 
-    const purchaseNotifications = dbNotifications.filter(
-      (n) =>
-        n.title?.toLowerCase().includes("purchase") ||
+    const purchaseNotifications = dbNotifications.filter((n) => {
+      if (categorizedIds.has(n.id)) return false;
+      const isPurchase = n.title?.toLowerCase().includes("purchase") ||
         n.title?.toLowerCase().includes("order") ||
         n.title?.toLowerCase().includes("payment") ||
+        n.title?.toLowerCase().includes("book listed") ||
+        n.title?.toLowerCase().includes("listed successfully") ||
         n.title?.includes("🛒") ||
         n.title?.includes("📦") ||
+        n.title?.includes("📚") ||
         n.title?.includes("💳") ||
         n.title?.includes("✅") ||
         n.title?.includes("🎉") ||
-        (n.type === "success" && (n.title?.includes("Order") || n.title?.includes("Payment"))),
-    );
+        (n.type === "success" && (n.title?.includes("Order") || n.title?.includes("Payment") || n.title?.includes("Listed")));
+      if (isPurchase) categorizedIds.add(n.id);
+      return isPurchase;
+    });
 
-    const deliveryNotifications = dbNotifications.filter(
-      (n) =>
-        n.title?.toLowerCase().includes("delivery") ||
+    const deliveryNotifications = dbNotifications.filter((n) => {
+      if (categorizedIds.has(n.id)) return false;
+      const isDelivery = n.title?.toLowerCase().includes("delivery") ||
         n.title?.toLowerCase().includes("shipping") ||
         n.title?.toLowerCase().includes("tracking") ||
-        n.title?.includes("📦") ||
-        (n.type === "info" && (n.title?.includes("Delivery") || n.title?.includes("Shipping"))),
-    );
+        n.title?.includes("🚚") ||
+        (n.type === "info" && (n.title?.includes("Delivery") || n.title?.includes("Shipping")));
+      if (isDelivery) categorizedIds.add(n.id);
+      return isDelivery;
+    });
 
-    const adminNotifications = dbNotifications.filter(
-      (n) =>
-        n.type === "admin_action" ||
+    const adminNotifications = dbNotifications.filter((n) => {
+      if (categorizedIds.has(n.id)) return false;
+      const isAdmin = n.type === "admin_action" ||
         n.type === "admin" ||
         n.type === "broadcast" ||
+        n.type === "system" ||
         n.title?.toLowerCase().includes("removed") ||
         n.title?.toLowerCase().includes("deleted") ||
-        n.title?.toLowerCase().includes("listing") ||
+        n.title?.toLowerCase().includes("banned") ||
+        n.title?.toLowerCase().includes("suspended") ||
+        n.title?.toLowerCase().includes("violation") ||
         n.title?.toLowerCase().includes("rebooked solutions team") ||
         n.title?.toLowerCase().includes("system announcement") ||
+        n.title?.toLowerCase().includes("admin action") ||
         n.message?.toLowerCase().includes("admin") ||
-        n.message?.toLowerCase().includes("violation"),
-    );
+        n.message?.toLowerCase().includes("violation") ||
+        n.message?.toLowerCase().includes("removed by admin") ||
+        n.message?.toLowerCase().includes("system message");
+      if (isAdmin) categorizedIds.add(n.id);
+      return isAdmin;
+    });
+
+    const accountNotifications = dbNotifications.filter((n) => {
+      if (categorizedIds.has(n.id)) return false;
+      const isAccount = n.title?.toLowerCase().includes("profile") ||
+        n.title?.toLowerCase().includes("banking") ||
+        n.title?.toLowerCase().includes("account") ||
+        n.title?.toLowerCase().includes("activity") ||
+        n.title?.toLowerCase().includes("updated") ||
+        n.title?.toLowerCase().includes("settings") ||
+        (n.type === "success" && (n.title?.includes("Profile") || n.title?.includes("Banking") || n.title?.includes("Activity")));
+      if (isAccount) categorizedIds.add(n.id);
+      return isAccount;
+    });
+
+    // General/Test notifications category - catch all remaining
+    const generalNotifications = dbNotifications.filter((n) => {
+      if (categorizedIds.has(n.id)) return false;
+      return true; // All remaining notifications go here
+    });
 
     return {
       commits: commitNotifications,
       purchases: purchaseNotifications,
       deliveries: deliveryNotifications,
       admin: adminNotifications,
+      account: accountNotifications,
+      general: generalNotifications,
     };
   };
 
@@ -242,6 +284,40 @@ const NotificationsNew = () => {
         priority: "high" as const,
       })),
     },
+    {
+      id: "account",
+      title: "Account & Profile Updates",
+      description: "Profile changes, banking updates, and account activities",
+      icon: <Users className="h-5 w-5" />,
+      color: "purple",
+      enabled: true,
+      notifications: categorizedNotifications.account.map((n) => ({
+        id: n.id,
+        type: n.type || "account",
+        title: n.title,
+        message: n.message,
+        timestamp: n.created_at || n.createdAt,
+        read: n.read,
+        priority: "medium" as const,
+      })),
+    },
+    {
+      id: "general",
+      title: "General Notifications",
+      description: "Test notifications and other general updates",
+      icon: <Bell className="h-5 w-5" />,
+      color: "gray",
+      enabled: true,
+      notifications: categorizedNotifications.general.map((n) => ({
+        id: n.id,
+        type: n.type || "general",
+        title: n.title,
+        message: n.message,
+        timestamp: n.created_at || n.createdAt,
+        read: n.read,
+        priority: "low" as const,
+      })),
+    },
   ]);
 
   // Test connection on component mount
@@ -257,8 +333,9 @@ const NotificationsNew = () => {
           toast.warning('Connection issues detected. Some features may not work properly.');
         }
       } catch (error) {
+        const safeConnectionErrorMessage = getSafeErrorMessage(error, 'Connection test failed');
         console.error('❌ Connection test failed:', {
-          message: error instanceof Error ? error.message : String(error),
+          message: safeConnectionErrorMessage,
           code: error?.code,
           details: error?.details
         });
@@ -490,13 +567,15 @@ const NotificationsNew = () => {
         .single();
 
       if (checkError) {
+        const safeErrorMessage = getSafeErrorMessage(checkError, 'Unknown error checking notification');
         console.error('❌ Error checking notification existence:', {
-          message: checkError.message || String(checkError),
+          message: safeErrorMessage,
           code: checkError.code,
           details: checkError.details,
-          hint: checkError.hint
+          hint: checkError.hint,
+          originalError: checkError
         });
-        toast.error(`Notification not found: ${checkError.message || 'Unknown error'}`);
+        toast.error(`Notification not found: ${safeErrorMessage}`);
         return;
       }
 
@@ -526,12 +605,14 @@ const NotificationsNew = () => {
       console.log('Delete operation result:', { data: deleteData, error: deleteError });
 
       if (deleteError) {
+        const safeDeleteErrorMessage = getSafeErrorMessage(deleteError, 'Unknown delete error');
         console.error('❌ Database error deleting notification:', {
           notificationId,
           code: deleteError.code,
-          message: deleteError.message || String(deleteError),
+          message: safeDeleteErrorMessage,
           details: deleteError.details,
-          hint: deleteError.hint
+          hint: deleteError.hint,
+          originalError: deleteError
         });
 
         // Handle specific error cases
@@ -539,10 +620,10 @@ const NotificationsNew = () => {
           toast.error('Notification not found or already deleted');
         } else if (deleteError.code === '42501') {
           toast.error('Permission denied. You can only delete your own notifications.');
-        } else if (deleteError.message?.includes('Failed to fetch') || deleteError.message?.includes('network')) {
+        } else if (safeDeleteErrorMessage?.includes('Failed to fetch') || safeDeleteErrorMessage?.includes('network')) {
           toast.error('Network error. Please check your connection and try again.');
         } else {
-          toast.error(`Failed to remove notification: ${deleteError.message}`);
+          toast.error(`Failed to remove notification: ${safeDeleteErrorMessage}`);
         }
         return;
       }
@@ -570,18 +651,20 @@ const NotificationsNew = () => {
       toast.success('✅ Notification permanently removed');
       console.log('✅ Notification removed from UI - dismissNotification completed successfully');
 
-      // Refresh notifications to ensure consistency (in background)
-      console.log('🔄 Refreshing notifications in background...');
+      // Immediately refresh the notifications hook to update badge count and ensure consistency
+      console.log('🔄 Refreshing notifications hook for immediate update...');
       try {
         await refreshNotifications();
-        console.log('✅ Background notifications refresh completed');
+        console.log('✅ Notifications hook refreshed successfully - badge count and state should update immediately');
       } catch (refreshError) {
+        const safeRefreshErrorMessage = getSafeErrorMessage(refreshError, 'Failed to refresh notifications');
         console.warn('⚠️ Failed to refresh notifications after deletion:', {
-          message: refreshError instanceof Error ? refreshError.message : String(refreshError),
+          message: safeRefreshErrorMessage,
           code: refreshError?.code,
           details: refreshError?.details
         });
-        // Don't show error toast for refresh failure since deletion succeeded
+        // Show warning but don't fail the operation since local state was updated
+        toast.warning('Notification removed but badge count may need a page refresh');
       }
 
     } catch (error) {
@@ -595,12 +678,12 @@ const NotificationsNew = () => {
       });
 
       // Handle network errors specifically
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      const safeCatchErrorMessage = getSafeErrorMessage(error, 'An unexpected error occurred');
+
+      if (error instanceof TypeError && safeCatchErrorMessage.includes('Failed to fetch')) {
         toast.error('Network error. Please check your internet connection and try again.');
-      } else if (error instanceof Error) {
-        toast.error(`Error: ${error.message}`);
       } else {
-        toast.error('An unexpected error occurred. Please try again.');
+        toast.error(`Error: ${safeCatchErrorMessage}`);
       }
     } finally {
       // Clear dismissing state
@@ -656,6 +739,41 @@ const NotificationsNew = () => {
 
         </div>
 
+        {/* Debug Section - Show raw notifications if count mismatch */}
+        {totalNotifications > 0 && (categorizedNotifications.commits.length + categorizedNotifications.purchases.length + categorizedNotifications.deliveries.length + categorizedNotifications.admin.length + categorizedNotifications.account.length + categorizedNotifications.general.length) === 0 && (
+          <Card className="mb-6 border-yellow-200 bg-yellow-50">
+            <CardHeader>
+              <CardTitle className="text-yellow-800 flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                Debug: Uncategorized Notifications
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-yellow-700 mb-4">
+                There are {totalNotifications} notifications in the database but they're not appearing in any category. Here are the raw notifications:
+              </p>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {notifications.map((notif, index) => (
+                  <div key={notif.id || index} className="bg-white p-3 rounded border">
+                    <div className="text-sm font-medium">
+                      <strong>Title:</strong> {notif.title || 'No title'}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      <strong>Type:</strong> {notif.type || 'No type'}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      <strong>Read:</strong> {notif.read ? 'Yes' : 'No'}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      <strong>Message:</strong> {notif.message ? notif.message.substring(0, 100) + '...' : 'No message'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Connection Status Details */}
         {showConnectionDetails && connectionStatus && (
           <Card className="mb-6 border-red-200 bg-red-50">
@@ -670,7 +788,7 @@ const NotificationsNew = () => {
                 <div className="flex justify-between">
                   <span>Internet Connection:</span>
                   <Badge variant={connectionStatus.isOnline ? "default" : "destructive"}>
-                    {connectionStatus.isOnline ? "✅ Online" : "❌ Offline"}
+                    {connectionStatus.isOnline ? "�� Online" : "❌ Offline"}
                   </Badge>
                 </div>
                 <div className="flex justify-between">

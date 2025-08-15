@@ -158,10 +158,10 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
         console.log("📚 Book verification:", { bookCheck, bookError });
 
-        // Then check the profile (without .single() to avoid PGRST116 error)
+        // Check if seller has encrypted address setup
         const { data: profiles, error: profileError } = await supabase
           .from("profiles")
-          .select("id, pickup_address, pickup_address_encrypted, name, email")
+          .select("id, name, email, encryption_status")
           .eq("id", bookData.seller_id);
 
         const profile = profiles && profiles.length > 0 ? profiles[0] : null;
@@ -237,10 +237,20 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
         if (!profile) {
           errorMessage += "The seller's profile setup is incomplete.";
-        } else if (!profile.pickup_address && !profile.pickup_address_encrypted) {
-          errorMessage += "The seller hasn't set up their pickup address yet.";
         } else {
-          errorMessage += "There was an issue retrieving the seller's address.";
+          // Try to get encrypted address to validate it exists
+          try {
+            const sellerAddress = await import("@/services/addressService").then(module =>
+              module.getSellerPickupAddress(bookData.seller_id)
+            );
+            if (!sellerAddress) {
+              errorMessage += "The seller hasn't set up their pickup address yet.";
+            } else {
+              errorMessage += "There was an issue retrieving the seller's address.";
+            }
+          } catch {
+            errorMessage += "The seller hasn't set up their pickup address yet.";
+          }
         }
 
         // If this is the current user's book, give them guidance
@@ -272,8 +282,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
               id: profile.id,
               name: profile.name,
               email: profile.email,
-              has_pickup: !!profile.pickup_address,
-              has_encrypted: !!profile.pickup_address_encrypted
+              encryption_status: profile.encryption_status
             } : null
           },
           current_user: user?.id
