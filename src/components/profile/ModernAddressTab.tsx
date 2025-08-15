@@ -73,8 +73,8 @@ const ModernAddressTab = ({
       await onSaveAddresses(pickupAddress, shippingAddress, sameAsPickup);
       setEditMode("none");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error("Error saving addresses:", errorMessage, error);
+      const formattedError = handleAddressError(error, "save");
+      console.error(formattedError.developerMessage, formattedError.originalError);
     } finally {
       setIsSaving(false);
     }
