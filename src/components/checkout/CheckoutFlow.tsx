@@ -282,8 +282,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
               id: profile.id,
               name: profile.name,
               email: profile.email,
-              has_pickup: !!profile.pickup_address,
-              has_encrypted: !!profile.pickup_address_encrypted
+              encryption_status: profile.encryption_status
             } : null
           },
           current_user: user?.id
