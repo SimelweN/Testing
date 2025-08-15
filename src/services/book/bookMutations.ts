@@ -61,7 +61,7 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
       throw addressError;
     }
 
-    // Create book data with all required fields
+    // Create book data with all required fields (no plaintext address storage)
     const fullBookData = {
       seller_id: user.id,
       title: bookData.title,
@@ -77,7 +77,6 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
       grade: bookData.grade,
       university_year: bookData.universityYear,
       province: province,
-      pickup_address: pickupAddress,
       seller_subaccount_code: paystackSubaccountCode,
       requires_banking_setup: false, // Set to false since user passed banking requirements
     };
