@@ -179,9 +179,9 @@ const Profile = () => {
 
       toast.success("Addresses saved successfully");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error("Error saving addresses:", errorMessage, error);
-      toast.error(`Failed to save addresses: ${errorMessage}`);
+      const formattedError = handleAddressError(error, "save");
+      console.error(formattedError.developerMessage, formattedError.originalError);
+      toast.error(formattedError.userMessage);
       throw error;
     } finally {
       setIsLoadingAddress(false);
