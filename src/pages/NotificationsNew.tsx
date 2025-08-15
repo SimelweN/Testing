@@ -276,6 +276,40 @@ const NotificationsNew = () => {
         priority: "high" as const,
       })),
     },
+    {
+      id: "account",
+      title: "Account & Profile Updates",
+      description: "Profile changes, banking updates, and account activities",
+      icon: <Users className="h-5 w-5" />,
+      color: "purple",
+      enabled: true,
+      notifications: categorizedNotifications.account.map((n) => ({
+        id: n.id,
+        type: n.type || "account",
+        title: n.title,
+        message: n.message,
+        timestamp: n.created_at || n.createdAt,
+        read: n.read,
+        priority: "medium" as const,
+      })),
+    },
+    {
+      id: "general",
+      title: "General Notifications",
+      description: "Test notifications and other general updates",
+      icon: <Bell className="h-5 w-5" />,
+      color: "gray",
+      enabled: true,
+      notifications: categorizedNotifications.general.map((n) => ({
+        id: n.id,
+        type: n.type || "general",
+        title: n.title,
+        message: n.message,
+        timestamp: n.created_at || n.createdAt,
+        read: n.read,
+        priority: "low" as const,
+      })),
+    },
   ]);
 
   // Test connection on component mount
@@ -745,7 +779,7 @@ const NotificationsNew = () => {
                 <div className="flex justify-between">
                   <span>Internet Connection:</span>
                   <Badge variant={connectionStatus.isOnline ? "default" : "destructive"}>
-                    {connectionStatus.isOnline ? "✅ Online" : "❌ Offline"}
+                    {connectionStatus.isOnline ? "�� Online" : "❌ Offline"}
                   </Badge>
                 </div>
                 <div className="flex justify-between">
