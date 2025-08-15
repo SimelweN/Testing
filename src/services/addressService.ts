@@ -122,23 +122,23 @@ export const saveUserAddresses = async (
       encryptionResults.shipping = encryptionResults.pickup;
     }
 
-    // Update addresses_same flag and keep legacy plaintext for backward compatibility
+    // Only update encryption status and addresses_same flag - no plaintext storage
     const updateData: any = {
-      pickup_address: pickupAddress,
-      shipping_address: addressesSame ? pickupAddress : shippingAddress,
       addresses_same: addressesSame,
     };
 
-    // If encryption failed completely, we might want to store a flag to retry later
-    if (!encryptionResults.pickup && !encryptionResults.shipping) {
-      console.warn("⚠️ Address encryption failed completely - addresses stored in plaintext only");
+    // Check encryption results and fail if encryption didn't work
+    if (!encryptionResults.pickup) {
+      console.error("❌ Pickup address encryption failed - cannot save addresses without encryption");
       updateData.encryption_status = 'failed';
-    } else if (encryptionResults.pickup && encryptionResults.shipping) {
-      console.log("✅ All addresses encrypted successfully");
-      updateData.encryption_status = 'encrypted';
+      throw new Error("Failed to encrypt pickup address. Please try again.");
+    } else if (!addressesSame && !encryptionResults.shipping) {
+      console.error("❌ Shipping address encryption failed - cannot save addresses without encryption");
+      updateData.encryption_status = 'failed';
+      throw new Error("Failed to encrypt shipping address. Please try again.");
     } else {
-      console.warn("⚠️ Partial encryption success - some addresses encrypted");
-      updateData.encryption_status = 'partial';
+      console.log("✅ All addresses encrypted successfully - no plaintext storage");
+      updateData.encryption_status = 'encrypted';
     }
 
     const { error } = await supabase
@@ -147,7 +147,7 @@ export const saveUserAddresses = async (
       .eq("id", userId);
 
     if (error) {
-      safeLogError("Error updating profile addresses", error);
+      safeLogError("Error updating profile metadata", error);
       throw error;
     }
 
