@@ -69,17 +69,21 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       return;
     }
 
+    let bookData = null; // Declare outside try block to prevent undefined error in catch
+
     try {
       setCheckoutState((prev) => ({ ...prev, loading: true, error: null }));
 
       console.log("🚀 Using book table seller data for checkout...");
 
       // Get fresh book data with seller information from books table
-      const { data: bookData, error: bookError } = await supabase
+      const { data, error: bookError } = await supabase
         .from("books")
         .select("*")
         .eq("id", book.id)
         .single();
+
+      bookData = data; // Assign to outer scope variable
 
       if (bookError || !bookData) {
         throw new Error("Failed to load book details");
