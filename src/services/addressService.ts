@@ -386,40 +386,22 @@ export const updateBooksPickupAddress = async (
 // Get encrypted book pickup address for shipping calculations
 export const getBookPickupAddress = async (bookId: string) => {
   try {
-    console.log("Fetching pickup address for book:", bookId);
+    console.log("Fetching encrypted pickup address for book:", bookId);
 
-    // Try to get encrypted address first
-    try {
-      const decryptedAddress = await decryptAddress({
-        table: 'books',
-        target_id: bookId,
-        address_type: 'pickup'
-      });
+    // Get encrypted address only - no plaintext fallback
+    const decryptedAddress = await decryptAddress({
+      table: 'books',
+      target_id: bookId,
+      address_type: 'pickup'
+    });
 
-      if (decryptedAddress) {
-        console.log("Successfully fetched encrypted book pickup address");
-        return decryptedAddress;
-      }
-    } catch (error) {
-      console.log("Encrypted address not found or failed to decrypt, falling back to plaintext");
+    if (decryptedAddress) {
+      console.log("✅ Successfully fetched encrypted book pickup address");
+      return decryptedAddress;
     }
 
-    // Fallback to plaintext address (during transition period)
-    const { data, error } = await supabase
-      .from("books")
-      .select("pickup_address")
-      .eq("id", bookId)
-      .single();
-
-    if (error) {
-      if (error.code === "PGRST116") {
-        console.log("No pickup address found for book");
-        return null;
-      }
-      throw new Error(`Failed to fetch book pickup address: ${error.message}`);
-    }
-
-    return data?.pickup_address || null;
+    console.log("❌ No encrypted pickup address found for book");
+    return null;
   } catch (error) {
     console.error("Error in getBookPickupAddress:", error);
     throw error;
