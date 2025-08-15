@@ -609,7 +609,7 @@ const BankingProfileTab = () => {
 
       {/* Update Banking Details Dialog */}
       <Dialog open={showUpdateDialog} onOpenChange={handleCancelUpdate}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
             <DialogTitle>
               {!isPasswordVerified ? "Security Verification" : "Update Banking Details"}
@@ -637,7 +637,7 @@ const BankingProfileTab = () => {
 
       {/* Setup Banking Details Dialog */}
       <Dialog open={showSetupDialog} onOpenChange={handleCancelSetup}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
