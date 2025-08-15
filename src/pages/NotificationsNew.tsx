@@ -651,11 +651,11 @@ const NotificationsNew = () => {
       toast.success('✅ Notification permanently removed');
       console.log('✅ Notification removed from UI - dismissNotification completed successfully');
 
-      // Refresh notifications to ensure consistency (in background)
-      console.log('🔄 Refreshing notifications in background...');
+      // Immediately refresh the notifications hook to update badge count
+      console.log('🔄 Refreshing notifications hook for immediate badge update...');
       try {
         await refreshNotifications();
-        console.log('✅ Background notifications refresh completed');
+        console.log('✅ Notifications hook refreshed - badge count should update immediately');
       } catch (refreshError) {
         const safeRefreshErrorMessage = getSafeErrorMessage(refreshError, 'Failed to refresh notifications');
         console.warn('⚠️ Failed to refresh notifications after deletion:', {
