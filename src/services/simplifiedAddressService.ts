@@ -146,7 +146,8 @@ export const getSellerDeliveryAddress = async (
           ? JSON.parse(profile.pickup_address)
           : profile.pickup_address;
 
-        console.log("✅ Using plaintext fallback address (no encrypted version found)");
+        console.log("✅ Using plaintext fallback address for seller:", sellerId);
+        console.log("📍 Plaintext address data:", address);
         return {
           street: address.street || address.line1 || "",
           city: address.city || "",
