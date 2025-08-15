@@ -47,12 +47,43 @@ export const getUserProfileWithAddresses = async (
   userId: string,
 ): Promise<UserProfile | null> => {
   try {
-    // Try to get the complete profile with addresses using the safe utility
-    const profile = await getUserProfile<UserProfile>(
-      userId,
-      `id, name, email, pickup_address, shipping_address, addresses_same`,
-      false,
-    );
+    // Try to get encrypted addresses first
+    let profile = null;
+
+    try {
+      const { getSimpleUserAddresses } = await import("@/services/simplifiedAddressService");
+      const addressData = await getSimpleUserAddresses(userId);
+
+      if (addressData) {
+        // Get basic profile info and combine with encrypted addresses
+        const basicProfile = await getUserProfile<UserProfile>(
+          userId,
+          `id, name, email, addresses_same`,
+          false,
+        );
+
+        if (basicProfile) {
+          profile = {
+            ...basicProfile,
+            pickup_address: addressData.pickup_address,
+            shipping_address: addressData.shipping_address,
+          };
+          console.log("🔐 Using encrypted addresses for automatic shipment");
+        }
+      }
+    } catch (error) {
+      console.warn("Failed to get encrypted addresses for shipment:", error);
+    }
+
+    // Fallback to plaintext if encrypted addresses not available
+    if (!profile) {
+      profile = await getUserProfile<UserProfile>(
+        userId,
+        `id, name, email, pickup_address, shipping_address, addresses_same`,
+        false,
+      );
+      console.log("⚠️ Using plaintext addresses fallback for automatic shipment");
+    }
 
     if (!profile) {
       console.warn(`[AutoShipment] No profile found for user ${userId}`);
