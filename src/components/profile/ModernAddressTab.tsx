@@ -23,6 +23,7 @@ import GoogleMapsAddressAutocomplete, {
 import ManualAddressInput from "@/components/ManualAddressInput";
 import { useGoogleMaps } from "@/contexts/GoogleMapsContext";
 import { AddressData, Address } from "@/types/address";
+import { handleAddressError } from "@/utils/errorDisplayUtils";
 
 interface ModernAddressTabProps {
   addressData: AddressData | null;
@@ -72,7 +73,8 @@ const ModernAddressTab = ({
       await onSaveAddresses(pickupAddress, shippingAddress, sameAsPickup);
       setEditMode("none");
     } catch (error) {
-      console.error("Error saving addresses:", error);
+      const formattedError = handleAddressError(error, "save");
+      console.error(formattedError.developerMessage, formattedError.originalError);
     } finally {
       setIsSaving(false);
     }

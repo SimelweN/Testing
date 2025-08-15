@@ -46,6 +46,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 import Verify from "./pages/Verify";
 import VerifyDebug from "./pages/VerifyDebug";
 import AuthCallback from "./pages/AuthCallback";
+import EnvironmentConfigHelper from "./components/EnvironmentConfigHelper";
 
 // Admin Pages
 import Admin from "./pages/Admin";
@@ -95,6 +96,24 @@ const queryClient = new QueryClient({
 // Full application routing restored
 
 function App() {
+  // Check environment configuration first
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+  const isEnvironmentConfigured = !!(
+    supabaseUrl &&
+    supabaseUrl.trim() !== "" &&
+    supabaseUrl !== "undefined" &&
+    supabaseKey &&
+    supabaseKey.trim() !== "" &&
+    supabaseKey !== "undefined"
+  );
+
+  // Show configuration helper if environment is not properly set up
+  if (!isEnvironmentConfigured) {
+    return <EnvironmentConfigHelper />;
+  }
+
   return (
     <ErrorBoundary level="app">
       <NetworkErrorBoundary>

@@ -13,6 +13,7 @@ console.error = (...args) => {
 };
 
 // Environment debugging (development only)
+import { debugEnvironmentVariables } from "./utils/debugEnvironment";
 
 
 // Proper network error handling (not suppression)
@@ -80,8 +81,7 @@ const validateEnvironment = () => {
 // Initialize application
 if (import.meta.env.DEV) {
   console.log("🚀 ReBooked Solutions - Starting application...");
-
-
+  debugEnvironmentVariables();
 }
 
 // Validate environment with graceful handling

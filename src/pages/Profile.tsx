@@ -37,6 +37,7 @@ import ShareProfileDialog from "@/components/ShareProfileDialog";
 import ShareReminderBanner from "@/components/ShareReminderBanner";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
 import { UserProfile, AddressData, Address } from "@/types/address";
+import { handleAddressError, getUserFriendlyErrorMessage } from "@/utils/errorDisplayUtils";
 
 const Profile = () => {
   const { profile, user } = useAuth();
@@ -77,8 +78,9 @@ const Profile = () => {
       const data = await getUserAddresses(user.id);
       setAddressData(data);
     } catch (error) {
-      console.error("Error loading addresses:", error);
-      toast.error("Failed to load addresses");
+      const formattedError = handleAddressError(error, "load");
+      console.error(formattedError.developerMessage, formattedError.originalError);
+      toast.error(formattedError.userMessage);
     }
   }, [user?.id]);
 
@@ -178,8 +180,9 @@ const Profile = () => {
 
       toast.success("Addresses saved successfully");
     } catch (error) {
-      console.error("Error saving addresses:", error);
-      toast.error("Failed to save addresses");
+      const formattedError = handleAddressError(error, "save");
+      console.error(formattedError.developerMessage, formattedError.originalError);
+      toast.error(formattedError.userMessage);
       throw error;
     } finally {
       setIsLoadingAddress(false);
