@@ -82,14 +82,14 @@ const createSupabaseClient = () => {
         heartbeatIntervalMs: 30000,
         // Reconnection settings with limited attempts
         reconnectAfterMs: (retries) => {
-          // Stop attempting after 3 retries to prevent endless loops
-          if (retries >= 3) {
+          // Stop attempting after 5 retries to prevent endless loops
+          if (retries >= 5) {
             console.log(`[Supabase] Max reconnection attempts reached (${retries + 1}), stopping`);
-            return null; // Stop reconnecting
+            return false; // Stop reconnecting completely
           }
-          // Exponential backoff: 2s, 5s, 10s
-          const delay = Math.min(2000 * Math.pow(2, retries), 10000);
-          console.log(`[Supabase] Reconnecting in ${delay}ms (attempt ${retries + 1}/3)`);
+          // Exponential backoff: 1s, 2s, 4s, 8s, 10s
+          const delay = Math.min(1000 * Math.pow(2, retries), 10000);
+          console.log(`[Supabase] Reconnecting in ${delay}ms (attempt ${retries + 1}/5)`);
           return delay;
         },
         // Increase timeout for slower connections
