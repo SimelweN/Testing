@@ -8,14 +8,17 @@ interface SimpleAddress {
   postalCode: string;
 }
 
-// Decrypt an address using the decrypt-address edge function
+// Decrypt an address using the improved decrypt-address edge function
 const decryptAddress = async (params: { table: string; target_id: string; address_type?: string }) => {
   try {
     console.log("🔐 Calling decrypt-address edge function with params:", params);
 
+    // Use the legacy format for backward compatibility
     const { data, error } = await supabase.functions.invoke('decrypt-address', {
       body: {
-        fetch: params
+        table: params.table,
+        target_id: params.target_id,
+        address_type: params.address_type || 'pickup'
       }
     });
 
@@ -32,9 +35,15 @@ const decryptAddress = async (params: { table: string; target_id: string; addres
       return null;
     }
 
-    const result = data?.data || null;
-    console.log("🔐 Final decryption result:", result);
-    return result;
+    // The new function returns { success: boolean, data?: any, error?: any }
+    if (data?.success) {
+      const result = data.data || null;
+      console.log("🔐 Final decryption result:", result);
+      return result;
+    } else {
+      console.warn("Decryption failed:", data?.error?.message || "Unknown error");
+      return null;
+    }
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     if (errorMsg.includes('404') || errorMsg.includes('Not Found')) {
