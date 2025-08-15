@@ -171,17 +171,41 @@ const EnhancedShippingForm: React.FC<EnhancedShippingFormProps> = ({
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("shipping_address")
-        .eq("id", user.id)
-        .single();
+      // Load saved address from profile - prioritize encrypted
+      let savedShippingAddress = null;
 
-      if (profile?.shipping_address) {
-        setSavedAddress(profile.shipping_address);
+      try {
+        const { getSimpleUserAddresses } = await import("@/services/simplifiedAddressService");
+        const addressData = await getSimpleUserAddresses(user.id);
+
+        if (addressData?.shipping_address) {
+          savedShippingAddress = addressData.shipping_address;
+          console.log("🔐 Using encrypted shipping address");
+        }
+      } catch (error) {
+        console.warn("Failed to get encrypted shipping address:", error);
+      }
+
+      // Fallback to plaintext if no encrypted address
+      if (!savedShippingAddress) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("shipping_address_encrypted, shipping_address")
+          .eq("id", user.id)
+          .single();
+
+        // Only use plaintext if no encrypted version exists
+        if (!profile?.shipping_address_encrypted && profile?.shipping_address) {
+          savedShippingAddress = profile.shipping_address;
+          console.log("⚠️ Using plaintext shipping address fallback");
+        }
+      }
+
+      if (savedShippingAddress) {
+        setSavedAddress(savedShippingAddress);
 
         if (!isEditingAddress) {
-          populateFormWithAddress(profile.shipping_address);
+          populateFormWithAddress(savedShippingAddress);
         }
       }
     } catch (error) {
