@@ -78,8 +78,9 @@ const Profile = () => {
       const data = await getUserAddresses(user.id);
       setAddressData(data);
     } catch (error) {
-      console.error("Error loading addresses:", error);
-      toast.error("Failed to load addresses");
+      const formattedError = handleAddressError(error, "load");
+      console.error(formattedError.developerMessage, formattedError.originalError);
+      toast.error(formattedError.userMessage);
     }
   }, [user?.id]);
 
