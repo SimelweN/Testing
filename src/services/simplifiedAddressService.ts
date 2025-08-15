@@ -23,6 +23,8 @@ const decryptAddress = async (params: { table: string; target_id: string; addres
     });
 
     console.log("🔐 Edge function response:", { data, error });
+    console.log("🔐 Data structure:", JSON.stringify(data, null, 2));
+    console.log("🔐 Data.success:", data?.success);
 
     // Handle 404 errors specifically (function not deployed)
     if (error && (error.message?.includes('404') || error.message?.includes('Not Found'))) {
@@ -42,6 +44,7 @@ const decryptAddress = async (params: { table: string; target_id: string; addres
       return result;
     } else {
       console.warn("Decryption failed:", data?.error?.message || "Unknown error");
+      console.log("🔐 Full data object for debugging:", data);
       return null;
     }
   } catch (error) {
