@@ -72,44 +72,78 @@ export const saveUserAddresses = async (
       addressesSame,
     );
 
-    // Try to encrypt and save pickup address (non-blocking)
+    let encryptionResults = {
+      pickup: false,
+      shipping: false
+    };
+
+    // Try to encrypt and save pickup address
     try {
-      await encryptAddress(pickupAddress, {
+      const pickupResult = await encryptAddress(pickupAddress, {
         save: {
           table: 'profiles',
           target_id: userId,
           address_type: 'pickup'
         }
       });
-      console.log("✅ Pickup address encrypted successfully");
+
+      if (pickupResult && pickupResult.success) {
+        console.log("✅ Pickup address encrypted and saved successfully");
+        encryptionResults.pickup = true;
+      } else {
+        console.warn("⚠️ Pickup address encryption failed:", pickupResult?.error || "Unknown error");
+      }
     } catch (encryptError) {
-      console.warn("⚠️ Pickup address encryption failed, continuing with plaintext only");
+      console.warn("⚠️ Pickup address encryption exception:", encryptError);
     }
 
-    // Try to encrypt and save shipping address (if different, non-blocking)
+    // Try to encrypt and save shipping address (if different)
     if (!addressesSame) {
       try {
-        await encryptAddress(shippingAddress, {
+        const shippingResult = await encryptAddress(shippingAddress, {
           save: {
             table: 'profiles',
             target_id: userId,
             address_type: 'shipping'
           }
         });
-        console.log("✅ Shipping address encrypted successfully");
+
+        if (shippingResult && shippingResult.success) {
+          console.log("✅ Shipping address encrypted and saved successfully");
+          encryptionResults.shipping = true;
+        } else {
+          console.warn("⚠️ Shipping address encryption failed:", shippingResult?.error || "Unknown error");
+        }
       } catch (encryptError) {
-        console.warn("⚠️ Shipping address encryption failed, continuing with plaintext only");
+        console.warn("⚠️ Shipping address encryption exception:", encryptError);
       }
+    } else {
+      // If addresses are the same, mark shipping encryption as successful if pickup succeeded
+      encryptionResults.shipping = encryptionResults.pickup;
     }
 
-    // Update addresses_same flag and keep legacy plaintext (always save plaintext)
+    // Update addresses_same flag and keep legacy plaintext for backward compatibility
+    const updateData: any = {
+      pickup_address: pickupAddress,
+      shipping_address: addressesSame ? pickupAddress : shippingAddress,
+      addresses_same: addressesSame,
+    };
+
+    // If encryption failed completely, we might want to store a flag to retry later
+    if (!encryptionResults.pickup && !encryptionResults.shipping) {
+      console.warn("⚠️ Address encryption failed completely - addresses stored in plaintext only");
+      updateData.encryption_status = 'failed';
+    } else if (encryptionResults.pickup && encryptionResults.shipping) {
+      console.log("✅ All addresses encrypted successfully");
+      updateData.encryption_status = 'encrypted';
+    } else {
+      console.warn("⚠️ Partial encryption success - some addresses encrypted");
+      updateData.encryption_status = 'partial';
+    }
+
     const { error } = await supabase
       .from("profiles")
-      .update({
-        pickup_address: pickupAddress,
-        shipping_address: addressesSame ? pickupAddress : shippingAddress,
-        addresses_same: addressesSame,
-      })
+      .update(updateData)
       .eq("id", userId);
 
     if (error) {
@@ -117,11 +151,17 @@ export const saveUserAddresses = async (
       throw error;
     }
 
+    console.log(`Address save complete - Encryption status: pickup=${encryptionResults.pickup}, shipping=${encryptionResults.shipping}`);
+
     return {
       pickup_address: pickupAddress,
       shipping_address: addressesSame ? pickupAddress : shippingAddress,
       addresses_same: addressesSame,
       canListBooks: result.canListBooks,
+      encryption_status: {
+        pickup: encryptionResults.pickup,
+        shipping: encryptionResults.shipping
+      }
     };
   } catch (error) {
     safeLogError("Error saving addresses", error);
