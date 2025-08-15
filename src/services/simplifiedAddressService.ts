@@ -123,9 +123,10 @@ export const getSellerDeliveryAddress = async (
 
     // Fallback to plaintext address if encryption is unavailable
     // First check if there's any encrypted data we can access directly
+    console.log("🔍 Querying profiles table for seller:", sellerId);
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('pickup_address_encrypted, pickup_address')
+      .select('pickup_address_encrypted, pickup_address, id, name')
       .eq('id', sellerId)
       .maybeSingle();
 
@@ -135,9 +136,16 @@ export const getSellerDeliveryAddress = async (
     }
 
     if (!profile) {
-      console.log("❌ No profile found for seller");
+      console.log("❌ No profile found for seller:", sellerId);
       return null;
     }
+
+    console.log("📊 Profile found:", {
+      id: profile.id,
+      name: profile.name,
+      has_encrypted: !!profile.pickup_address_encrypted,
+      has_plaintext: !!profile.pickup_address
+    });
 
     // If there's encrypted data but decryption failed, let's not fall back to plaintext for security
     if (profile.pickup_address_encrypted) {
