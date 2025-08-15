@@ -19,6 +19,7 @@ interface AddressInputProps {
   initialAddress?: Partial<CheckoutAddress>;
   onAddressSubmit: (address: CheckoutAddress) => void;
   onSaveToProfile?: (address: CheckoutAddress) => void;
+  onCancel?: () => void;
   loading?: boolean;
   title?: string;
 }
