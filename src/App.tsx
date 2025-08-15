@@ -46,6 +46,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 import Verify from "./pages/Verify";
 import VerifyDebug from "./pages/VerifyDebug";
 import AuthCallback from "./pages/AuthCallback";
+import EnvironmentConfigHelper from "./components/EnvironmentConfigHelper";
 
 // Admin Pages
 import Admin from "./pages/Admin";
