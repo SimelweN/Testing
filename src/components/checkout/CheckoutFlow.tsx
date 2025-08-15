@@ -158,10 +158,10 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
         console.log("📚 Book verification:", { bookCheck, bookError });
 
-        // Then check the profile (without .single() to avoid PGRST116 error)
+        // Check if seller has encrypted address setup
         const { data: profiles, error: profileError } = await supabase
           .from("profiles")
-          .select("id, pickup_address, pickup_address_encrypted, name, email")
+          .select("id, name, email, encryption_status")
           .eq("id", bookData.seller_id);
 
         const profile = profiles && profiles.length > 0 ? profiles[0] : null;
