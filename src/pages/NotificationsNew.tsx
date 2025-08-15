@@ -94,12 +94,15 @@ const NotificationsNew = () => {
         n.title?.toLowerCase().includes("purchase") ||
         n.title?.toLowerCase().includes("order") ||
         n.title?.toLowerCase().includes("payment") ||
+        n.title?.toLowerCase().includes("book listed") ||
+        n.title?.toLowerCase().includes("listed successfully") ||
         n.title?.includes("🛒") ||
         n.title?.includes("📦") ||
+        n.title?.includes("📚") ||
         n.title?.includes("💳") ||
         n.title?.includes("✅") ||
         n.title?.includes("🎉") ||
-        (n.type === "success" && (n.title?.includes("Order") || n.title?.includes("Payment"))),
+        (n.type === "success" && (n.title?.includes("Order") || n.title?.includes("Payment") || n.title?.includes("Listed"))),
     );
 
     const deliveryNotifications = dbNotifications.filter(
@@ -125,11 +128,40 @@ const NotificationsNew = () => {
         n.message?.toLowerCase().includes("violation"),
     );
 
+    // New category for account/profile related notifications
+    const accountNotifications = dbNotifications.filter(
+      (n) =>
+        n.title?.toLowerCase().includes("profile") ||
+        n.title?.toLowerCase().includes("banking") ||
+        n.title?.toLowerCase().includes("account") ||
+        n.title?.toLowerCase().includes("activity") ||
+        n.title?.toLowerCase().includes("updated") ||
+        (n.type === "success" && (n.title?.includes("Profile") || n.title?.includes("Banking") || n.title?.includes("Activity"))),
+    );
+
+    // General/Test notifications category
+    const generalNotifications = dbNotifications.filter(
+      (n) =>
+        n.title?.toLowerCase().includes("test") ||
+        n.title?.toLowerCase().includes("notification") ||
+        n.title?.includes("🧪") ||
+        n.title?.includes("🗑️") ||
+        n.type === "info" ||
+        // Catch any notifications that didn't fit into other categories
+        (!commitNotifications.includes(n) &&
+         !purchaseNotifications.includes(n) &&
+         !deliveryNotifications.includes(n) &&
+         !adminNotifications.includes(n) &&
+         !accountNotifications.includes(n)),
+    );
+
     return {
       commits: commitNotifications,
       purchases: purchaseNotifications,
       deliveries: deliveryNotifications,
       admin: adminNotifications,
+      account: accountNotifications,
+      general: generalNotifications,
     };
   };
 
