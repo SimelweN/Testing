@@ -108,34 +108,52 @@ export const getSellerDeliveryAddress = async (
     console.log("❌ No encrypted address found for seller, trying plaintext fallback...");
 
     // Fallback to plaintext address if encryption is unavailable
+    // First check if there's any encrypted data we can access directly
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('pickup_address')
+      .select('pickup_address_encrypted, pickup_address')
       .eq('id', sellerId)
       .maybeSingle();
 
-    if (profileError || !profile?.pickup_address) {
-      console.log("❌ No plaintext address found either");
+    if (profileError) {
+      console.log("❌ Error fetching profile:", profileError);
       return null;
     }
 
-    try {
-      const address = typeof profile.pickup_address === 'string'
-        ? JSON.parse(profile.pickup_address)
-        : profile.pickup_address;
-
-      console.log("✅ Using plaintext fallback address");
-      return {
-        street: address.street || address.line1 || "",
-        city: address.city || "",
-        state: address.state || address.province || "",
-        postal_code: address.postalCode || address.postal_code || "",
-        country: "South Africa",
-      };
-    } catch (error) {
-      console.error("❌ Error parsing plaintext address:", error);
+    if (!profile) {
+      console.log("❌ No profile found for seller");
       return null;
     }
+
+    // If there's encrypted data but decryption failed, let's not fall back to plaintext for security
+    if (profile.pickup_address_encrypted) {
+      console.log("🔐 Encrypted address exists but decryption failed - not falling back to plaintext for security");
+      return null;
+    }
+
+    // Only use plaintext if no encrypted version exists
+    if (profile.pickup_address) {
+      try {
+        const address = typeof profile.pickup_address === 'string'
+          ? JSON.parse(profile.pickup_address)
+          : profile.pickup_address;
+
+        console.log("✅ Using plaintext fallback address (no encrypted version found)");
+        return {
+          street: address.street || address.line1 || "",
+          city: address.city || "",
+          state: address.state || address.province || "",
+          postal_code: address.postalCode || address.postal_code || "",
+          country: "South Africa",
+        };
+      } catch (error) {
+        console.error("❌ Error parsing plaintext address:", error);
+        return null;
+      }
+    }
+
+    console.log("❌ No address data found");
+    return null;
   } catch (error) {
     console.error("❌ Error getting seller address:", error);
     return null;
