@@ -63,7 +63,7 @@ export const getSellerDeliveryAddress = async (
   try {
     console.log("🔍 getSellerDeliveryAddress called for seller:", sellerId);
 
-    // Try to get encrypted address first
+    // Get encrypted address only
     console.log("Step 1: Attempting to decrypt address...");
     const decryptedAddress = await decryptAddress({
       table: 'profiles',
@@ -81,40 +81,12 @@ export const getSellerDeliveryAddress = async (
         postal_code: decryptedAddress.postalCode || decryptedAddress.postal_code || "",
         country: "South Africa",
       };
-      console.log("✅ Returning decrypted address:", address);
+      console.log("✅ Returning encrypted address:", address);
       return address;
     }
 
-    // Fallback to plaintext address
-    console.log("Step 2: Falling back to plaintext address...");
-    const { data: profiles, error } = await supabase
-      .from("profiles")
-      .select("pickup_address")
-      .eq("id", sellerId);
-
-    console.log("📊 Plaintext query result:", {
-      profiles,
-      error,
-      profile_count: profiles?.length || 0
-    });
-
-    const profile = profiles && profiles.length > 0 ? profiles[0] : null;
-
-    if (error || !profile?.pickup_address) {
-      console.log("❌ No plaintext address found");
-      return null;
-    }
-
-    const addr = profile.pickup_address as any;
-    const address = {
-      street: addr.streetAddress || addr.street || "",
-      city: addr.city || "",
-      province: addr.province || "",
-      postal_code: addr.postalCode || addr.postal_code || "",
-      country: "South Africa",
-    };
-    console.log("✅ Returning plaintext address:", address);
-    return address;
+    console.log("❌ No encrypted address found for seller");
+    return null;
   } catch (error) {
     console.error("❌ Error getting seller address:", error);
     return null;
@@ -123,7 +95,7 @@ export const getSellerDeliveryAddress = async (
 
 export const getSimpleUserAddresses = async (userId: string) => {
   try {
-    // Try to get encrypted addresses first
+    // Get encrypted addresses only
     const [decryptedPickup, decryptedShipping] = await Promise.all([
       decryptAddress({
         table: 'profiles',
@@ -144,21 +116,8 @@ export const getSimpleUserAddresses = async (userId: string) => {
       };
     }
 
-    // Fallback to plaintext addresses
-    const { data: profile, error } = await supabase
-      .from("profiles")
-      .select("pickup_address, shipping_address")
-      .eq("id", userId)
-      .single();
-
-    if (error || !profile) {
-      return null;
-    }
-
-    return {
-      pickup_address: profile.pickup_address,
-      shipping_address: profile.shipping_address,
-    };
+    console.log("❌ No encrypted addresses found for user");
+    return null;
   } catch (error) {
     console.error("Error getting addresses:", error);
     return null;
@@ -172,46 +131,62 @@ export const saveSimpleUserAddresses = async (
   addressesAreSame: boolean = false,
 ) => {
   try {
-    // Try to encrypt and save pickup address (non-blocking)
+    let pickupEncrypted = false;
+    let shippingEncrypted = false;
+
+    // Encrypt and save pickup address (required)
     if (pickupAddress) {
       try {
-        await encryptAddress(pickupAddress, {
+        const result = await encryptAddress(pickupAddress, {
           save: {
             table: 'profiles',
             target_id: userId,
             address_type: 'pickup'
           }
         });
-        console.log("✅ Pickup address encrypted successfully");
+        if (result && result.success) {
+          console.log("✅ Pickup address encrypted successfully");
+          pickupEncrypted = true;
+        }
       } catch (encryptError) {
-        console.warn("���️ Pickup address encryption failed, continuing with plaintext only");
+        console.error("❌ Pickup address encryption failed:", encryptError);
       }
     }
 
-    // Try to encrypt and save shipping address (if different, non-blocking)
+    // Encrypt and save shipping address (if different, required)
     if (shippingAddress && !addressesAreSame) {
       try {
-        await encryptAddress(shippingAddress, {
+        const result = await encryptAddress(shippingAddress, {
           save: {
             table: 'profiles',
             target_id: userId,
             address_type: 'shipping'
           }
         });
-        console.log("✅ Shipping address encrypted successfully");
+        if (result && result.success) {
+          console.log("✅ Shipping address encrypted successfully");
+          shippingEncrypted = true;
+        }
       } catch (encryptError) {
-        console.warn("⚠️ Shipping address encryption failed, continuing with plaintext only");
+        console.error("❌ Shipping address encryption failed:", encryptError);
       }
+    } else {
+      shippingEncrypted = pickupEncrypted;
     }
 
-    // Always update plaintext addresses (required for functionality)
-    const updateData: any = {};
-    if (pickupAddress) {
-      updateData.pickup_address = pickupAddress;
+    // Check if encryption was successful
+    if (pickupAddress && !pickupEncrypted) {
+      throw new Error("Failed to encrypt pickup address. Address not saved for security reasons.");
     }
-    if (shippingAddress) {
-      updateData.shipping_address = shippingAddress;
+    if (shippingAddress && !addressesAreSame && !shippingEncrypted) {
+      throw new Error("Failed to encrypt shipping address. Address not saved for security reasons.");
     }
+
+    // Update only metadata
+    const updateData: any = {
+      addresses_same: addressesAreSame,
+      encryption_status: 'encrypted'
+    };
 
     const { error } = await supabase
       .from("profiles")
@@ -222,6 +197,7 @@ export const saveSimpleUserAddresses = async (
       throw error;
     }
 
+    console.log("✅ Addresses encrypted and saved successfully");
     return { success: true };
   } catch (error) {
     console.error("Error saving addresses:", error);
@@ -235,8 +211,8 @@ export const saveOrderShippingAddress = async (
   shippingAddress: SimpleAddress
 ) => {
   try {
-    // Encrypt and save shipping address to orders table
-    await encryptAddress(shippingAddress, {
+    // Encrypt and save shipping address to orders table only
+    const result = await encryptAddress(shippingAddress, {
       save: {
         table: 'orders',
         target_id: orderId,
@@ -244,16 +220,11 @@ export const saveOrderShippingAddress = async (
       }
     });
 
-    // Also save plaintext for backward compatibility
-    const { error } = await supabase
-      .from("orders")
-      .update({ shipping_address: shippingAddress })
-      .eq("id", orderId);
-
-    if (error) {
-      throw error;
+    if (!result || !result.success) {
+      throw new Error("Failed to encrypt shipping address for order");
     }
 
+    console.log("✅ Order shipping address encrypted successfully");
     return { success: true };
   } catch (error) {
     console.error("Error saving order shipping address:", error);
