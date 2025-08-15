@@ -213,69 +213,46 @@ export const getSellerPickupAddress = async (sellerId: string) => {
 
 export const getUserAddresses = async (userId: string) => {
   try {
-    console.log("Fetching addresses for user:", userId);
+    console.log("Fetching encrypted addresses for user:", userId);
 
-    // Try to get encrypted addresses first (non-blocking)
-    let pickupAddress = null;
-    let shippingAddress = null;
+    // Get encrypted addresses only - no plaintext fallback
+    const pickupAddress = await decryptAddress({
+      table: 'profiles',
+      target_id: userId,
+      address_type: 'pickup'
+    });
 
-    try {
-      pickupAddress = await decryptAddress({
-        table: 'profiles',
-        target_id: userId,
-        address_type: 'pickup'
-      });
+    const shippingAddress = await decryptAddress({
+      table: 'profiles',
+      target_id: userId,
+      address_type: 'shipping'
+    });
 
-      shippingAddress = await decryptAddress({
-        table: 'profiles',
-        target_id: userId,
-        address_type: 'shipping'
-      });
+    if (pickupAddress || shippingAddress) {
+      console.log("✅ Successfully fetched encrypted addresses");
 
-      if (pickupAddress || shippingAddress) {
-        console.log("✅ Successfully fetched encrypted addresses");
-        // Determine if addresses are the same
-        const addressesSame = pickupAddress && shippingAddress ?
+      // Get addresses_same flag from profile metadata
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("addresses_same")
+        .eq("id", userId)
+        .single();
+
+      const addressesSame = profileData?.addresses_same ?? (
+        pickupAddress && shippingAddress ?
           JSON.stringify(pickupAddress) === JSON.stringify(shippingAddress) :
-          !shippingAddress;
+          !shippingAddress
+      );
 
-        return {
-          pickup_address: pickupAddress,
-          shipping_address: shippingAddress || pickupAddress,
-          addresses_same: addressesSame,
-        };
-      }
-    } catch (error) {
-      console.warn("⚠️ Encryption service unavailable, using plaintext addresses");
+      return {
+        pickup_address: pickupAddress,
+        shipping_address: shippingAddress || pickupAddress,
+        addresses_same: addressesSame,
+      };
     }
 
-    // Fallback to plaintext addresses (during transition period)
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("pickup_address, shipping_address, addresses_same")
-      .eq("id", userId)
-      .single();
-
-    if (error) {
-      const errorMsg =
-        error.message || error.details || "Unknown database error";
-      safelog("Database error fetching addresses", error, {
-        code: error.code,
-        hint: error.hint,
-      });
-
-      // Handle specific error cases
-      if (error.code === "PGRST116") {
-        // No row found - this is acceptable, return null
-        console.log("No address data found for user, returning null");
-        return null;
-      }
-
-      throw new Error(`Database error: ${errorMsg}`);
-    }
-
-    console.log("Successfully fetched address data:", data);
-    return data;
+    console.log("❌ No encrypted addresses found for user");
+    return null;
   } catch (error) {
     safelog("Error in getUserAddresses", error, {
       userId,
