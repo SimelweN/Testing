@@ -26,6 +26,7 @@ import {
   X,
   CheckCircle,
   AlertCircle,
+  AlertTriangle,
   XCircle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
