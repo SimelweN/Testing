@@ -663,6 +663,41 @@ const NotificationsNew = () => {
 
         </div>
 
+        {/* Debug Section - Show raw notifications if count mismatch */}
+        {totalNotifications > 0 && (categorizedNotifications.commits.length + categorizedNotifications.purchases.length + categorizedNotifications.deliveries.length + categorizedNotifications.admin.length) === 0 && (
+          <Card className="mb-6 border-yellow-200 bg-yellow-50">
+            <CardHeader>
+              <CardTitle className="text-yellow-800 flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                Debug: Uncategorized Notifications
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-yellow-700 mb-4">
+                There are {totalNotifications} notifications in the database but they're not appearing in any category. Here are the raw notifications:
+              </p>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {notifications.map((notif, index) => (
+                  <div key={notif.id || index} className="bg-white p-3 rounded border">
+                    <div className="text-sm font-medium">
+                      <strong>Title:</strong> {notif.title || 'No title'}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      <strong>Type:</strong> {notif.type || 'No type'}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      <strong>Read:</strong> {notif.read ? 'Yes' : 'No'}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      <strong>Message:</strong> {notif.message ? notif.message.substring(0, 100) + '...' : 'No message'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Connection Status Details */}
         {showConnectionDetails && connectionStatus && (
           <Card className="mb-6 border-red-200 bg-red-50">
