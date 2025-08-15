@@ -171,9 +171,9 @@ export const saveUserAddresses = async (
 
 export const getSellerPickupAddress = async (sellerId: string) => {
   try {
-    console.log("Fetching pickup address for seller:", sellerId);
+    console.log("Fetching encrypted pickup address for seller:", sellerId);
 
-    // Try to get encrypted address first (non-blocking)
+    // Get encrypted address only - no plaintext fallback
     const decryptedAddress = await decryptAddress({
       table: 'profiles',
       target_id: sellerId,
@@ -185,38 +185,8 @@ export const getSellerPickupAddress = async (sellerId: string) => {
       return decryptedAddress;
     }
 
-    console.log("ℹ️ No encrypted address found, using plaintext fallback");
-
-    // Fallback to plaintext address (during transition period)
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("pickup_address")
-      .eq("id", sellerId)
-      .single();
-
-    if (error) {
-      const errorMsg =
-        error.message || error.details || "Unknown database error";
-      console.error("Database error fetching seller pickup address:", {
-        message: errorMsg,
-        code: error.code,
-        sellerId,
-      });
-
-      // Handle no data found case
-      if (error.code === "PGRST116") {
-        console.log("No pickup address found for seller");
-        return null;
-      }
-
-      throw new Error(`Failed to fetch seller pickup address: ${errorMsg}`);
-    }
-
-    console.log(
-      "Successfully fetched seller pickup address:",
-      data?.pickup_address,
-    );
-    return data?.pickup_address || null;
+    console.log("❌ No encrypted pickup address found for seller");
+    return null;
   } catch (error) {
     console.error("Error in getSellerPickupAddress:", {
       sellerId,
