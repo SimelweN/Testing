@@ -237,10 +237,20 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
         if (!profile) {
           errorMessage += "The seller's profile setup is incomplete.";
-        } else if (!profile.pickup_address && !profile.pickup_address_encrypted) {
-          errorMessage += "The seller hasn't set up their pickup address yet.";
         } else {
-          errorMessage += "There was an issue retrieving the seller's address.";
+          // Try to get encrypted address to validate it exists
+          try {
+            const sellerAddress = await import("@/services/addressService").then(module =>
+              module.getSellerPickupAddress(bookData.seller_id)
+            );
+            if (!sellerAddress) {
+              errorMessage += "The seller hasn't set up their pickup address yet.";
+            } else {
+              errorMessage += "There was an issue retrieving the seller's address.";
+            }
+          } catch {
+            errorMessage += "The seller hasn't set up their pickup address yet.";
+          }
         }
 
         // If this is the current user's book, give them guidance
