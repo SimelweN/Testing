@@ -81,17 +81,21 @@ const NotificationsNew = () => {
 
   // Convert database notifications to our category format
   const categorizeNotifications = (dbNotifications: any[]) => {
-    const commitNotifications = dbNotifications.filter(
-      (n) =>
-        n.title?.toLowerCase().includes("commit") ||
+    // Create arrays to track categorized notifications
+    const categorizedIds = new Set();
+
+    const commitNotifications = dbNotifications.filter((n) => {
+      const isCommit = n.title?.toLowerCase().includes("commit") ||
         n.message?.toLowerCase().includes("commit") ||
         n.title?.includes("⏰") ||
-        (n.type === "warning" && (n.title?.includes("Commit") || n.message?.includes("commit"))),
-    );
+        (n.type === "warning" && (n.title?.includes("Commit") || n.message?.includes("commit")));
+      if (isCommit) categorizedIds.add(n.id);
+      return isCommit;
+    });
 
-    const purchaseNotifications = dbNotifications.filter(
-      (n) =>
-        n.title?.toLowerCase().includes("purchase") ||
+    const purchaseNotifications = dbNotifications.filter((n) => {
+      if (categorizedIds.has(n.id)) return false;
+      const isPurchase = n.title?.toLowerCase().includes("purchase") ||
         n.title?.toLowerCase().includes("order") ||
         n.title?.toLowerCase().includes("payment") ||
         n.title?.toLowerCase().includes("book listed") ||
@@ -102,58 +106,62 @@ const NotificationsNew = () => {
         n.title?.includes("💳") ||
         n.title?.includes("✅") ||
         n.title?.includes("🎉") ||
-        (n.type === "success" && (n.title?.includes("Order") || n.title?.includes("Payment") || n.title?.includes("Listed"))),
-    );
+        (n.type === "success" && (n.title?.includes("Order") || n.title?.includes("Payment") || n.title?.includes("Listed")));
+      if (isPurchase) categorizedIds.add(n.id);
+      return isPurchase;
+    });
 
-    const deliveryNotifications = dbNotifications.filter(
-      (n) =>
-        n.title?.toLowerCase().includes("delivery") ||
+    const deliveryNotifications = dbNotifications.filter((n) => {
+      if (categorizedIds.has(n.id)) return false;
+      const isDelivery = n.title?.toLowerCase().includes("delivery") ||
         n.title?.toLowerCase().includes("shipping") ||
         n.title?.toLowerCase().includes("tracking") ||
-        n.title?.includes("📦") ||
-        (n.type === "info" && (n.title?.includes("Delivery") || n.title?.includes("Shipping"))),
-    );
+        n.title?.includes("🚚") ||
+        (n.type === "info" && (n.title?.includes("Delivery") || n.title?.includes("Shipping")));
+      if (isDelivery) categorizedIds.add(n.id);
+      return isDelivery;
+    });
 
-    const adminNotifications = dbNotifications.filter(
-      (n) =>
-        n.type === "admin_action" ||
+    const adminNotifications = dbNotifications.filter((n) => {
+      if (categorizedIds.has(n.id)) return false;
+      const isAdmin = n.type === "admin_action" ||
         n.type === "admin" ||
         n.type === "broadcast" ||
+        n.type === "system" ||
         n.title?.toLowerCase().includes("removed") ||
         n.title?.toLowerCase().includes("deleted") ||
-        n.title?.toLowerCase().includes("listing") ||
+        n.title?.toLowerCase().includes("banned") ||
+        n.title?.toLowerCase().includes("suspended") ||
+        n.title?.toLowerCase().includes("violation") ||
         n.title?.toLowerCase().includes("rebooked solutions team") ||
         n.title?.toLowerCase().includes("system announcement") ||
+        n.title?.toLowerCase().includes("admin action") ||
         n.message?.toLowerCase().includes("admin") ||
-        n.message?.toLowerCase().includes("violation"),
-    );
+        n.message?.toLowerCase().includes("violation") ||
+        n.message?.toLowerCase().includes("removed by admin") ||
+        n.message?.toLowerCase().includes("system message");
+      if (isAdmin) categorizedIds.add(n.id);
+      return isAdmin;
+    });
 
-    // New category for account/profile related notifications
-    const accountNotifications = dbNotifications.filter(
-      (n) =>
-        n.title?.toLowerCase().includes("profile") ||
+    const accountNotifications = dbNotifications.filter((n) => {
+      if (categorizedIds.has(n.id)) return false;
+      const isAccount = n.title?.toLowerCase().includes("profile") ||
         n.title?.toLowerCase().includes("banking") ||
         n.title?.toLowerCase().includes("account") ||
         n.title?.toLowerCase().includes("activity") ||
         n.title?.toLowerCase().includes("updated") ||
-        (n.type === "success" && (n.title?.includes("Profile") || n.title?.includes("Banking") || n.title?.includes("Activity"))),
-    );
+        n.title?.toLowerCase().includes("settings") ||
+        (n.type === "success" && (n.title?.includes("Profile") || n.title?.includes("Banking") || n.title?.includes("Activity")));
+      if (isAccount) categorizedIds.add(n.id);
+      return isAccount;
+    });
 
-    // General/Test notifications category
-    const generalNotifications = dbNotifications.filter(
-      (n) =>
-        n.title?.toLowerCase().includes("test") ||
-        n.title?.toLowerCase().includes("notification") ||
-        n.title?.includes("🧪") ||
-        n.title?.includes("🗑️") ||
-        n.type === "info" ||
-        // Catch any notifications that didn't fit into other categories
-        (!commitNotifications.includes(n) &&
-         !purchaseNotifications.includes(n) &&
-         !deliveryNotifications.includes(n) &&
-         !adminNotifications.includes(n) &&
-         !accountNotifications.includes(n)),
-    );
+    // General/Test notifications category - catch all remaining
+    const generalNotifications = dbNotifications.filter((n) => {
+      if (categorizedIds.has(n.id)) return false;
+      return true; // All remaining notifications go here
+    });
 
     return {
       commits: commitNotifications,
