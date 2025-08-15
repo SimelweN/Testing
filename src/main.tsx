@@ -81,8 +81,7 @@ const validateEnvironment = () => {
 // Initialize application
 if (import.meta.env.DEV) {
   console.log("🚀 ReBooked Solutions - Starting application...");
-
-
+  debugEnvironmentVariables();
 }
 
 // Validate environment with graceful handling
