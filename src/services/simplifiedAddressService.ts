@@ -39,9 +39,9 @@ const decryptAddress = async (params: { table: string; target_id: string; addres
 
     // Handle different response formats from the edge function
     if (data?.success) {
-      // New format: { success: true, data: {...} }
-      const result = data.data || null;
-      console.log("🔐 Final decryption result (new format):", result);
+      // Check for different nested formats
+      const result = data.address || data.data || null;
+      console.log("🔐 Final decryption result (success format):", result);
       return result;
     } else if (data && typeof data === 'object' && !data.success && !data.error) {
       // Direct data format: the decrypted object itself
