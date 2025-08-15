@@ -21,40 +21,83 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
     let paystackSubaccountCode = null;
 
     try {
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("pickup_address, subaccount_code")
-        .eq("id", user.id)
-        .single();
+      // First, try to get encrypted address from profile
+      let encryptedAddressFound = false;
 
-      if (profileData?.pickup_address) {
-        pickupAddress = profileData.pickup_address;
+      try {
+        const { data: encryptedAddressData, error: decryptError } = await supabase.functions.invoke('decrypt-address', {
+          body: {
+            fetch: {
+              table: 'profiles',
+              target_id: user.id,
+              address_type: 'pickup'
+            }
+          }
+        });
 
-        // Extract province from pickup address
-        const addressObj = profileData.pickup_address as any;
-        if (addressObj?.province) {
-          province = addressObj.province;
-        } else if (typeof addressObj === "string") {
-          // If pickup_address is a string, try to extract province from it
-          // This is a fallback for older address formats
-          const addressStr = addressObj.toLowerCase();
-          if (addressStr.includes("western cape")) province = "Western Cape";
-          else if (addressStr.includes("gauteng")) province = "Gauteng";
-          else if (addressStr.includes("kwazulu")) province = "KwaZulu-Natal";
-          else if (addressStr.includes("eastern cape"))
-            province = "Eastern Cape";
-          else if (addressStr.includes("free state")) province = "Free State";
-          else if (addressStr.includes("limpopo")) province = "Limpopo";
-          else if (addressStr.includes("mpumalanga")) province = "Mpumalanga";
-          else if (addressStr.includes("northern cape"))
-            province = "Northern Cape";
-          else if (addressStr.includes("north west")) province = "North West";
+        if (encryptedAddressData && encryptedAddressData.success && encryptedAddressData.data) {
+          pickupAddress = encryptedAddressData.data;
+          encryptedAddressFound = true;
+          console.log("✅ Using encrypted pickup address from profile for book listing");
+
+          // Extract province from encrypted address
+          if (pickupAddress?.province) {
+            province = pickupAddress.province;
+          }
         }
+      } catch (error) {
+        console.warn("Could not decrypt address, falling back to plaintext:", error);
       }
 
-      // Get Paystack subaccount code if available
-      if (profileData?.subaccount_code) {
-        paystackSubaccountCode = profileData.subaccount_code;
+      // Fallback to plaintext address if encryption failed
+      if (!encryptedAddressFound) {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("pickup_address, subaccount_code")
+          .eq("id", user.id)
+          .single();
+
+        if (profileData?.pickup_address) {
+          pickupAddress = profileData.pickup_address;
+          console.log("⚠️ Using plaintext pickup address from profile for book listing");
+
+          // Extract province from pickup address
+          const addressObj = profileData.pickup_address as any;
+          if (addressObj?.province) {
+            province = addressObj.province;
+          } else if (typeof addressObj === "string") {
+            // If pickup_address is a string, try to extract province from it
+            // This is a fallback for older address formats
+            const addressStr = addressObj.toLowerCase();
+            if (addressStr.includes("western cape")) province = "Western Cape";
+            else if (addressStr.includes("gauteng")) province = "Gauteng";
+            else if (addressStr.includes("kwazulu")) province = "KwaZulu-Natal";
+            else if (addressStr.includes("eastern cape"))
+              province = "Eastern Cape";
+            else if (addressStr.includes("free state")) province = "Free State";
+            else if (addressStr.includes("limpopo")) province = "Limpopo";
+            else if (addressStr.includes("mpumalanga")) province = "Mpumalanga";
+            else if (addressStr.includes("northern cape"))
+              province = "Northern Cape";
+            else if (addressStr.includes("north west")) province = "North West";
+          }
+        }
+
+        // Get Paystack subaccount code if available
+        if (profileData?.subaccount_code) {
+          paystackSubaccountCode = profileData.subaccount_code;
+        }
+      } else {
+        // Get subaccount code from separate query when using encrypted address
+        const { data: bankingData } = await supabase
+          .from("profiles")
+          .select("subaccount_code")
+          .eq("id", user.id)
+          .single();
+
+        if (bankingData?.subaccount_code) {
+          paystackSubaccountCode = bankingData.subaccount_code;
+        }
       }
     } catch (addressError) {
       console.warn("Could not fetch user address for province:", addressError);
