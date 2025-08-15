@@ -13,6 +13,7 @@ console.error = (...args) => {
 };
 
 // Environment debugging (development only)
+import { debugEnvironmentVariables } from "./utils/debugEnvironment";
 
 
 // Proper network error handling (not suppression)
