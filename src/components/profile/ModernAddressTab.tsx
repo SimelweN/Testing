@@ -23,6 +23,7 @@ import GoogleMapsAddressAutocomplete, {
 import ManualAddressInput from "@/components/ManualAddressInput";
 import { useGoogleMaps } from "@/contexts/GoogleMapsContext";
 import { AddressData, Address } from "@/types/address";
+import { handleAddressError } from "@/utils/errorDisplayUtils";
 
 interface ModernAddressTabProps {
   addressData: AddressData | null;
