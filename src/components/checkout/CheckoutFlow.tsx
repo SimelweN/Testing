@@ -363,7 +363,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       }));
 
       // If this is the seller's own book, offer to go to profile
-      if (user?.id === bookData.seller_id) {
+      if (bookData && user?.id === bookData.seller_id) {
         toast.error(errorMessage, {
           description: "Click here to update your pickup address",
           action: {
