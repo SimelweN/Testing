@@ -13,6 +13,7 @@ import {
   Loader2,
   AlertTriangle,
   X,
+  Edit3,
 } from "lucide-react";
 import { CheckoutAddress, DeliveryOption } from "@/types/checkout";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +25,7 @@ interface Step2DeliveryOptionsProps {
   onSelectDelivery: (option: DeliveryOption) => void;
   onBack: () => void;
   onCancel?: () => void;
+  onEditAddress?: () => void;
   selectedDelivery?: DeliveryOption;
 }
 
