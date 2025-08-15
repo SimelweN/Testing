@@ -335,10 +335,18 @@ export const updateBooksPickupAddress = async (
 
     await Promise.all(encryptPromises);
 
-    // Update both pickup_address (plaintext) and province for backward compatibility
-    const updateData: any = { pickup_address: newPickupAddress };
+    // Update only province metadata - addresses are encrypted only
+    const updateData: any = {};
     if (province) {
       updateData.province = province;
+    }
+
+    // Only update if we have something to update
+    if (Object.keys(updateData).length === 0) {
+      return {
+        success: true,
+        updatedCount: books.length,
+      };
     }
 
     const { data, error } = await supabase
