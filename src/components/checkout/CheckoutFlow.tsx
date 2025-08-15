@@ -546,6 +546,20 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
     }
   };
 
+  const handleEditAddress = () => {
+    setIsEditingAddress(true);
+  };
+
+  const handleAddressUpdate = (newAddress: CheckoutAddress) => {
+    setCheckoutState(prev => ({
+      ...prev,
+      buyer_address: newAddress,
+      selected_delivery: null, // Reset delivery selection when address changes
+    }));
+    setIsEditingAddress(false);
+    toast.success("Address updated successfully");
+  };
+
   const getProgressValue = () => {
     switch (checkoutState.step.current) {
       case 1:
