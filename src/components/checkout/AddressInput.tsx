@@ -40,6 +40,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
   initialAddress = {},
   onAddressSubmit,
   onSaveToProfile,
+  onCancel,
   loading = false,
   title = "Enter Delivery Address",
 }) => {
