@@ -19,6 +19,7 @@ interface AddressInputProps {
   initialAddress?: Partial<CheckoutAddress>;
   onAddressSubmit: (address: CheckoutAddress) => void;
   onSaveToProfile?: (address: CheckoutAddress) => void;
+  onCancel?: () => void;
   loading?: boolean;
   title?: string;
 }
@@ -39,6 +40,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
   initialAddress = {},
   onAddressSubmit,
   onSaveToProfile,
+  onCancel,
   loading = false,
   title = "Enter Delivery Address",
 }) => {
@@ -229,7 +231,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
           )}
 
           {/* Submit Button */}
-          <div className="pt-4">
+          <div className="pt-4 space-y-2">
             <Button
               type="submit"
               className="w-full flex items-center gap-2 min-h-[44px] text-sm sm:text-base"
@@ -244,6 +246,18 @@ const AddressInput: React.FC<AddressInputProps> = ({
                 </>
               )}
             </Button>
+
+            {onCancel && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                className="w-full min-h-[44px] text-sm sm:text-base"
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+            )}
           </div>
         </form>
       </CardContent>

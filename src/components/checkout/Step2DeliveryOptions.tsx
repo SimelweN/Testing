@@ -13,6 +13,7 @@ import {
   Loader2,
   AlertTriangle,
   X,
+  Edit3,
 } from "lucide-react";
 import { CheckoutAddress, DeliveryOption } from "@/types/checkout";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +25,7 @@ interface Step2DeliveryOptionsProps {
   onSelectDelivery: (option: DeliveryOption) => void;
   onBack: () => void;
   onCancel?: () => void;
+  onEditAddress?: () => void;
   selectedDelivery?: DeliveryOption;
 }
 
@@ -33,6 +35,7 @@ const Step2DeliveryOptions: React.FC<Step2DeliveryOptionsProps> = ({
   onSelectDelivery,
   onBack,
   onCancel,
+  onEditAddress,
   selectedDelivery,
 }) => {
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>([]);
@@ -233,11 +236,24 @@ const Step2DeliveryOptions: React.FC<Step2DeliveryOptionsProps> = ({
             <div>
               <p className="text-sm font-medium text-gray-600">From (Seller)</p>
               <p className="text-sm">
-                {sellerAddress.city}, {sellerAddress.province}
+                {sellerAddress.province}
               </p>
             </div>
             <div className="border-t pt-3">
-              <p className="text-sm font-medium text-gray-600">To (You)</p>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-sm font-medium text-gray-600">To (You)</p>
+                {onEditAddress && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onEditAddress}
+                    className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800"
+                  >
+                    <Edit3 className="w-3 h-3 mr-1" />
+                    Edit
+                  </Button>
+                )}
+              </div>
               <p className="text-sm">
                 {buyerAddress.street}, {buyerAddress.city},{" "}
                 {buyerAddress.province} {buyerAddress.postal_code}

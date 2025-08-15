@@ -45,13 +45,36 @@ export const getSellerCheckoutData = async (sellerId: string) => {
       throw new Error("Seller not found");
     }
 
-    // Check if seller has required information
-    const hasAddress =
-      profile.pickup_address &&
-      profile.pickup_address.street &&
-      profile.pickup_address.city &&
-      profile.pickup_address.province &&
-      profile.pickup_address.postal_code;
+    // Check if seller has required information - prioritize encrypted address
+    let hasAddress = false;
+    let sellerAddress = null;
+
+    // Try to get encrypted address first
+    try {
+      const { getSellerDeliveryAddress } = await import("@/services/simplifiedAddressService");
+      const encryptedAddress = await getSellerDeliveryAddress(sellerId);
+      if (encryptedAddress &&
+          encryptedAddress.street &&
+          encryptedAddress.city &&
+          encryptedAddress.province &&
+          encryptedAddress.postal_code) {
+        hasAddress = true;
+        sellerAddress = encryptedAddress;
+        console.log("✅ Using encrypted address for seller validation");
+      }
+    } catch (error) {
+      console.warn("Failed to check encrypted address:", error);
+    }
+
+    // Fallback to plaintext only if no encrypted address
+    if (!hasAddress && profile.pickup_address) {
+      hasAddress = !!(profile.pickup_address.street &&
+        profile.pickup_address.city &&
+        profile.pickup_address.province &&
+        profile.pickup_address.postal_code);
+      sellerAddress = profile.pickup_address;
+      console.log("⚠️ Using plaintext address fallback for seller validation");
+    }
 
     const hasSubaccount = profile.subaccount_code;
 
@@ -60,7 +83,7 @@ export const getSellerCheckoutData = async (sellerId: string) => {
       profile,
       hasAddress: !!hasAddress,
       hasSubaccount: !!hasSubaccount,
-      address: profile.pickup_address,
+      address: sellerAddress,
     };
   } catch (error) {
     return {
@@ -84,9 +107,32 @@ export const getBuyerCheckoutData = async (userId: string) => {
       throw new Error("User profile not found");
     }
 
-    // Extract address if available
+    // Extract address if available - prioritize encrypted address
     let address: CheckoutAddress | null = null;
-    if (profile.shipping_address) {
+
+    // Try to get encrypted address first
+    try {
+      const { getSimpleUserAddresses } = await import("@/services/simplifiedAddressService");
+      const addressData = await getSimpleUserAddresses(userId);
+      if (addressData?.shipping_address) {
+        const addr = addressData.shipping_address as any;
+        if (addr.streetAddress && addr.city && addr.province && addr.postalCode) {
+          address = {
+            street: addr.streetAddress,
+            city: addr.city,
+            province: addr.province,
+            postal_code: addr.postalCode,
+            country: "South Africa",
+          };
+          console.log("✅ Using encrypted address for buyer");
+        }
+      }
+    } catch (error) {
+      console.warn("Failed to check encrypted buyer address:", error);
+    }
+
+    // Fallback to plaintext only if no encrypted address
+    if (!address && profile.shipping_address) {
       const addr = profile.shipping_address as any;
       if (addr.streetAddress && addr.city && addr.province && addr.postalCode) {
         address = {
@@ -96,6 +142,7 @@ export const getBuyerCheckoutData = async (userId: string) => {
           postal_code: addr.postalCode,
           country: "South Africa",
         };
+        console.log("⚠️ Using plaintext address fallback for buyer");
       }
     }
 

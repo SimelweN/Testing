@@ -8,29 +8,49 @@ interface SimpleAddress {
   postalCode: string;
 }
 
-// Decrypt an address using the decrypt-address edge function
+// Decrypt an address using the improved decrypt-address edge function
 const decryptAddress = async (params: { table: string; target_id: string; address_type?: string }) => {
   try {
     console.log("🔐 Calling decrypt-address edge function with params:", params);
 
+    // Use the legacy format for backward compatibility
     const { data, error } = await supabase.functions.invoke('decrypt-address', {
       body: {
-        fetch: params
+        table: params.table,
+        target_id: params.target_id,
+        address_type: params.address_type || 'pickup'
       }
     });
 
     console.log("🔐 Edge function response:", { data, error });
 
-    if (error) {
-      console.warn("Decryption not available:", error.message);
+    // Handle 404 errors specifically (function not deployed)
+    if (error && (error.message?.includes('404') || error.message?.includes('Not Found'))) {
+      console.warn("🚫 Edge function not deployed/available in this environment, falling back to plaintext");
       return null;
     }
 
-    const result = data?.data || null;
-    console.log("🔐 Final decryption result:", result);
-    return result;
+    if (error) {
+      console.warn("Decryption failed:", error.message);
+      return null;
+    }
+
+    // The new function returns { success: boolean, data?: any, error?: any }
+    if (data?.success) {
+      const result = data.data || null;
+      console.log("🔐 Final decryption result:", result);
+      return result;
+    } else {
+      console.warn("Decryption failed:", data?.error?.message || "Unknown error");
+      return null;
+    }
   } catch (error) {
-    console.warn("Decryption service unavailable:", error instanceof Error ? error.message : String(error));
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    if (errorMsg.includes('404') || errorMsg.includes('Not Found')) {
+      console.warn("🚫 Edge function service unavailable (404), falling back to plaintext");
+    } else {
+      console.warn("Decryption service error:", errorMsg);
+    }
     return null;
   }
 };
@@ -85,7 +105,54 @@ export const getSellerDeliveryAddress = async (
       return address;
     }
 
-    console.log("❌ No encrypted address found for seller");
+    console.log("❌ No encrypted address found for seller, trying plaintext fallback...");
+
+    // Fallback to plaintext address if encryption is unavailable
+    // First check if there's any encrypted data we can access directly
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('pickup_address_encrypted, pickup_address')
+      .eq('id', sellerId)
+      .maybeSingle();
+
+    if (profileError) {
+      console.log("❌ Error fetching profile:", profileError);
+      return null;
+    }
+
+    if (!profile) {
+      console.log("❌ No profile found for seller");
+      return null;
+    }
+
+    // If there's encrypted data but decryption failed, let's not fall back to plaintext for security
+    if (profile.pickup_address_encrypted) {
+      console.log("🔐 Encrypted address exists but decryption failed - not falling back to plaintext for security");
+      return null;
+    }
+
+    // Only use plaintext if no encrypted version exists
+    if (profile.pickup_address) {
+      try {
+        const address = typeof profile.pickup_address === 'string'
+          ? JSON.parse(profile.pickup_address)
+          : profile.pickup_address;
+
+        console.log("✅ Using plaintext fallback address (no encrypted version found)");
+        return {
+          street: address.street || address.line1 || "",
+          city: address.city || "",
+          state: address.state || address.province || "",
+          postal_code: address.postalCode || address.postal_code || "",
+          country: "South Africa",
+        };
+      } catch (error) {
+        console.error("❌ Error parsing plaintext address:", error);
+        return null;
+      }
+    }
+
+    console.log("❌ No address data found");
     return null;
   } catch (error) {
     console.error("❌ Error getting seller address:", error);
@@ -116,7 +183,36 @@ export const getSimpleUserAddresses = async (userId: string) => {
       };
     }
 
-    console.log("❌ No encrypted addresses found for user");
+    console.log("❌ No encrypted addresses found for user, checking profile...");
+
+    // Check if user has any encrypted address data
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('pickup_address_encrypted, shipping_address_encrypted, pickup_address, shipping_address')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (profileError || !profile) {
+      console.log("❌ No profile found or error:", profileError);
+      return null;
+    }
+
+    // If encrypted data exists but decryption failed, don't fallback to plaintext for security
+    if (profile.pickup_address_encrypted || profile.shipping_address_encrypted) {
+      console.log("��� Encrypted addresses exist but decryption failed - not falling back to plaintext for security");
+      return null;
+    }
+
+    // Only use plaintext if no encrypted versions exist
+    if (profile.pickup_address || profile.shipping_address) {
+      console.log("✅ Using plaintext addresses (no encrypted versions found)");
+      return {
+        pickup_address: profile.pickup_address,
+        shipping_address: profile.shipping_address || profile.pickup_address,
+      };
+    }
+
+    console.log("❌ No address data found for user");
     return null;
   } catch (error) {
     console.error("Error getting addresses:", error);

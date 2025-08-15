@@ -154,6 +154,11 @@
             msg.includes("chrome-extension") ||
             msg.includes("moz-extension") ||
             msg.includes("safari-extension") ||
+            // Ad blockers blocking Google services
+            msg.includes("net::err_blocked_by_client") ||
+            // Datadog storage access issues
+            (msg.includes("datadog") && msg.includes("no storage available")) ||
+            msg.includes("datadog browser sdk") ||
             // ResizeObserver browser quirks
             (msg.includes("resizeobserver") &&
               msg.includes("loop limit exceeded")) ||

@@ -55,6 +55,8 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   const [orderConfirmation, setOrderConfirmation] =
     useState<OrderConfirmation | null>(null);
 
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+
   useEffect(() => {
     initializeCheckout();
   }, [book.id, user?.id]);
@@ -69,17 +71,21 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       return;
     }
 
+    let bookData = null; // Declare outside try block to prevent undefined error in catch
+
     try {
       setCheckoutState((prev) => ({ ...prev, loading: true, error: null }));
 
       console.log("🚀 Using book table seller data for checkout...");
 
       // Get fresh book data with seller information from books table
-      const { data: bookData, error: bookError } = await supabase
+      const { data, error: bookError } = await supabase
         .from("books")
         .select("*")
         .eq("id", book.id)
         .single();
+
+      bookData = data; // Assign to outer scope variable
 
       if (bookError || !bookData) {
         throw new Error("Failed to load book details");
@@ -351,7 +357,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         );
       }
     } catch (error) {
-      console.error("❌ Checkout initialization error:", error);
+      console.error("�� Checkout initialization error:", error);
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -363,7 +369,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       }));
 
       // If this is the seller's own book, offer to go to profile
-      if (user?.id === bookData.seller_id) {
+      if (bookData && user?.id === bookData.seller_id) {
         toast.error(errorMessage, {
           description: "Click here to update your pickup address",
           action: {
@@ -540,6 +546,20 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
     }
   };
 
+  const handleEditAddress = () => {
+    setIsEditingAddress(true);
+  };
+
+  const handleAddressUpdate = (newAddress: CheckoutAddress) => {
+    setCheckoutState(prev => ({
+      ...prev,
+      buyer_address: newAddress,
+      selected_delivery: null, // Reset delivery selection when address changes
+    }));
+    setIsEditingAddress(false);
+    toast.success("Address updated successfully");
+  };
+
   const getProgressValue = () => {
     switch (checkoutState.step.current) {
       case 1:
@@ -638,13 +658,15 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
         {checkoutState.step.current === 2 &&
           checkoutState.buyer_address &&
-          checkoutState.seller_address && (
+          checkoutState.seller_address &&
+          !isEditingAddress && (
             <Step2DeliveryOptions
               buyerAddress={checkoutState.buyer_address}
               sellerAddress={checkoutState.seller_address}
               onSelectDelivery={handleDeliverySelection}
               onBack={() => goToStep(1)}
               onCancel={handleCancelCheckout}
+              onEditAddress={handleEditAddress}
               selectedDelivery={checkoutState.selected_delivery}
             />
           )}
@@ -654,6 +676,19 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
             title="Enter Your Delivery Address"
             onAddressSubmit={handleAddressSubmit}
             onSaveToProfile={handleSaveAddressToProfile}
+            loading={checkoutState.loading}
+          />
+        )}
+
+        {checkoutState.step.current === 2 &&
+          checkoutState.buyer_address &&
+          isEditingAddress && (
+          <AddressInput
+            title="Edit Your Delivery Address"
+            initialAddress={checkoutState.buyer_address}
+            onAddressSubmit={handleAddressUpdate}
+            onSaveToProfile={handleSaveAddressToProfile}
+            onCancel={() => setIsEditingAddress(false)}
             loading={checkoutState.loading}
           />
         )}

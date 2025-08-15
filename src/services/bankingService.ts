@@ -542,41 +542,54 @@ export class BankingService {
         }
       });
 
-      // Check pickup address (from user profile)
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("pickup_address")
-        .eq("id", userId)
-        .single();
-
-      // Properly validate address using validateAddress function
-      // Handle JSONB to Address conversion and validate structure
+      // Check pickup address (from user profile) - prioritize encrypted
       let hasPickupAddress = false;
-      if (profile?.pickup_address) {
-        const pickupAddr = profile.pickup_address as any;
 
-        // Handle both 'street' and 'streetAddress' field names for compatibility
-        const streetField = pickupAddr.streetAddress || pickupAddr.street;
+      try {
+        const { getSellerDeliveryAddress } = await import("@/services/simplifiedAddressService");
+        const encryptedAddress = await getSellerDeliveryAddress(userId);
 
-        // Basic validation of required fields - handle both field naming conventions
-        hasPickupAddress = !!(
-          pickupAddr &&
-          typeof pickupAddr === "object" &&
-          streetField &&
-          pickupAddr.city &&
-          pickupAddr.province &&
-          pickupAddr.postalCode
-        );
+        if (encryptedAddress) {
+          hasPickupAddress = Boolean(
+            encryptedAddress.street &&
+            encryptedAddress.city &&
+            encryptedAddress.province &&
+            encryptedAddress.postal_code
+          );
+          console.log("🔐 Using encrypted pickup address for banking validation");
+        }
+      } catch (error) {
+        console.warn("Failed to check encrypted pickup address:", error);
+      }
+
+      // Fallback to plaintext only if no encrypted address found
+      if (!hasPickupAddress) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("pickup_address_encrypted, pickup_address")
+          .eq("id", userId)
+          .single();
+
+        // Only use plaintext if no encrypted version exists
+        if (!profile?.pickup_address_encrypted && profile?.pickup_address) {
+          const pickupAddr = profile.pickup_address as any;
+          const streetField = pickupAddr.streetAddress || pickupAddr.street;
+
+          hasPickupAddress = !!(
+            pickupAddr &&
+            typeof pickupAddr === "object" &&
+            streetField &&
+            pickupAddr.city &&
+            pickupAddr.province &&
+            pickupAddr.postalCode
+          );
+          console.log("⚠️ Using plaintext pickup address fallback for banking validation");
+        }
 
         console.log("📍 [Address Debug] Pickup address validation:", {
           userId,
-          hasAddress: !!profile?.pickup_address,
-          hasStreetField: !!streetField,
-          hasCity: !!pickupAddr.city,
-          hasProvince: !!pickupAddr.province,
-          hasPostalCode: !!pickupAddr.postalCode,
-          isValid: hasPickupAddress,
-          address: pickupAddr
+          hasPickupAddress,
+          usingEncrypted: false
         });
       } else {
         console.log("📍 [Address Debug] No pickup address found for user:", userId);
