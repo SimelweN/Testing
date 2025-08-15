@@ -491,13 +491,15 @@ const NotificationsNew = () => {
         .single();
 
       if (checkError) {
+        const safeErrorMessage = getSafeErrorMessage(checkError, 'Unknown error checking notification');
         console.error('❌ Error checking notification existence:', {
-          message: checkError.message || String(checkError),
+          message: safeErrorMessage,
           code: checkError.code,
           details: checkError.details,
-          hint: checkError.hint
+          hint: checkError.hint,
+          originalError: checkError
         });
-        toast.error(`Notification not found: ${checkError.message || 'Unknown error'}`);
+        toast.error(`Notification not found: ${safeErrorMessage}`);
         return;
       }
 
