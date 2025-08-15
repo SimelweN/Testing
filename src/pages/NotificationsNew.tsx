@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
+import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
