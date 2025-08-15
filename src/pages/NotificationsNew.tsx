@@ -258,8 +258,9 @@ const NotificationsNew = () => {
           toast.warning('Connection issues detected. Some features may not work properly.');
         }
       } catch (error) {
+        const safeConnectionErrorMessage = getSafeErrorMessage(error, 'Connection test failed');
         console.error('❌ Connection test failed:', {
-          message: error instanceof Error ? error.message : String(error),
+          message: safeConnectionErrorMessage,
           code: error?.code,
           details: error?.details
         });
@@ -544,10 +545,10 @@ const NotificationsNew = () => {
           toast.error('Notification not found or already deleted');
         } else if (deleteError.code === '42501') {
           toast.error('Permission denied. You can only delete your own notifications.');
-        } else if (deleteError.message?.includes('Failed to fetch') || deleteError.message?.includes('network')) {
+        } else if (safeDeleteErrorMessage?.includes('Failed to fetch') || safeDeleteErrorMessage?.includes('network')) {
           toast.error('Network error. Please check your connection and try again.');
         } else {
-          toast.error(`Failed to remove notification: ${deleteError.message}`);
+          toast.error(`Failed to remove notification: ${safeDeleteErrorMessage}`);
         }
         return;
       }
@@ -581,8 +582,9 @@ const NotificationsNew = () => {
         await refreshNotifications();
         console.log('✅ Background notifications refresh completed');
       } catch (refreshError) {
+        const safeRefreshErrorMessage = getSafeErrorMessage(refreshError, 'Failed to refresh notifications');
         console.warn('⚠️ Failed to refresh notifications after deletion:', {
-          message: refreshError instanceof Error ? refreshError.message : String(refreshError),
+          message: safeRefreshErrorMessage,
           code: refreshError?.code,
           details: refreshError?.details
         });
