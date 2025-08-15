@@ -96,8 +96,37 @@ export const getSellerDeliveryAddress = async (
       return address;
     }
 
-    console.log("❌ No encrypted address found for seller");
-    return null;
+    console.log("❌ No encrypted address found for seller, trying plaintext fallback...");
+
+    // Fallback to plaintext address if encryption is unavailable
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('pickup_address')
+      .eq('id', sellerId)
+      .maybeSingle();
+
+    if (profileError || !profile?.pickup_address) {
+      console.log("❌ No plaintext address found either");
+      return null;
+    }
+
+    try {
+      const address = typeof profile.pickup_address === 'string'
+        ? JSON.parse(profile.pickup_address)
+        : profile.pickup_address;
+
+      console.log("✅ Using plaintext fallback address");
+      return {
+        street: address.street || address.line1 || "",
+        city: address.city || "",
+        state: address.state || address.province || "",
+        postal_code: address.postalCode || address.postal_code || "",
+        country: "South Africa",
+      };
+    } catch (error) {
+      console.error("❌ Error parsing plaintext address:", error);
+      return null;
+    }
   } catch (error) {
     console.error("❌ Error getting seller address:", error);
     return null;
