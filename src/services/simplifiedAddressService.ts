@@ -183,7 +183,36 @@ export const getSimpleUserAddresses = async (userId: string) => {
       };
     }
 
-    console.log("❌ No encrypted addresses found for user");
+    console.log("❌ No encrypted addresses found for user, checking profile...");
+
+    // Check if user has any encrypted address data
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('pickup_address_encrypted, shipping_address_encrypted, pickup_address, shipping_address')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (profileError || !profile) {
+      console.log("❌ No profile found or error:", profileError);
+      return null;
+    }
+
+    // If encrypted data exists but decryption failed, don't fallback to plaintext for security
+    if (profile.pickup_address_encrypted || profile.shipping_address_encrypted) {
+      console.log("��� Encrypted addresses exist but decryption failed - not falling back to plaintext for security");
+      return null;
+    }
+
+    // Only use plaintext if no encrypted versions exist
+    if (profile.pickup_address || profile.shipping_address) {
+      console.log("✅ Using plaintext addresses (no encrypted versions found)");
+      return {
+        pickup_address: profile.pickup_address,
+        shipping_address: profile.shipping_address || profile.pickup_address,
+      };
+    }
+
+    console.log("❌ No address data found for user");
     return null;
   } catch (error) {
     console.error("Error getting addresses:", error);
