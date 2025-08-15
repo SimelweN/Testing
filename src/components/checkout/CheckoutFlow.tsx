@@ -658,13 +658,15 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
         {checkoutState.step.current === 2 &&
           checkoutState.buyer_address &&
-          checkoutState.seller_address && (
+          checkoutState.seller_address &&
+          !isEditingAddress && (
             <Step2DeliveryOptions
               buyerAddress={checkoutState.buyer_address}
               sellerAddress={checkoutState.seller_address}
               onSelectDelivery={handleDeliverySelection}
               onBack={() => goToStep(1)}
               onCancel={handleCancelCheckout}
+              onEditAddress={handleEditAddress}
               selectedDelivery={checkoutState.selected_delivery}
             />
           )}
