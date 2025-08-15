@@ -55,6 +55,8 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   const [orderConfirmation, setOrderConfirmation] =
     useState<OrderConfirmation | null>(null);
 
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+
   useEffect(() => {
     initializeCheckout();
   }, [book.id, user?.id]);
@@ -355,7 +357,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         );
       }
     } catch (error) {
-      console.error("❌ Checkout initialization error:", error);
+      console.error("�� Checkout initialization error:", error);
       const errorMessage =
         error instanceof Error
           ? error.message
