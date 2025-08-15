@@ -91,8 +91,14 @@ export const getSellerDeliveryAddress = async (
   try {
     console.log("🔍 getSellerDeliveryAddress called for seller:", sellerId);
 
+    // Validate sellerId
+    if (!sellerId || typeof sellerId !== 'string' || sellerId.length < 10) {
+      console.error("❌ Invalid seller ID provided:", sellerId);
+      return null;
+    }
+
     // Get encrypted address only
-    console.log("Step 1: Attempting to decrypt address...");
+    console.log("Step 1: Attempting to decrypt address for specific seller:", sellerId);
     const decryptedAddress = await decryptAddress({
       table: 'profiles',
       target_id: sellerId,
