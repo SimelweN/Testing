@@ -23,10 +23,34 @@ export const validateAddress = (address: Address): boolean => {
 
 export const canUserListBooks = async (userId: string): Promise<boolean> => {
   try {
-    // Check if user has valid pickup address
+    // Try to get encrypted address first
+    let hasValidAddress = false;
+
+    try {
+      const { getSellerDeliveryAddress } = await import("@/services/simplifiedAddressService");
+      const encryptedAddress = await getSellerDeliveryAddress(userId);
+
+      if (encryptedAddress &&
+          encryptedAddress.street &&
+          encryptedAddress.city &&
+          encryptedAddress.province &&
+          encryptedAddress.postal_code) {
+        hasValidAddress = true;
+        console.log("🔐 Using encrypted pickup address for listing validation");
+      }
+    } catch (error) {
+      console.warn("Failed to check encrypted pickup address:", error);
+    }
+
+    if (hasValidAddress) {
+      console.log(`✅ User ${userId} can list books - valid encrypted pickup address`);
+      return true;
+    }
+
+    // Fallback to plaintext validation only if no encrypted address
     const { data, error } = await supabase
       .from("profiles")
-      .select("pickup_address, addresses_same")
+      .select("pickup_address_encrypted, pickup_address, addresses_same")
       .eq("id", userId)
       .single();
 
@@ -41,12 +65,18 @@ export const canUserListBooks = async (userId: string): Promise<boolean> => {
       return false;
     }
 
+    // If encrypted data exists but we couldn't decrypt it, don't fall back to plaintext for security
+    if (data.pickup_address_encrypted) {
+      console.log(`🔐 Encrypted address exists but decryption failed for ${userId}`);
+      return false;
+    }
+
     if (!data?.pickup_address) {
       console.log(`📍 User ${userId} has no pickup address`);
       return false;
     }
 
-    // Validate pickup address content
+    // Validate pickup address content (plaintext fallback)
     const pickupAddr = data.pickup_address as any;
     const streetField = pickupAddr.streetAddress || pickupAddr.street;
     const isValidAddress = !!(
@@ -68,7 +98,7 @@ export const canUserListBooks = async (userId: string): Promise<boolean> => {
       return false;
     }
 
-    console.log(`✅ User ${userId} can list books - valid pickup address`);
+    console.log(`✅ User ${userId} can list books - valid plaintext pickup address`);
     return true;
   } catch (error) {
     safeLogError("Error in canUserListBooks", error, { userId });
