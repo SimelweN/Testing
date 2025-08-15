@@ -36,12 +36,15 @@ const encryptAddress = async (address: Address, options?: { save?: { table: stri
   }
 };
 
-// Decrypt an address using the decrypt-address edge function
+// Decrypt an address using the improved decrypt-address edge function
 const decryptAddress = async (params: { table: string; target_id: string; address_type?: string }) => {
   try {
+    // Use the legacy format for backward compatibility
     const { data, error } = await supabase.functions.invoke('decrypt-address', {
       body: {
-        fetch: params
+        table: params.table,
+        target_id: params.target_id,
+        address_type: params.address_type || 'pickup'
       }
     });
 
@@ -50,7 +53,13 @@ const decryptAddress = async (params: { table: string; target_id: string; addres
       return null; // Return null instead of throwing error for graceful fallback
     }
 
-    return data?.data || null;
+    // The new function returns { success: boolean, data?: any, error?: any }
+    if (data?.success) {
+      return data.data || null;
+    } else {
+      console.warn("Decryption failed:", data?.error?.message || "Unknown error");
+      return null;
+    }
   } catch (error) {
     console.warn("Decryption service unavailable, falling back to plaintext:", error instanceof Error ? error.message : String(error));
     return null; // Return null for graceful fallback
