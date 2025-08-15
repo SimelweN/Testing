@@ -220,8 +220,10 @@ class NotificationManager {
   private safeCleanup() {
     try {
       if (this.subscriptionRef) {
-        supabase.removeChannel(this.subscriptionRef);
+        // Temporarily remove event listeners before cleanup to prevent recursion
+        const tempRef = this.subscriptionRef;
         this.subscriptionRef = null;
+        supabase.removeChannel(tempRef);
       }
     } catch (error) {
       // Ignore cleanup errors to prevent recursion
