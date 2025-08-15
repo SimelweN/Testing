@@ -49,7 +49,7 @@ serve(async (req) => {
           quotes: [
             {
               service_name: "Standard Delivery",
-              price: 95.0,
+              price: 105,
               estimated_days: 3,
               service_code: "STANDARD",
               courier: "courier-guy",
