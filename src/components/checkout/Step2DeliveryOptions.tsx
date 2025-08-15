@@ -233,7 +233,7 @@ const Step2DeliveryOptions: React.FC<Step2DeliveryOptionsProps> = ({
             <div>
               <p className="text-sm font-medium text-gray-600">From (Seller)</p>
               <p className="text-sm">
-                {sellerAddress.city}, {sellerAddress.province}
+                {sellerAddress.province}
               </p>
             </div>
             <div className="border-t pt-3">

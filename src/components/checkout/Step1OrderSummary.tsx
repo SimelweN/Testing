@@ -236,7 +236,7 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
                 <div>
                   <p className="text-sm font-medium">Location</p>
                   <p className="text-sm text-gray-600">
-                    {sellerAddress.city}, {sellerAddress.province}
+                    {sellerAddress.province}
                   </p>
                 </div>
               </div>
