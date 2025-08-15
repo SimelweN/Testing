@@ -182,16 +182,23 @@ export const getSellerPickupAddress = async (sellerId: string) => {
   try {
     console.log("Fetching encrypted pickup address for seller:", sellerId);
 
-    // Get encrypted address only - no plaintext fallback
-    const decryptedAddress = await decryptAddress({
-      table: 'profiles',
-      target_id: sellerId,
-      address_type: 'pickup'
-    });
+    // Query the books table for pickup-address-encrypted column
+    const { data: bookData, error } = await supabase
+      .from("books")
+      .select("pickup_address_encrypted")
+      .eq("seller_id", sellerId)
+      .limit(1)
+      .single();
 
-    if (decryptedAddress) {
-      console.log("✅ Successfully fetched encrypted seller pickup address");
-      return decryptedAddress;
+    if (error) {
+      console.error("Error fetching from books table:", error);
+      console.log("❌ No encrypted pickup address found for seller");
+      return null;
+    }
+
+    if (bookData?.pickup_address_encrypted) {
+      console.log("✅ Successfully fetched encrypted seller pickup address from books table");
+      return bookData.pickup_address_encrypted;
     }
 
     console.log("❌ No encrypted pickup address found for seller");
