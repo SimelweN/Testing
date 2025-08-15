@@ -680,6 +680,18 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           />
         )}
 
+        {checkoutState.step.current === 2 &&
+          checkoutState.buyer_address &&
+          isEditingAddress && (
+          <AddressInput
+            title="Edit Your Delivery Address"
+            initialAddress={checkoutState.buyer_address}
+            onAddressSubmit={handleAddressUpdate}
+            onSaveToProfile={handleSaveAddressToProfile}
+            loading={checkoutState.loading}
+          />
+        )}
+
         {checkoutState.step.current === 3 && checkoutState.order_summary && (
           <Step3Payment
             orderSummary={checkoutState.order_summary}
