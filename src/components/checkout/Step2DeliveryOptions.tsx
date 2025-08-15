@@ -240,7 +240,20 @@ const Step2DeliveryOptions: React.FC<Step2DeliveryOptionsProps> = ({
               </p>
             </div>
             <div className="border-t pt-3">
-              <p className="text-sm font-medium text-gray-600">To (You)</p>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-sm font-medium text-gray-600">To (You)</p>
+                {onEditAddress && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onEditAddress}
+                    className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800"
+                  >
+                    <Edit3 className="w-3 h-3 mr-1" />
+                    Edit
+                  </Button>
+                )}
+              </div>
               <p className="text-sm">
                 {buyerAddress.street}, {buyerAddress.city},{" "}
                 {buyerAddress.province} {buyerAddress.postal_code}
