@@ -141,6 +141,30 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
       handleBookServiceError(error, "create book");
     }
 
+    // Encrypt and save pickup address to books table if we have an address
+    if (pickupAddress && book.id) {
+      try {
+        const { data: encryptResult, error: encryptError } = await supabase.functions.invoke('encrypt-address', {
+          body: {
+            object: pickupAddress,
+            save: {
+              table: 'books',
+              target_id: book.id,
+              address_type: 'pickup'
+            }
+          }
+        });
+
+        if (encryptResult && encryptResult.success) {
+          console.log("✅ Book pickup address encrypted and saved successfully");
+        } else {
+          console.warn("⚠️ Failed to encrypt book pickup address:", encryptResult?.error);
+        }
+      } catch (encryptError) {
+        console.warn("⚠️ Exception encrypting book pickup address:", encryptError);
+      }
+    }
+
     // Fetch seller profile
     const { data: seller } = await supabase
       .from("profiles")
