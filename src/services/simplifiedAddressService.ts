@@ -21,8 +21,14 @@ const decryptAddress = async (params: { table: string; target_id: string; addres
 
     console.log("🔐 Edge function response:", { data, error });
 
+    // Handle 404 errors specifically (function not deployed)
+    if (error && (error.message?.includes('404') || error.message?.includes('Not Found'))) {
+      console.warn("🚫 Edge function not deployed/available in this environment, falling back to plaintext");
+      return null;
+    }
+
     if (error) {
-      console.warn("Decryption not available:", error.message);
+      console.warn("Decryption failed:", error.message);
       return null;
     }
 
@@ -30,7 +36,12 @@ const decryptAddress = async (params: { table: string; target_id: string; addres
     console.log("🔐 Final decryption result:", result);
     return result;
   } catch (error) {
-    console.warn("Decryption service unavailable:", error instanceof Error ? error.message : String(error));
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    if (errorMsg.includes('404') || errorMsg.includes('Not Found')) {
+      console.warn("🚫 Edge function service unavailable (404), falling back to plaintext");
+    } else {
+      console.warn("Decryption service error:", errorMsg);
+    }
     return null;
   }
 };
