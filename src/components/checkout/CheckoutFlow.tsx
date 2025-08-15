@@ -688,6 +688,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
             initialAddress={checkoutState.buyer_address}
             onAddressSubmit={handleAddressUpdate}
             onSaveToProfile={handleSaveAddressToProfile}
+            onCancel={() => setIsEditingAddress(false)}
             loading={checkoutState.loading}
           />
         )}
