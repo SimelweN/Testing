@@ -697,7 +697,7 @@ const NotificationsNew = () => {
         </div>
 
         {/* Debug Section - Show raw notifications if count mismatch */}
-        {totalNotifications > 0 && (categorizedNotifications.commits.length + categorizedNotifications.purchases.length + categorizedNotifications.deliveries.length + categorizedNotifications.admin.length) === 0 && (
+        {totalNotifications > 0 && (categorizedNotifications.commits.length + categorizedNotifications.purchases.length + categorizedNotifications.deliveries.length + categorizedNotifications.admin.length + categorizedNotifications.account.length + categorizedNotifications.general.length) === 0 && (
           <Card className="mb-6 border-yellow-200 bg-yellow-50">
             <CardHeader>
               <CardTitle className="text-yellow-800 flex items-center gap-2">
