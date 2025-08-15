@@ -411,40 +411,22 @@ export const getBookPickupAddress = async (bookId: string) => {
 // Get encrypted order shipping address for delivery
 export const getOrderShippingAddress = async (orderId: string) => {
   try {
-    console.log("Fetching shipping address for order:", orderId);
+    console.log("Fetching encrypted shipping address for order:", orderId);
 
-    // Try to get encrypted address first
-    try {
-      const decryptedAddress = await decryptAddress({
-        table: 'orders',
-        target_id: orderId,
-        address_type: 'shipping'
-      });
+    // Get encrypted address only - no plaintext fallback
+    const decryptedAddress = await decryptAddress({
+      table: 'orders',
+      target_id: orderId,
+      address_type: 'shipping'
+    });
 
-      if (decryptedAddress) {
-        console.log("Successfully fetched encrypted order shipping address");
-        return decryptedAddress;
-      }
-    } catch (error) {
-      console.log("Encrypted address not found or failed to decrypt, falling back to plaintext");
+    if (decryptedAddress) {
+      console.log("✅ Successfully fetched encrypted order shipping address");
+      return decryptedAddress;
     }
 
-    // Fallback to plaintext address (during transition period)
-    const { data, error } = await supabase
-      .from("orders")
-      .select("shipping_address")
-      .eq("id", orderId)
-      .single();
-
-    if (error) {
-      if (error.code === "PGRST116") {
-        console.log("No shipping address found for order");
-        return null;
-      }
-      throw new Error(`Failed to fetch order shipping address: ${error.message}`);
-    }
-
-    return data?.shipping_address || null;
+    console.log("❌ No encrypted shipping address found for order");
+    return null;
   } catch (error) {
     console.error("Error in getOrderShippingAddress:", error);
     throw error;
