@@ -602,12 +602,12 @@ const NotificationsNew = () => {
       });
 
       // Handle network errors specifically
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      const safeCatchErrorMessage = getSafeErrorMessage(error, 'An unexpected error occurred');
+
+      if (error instanceof TypeError && safeCatchErrorMessage.includes('Failed to fetch')) {
         toast.error('Network error. Please check your internet connection and try again.');
-      } else if (error instanceof Error) {
-        toast.error(`Error: ${error.message}`);
       } else {
-        toast.error('An unexpected error occurred. Please try again.');
+        toast.error(`Error: ${safeCatchErrorMessage}`);
       }
     } finally {
       // Clear dismissing state
