@@ -529,12 +529,14 @@ const NotificationsNew = () => {
       console.log('Delete operation result:', { data: deleteData, error: deleteError });
 
       if (deleteError) {
+        const safeDeleteErrorMessage = getSafeErrorMessage(deleteError, 'Unknown delete error');
         console.error('❌ Database error deleting notification:', {
           notificationId,
           code: deleteError.code,
-          message: deleteError.message || String(deleteError),
+          message: safeDeleteErrorMessage,
           details: deleteError.details,
-          hint: deleteError.hint
+          hint: deleteError.hint,
+          originalError: deleteError
         });
 
         // Handle specific error cases
