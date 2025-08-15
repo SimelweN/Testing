@@ -158,7 +158,7 @@ const EnhancedModerationDashboard = () => {
       console.warn('[ModerationDashboard] Failed to set up realtime subscription:', error);
       setChannelsSetup(false);
     }
-  }, [loadData, channelsSetup]);
+  }, [loadData]); // Remove channelsSetup from dependencies to prevent infinite recursion
 
   const cleanupRealtimeSubscriptions = useCallback(() => {
     console.log('[ModerationDashboard] Cleaning up realtime subscriptions');
