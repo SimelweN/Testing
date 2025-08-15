@@ -182,19 +182,40 @@ export const getSellerPickupAddress = async (sellerId: string) => {
   try {
     console.log("Fetching encrypted pickup address for seller:", sellerId);
 
-    // Get encrypted address only - no plaintext fallback
+    // First get the book ID for this seller to use for decryption
+    const { data: bookData, error: bookError } = await supabase
+      .from("books")
+      .select("id, pickup_address_encrypted")
+      .eq("seller_id", sellerId)
+      .limit(1)
+      .single();
+
+    if (bookError || !bookData) {
+      console.error("Error fetching book from books table:", bookError);
+      console.log("❌ No book found for seller");
+      return null;
+    }
+
+    if (!bookData.pickup_address_encrypted) {
+      console.log("❌ No encrypted pickup address found for seller");
+      return null;
+    }
+
+    console.log("✅ Found encrypted address in books table, attempting to decrypt...");
+
+    // Use the decrypt-address edge function to decrypt the data from books table
     const decryptedAddress = await decryptAddress({
-      table: 'profiles',
-      target_id: sellerId,
+      table: 'books',
+      target_id: bookData.id,
       address_type: 'pickup'
     });
 
     if (decryptedAddress) {
-      console.log("✅ Successfully fetched encrypted seller pickup address");
+      console.log("✅ Successfully decrypted seller pickup address from books table");
       return decryptedAddress;
     }
 
-    console.log("❌ No encrypted pickup address found for seller");
+    console.log("❌ Failed to decrypt seller pickup address");
     return null;
   } catch (error) {
     console.error("Error in getSellerPickupAddress:", {
@@ -222,23 +243,69 @@ export const getSellerPickupAddress = async (sellerId: string) => {
 
 export const getUserAddresses = async (userId: string) => {
   try {
-    console.log("Fetching encrypted addresses for user:", userId);
+    console.log("Fetching addresses for user:", userId);
 
-    // Get encrypted addresses only - no plaintext fallback
-    const pickupAddress = await decryptAddress({
-      table: 'profiles',
-      target_id: userId,
-      address_type: 'pickup'
-    });
+    // Try to get addresses using the simplified address service first
+    const simplifiedAddressService = await import("./simplifiedAddressService");
+    let pickupAddress = null;
+    let shippingAddress = null;
 
-    const shippingAddress = await decryptAddress({
-      table: 'profiles',
-      target_id: userId,
-      address_type: 'shipping'
-    });
+    try {
+      pickupAddress = await simplifiedAddressService.getSellerDeliveryAddress(userId);
+      console.log("📍 Pickup address result:", pickupAddress);
+    } catch (error) {
+      console.warn("Failed to get pickup address:", error);
+    }
+
+    // For shipping address, try the decrypt function directly
+    try {
+      shippingAddress = await decryptAddress({
+        table: 'profiles',
+        target_id: userId,
+        address_type: 'shipping'
+      });
+      console.log("📍 Shipping address result:", shippingAddress);
+    } catch (error) {
+      console.warn("Failed to get shipping address:", error);
+    }
+
+    // If no addresses found, try plaintext fallback for user's own data
+    if (!pickupAddress && !shippingAddress) {
+      console.log("🔍 No encrypted addresses found, checking plaintext fallback...");
+
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("pickup_address, shipping_address, addresses_same")
+        .eq("id", userId)
+        .single();
+
+      if (!profileError && profileData) {
+        if (profileData.pickup_address) {
+          try {
+            pickupAddress = typeof profileData.pickup_address === 'string'
+              ? JSON.parse(profileData.pickup_address)
+              : profileData.pickup_address;
+            console.log("✅ Found plaintext pickup address");
+          } catch (e) {
+            console.warn("Failed to parse pickup address:", e);
+          }
+        }
+
+        if (profileData.shipping_address) {
+          try {
+            shippingAddress = typeof profileData.shipping_address === 'string'
+              ? JSON.parse(profileData.shipping_address)
+              : profileData.shipping_address;
+            console.log("✅ Found plaintext shipping address");
+          } catch (e) {
+            console.warn("Failed to parse shipping address:", e);
+          }
+        }
+      }
+    }
 
     if (pickupAddress || shippingAddress) {
-      console.log("✅ Successfully fetched encrypted addresses");
+      console.log("✅ Successfully fetched user addresses");
 
       // Get addresses_same flag from profile metadata
       const { data: profileData } = await supabase
@@ -260,7 +327,7 @@ export const getUserAddresses = async (userId: string) => {
       };
     }
 
-    console.log("❌ No encrypted addresses found for user");
+    console.log("❌ No addresses found for user");
     return null;
   } catch (error) {
     safelog("Error in getUserAddresses", error, {

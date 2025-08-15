@@ -23,6 +23,8 @@ const decryptAddress = async (params: { table: string; target_id: string; addres
     });
 
     console.log("🔐 Edge function response:", { data, error });
+    console.log("🔐 Data structure:", JSON.stringify(data, null, 2));
+    console.log("🔐 Data.success:", data?.success);
 
     // Handle 404 errors specifically (function not deployed)
     if (error && (error.message?.includes('404') || error.message?.includes('Not Found'))) {
@@ -35,13 +37,19 @@ const decryptAddress = async (params: { table: string; target_id: string; addres
       return null;
     }
 
-    // The new function returns { success: boolean, data?: any, error?: any }
+    // Handle different response formats from the edge function
     if (data?.success) {
-      const result = data.data || null;
-      console.log("🔐 Final decryption result:", result);
+      // Check for different nested formats
+      const result = data.address || data.data || null;
+      console.log("🔐 Final decryption result (success format):", result);
       return result;
+    } else if (data && typeof data === 'object' && !data.success && !data.error) {
+      // Direct data format: the decrypted object itself
+      console.log("🔐 Final decryption result (direct format):", data);
+      return data;
     } else {
       console.warn("Decryption failed:", data?.error?.message || "Unknown error");
+      console.log("🔐 Full data object for debugging:", data);
       return null;
     }
   } catch (error) {
@@ -83,8 +91,14 @@ export const getSellerDeliveryAddress = async (
   try {
     console.log("🔍 getSellerDeliveryAddress called for seller:", sellerId);
 
+    // Validate sellerId
+    if (!sellerId || typeof sellerId !== 'string' || sellerId.length < 10) {
+      console.error("❌ Invalid seller ID provided:", sellerId);
+      return null;
+    }
+
     // Get encrypted address only
-    console.log("Step 1: Attempting to decrypt address...");
+    console.log("Step 1: Attempting to decrypt address for specific seller:", sellerId);
     const decryptedAddress = await decryptAddress({
       table: 'profiles',
       target_id: sellerId,
@@ -109,9 +123,10 @@ export const getSellerDeliveryAddress = async (
 
     // Fallback to plaintext address if encryption is unavailable
     // First check if there's any encrypted data we can access directly
+    console.log("🔍 Querying profiles table for seller:", sellerId);
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('pickup_address_encrypted, pickup_address')
+      .select('pickup_address_encrypted, pickup_address, id, name')
       .eq('id', sellerId)
       .maybeSingle();
 
@@ -121,9 +136,16 @@ export const getSellerDeliveryAddress = async (
     }
 
     if (!profile) {
-      console.log("❌ No profile found for seller");
+      console.log("❌ No profile found for seller:", sellerId);
       return null;
     }
+
+    console.log("📊 Profile found:", {
+      id: profile.id,
+      name: profile.name,
+      has_encrypted: !!profile.pickup_address_encrypted,
+      has_plaintext: !!profile.pickup_address
+    });
 
     // If there's encrypted data but decryption failed, let's not fall back to plaintext for security
     if (profile.pickup_address_encrypted) {
@@ -138,7 +160,8 @@ export const getSellerDeliveryAddress = async (
           ? JSON.parse(profile.pickup_address)
           : profile.pickup_address;
 
-        console.log("✅ Using plaintext fallback address (no encrypted version found)");
+        console.log("✅ Using plaintext fallback address for seller:", sellerId);
+        console.log("📍 Plaintext address data:", address);
         return {
           street: address.street || address.line1 || "",
           city: address.city || "",

@@ -298,24 +298,24 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       }
 
       console.log("✅ Seller address retrieved:", {
-        street: sellerAddress.street,
+        streetAddress: sellerAddress.streetAddress || sellerAddress.street,
         city: sellerAddress.city,
         province: sellerAddress.province,
-        postal_code: sellerAddress.postal_code
+        postalCode: sellerAddress.postalCode || sellerAddress.postal_code
       });
 
       if (
-        !sellerAddress.street ||
+        !(sellerAddress.streetAddress || sellerAddress.street) ||
         !sellerAddress.city ||
         !sellerAddress.province ||
-        !sellerAddress.postal_code
+        !(sellerAddress.postalCode || sellerAddress.postal_code)
       ) {
         throw new Error(
           `Seller address is incomplete. Missing fields: ${[
-            !sellerAddress.street && 'street',
+            !(sellerAddress.streetAddress || sellerAddress.street) && 'streetAddress',
             !sellerAddress.city && 'city',
             !sellerAddress.province && 'province',
-            !sellerAddress.postal_code && 'postal_code'
+            !(sellerAddress.postalCode || sellerAddress.postal_code) && 'postalCode'
           ].filter(Boolean).join(', ')}. Raw address: ${JSON.stringify(sellerAddress)}`,
         );
       }
