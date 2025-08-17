@@ -10,6 +10,8 @@ import "./utils/suppressResizeObserverError";
 import "./utils/loadingStateManager";
 // Test Supabase connection in development
 import "./utils/testSupabaseConnection";
+// Debug contact messages
+import "./utils/debugContactMessages";
 
 import { ThemeProvider } from "next-themes";
 import ErrorBoundary from "./components/ErrorBoundary";
