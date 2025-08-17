@@ -42,26 +42,39 @@ export const submitContactMessage = async (
 
 export const getAllContactMessages = async (): Promise<ContactMessage[]> => {
   try {
+    // First, let's check if the user has permission by checking their auth status
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log("Fetching contact messages with session:", !!session);
+
     const { data, error } = await supabase
       .from("contact_messages")
       .select("*")
       .order("created_at", { ascending: false });
 
     if (error) {
+      console.error("Database error details:", {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
+
       // Handle specific database errors gracefully
       if (error.code === '42P01') {
-        // Table doesn't exist - return empty array
+        // Table doesn't exist
         console.log("Contact messages table not found - returning empty array");
         return [];
-      } else if (error.code === '42501') {
-        // Permission denied - return empty array for non-admin users
-        console.log("No permission to access contact messages - returning empty array");
+      } else if (error.code === '42501' || error.code === 'PGRST116') {
+        // Permission denied or RLS violation
+        console.log("No permission to access contact messages - user may not be admin");
         return [];
       } else {
-        console.error("Error fetching contact messages:", error.message);
+        console.error("Unexpected error fetching contact messages:", error);
         return []; // Return empty array instead of throwing
       }
     }
+
+    console.log(`Successfully fetched ${data?.length || 0} contact messages`);
 
     // Type assertion to ensure status is properly typed
     return (data || []).map((message) => ({
