@@ -353,6 +353,7 @@ function App() {
 
                       {/* Support Routes */}
                       <Route path="/contact" element={<ContactUs />} />
+                      <Route path="/contact-test" element={<ContactTest />} />
                       <Route path="/faq" element={<FAQ />} />
                       <Route path="/privacy" element={<Privacy />} />
                       <Route path="/terms" element={<Terms />} />
