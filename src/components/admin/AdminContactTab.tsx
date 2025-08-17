@@ -17,6 +17,7 @@ import {
 } from "@/services/contactService";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ContactMessageTable } from "./contact/ContactMessageTable";
+import { ContactMessagesDebug } from "../debug/ContactMessagesDebug";
 
 const AdminContactTab = () => {
   const isMobile = useIsMobile();
