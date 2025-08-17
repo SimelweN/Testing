@@ -56,6 +56,7 @@ import PhotoUploadDemo from "./pages/PhotoUploadDemo";
 
 // Support Pages
 import ContactUs from "./pages/ContactUs";
+import ContactTest from "./pages/ContactTest";
 import FAQ from "./pages/FAQ";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
