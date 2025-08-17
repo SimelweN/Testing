@@ -42,9 +42,7 @@ export const submitContactMessage = async (
 
 export const getAllContactMessages = async (): Promise<ContactMessage[]> => {
   try {
-    // First, let's check if the user has permission by checking their auth status
-    const { data: { session } } = await supabase.auth.getSession();
-    console.log("Fetching contact messages with session:", !!session);
+    console.log("Fetching contact messages...");
 
     const { data, error } = await supabase
       .from("contact_messages")
@@ -59,32 +57,31 @@ export const getAllContactMessages = async (): Promise<ContactMessage[]> => {
         hint: error.hint
       });
 
-      // Handle specific database errors gracefully
+      // Only return empty for actual missing table, otherwise throw to surface the real issue
       if (error.code === '42P01') {
-        // Table doesn't exist
-        console.log("Contact messages table not found - returning empty array");
-        return [];
-      } else if (error.code === '42501' || error.code === 'PGRST116') {
-        // Permission denied or RLS violation
-        console.log("No permission to access contact messages - user may not be admin");
+        console.log("Contact messages table not found");
         return [];
       } else {
-        console.error("Unexpected error fetching contact messages:", error);
-        return []; // Return empty array instead of throwing
+        // Don't silently ignore permission errors - surface them so they can be fixed
+        throw new Error(`Database error: ${error.message} (Code: ${error.code})`);
       }
     }
 
     console.log(`Successfully fetched ${data?.length || 0} contact messages`);
 
+    if (!data) {
+      return [];
+    }
+
     // Type assertion to ensure status is properly typed
-    return (data || []).map((message) => ({
+    return data.map((message) => ({
       ...message,
       status: message.status as "unread" | "read",
     }));
   } catch (error) {
     console.error("Error in getAllContactMessages:", error);
-    // Return empty array instead of throwing to prevent UI breaks
-    return [];
+    // Re-throw to surface the real issue instead of silently failing
+    throw error;
   }
 };
 
