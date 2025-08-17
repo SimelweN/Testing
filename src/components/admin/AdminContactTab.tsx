@@ -23,6 +23,7 @@ const AdminContactTab = () => {
   const isMobile = useIsMobile();
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadMessages();
