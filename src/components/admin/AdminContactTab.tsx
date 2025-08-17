@@ -117,6 +117,14 @@ const AdminContactTab = () => {
               <Mail className="h-5 w-5 text-blue-600" />
               <CardTitle>Contact Messages</CardTitle>
             </div>
+            <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => testContactMessagesAccess()}
+            >
+              Test DB Access
+            </Button>
             {messages.length > 0 && (
               <Button
                 variant="destructive"
@@ -127,6 +135,7 @@ const AdminContactTab = () => {
                 Clear All Messages
               </Button>
             )}
+          </div>
           </div>
           <CardDescription>Manage and respond to user inquiries</CardDescription>
         </CardHeader>
