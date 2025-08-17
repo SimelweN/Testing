@@ -32,20 +32,20 @@ const AdminContactTab = () => {
   const loadMessages = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       console.log("Loading contact messages...");
       const data = await getAllContactMessages();
       console.log("Loaded messages:", data.length);
       setMessages(data);
 
       if (data.length === 0) {
-        console.log("No contact messages found - this could be due to RLS permissions or empty table");
+        console.log("No contact messages found");
       }
     } catch (error) {
       console.error("Error loading messages:", error);
-      // Only show error toast if it's not a missing table issue
-      if (error instanceof Error && !error.message.includes("table not found")) {
-        toast.error("Failed to load contact messages - check console for details");
-      }
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      setError(errorMessage);
+      toast.error(`Failed to load contact messages: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
