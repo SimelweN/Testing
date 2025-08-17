@@ -130,7 +130,22 @@ const AdminContactTab = () => {
           <CardDescription>Manage and respond to user inquiries</CardDescription>
         </CardHeader>
         <CardContent>
-          {messages.length === 0 ? (
+          {error ? (
+            <div className="text-center py-8">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-red-700 font-medium mb-2">Error loading contact messages:</p>
+                <p className="text-red-600 text-sm">{error}</p>
+                <Button
+                  onClick={loadMessages}
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                >
+                  Retry
+                </Button>
+              </div>
+            </div>
+          ) : messages.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-500">No contact messages yet</p>
             </div>
