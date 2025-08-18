@@ -21,7 +21,6 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { MessageSquare } from "lucide-react";
-import NotificationTester from "./NotificationTester";
 
 
 
