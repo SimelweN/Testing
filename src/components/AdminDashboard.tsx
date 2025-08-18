@@ -467,20 +467,20 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Modern Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg">
-                  <Activity className="h-6 w-6 text-white" />
+      <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200/50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-lg">
+                  <Activity className="h-7 w-7 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">
+                  <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
                     Admin Dashboard
                   </h1>
-                  <p className="text-sm text-gray-500">
-                    Manage your platform
+                  <p className="text-sm text-gray-600 font-medium">
+                    Manage your platform with ease
                   </p>
                 </div>
               </div>
@@ -492,19 +492,17 @@ const AdminDashboard = () => {
                 onClick={() => navigate("/developer")}
                 variant="outline"
                 size="sm"
-                className="hidden sm:flex items-center space-x-2 bg-slate-900 text-white border-slate-900 hover:bg-slate-800"
+                className="hidden sm:flex items-center space-x-2 bg-slate-900 text-white border-slate-900 hover:bg-slate-800 shadow-md transition-all duration-200 hover:shadow-lg"
               >
                 <Terminal className="h-4 w-4" />
-                <span>Developer Tools</span>
+                <span className="font-medium">Developer Tools</span>
               </Button>
-
-
 
               {/* Notification Bell */}
               {(stats.pendingReports > 0 || stats.unreadMessages > 0) && (
-                <div className="relative">
-                  <Bell className="h-5 w-5 text-gray-600" />
-                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center text-xs text-white">
+                <div className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                  <Bell className="h-6 w-6 text-gray-600" />
+                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full flex items-center justify-center text-xs text-white font-medium shadow-md">
                     {stats.pendingReports + stats.unreadMessages}
                   </span>
                 </div>
