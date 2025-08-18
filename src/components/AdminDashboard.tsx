@@ -564,7 +564,7 @@ const AdminDashboard = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Administration Tools</h3>
                 <p className="text-sm text-gray-600">Select a section to manage different aspects of your platform</p>
               </div>
-              <TabsList className="grid grid-cols-2 lg:grid-cols-5 gap-4 h-auto p-0 bg-transparent">
+              <TabsList className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 h-auto p-0 bg-transparent">
                 {tabConfig.map((tab) => {
                   const Icon = tab.icon;
                   const isActive = activeTab === tab.value;
@@ -573,24 +573,24 @@ const AdminDashboard = () => {
                     <TabsTrigger
                       key={tab.value}
                       value={tab.value}
-                      className={`flex flex-col items-center justify-center p-6 h-auto rounded-xl border-2 transition-all duration-300 ${
+                      className={`flex flex-col items-center justify-center p-4 h-auto min-h-[120px] rounded-xl border-2 transition-all duration-300 ${
                         isActive
                           ? "bg-blue-600 text-white shadow-xl border-blue-600 data-[state=active]:bg-blue-600 data-[state=active]:text-white transform scale-105"
                           : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-blue-300 hover:shadow-md"
                       }`}
                     >
-                      <div className="relative mb-4">
-                        <Icon className={`h-8 w-8 ${isActive ? "text-white" : tab.color}`} />
+                      <div className="relative mb-3">
+                        <Icon className={`h-7 w-7 ${isActive ? "text-white" : tab.color}`} />
                         {tab.badge && tab.badge > 0 && (
-                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] h-5 flex items-center justify-center font-medium shadow-md">
+                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] h-4 flex items-center justify-center font-medium shadow-md">
                             {tab.badge > 99 ? "99+" : tab.badge}
                           </span>
                         )}
                       </div>
-                      <span className="text-sm font-semibold mb-2 text-center">
+                      <span className="text-sm font-semibold mb-1 text-center leading-tight">
                         {tab.label}
                       </span>
-                      <span className={`text-xs text-center leading-tight font-medium ${
+                      <span className={`text-xs text-center leading-tight font-medium px-1 ${
                         isActive ? "text-blue-100" : "text-gray-500"
                       }`}>
                         {tab.description}
