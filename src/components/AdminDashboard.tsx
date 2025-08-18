@@ -27,10 +27,7 @@ import AdminUsersTab from "@/components/admin/AdminUsersTab";
 import AdminListingsTab from "@/components/admin/AdminListingsTab";
 import AdminSettingsTab from "@/components/admin/AdminSettingsTab";
 import AdminContactTab from "@/components/admin/AdminContactTab";
-import AdminResourcesTab from "@/components/admin/AdminResourcesTab";
-import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
 import AdminPayoutTab from "@/components/admin/AdminPayoutTab";
-import AdminUtilitiesTab from "@/components/admin/AdminUtilitiesTab";
 
 
 
@@ -44,10 +41,7 @@ import {
   BookOpen,
   MessageSquare,
   Settings,
-  GraduationCap,
-  Lightbulb,
   CreditCard,
-  Terminal,
   Activity,
   TrendingUp,
   DollarSign,
@@ -56,7 +50,6 @@ import {
   ChevronRight,
   Code,
   Banknote,
-  Wrench,
   Mail,
 } from "lucide-react";
 
@@ -392,14 +385,14 @@ const AdminDashboard = () => {
       label: "Overview",
       icon: BarChart3,
       color: "text-blue-600",
-      description: "Dashboard overview and key metrics",
+      description: "Key metrics",
     },
     {
       value: "earnings",
       label: "Earnings",
       icon: TrendingUp,
       color: "text-green-600",
-      description: "Revenue and commission tracking",
+      description: "Revenue tracking",
     },
     {
       value: "users",
@@ -407,7 +400,7 @@ const AdminDashboard = () => {
       icon: Users,
       color: "text-blue-600",
       badge: stats.totalUsers,
-      description: "User management and analytics",
+      description: "User management",
     },
     {
       value: "listings",
@@ -415,22 +408,7 @@ const AdminDashboard = () => {
       icon: BookOpen,
       color: "text-purple-600",
       badge: listings.length,
-      description: "Book listings and inventory",
-    },
-
-    {
-      value: "programs",
-      label: "Programs",
-      icon: GraduationCap,
-      color: "text-violet-600",
-      description: "University program submissions",
-    },
-    {
-      value: "resources",
-      label: "Resources",
-      icon: Lightbulb,
-      color: "text-amber-600",
-      description: "Study resources and tips",
+      description: "Book inventory",
     },
     {
       value: "contact",
@@ -438,73 +416,52 @@ const AdminDashboard = () => {
       icon: MessageSquare,
       color: "text-rose-600",
       badge: stats.unreadMessages,
-      description: "Contact form messages",
+      description: "Contact messages",
     },
     {
       value: "payout",
       label: "Payout",
       icon: Banknote,
       color: "text-green-600",
-      description: "Seller payouts and recipients",
+      description: "Seller payouts",
     },
-    {
-      value: "utilities",
-      label: "Utilities",
-      icon: Wrench,
-      color: "text-orange-600",
-      description: "Testing tools and database management",
-    },
-
     {
       value: "settings",
       label: "Settings",
       icon: Settings,
       color: "text-gray-600",
-      description: "System configuration",
+      description: "System config",
     },
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Modern Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg">
-                  <Activity className="h-6 w-6 text-white" />
+      <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200/50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-lg">
+                  <Activity className="h-7 w-7 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">
+                  <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
                     Admin Dashboard
                   </h1>
-                  <p className="text-sm text-gray-500">
-                    Manage your platform
+                  <p className="text-sm text-gray-600 font-medium">
+                    Manage your platform with ease
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* Developer Tools */}
-              <Button
-                onClick={() => navigate("/developer")}
-                variant="outline"
-                size="sm"
-                className="hidden sm:flex items-center space-x-2 bg-slate-900 text-white border-slate-900 hover:bg-slate-800"
-              >
-                <Terminal className="h-4 w-4" />
-                <span>Developer Tools</span>
-              </Button>
-
-
-
               {/* Notification Bell */}
               {(stats.pendingReports > 0 || stats.unreadMessages > 0) && (
-                <div className="relative">
-                  <Bell className="h-5 w-5 text-gray-600" />
-                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center text-xs text-white">
+                <div className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                  <Bell className="h-6 w-6 text-gray-600" />
+                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full flex items-center justify-center text-xs text-white font-medium shadow-md">
                     {stats.pendingReports + stats.unreadMessages}
                   </span>
                 </div>
@@ -515,39 +472,43 @@ const AdminDashboard = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Platform Overview</h2>
+          <p className="text-sm text-gray-600">Key metrics and performance indicators</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {quickStats.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <Card key={index} className="relative overflow-hidden border-0 shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+              <Card key={index} className="relative overflow-hidden border-0 shadow-sm bg-white hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-600 mb-1">
+                      <p className="text-sm font-medium text-gray-600 mb-2">
                         {stat.label}
                       </p>
-                      <p className={`text-2xl font-bold ${stat.color} mb-1`}>
+                      <p className={`text-3xl font-bold ${stat.color} mb-2`}>
                         {stat.value}
                       </p>
                       {stat.change && (
                         <div className="flex items-center space-x-1">
-                          <span className="text-xs text-green-600 font-medium">
+                          <span className="text-sm text-green-600 font-semibold">
                             {stat.change}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-sm text-gray-500">
                             {stat.changeLabel}
                           </span>
                         </div>
                       )}
                       {!stat.change && (
-                        <span className="text-xs text-gray-500">
+                        <span className="text-sm text-gray-500 font-medium">
                           {stat.changeLabel}
                         </span>
                       )}
                     </div>
-                    <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                      <Icon className={`h-6 w-6 ${stat.color}`} />
+                    <div className={`p-4 rounded-xl ${stat.bgColor} shadow-sm`}>
+                      <Icon className={`h-7 w-7 ${stat.color}`} />
                     </div>
                   </div>
                 </CardContent>
@@ -558,8 +519,8 @@ const AdminDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="px-4 sm:px-6 lg:px-8 pb-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
           {/* Navigation Tabs */}
           {isMobile ? (
             // Mobile: Horizontal scrollable tabs
@@ -590,9 +551,13 @@ const AdminDashboard = () => {
               </TabsList>
             </div>
           ) : (
-            // Desktop: Grid layout with sections
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-              <TabsList className="grid grid-cols-3 lg:grid-cols-5 gap-3 h-auto p-0 bg-transparent">
+            // Desktop: Enhanced grid layout with sections
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-8 shadow-sm border border-gray-200/50">
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Administration Tools</h3>
+                <p className="text-sm text-gray-600">Select a section to manage different aspects of your platform</p>
+              </div>
+              <TabsList className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 h-auto p-0 bg-transparent">
                 {tabConfig.map((tab) => {
                   const Icon = tab.icon;
                   const isActive = activeTab === tab.value;
@@ -601,24 +566,24 @@ const AdminDashboard = () => {
                     <TabsTrigger
                       key={tab.value}
                       value={tab.value}
-                      className={`flex flex-col items-center justify-center p-4 h-auto rounded-lg border transition-all duration-200 ${
+                      className={`flex flex-col items-center justify-center p-4 h-auto min-h-[120px] rounded-xl border-2 transition-all duration-300 ${
                         isActive
-                          ? "bg-blue-600 text-white shadow-lg border-blue-600 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                          ? "bg-blue-600 text-white shadow-xl border-blue-600 data-[state=active]:bg-blue-600 data-[state=active]:text-white transform scale-105"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-blue-300 hover:shadow-md"
                       }`}
                     >
                       <div className="relative mb-3">
-                        <Icon className={`h-6 w-6 ${isActive ? "text-white" : tab.color}`} />
+                        <Icon className={`h-7 w-7 ${isActive ? "text-white" : tab.color}`} />
                         {tab.badge && tab.badge > 0 && (
-                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] h-4 flex items-center justify-center">
+                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] h-4 flex items-center justify-center font-medium shadow-md">
                             {tab.badge > 99 ? "99+" : tab.badge}
                           </span>
                         )}
                       </div>
-                      <span className="text-sm font-medium mb-1 text-center">
+                      <span className="text-sm font-semibold mb-1 text-center leading-tight">
                         {tab.label}
                       </span>
-                      <span className={`text-xs text-center leading-tight ${
+                      <span className={`text-xs text-center leading-tight font-medium px-1 ${
                         isActive ? "text-blue-100" : "text-gray-500"
                       }`}>
                         {tab.description}
@@ -631,33 +596,33 @@ const AdminDashboard = () => {
           )}
 
           {/* Tab Content */}
-          <div className="space-y-6">
-            <TabsContent value="overview" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
+          <div className="space-y-8">
+            <TabsContent value="overview" className="mt-0 space-y-8">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl">
+                <CardContent className="p-8">
                   <AdminStats stats={stats} />
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="earnings" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
+            <TabsContent value="earnings" className="mt-0 space-y-8">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden">
                 <CardContent className="p-0">
                   <AdminEarningsTab stats={stats} />
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="users" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
+            <TabsContent value="users" className="mt-0 space-y-8">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden">
                 <CardContent className="p-0">
                   <AdminUsersTab users={users} onUserAction={handleUserAction} />
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="listings" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
+            <TabsContent value="listings" className="mt-0 space-y-8">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden">
                 <CardContent className="p-0">
                   <AdminListingsTab
                     listings={listings}
@@ -671,50 +636,25 @@ const AdminDashboard = () => {
 
 
 
-            <TabsContent value="programs" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
-                  <AdminProgramsTab />
-                </CardContent>
-              </Card>
-            </TabsContent>
 
-            <TabsContent value="resources" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
-                  <AdminResourcesTab />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="contact" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
+            <TabsContent value="contact" className="mt-0 space-y-8">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden">
                 <CardContent className="p-0">
                   <AdminContactTab />
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="payout" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
+            <TabsContent value="payout" className="mt-0 space-y-8">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden">
                 <CardContent className="p-0">
                   <AdminPayoutTab />
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="utilities" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
-                  <AdminUtilitiesTab />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-
-
-            <TabsContent value="settings" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
+            <TabsContent value="settings" className="mt-0 space-y-8">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden">
                 <CardContent className="p-0">
                   <AdminSettingsTab
                     broadcastMessage={broadcastMessage}

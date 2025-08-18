@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -22,6 +22,7 @@ const AdminContactTab = () => {
   const isMobile = useIsMobile();
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadMessages();
@@ -30,14 +31,20 @@ const AdminContactTab = () => {
   const loadMessages = async () => {
     try {
       setIsLoading(true);
+      setError(null);
+      console.log("Loading contact messages...");
       const data = await getAllContactMessages();
+      console.log("Loaded messages:", data.length);
       setMessages(data);
+
+      if (data.length === 0) {
+        console.log("No contact messages found");
+      }
     } catch (error) {
       console.error("Error loading messages:", error);
-      // Only show error toast if it's not a missing table issue
-      if (error instanceof Error && !error.message.includes("table not found")) {
-        toast.error("Failed to load contact messages");
-      }
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      setError(errorMessage);
+      toast.error(`Failed to load contact messages: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
@@ -97,12 +104,12 @@ const AdminContactTab = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Mail className="h-5 w-5 text-blue-600" />
-            <CardTitle>Contact Messages</CardTitle>
-          </div>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-blue-600" />
+              <CardTitle>Contact Messages</CardTitle>
+            </div>
           {messages.length > 0 && (
             <Button
               variant="destructive"
@@ -114,22 +121,37 @@ const AdminContactTab = () => {
             </Button>
           )}
         </div>
-        <CardDescription>Manage and respond to user inquiries</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {messages.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No contact messages yet</p>
-          </div>
-        ) : (
-          <ContactMessageTable
-            messages={messages}
-            isMobile={isMobile}
-            onMarkAsRead={handleMarkAsRead}
-          />
-        )}
-      </CardContent>
-    </Card>
+          <CardDescription>Manage and respond to user inquiries</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {error ? (
+            <div className="text-center py-8">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-red-700 font-medium mb-2">Error loading contact messages:</p>
+                <p className="text-red-600 text-sm">{error}</p>
+                <Button
+                  onClick={loadMessages}
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                >
+                  Retry
+                </Button>
+              </div>
+            </div>
+          ) : messages.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No contact messages yet</p>
+            </div>
+          ) : (
+            <ContactMessageTable
+              messages={messages}
+              isMobile={isMobile}
+              onMarkAsRead={handleMarkAsRead}
+            />
+          )}
+        </CardContent>
+      </Card>
   );
 };
 

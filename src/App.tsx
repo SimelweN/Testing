@@ -10,6 +10,10 @@ import "./utils/suppressResizeObserverError";
 import "./utils/loadingStateManager";
 // Test Supabase connection in development
 import "./utils/testSupabaseConnection";
+// Debug contact messages
+import "./utils/debugContactMessages";
+// Test notifications
+import "./utils/testNotifications";
 
 import { ThemeProvider } from "next-themes";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -51,11 +55,11 @@ import EnvironmentConfigHelper from "./components/EnvironmentConfigHelper";
 // Admin Pages
 import Admin from "./pages/Admin";
 import AdminReports from "./pages/AdminReports";
-import Developer from "./pages/Developer";
 import PhotoUploadDemo from "./pages/PhotoUploadDemo";
 
 // Support Pages
 import ContactUs from "./pages/ContactUs";
+import ContactTest from "./pages/ContactTest";
 import FAQ from "./pages/FAQ";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -336,14 +340,6 @@ function App() {
                           </AdminProtectedRoute>
                         }
                       />
-                      <Route
-                        path="/developer"
-                        element={
-                          <AdminProtectedRoute>
-                            <Developer />
-                          </AdminProtectedRoute>
-                        }
-                      />
 
                       <Route
                         path="/photo-upload-demo"
@@ -352,6 +348,7 @@ function App() {
 
                       {/* Support Routes */}
                       <Route path="/contact" element={<ContactUs />} />
+                      <Route path="/contact-test" element={<ContactTest />} />
                       <Route path="/faq" element={<FAQ />} />
                       <Route path="/privacy" element={<Privacy />} />
                       <Route path="/terms" element={<Terms />} />

@@ -41,38 +41,29 @@ export const submitContactMessage = async (
 };
 
 export const getAllContactMessages = async (): Promise<ContactMessage[]> => {
-  try {
-    const { data, error } = await supabase
-      .from("contact_messages")
-      .select("*")
-      .order("created_at", { ascending: false });
+  console.log("🔍 Fetching contact messages...");
 
-    if (error) {
-      // Handle specific database errors gracefully
-      if (error.code === '42P01') {
-        // Table doesn't exist - return empty array
-        console.log("Contact messages table not found - returning empty array");
-        return [];
-      } else if (error.code === '42501') {
-        // Permission denied - return empty array for non-admin users
-        console.log("No permission to access contact messages - returning empty array");
-        return [];
-      } else {
-        console.error("Error fetching contact messages:", error.message);
-        return []; // Return empty array instead of throwing
-      }
-    }
+  const { data, error } = await supabase
+    .from("contact_messages")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-    // Type assertion to ensure status is properly typed
-    return (data || []).map((message) => ({
-      ...message,
-      status: message.status as "unread" | "read",
-    }));
-  } catch (error) {
-    console.error("Error in getAllContactMessages:", error);
-    // Return empty array instead of throwing to prevent UI breaks
-    return [];
+  if (error) {
+    console.error("❌ Contact messages database error:", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint
+    });
+    throw new Error(`Contact messages error: ${error.message}`);
   }
+
+  console.log(`✅ Successfully fetched ${data?.length || 0} contact messages`);
+
+  return (data || []).map((message) => ({
+    ...message,
+    status: message.status as "unread" | "read",
+  }));
 };
 
 export const markMessageAsRead = async (messageId: string): Promise<void> => {

@@ -21,7 +21,6 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { MessageSquare } from "lucide-react";
-import NotificationTester from "./NotificationTester";
 
 
 
@@ -44,8 +43,6 @@ const AdminSettingsTab = ({
 
   return (
     <div className="space-y-6">
-      <NotificationTester />
-
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
