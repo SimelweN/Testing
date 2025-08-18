@@ -637,33 +637,33 @@ const AdminDashboard = () => {
           )}
 
           {/* Tab Content */}
-          <div className="space-y-6">
-            <TabsContent value="overview" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
+          <div className="space-y-8">
+            <TabsContent value="overview" className="mt-0 space-y-8">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl">
+                <CardContent className="p-8">
                   <AdminStats stats={stats} />
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="earnings" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
+            <TabsContent value="earnings" className="mt-0 space-y-8">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden">
                 <CardContent className="p-0">
                   <AdminEarningsTab stats={stats} />
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="users" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
+            <TabsContent value="users" className="mt-0 space-y-8">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden">
                 <CardContent className="p-0">
                   <AdminUsersTab users={users} onUserAction={handleUserAction} />
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="listings" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
+            <TabsContent value="listings" className="mt-0 space-y-8">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden">
                 <CardContent className="p-0">
                   <AdminListingsTab
                     listings={listings}
