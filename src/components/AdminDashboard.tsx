@@ -392,14 +392,14 @@ const AdminDashboard = () => {
       label: "Overview",
       icon: BarChart3,
       color: "text-blue-600",
-      description: "Dashboard overview and key metrics",
+      description: "Key metrics",
     },
     {
       value: "earnings",
       label: "Earnings",
       icon: TrendingUp,
       color: "text-green-600",
-      description: "Revenue and commission tracking",
+      description: "Revenue tracking",
     },
     {
       value: "users",
@@ -407,7 +407,7 @@ const AdminDashboard = () => {
       icon: Users,
       color: "text-blue-600",
       badge: stats.totalUsers,
-      description: "User management and analytics",
+      description: "User management",
     },
     {
       value: "listings",
@@ -415,22 +415,7 @@ const AdminDashboard = () => {
       icon: BookOpen,
       color: "text-purple-600",
       badge: listings.length,
-      description: "Book listings and inventory",
-    },
-
-    {
-      value: "programs",
-      label: "Programs",
-      icon: GraduationCap,
-      color: "text-violet-600",
-      description: "University program submissions",
-    },
-    {
-      value: "resources",
-      label: "Resources",
-      icon: Lightbulb,
-      color: "text-amber-600",
-      description: "Study resources and tips",
+      description: "Book inventory",
     },
     {
       value: "contact",
@@ -438,29 +423,21 @@ const AdminDashboard = () => {
       icon: MessageSquare,
       color: "text-rose-600",
       badge: stats.unreadMessages,
-      description: "Contact form messages",
+      description: "Contact messages",
     },
     {
       value: "payout",
       label: "Payout",
       icon: Banknote,
       color: "text-green-600",
-      description: "Seller payouts and recipients",
+      description: "Seller payouts",
     },
-    {
-      value: "utilities",
-      label: "Utilities",
-      icon: Wrench,
-      color: "text-orange-600",
-      description: "Testing tools and database management",
-    },
-
     {
       value: "settings",
       label: "Settings",
       icon: Settings,
       color: "text-gray-600",
-      description: "System configuration",
+      description: "System config",
     },
   ];
 
