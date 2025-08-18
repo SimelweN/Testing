@@ -27,10 +27,7 @@ import AdminUsersTab from "@/components/admin/AdminUsersTab";
 import AdminListingsTab from "@/components/admin/AdminListingsTab";
 import AdminSettingsTab from "@/components/admin/AdminSettingsTab";
 import AdminContactTab from "@/components/admin/AdminContactTab";
-import AdminResourcesTab from "@/components/admin/AdminResourcesTab";
-import AdminProgramsTab from "@/components/admin/AdminProgramsTab";
 import AdminPayoutTab from "@/components/admin/AdminPayoutTab";
-import AdminUtilitiesTab from "@/components/admin/AdminUtilitiesTab";
 
 
 
