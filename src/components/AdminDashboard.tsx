@@ -677,41 +677,41 @@ const AdminDashboard = () => {
 
 
 
-            <TabsContent value="programs" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
+            <TabsContent value="programs" className="mt-0 space-y-8">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl">
+                <CardContent className="p-8">
                   <AdminProgramsTab />
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="resources" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
+            <TabsContent value="resources" className="mt-0 space-y-8">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl">
+                <CardContent className="p-8">
                   <AdminResourcesTab />
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="contact" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
+            <TabsContent value="contact" className="mt-0 space-y-8">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden">
                 <CardContent className="p-0">
                   <AdminContactTab />
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="payout" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
+            <TabsContent value="payout" className="mt-0 space-y-8">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden">
                 <CardContent className="p-0">
                   <AdminPayoutTab />
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="utilities" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-6">
+            <TabsContent value="utilities" className="mt-0 space-y-8">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl">
+                <CardContent className="p-8">
                   <AdminUtilitiesTab />
                 </CardContent>
               </Card>
