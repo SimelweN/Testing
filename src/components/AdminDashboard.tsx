@@ -513,39 +513,43 @@ const AdminDashboard = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Platform Overview</h2>
+          <p className="text-sm text-gray-600">Key metrics and performance indicators</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {quickStats.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <Card key={index} className="relative overflow-hidden border-0 shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+              <Card key={index} className="relative overflow-hidden border-0 shadow-sm bg-white hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-600 mb-1">
+                      <p className="text-sm font-medium text-gray-600 mb-2">
                         {stat.label}
                       </p>
-                      <p className={`text-2xl font-bold ${stat.color} mb-1`}>
+                      <p className={`text-3xl font-bold ${stat.color} mb-2`}>
                         {stat.value}
                       </p>
                       {stat.change && (
                         <div className="flex items-center space-x-1">
-                          <span className="text-xs text-green-600 font-medium">
+                          <span className="text-sm text-green-600 font-semibold">
                             {stat.change}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-sm text-gray-500">
                             {stat.changeLabel}
                           </span>
                         </div>
                       )}
                       {!stat.change && (
-                        <span className="text-xs text-gray-500">
+                        <span className="text-sm text-gray-500 font-medium">
                           {stat.changeLabel}
                         </span>
                       )}
                     </div>
-                    <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                      <Icon className={`h-6 w-6 ${stat.color}`} />
+                    <div className={`p-4 rounded-xl ${stat.bgColor} shadow-sm`}>
+                      <Icon className={`h-7 w-7 ${stat.color}`} />
                     </div>
                   </div>
                 </CardContent>
