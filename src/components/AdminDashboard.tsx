@@ -660,7 +660,7 @@ const AdminDashboard = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="utilities" className="mt-0 space-y-8">
+            <TabsContent value="settings" className="mt-0 space-y-8">
               <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl">
                 <CardContent className="p-8">
                   <AdminUtilitiesTab />
