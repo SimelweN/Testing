@@ -12,6 +12,8 @@ import "./utils/loadingStateManager";
 import "./utils/testSupabaseConnection";
 // Debug contact messages
 import "./utils/debugContactMessages";
+// Test notifications
+import "./utils/testNotifications";
 
 import { ThemeProvider } from "next-themes";
 import ErrorBoundary from "./components/ErrorBoundary";
