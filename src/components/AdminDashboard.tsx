@@ -661,17 +661,7 @@ const AdminDashboard = () => {
             </TabsContent>
 
             <TabsContent value="settings" className="mt-0 space-y-8">
-              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl">
-                <CardContent className="p-8">
-                  <AdminUtilitiesTab />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-
-
-            <TabsContent value="settings" className="mt-0 space-y-6">
-              <Card className="border-0 shadow-sm">
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden">
                 <CardContent className="p-0">
                   <AdminSettingsTab
                     broadcastMessage={broadcastMessage}
