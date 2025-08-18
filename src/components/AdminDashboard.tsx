@@ -464,17 +464,6 @@ const AdminDashboard = () => {
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* Developer Tools */}
-              <Button
-                onClick={() => navigate("/developer")}
-                variant="outline"
-                size="sm"
-                className="hidden sm:flex items-center space-x-2 bg-slate-900 text-white border-slate-900 hover:bg-slate-800 shadow-md transition-all duration-200 hover:shadow-lg"
-              >
-                <Terminal className="h-4 w-4" />
-                <span className="font-medium">Developer Tools</span>
-              </Button>
-
               {/* Notification Bell */}
               {(stats.pendingReports > 0 || stats.unreadMessages > 0) && (
                 <div className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200">
