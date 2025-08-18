@@ -340,14 +340,6 @@ function App() {
                           </AdminProtectedRoute>
                         }
                       />
-                      <Route
-                        path="/developer"
-                        element={
-                          <AdminProtectedRoute>
-                            <Developer />
-                          </AdminProtectedRoute>
-                        }
-                      />
 
                       <Route
                         path="/photo-upload-demo"
