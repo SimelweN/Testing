@@ -41,48 +41,29 @@ export const submitContactMessage = async (
 };
 
 export const getAllContactMessages = async (): Promise<ContactMessage[]> => {
-  try {
-    console.log("Fetching contact messages...");
+  console.log("🔍 Fetching contact messages...");
 
-    const { data, error } = await supabase
-      .from("contact_messages")
-      .select("*")
-      .order("created_at", { ascending: false });
+  const { data, error } = await supabase
+    .from("contact_messages")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Database error details:", {
-        code: error.code,
-        message: error.message,
-        details: error.details,
-        hint: error.hint
-      });
-
-      // Only return empty for actual missing table, otherwise throw to surface the real issue
-      if (error.code === '42P01') {
-        console.log("Contact messages table not found");
-        return [];
-      } else {
-        // Don't silently ignore permission errors - surface them so they can be fixed
-        throw new Error(`Database error: ${error.message} (Code: ${error.code})`);
-      }
-    }
-
-    console.log(`Successfully fetched ${data?.length || 0} contact messages`);
-
-    if (!data) {
-      return [];
-    }
-
-    // Type assertion to ensure status is properly typed
-    return data.map((message) => ({
-      ...message,
-      status: message.status as "unread" | "read",
-    }));
-  } catch (error) {
-    console.error("Error in getAllContactMessages:", error);
-    // Re-throw to surface the real issue instead of silently failing
-    throw error;
+  if (error) {
+    console.error("❌ Contact messages database error:", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint
+    });
+    throw new Error(`Contact messages error: ${error.message}`);
   }
+
+  console.log(`✅ Successfully fetched ${data?.length || 0} contact messages`);
+
+  return (data || []).map((message) => ({
+    ...message,
+    status: message.status as "unread" | "read",
+  }));
 };
 
 export const markMessageAsRead = async (messageId: string): Promise<void> => {
