@@ -592,9 +592,13 @@ const AdminDashboard = () => {
               </TabsList>
             </div>
           ) : (
-            // Desktop: Grid layout with sections
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-              <TabsList className="grid grid-cols-3 lg:grid-cols-5 gap-3 h-auto p-0 bg-transparent">
+            // Desktop: Enhanced grid layout with sections
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-8 shadow-sm border border-gray-200/50">
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Administration Tools</h3>
+                <p className="text-sm text-gray-600">Select a section to manage different aspects of your platform</p>
+              </div>
+              <TabsList className="grid grid-cols-2 lg:grid-cols-5 gap-4 h-auto p-0 bg-transparent">
                 {tabConfig.map((tab) => {
                   const Icon = tab.icon;
                   const isActive = activeTab === tab.value;
@@ -603,24 +607,24 @@ const AdminDashboard = () => {
                     <TabsTrigger
                       key={tab.value}
                       value={tab.value}
-                      className={`flex flex-col items-center justify-center p-4 h-auto rounded-lg border transition-all duration-200 ${
+                      className={`flex flex-col items-center justify-center p-6 h-auto rounded-xl border-2 transition-all duration-300 ${
                         isActive
-                          ? "bg-blue-600 text-white shadow-lg border-blue-600 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                          ? "bg-blue-600 text-white shadow-xl border-blue-600 data-[state=active]:bg-blue-600 data-[state=active]:text-white transform scale-105"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-blue-300 hover:shadow-md"
                       }`}
                     >
-                      <div className="relative mb-3">
-                        <Icon className={`h-6 w-6 ${isActive ? "text-white" : tab.color}`} />
+                      <div className="relative mb-4">
+                        <Icon className={`h-8 w-8 ${isActive ? "text-white" : tab.color}`} />
                         {tab.badge && tab.badge > 0 && (
-                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] h-4 flex items-center justify-center">
+                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] h-5 flex items-center justify-center font-medium shadow-md">
                             {tab.badge > 99 ? "99+" : tab.badge}
                           </span>
                         )}
                       </div>
-                      <span className="text-sm font-medium mb-1 text-center">
+                      <span className="text-sm font-semibold mb-2 text-center">
                         {tab.label}
                       </span>
-                      <span className={`text-xs text-center leading-tight ${
+                      <span className={`text-xs text-center leading-tight font-medium ${
                         isActive ? "text-blue-100" : "text-gray-500"
                       }`}>
                         {tab.description}
