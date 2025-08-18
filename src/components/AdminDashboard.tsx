@@ -50,7 +50,6 @@ import {
   ChevronRight,
   Code,
   Banknote,
-  Wrench,
   Mail,
 } from "lucide-react";
 
