@@ -55,7 +55,6 @@ import EnvironmentConfigHelper from "./components/EnvironmentConfigHelper";
 // Admin Pages
 import Admin from "./pages/Admin";
 import AdminReports from "./pages/AdminReports";
-import Developer from "./pages/Developer";
 import PhotoUploadDemo from "./pages/PhotoUploadDemo";
 
 // Support Pages
