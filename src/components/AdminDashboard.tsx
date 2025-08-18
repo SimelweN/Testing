@@ -560,8 +560,8 @@ const AdminDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="px-4 sm:px-6 lg:px-8 pb-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
           {/* Navigation Tabs */}
           {isMobile ? (
             // Mobile: Horizontal scrollable tabs
