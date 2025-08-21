@@ -9,6 +9,12 @@ import {
   findProgramsByAPS,
   findProgramsByFaculty,
 } from "./updated-university-programs-2025";
+import {
+  COMPREHENSIVE_SA_UNIVERSITIES_2025,
+} from "./comprehensive-sa-universities-2025";
+import {
+  UNIVERSITIES_OF_TECHNOLOGY_2025,
+} from "./universities-of-technology-2025";
 
 // Merge the complete 26 university database with updated 2025 programs
 const mergeUniversityPrograms = (existingUniversities: University[], updatedUniversities: University[]): University[] => {
