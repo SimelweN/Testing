@@ -16,6 +16,8 @@ import { OrderSummary, OrderConfirmation } from "@/types/checkout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import PaystackPopup, { formatAmount } from "@/components/PaystackPopup";
+import PaystackPopupMobile, { formatAmountMobile } from "@/components/PaystackPopupMobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import PaymentErrorHandler, {
   classifyPaymentError,
   PaymentError,
