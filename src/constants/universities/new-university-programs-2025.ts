@@ -619,6 +619,20 @@ export const UMP_FACULTIES: Faculty[] = [
   }
 ];
 
+// Default faculties for universities not yet updated with specific data
+const DEFAULT_FACULTIES: Faculty[] = [
+  {
+    id: "general",
+    name: "General Programs",
+    description: "General academic programs (data being updated)",
+    degrees: [
+      createDegree("Bachelor of Arts", "General Programs", 24),
+      createDegree("Bachelor of Science", "General Programs", 26),
+      createDegree("Bachelor of Commerce", "General Programs", 28)
+    ]
+  }
+];
+
 // University data mapping for easy replacement
 export const NEW_UNIVERSITY_PROGRAMS: Record<string, Faculty[]> = {
   "ul": UL_FACULTIES,
@@ -631,7 +645,23 @@ export const NEW_UNIVERSITY_PROGRAMS: Record<string, Faculty[]> = {
   "wits": WITS_FACULTIES,
   "up": UP_FACULTIES,
   "uj": UJ_FACULTIES,
-  "ukzn": UKZN_FACULTIES
+  "ukzn": UKZN_FACULTIES,
+  // Default faculties for universities not yet specifically updated
+  "stellenbosch": DEFAULT_FACULTIES,
+  "ufs": DEFAULT_FACULTIES,
+  "ru": DEFAULT_FACULTIES,
+  "uwc": DEFAULT_FACULTIES,
+  "unisa": DEFAULT_FACULTIES,
+  "ufh": DEFAULT_FACULTIES,
+  "tut": DEFAULT_FACULTIES,
+  "dut": DEFAULT_FACULTIES,
+  "vut": DEFAULT_FACULTIES,
+  "mut": DEFAULT_FACULTIES,
+  "cput": DEFAULT_FACULTIES,
+  "cut": DEFAULT_FACULTIES,
+  "nmu": DEFAULT_FACULTIES,
+  "univen": DEFAULT_FACULTIES,
+  "smu": DEFAULT_FACULTIES
 };
 
 // University of Cape Town (UCT) - Using FPS system, converting to approximate APS
