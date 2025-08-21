@@ -2189,21 +2189,21 @@ export const NEW_UNIVERSITY_PROGRAMS: Record<string, Faculty[]> = {
   "uj": UJ_FACULTIES,
   "ukzn": UKZN_FACULTIES,
   "stellenbosch": STELLENBOSCH_FACULTIES,
-  // Default faculties for universities not yet specifically updated
-  "ufs": DEFAULT_FACULTIES,
-  "ru": DEFAULT_FACULTIES,
-  "uwc": DEFAULT_FACULTIES,
-  "unisa": DEFAULT_FACULTIES,
-  "ufh": DEFAULT_FACULTIES,
-  "tut": DEFAULT_FACULTIES,
-  "dut": DEFAULT_FACULTIES,
-  "vut": DEFAULT_FACULTIES,
-  "mut": DEFAULT_FACULTIES,
+  "ufs": UFS_FACULTIES,
+  "ufh": UFH_FACULTIES,
+  "tut": TUT_FACULTIES,
+  "dut": DUT_FACULTIES,
+  "vut": VUT_FACULTIES,
+  "mut": MUT_FACULTIES,
+  "uwc": UWC_FACULTIES,
+  "unisa": UNISA_FACULTIES,
+  "ru": RU_FACULTIES,
+  "univen": UNIVEN_FACULTIES,
+  "smu": SMU_FACULTIES,
+  // Default faculties for universities still pending specific data
   "cput": DEFAULT_FACULTIES,
   "cut": DEFAULT_FACULTIES,
-  "nmu": DEFAULT_FACULTIES,
-  "univen": DEFAULT_FACULTIES,
-  "smu": DEFAULT_FACULTIES
+  "nmu": DEFAULT_FACULTIES
 };
 
 // Export all faculty data
