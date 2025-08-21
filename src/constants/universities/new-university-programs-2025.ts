@@ -430,12 +430,203 @@ export const WSU_FACULTIES: Faculty[] = [
   }
 ];
 
+// University of Zululand (UNIZULU) Programs
+export const UNIZULU_FACULTIES: Faculty[] = [
+  {
+    id: "commerce-admin-law",
+    name: "Faculty of Commerce, Administration & Law",
+    description: "Commerce, administration and law programs",
+    degrees: [
+      createDegree("Bachelor of Commerce in Accounting", "Commerce, Administration & Law", 28),
+      createDegree("Bachelor of Commerce in Accounting Science (CTA stream)", "Commerce, Administration & Law", 28),
+      createDegree("Extended Bachelor of Commerce (Extended Programme)", "Commerce, Administration & Law", 26),
+      createDegree("Bachelor of Commerce in Management Information Systems", "Commerce, Administration & Law", 28),
+      createDegree("Bachelor of Administration", "Commerce, Administration & Law", 28),
+      createDegree("Bachelor of Laws (LLB)", "Commerce, Administration & Law", 30),
+      createDegree("Higher Certificate in Accountancy", "Commerce, Administration & Law", 22)
+    ]
+  },
+  {
+    id: "science-agriculture-engineering",
+    name: "Faculty of Science, Agriculture & Engineering",
+    description: "Science, agriculture and engineering programs",
+    degrees: [
+      createDegree("Bachelor of Engineering (Mechanical Engineering)", "Science, Agriculture & Engineering", 30),
+      createDegree("Bachelor of Engineering (Electrical Engineering)", "Science, Agriculture & Engineering", 30),
+      createDegree("Bachelor of Science (Mainstream BSc)", "Science, Agriculture & Engineering", 28),
+      createDegree("Bachelor of Science in Agriculture (Agronomy / Animal Science)", "Science, Agriculture & Engineering", 28),
+      createDegree("Bachelor of Science Foundational/Augmented Stream", "Science, Agriculture & Engineering", 28),
+      createDegree("Bachelor of Education stream BSc", "Science, Agriculture & Engineering", 26),
+      createDegree("Bachelor of Nursing Science", "Science, Agriculture & Engineering", 30),
+      createDegree("Bachelor of Consumer Science: Extension & Rural Development", "Science, Agriculture & Engineering", 28),
+      createDegree("Bachelor of Consumer Science: Hospitality & Tourism", "Science, Agriculture & Engineering", 28),
+      createDegree("Diploma in Sport & Exercise", "Science, Agriculture & Engineering", 26),
+      createDegree("Diploma in Hospitality Management", "Science, Agriculture & Engineering", 26)
+    ]
+  },
+  {
+    id: "education",
+    name: "Faculty of Education",
+    description: "Education programs",
+    degrees: [
+      createDegree("Bachelor of Education (Foundation Phase Teaching)", "Education", 26),
+      createDegree("Bachelor of Education (Intermediate Phase Teaching: Languages)", "Education", 26),
+      createDegree("Bachelor of Education (Intermediate Phase: Languages, Maths, Natural Science & Tech)", "Education", 26),
+      createDegree("Bachelor of Education (Senior & Social Science Education)", "Education", 26),
+      createDegree("Bachelor of Education (Senior Science & Technology Education)", "Education", 26),
+      createDegree("Bachelor of Education (Senior Management Sciences – EMS)", "Education", 26)
+    ]
+  },
+  {
+    id: "humanities-social",
+    name: "Faculty of Humanities & Social Sciences",
+    description: "Humanities and social sciences programs",
+    degrees: [
+      createDegree("Diploma in Public Relations Management", "Humanities & Social Sciences", 24),
+      createDegree("Diploma in Media Studies", "Humanities & Social Sciences", 24),
+      createDegree("Diploma in Tourism Management", "Humanities & Social Sciences", 24),
+      createDegree("Bachelor of Arts (Anthropology & History)", "Humanities & Social Sciences", 26),
+      createDegree("Bachelor of Arts (Linguistics & English)", "Humanities & Social Sciences", 26),
+      createDegree("Bachelor of Arts (Geography & History)", "Humanities & Social Sciences", 26),
+      createDegree("Bachelor of Arts (Geography & Tourism)", "Humanities & Social Sciences", 26),
+      createDegree("Bachelor of Arts (History & IsiZulu)", "Humanities & Social Sciences", 26),
+      createDegree("Bachelor of Arts (Philosophy & Psychology)", "Humanities & Social Sciences", 26),
+      createDegree("Bachelor of Arts in Correctional Studies", "Humanities & Social Sciences", 26),
+      createDegree("Bachelor of Arts in Development Studies", "Humanities & Social Sciences", 26),
+      createDegree("Bachelor of Social Work", "Humanities & Social Sciences", 28),
+      createDegree("Bachelor of Arts in Environmental Planning & Development", "Humanities & Social Sciences", 26),
+      createDegree("Bachelor of Arts in Industrial Sociology", "Humanities & Social Sciences", 26),
+      createDegree("Bachelor of Arts in Intercultural Communication", "Humanities & Social Sciences", 26),
+      createDegree("Bachelor of Library & Information Science", "Humanities & Social Sciences", 26),
+      createDegree("Bachelor of Psychology", "Humanities & Social Sciences", 28),
+      createDegree("Bachelor of Social Science in Political & International Studies", "Humanities & Social Sciences", 30),
+      createDegree("Bachelor of Tourism Studies", "Humanities & Social Sciences", 26)
+    ]
+  }
+];
+
+// Sol Plaatje University (SPU) Programs
+export const SPU_FACULTIES: Faculty[] = [
+  {
+    id: "education",
+    name: "Faculty of Education",
+    description: "Education programs",
+    degrees: [
+      createDegree("Bachelor of Education (Foundation Phase, Grade R–3)", "Education", 30),
+      createDegree("Bachelor of Education (Intermediate Phase, Grades 4–6)", "Education", 30),
+      createDegree("Bachelor of Education (Senior & FET Phase, Grades 7–12)", "Education", 30)
+    ]
+  },
+  {
+    id: "natural-applied",
+    name: "Faculty of Natural & Applied Sciences",
+    description: "Natural and applied sciences programs",
+    degrees: [
+      createDegree("Bachelor of Science (BSc)", "Natural & Applied Sciences", 30),
+      createDegree("Bachelor of Science in Data Science", "Natural & Applied Sciences", 30)
+    ]
+  },
+  {
+    id: "economic-management",
+    name: "Faculty of Economic & Management Sciences",
+    description: "Economic and management programs",
+    degrees: [
+      createDegree("Bachelor of Commerce in Accounting", "Economic & Management Sciences", 30),
+      createDegree("Bachelor of Commerce in Economics", "Economic & Management Sciences", 30),
+      createDegree("Diploma in Retail Business Management", "Economic & Management Sciences", 25)
+    ]
+  },
+  {
+    id: "humanities-heritage",
+    name: "Faculty of Humanities & Heritage Studies",
+    description: "Humanities and heritage programs",
+    degrees: [
+      createDegree("Bachelor of Arts (BA)", "Humanities & Heritage Studies", 30),
+      createDegree("Higher Certificate in Heritage Studies", "Humanities & Heritage Studies", 25),
+      createDegree("Higher Certificate in Court Interpreting", "Humanities & Heritage Studies", 25)
+    ]
+  },
+  {
+    id: "ict",
+    name: "School of ICT",
+    description: "Information and communication technology programs",
+    degrees: [
+      createDegree("Diploma in Information & Communication Technology (Applications Development)", "ICT", 25)
+    ]
+  }
+];
+
+// University of Mpumalanga (UMP) Programs
+export const UMP_FACULTIES: Faculty[] = [
+  {
+    id: "social-sciences",
+    name: "Faculty of Social Sciences",
+    description: "Social sciences programs",
+    degrees: [
+      createDegree("Bachelor of Arts (General)", "Social Sciences", 28),
+      createDegree("Bachelor of Social Work", "Social Sciences", 32)
+    ]
+  },
+  {
+    id: "agriculture-natural",
+    name: "Faculty of Agriculture & Natural Sciences",
+    description: "Agriculture and natural sciences programs",
+    degrees: [
+      createDegree("Bachelor of Science in Agriculture (Agricultural Extension & Rural Resource Management)", "Agriculture & Natural Sciences", 26),
+      createDegree("Bachelor of Science in Forestry", "Agriculture & Natural Sciences", 30),
+      createDegree("Bachelor of Science (General)", "Agriculture & Natural Sciences", 30),
+      createDegree("Bachelor of Science in Environmental Science", "Agriculture & Natural Sciences", 30),
+      createDegree("Diploma in Plant Production", "Agriculture & Natural Sciences", 23),
+      createDegree("Diploma in Animal Production", "Agriculture & Natural Sciences", 24)
+    ]
+  },
+  {
+    id: "development-business",
+    name: "Faculty of Development Studies & Business Sciences",
+    description: "Development studies and business programs",
+    degrees: [
+      createDegree("Bachelor of Commerce (General)", "Development Studies & Business Sciences", 30),
+      createDegree("Bachelor of Administration", "Development Studies & Business Sciences", 32),
+      createDegree("Bachelor of Development Studies", "Development Studies & Business Sciences", 32)
+    ]
+  },
+  {
+    id: "education",
+    name: "Faculty of Education",
+    description: "Education programs",
+    degrees: [
+      createDegree("Bachelor of Education (Foundation Phase Teaching)", "Education", 26)
+    ]
+  },
+  {
+    id: "ict-computing",
+    name: "Faculty of ICT & Computing",
+    description: "ICT and computing programs",
+    degrees: [
+      createDegree("Bachelor of Information & Communication Technology (ICT)", "ICT & Computing", 32),
+      createDegree("Diploma in ICT (Applications Development)", "ICT & Computing", 24),
+      createDegree("Higher Certificate in ICT (User Support)", "ICT & Computing", 20)
+    ]
+  },
+  {
+    id: "hospitality-tourism",
+    name: "Faculty of Hospitality & Tourism",
+    description: "Hospitality and tourism programs",
+    degrees: [
+      createDegree("Diploma in Hospitality Management", "Hospitality & Tourism", 24),
+      createDegree("Higher Certificate in Event Management", "Hospitality & Tourism", 19)
+    ]
+  }
+];
+
 // University data mapping for easy replacement
 export const NEW_UNIVERSITY_PROGRAMS: Record<string, Faculty[]> = {
   "ul": UL_FACULTIES,
   "nwu": NWU_FACULTIES,
-  "wsu": WSU_FACULTIES
-  // Will continue adding other universities...
+  "wsu": WSU_FACULTIES,
+  "unizulu": UNIZULU_FACULTIES,
+  "spu": SPU_FACULTIES,
+  "ump": UMP_FACULTIES
 };
 
 // Export all faculty data
