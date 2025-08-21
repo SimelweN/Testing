@@ -1743,6 +1743,181 @@ export const SMU_FACULTIES: Faculty[] = [
   }
 ];
 
+// Cape Peninsula University of Technology (CPUT) Programs
+export const CPUT_FACULTIES: Faculty[] = [
+  {
+    id: "agriculture-natural",
+    name: "Faculty of Agriculture & Natural Sciences",
+    description: "Agriculture and natural sciences programs",
+    degrees: [
+      createDegree("Diploma in Agriculture", "Agriculture & Natural Sciences", 28),
+      createDegree("Diploma in Agricultural Management", "Agriculture & Natural Sciences", 28),
+      createDegree("Diploma in Analytical Chemistry", "Agriculture & Natural Sciences", 28),
+      createDegree("Diploma in Biotechnology", "Agriculture & Natural Sciences", 28),
+      createDegree("Diploma in Consumer Science: Food & Nutrition", "Agriculture & Natural Sciences", 26),
+      createDegree("Diploma in Environmental Management", "Agriculture & Natural Sciences", 26)
+    ]
+  },
+  {
+    id: "health-wellness",
+    name: "Faculty of Health & Wellness Sciences",
+    description: "Health and wellness sciences programs",
+    degrees: [
+      createDegree("Bachelor of Health Sciences: Medical Laboratory Science", "Health & Wellness Sciences", 38),
+      createDegree("Bachelor of Health Sciences: Medical Laboratory Science (Extended)", "Health & Wellness Sciences", 30)
+    ]
+  }
+];
+
+// Central University of Technology (CUT) Programs
+export const CUT_FACULTIES: Faculty[] = [
+  {
+    id: "engineering-built-it",
+    name: "Faculty of Engineering, Built Environment & Information Technology",
+    description: "Engineering, built environment and IT programs",
+    degrees: [
+      createDegree("Diploma in Civil Engineering", "Engineering, Built Environment & Information Technology", 27),
+      createDegree("Diploma in Mechanical Engineering Technology", "Engineering, Built Environment & Information Technology", 27),
+      createDegree("Bachelor of Engineering Technology in Mechanical Engineering", "Engineering, Built Environment & Information Technology", 32),
+      createDegree("Diploma in Information Technology", "Engineering, Built Environment & Information Technology", 27),
+      createDegree("Bachelor's-level IT (BTech/Bachelor)", "Engineering, Built Environment & Information Technology", 30)
+    ]
+  },
+  {
+    id: "health-environmental",
+    name: "Faculty of Health & Environmental Sciences",
+    description: "Health and environmental sciences programs",
+    degrees: [
+      createDegree("Bachelor of Health Sciences: Medical Laboratory Sciences", "Health & Environmental Sciences", 30),
+      createDegree("Diploma in Environmental Health", "Health & Environmental Sciences", 27),
+      createDegree("Diploma in Dental Assisting", "Health & Environmental Sciences", 27)
+    ]
+  },
+  {
+    id: "management-humanities",
+    name: "Faculty of Management Sciences & Humanities",
+    description: "Management sciences and humanities programs",
+    degrees: [
+      createDegree("Diploma in Public Management", "Management Sciences & Humanities", 27),
+      createDegree("Diploma in Marketing", "Management Sciences & Humanities", 27),
+      createDegree("Diploma in Internal Auditing", "Management Sciences & Humanities", 28),
+      createDegree("Diploma in Office Management & Technology", "Management Sciences & Humanities", 27),
+      createDegree("Bachelor of Hospitality Management", "Management Sciences & Humanities", 30),
+      createDegree("Bachelor of Accountancy", "Management Sciences & Humanities", 30),
+      createDegree("Bachelor of Tourism Management", "Management Sciences & Humanities", 30)
+    ]
+  },
+  {
+    id: "education",
+    name: "Faculty of Education",
+    description: "Education programs",
+    degrees: [
+      createDegree("Bachelor of Education (Foundation Phase)", "Education", 27),
+      createDegree("Bachelor of Education (SP & FET – various streams)", "Education", 27)
+    ]
+  }
+];
+
+// Nelson Mandela University (NMU) Programs - Note: NMU uses percentage system
+export const NMU_FACULTIES: Faculty[] = [
+  {
+    id: "business-economic",
+    name: "Faculty of Business and Economic Sciences",
+    description: "Business and economic sciences programs",
+    degrees: [
+      createDegree("Higher Certificate Accounting", "Business and Economic Sciences", 29),
+      createDegree("Higher Certificate Business Studies", "Business and Economic Sciences", 29),
+      createDegree("Diploma in Accountancy", "Business and Economic Sciences", 35),
+      createDegree("Diploma in Economics", "Business and Economic Sciences", 33),
+      createDegree("Diploma in Human Resource Management", "Business and Economic Sciences", 33),
+      createDegree("Diploma in Marketing", "Business and Economic Sciences", 33),
+      createDegree("BCom General", "Business and Economic Sciences", 39),
+      createDegree("BCom Accounting", "Business and Economic Sciences", 41),
+      createDegree("BCom Computer Science & Information Systems", "Business and Economic Sciences", 39),
+      createDegree("BCom Economics & Statistics", "Business and Economic Sciences", 39),
+      createDegree("BCom Industrial Psychology & Human Resource Management", "Business and Economic Sciences", 39),
+      createDegree("BCom Accounting Science", "Business and Economic Sciences", 41)
+    ]
+  },
+  {
+    id: "education",
+    name: "Faculty of Education",
+    description: "Education programs",
+    degrees: [
+      createDegree("Bachelor of Foundation Phase", "Education", 35),
+      createDegree("Bachelor of Intermediate Phase", "Education", 35),
+      createDegree("Bachelor of Senior Phase & Further Education & Training", "Education", 39)
+    ]
+  },
+  {
+    id: "engineering-built-technology",
+    name: "Faculty of Engineering the Built Environment and Technology",
+    description: "Engineering, built environment and technology programs",
+    degrees: [
+      createDegree("Higher Certificate Mechatronic Engineering", "Engineering the Built Environment and Technology", 33),
+      createDegree("BEng Mechatronics", "Engineering the Built Environment and Technology", 41),
+      createDegree("BEngTech Electrical Engineering", "Engineering the Built Environment and Technology", 37),
+      createDegree("BEngTech Industrial Engineering", "Engineering the Built Environment and Technology", 37),
+      createDegree("BEngTech Mechanical Engineering", "Engineering the Built Environment and Technology", 37),
+      createDegree("Bachelor of Architectural Studies Architecture", "Engineering the Built Environment and Technology", 37),
+      createDegree("Bachelor of Information Technology", "Engineering the Built Environment and Technology", 37)
+    ]
+  },
+  {
+    id: "health-sciences",
+    name: "Faculty of Health Sciences",
+    description: "Health sciences programs",
+    degrees: [
+      createDegree("Bachelor of Environmental Health", "Health Sciences", 39),
+      createDegree("BA Psychology", "Health Sciences", 35),
+      createDegree("BSW (Social Work)", "Health Sciences", 35),
+      createDegree("BSc Dietetics", "Health Sciences", 39),
+      createDegree("Bachelor of Human Movement Science", "Health Sciences", 35),
+      createDegree("Bachelor of Biokinetics", "Health Sciences", 37),
+      createDegree("Bachelor of Nursing", "Health Sciences", 37),
+      createDegree("Bachelor of Medicine and Bachelor of Surgery", "Health Sciences", 43)
+    ]
+  },
+  {
+    id: "humanities",
+    name: "Faculty of Humanities",
+    description: "Humanities programs",
+    degrees: [
+      createDegree("Bachelor of Visual Arts", "Humanities", 35),
+      createDegree("Bachelor of Music", "Humanities", 35),
+      createDegree("BA", "Humanities", 35),
+      createDegree("BA Media, Communication & Culture", "Humanities", 35),
+      createDegree("BA Politics & Economics", "Humanities", 35),
+      createDegree("BAdmin Public Administration", "Humanities", 35)
+    ]
+  },
+  {
+    id: "law",
+    name: "Faculty of Law",
+    description: "Legal studies programs",
+    degrees: [
+      createDegree("Higher Certificate Law Enforcement", "Law", 31),
+      createDegree("Diploma Law Enforcement", "Law", 33),
+      createDegree("BA Law", "Law", 39),
+      createDegree("BCom Law", "Law", 39),
+      createDegree("LLB Law", "Law", 39)
+    ]
+  },
+  {
+    id: "science",
+    name: "Faculty of Science",
+    description: "Science programs",
+    degrees: [
+      createDegree("Diploma Agricultural Management", "Science", 33),
+      createDegree("Diploma Analytical Chemistry", "Science", 35),
+      createDegree("BSc Biological Sciences", "Science", 41),
+      createDegree("BSc Environmental Sciences", "Science", 41),
+      createDegree("BSc Computer Sciences", "Science", 41),
+      createDegree("BSc Physical Science & Mathematics", "Science", 41)
+    ]
+  }
+];
+
 // This will be defined at the end of the file after all faculty declarations
 
 // University of Cape Town (UCT) - Using FPS system, converting to approximate APS
