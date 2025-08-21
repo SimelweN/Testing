@@ -626,7 +626,10 @@ export const NEW_UNIVERSITY_PROGRAMS: Record<string, Faculty[]> = {
   "wsu": WSU_FACULTIES,
   "unizulu": UNIZULU_FACULTIES,
   "spu": SPU_FACULTIES,
-  "ump": UMP_FACULTIES
+  "ump": UMP_FACULTIES,
+  "uct": UCT_FACULTIES,
+  "wits": WITS_FACULTIES,
+  "up": UP_FACULTIES
 };
 
 // University of Cape Town (UCT) - Using FPS system, converting to approximate APS
