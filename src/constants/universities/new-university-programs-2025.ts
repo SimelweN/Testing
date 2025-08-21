@@ -749,8 +749,8 @@ export const NEW_UNIVERSITY_PROGRAMS: Record<string, Faculty[]> = {
   "up": UP_FACULTIES,
   "uj": UJ_FACULTIES,
   "ukzn": UKZN_FACULTIES,
+  "stellenbosch": STELLENBOSCH_FACULTIES,
   // Default faculties for universities not yet specifically updated
-  "stellenbosch": DEFAULT_FACULTIES,
   "ufs": DEFAULT_FACULTIES,
   "ru": DEFAULT_FACULTIES,
   "uwc": DEFAULT_FACULTIES,
