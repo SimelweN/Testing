@@ -6,6 +6,7 @@ import { AlertTriangle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { EnhancedPurchaseEmailService } from "@/services/enhancedPurchaseEmailService";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   CheckoutState,
   CheckoutBook,
@@ -39,6 +40,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { removeFromCart, removeFromSellerCart } = useCart();
+  const isMobile = useIsMobile();
 
   const [checkoutState, setCheckoutState] = useState<CheckoutState>({
     step: { current: 1, completed: [] },
@@ -111,6 +113,8 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       let sellerSubaccountCode = bookData.seller_subaccount_code;
 
       if (!sellerSubaccountCode) {
+        console.log("⚠️ Book has no seller_subaccount_code, fetching from seller profile...");
+
         // Fallback: check seller's profile for subaccount
         const { data: sellerProfile, error: sellerProfileError } = await supabase
           .from("profiles")
@@ -118,19 +122,33 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           .eq("id", bookData.seller_id)
           .maybeSingle();
 
-        if (sellerProfileError || !sellerProfile?.subaccount_code) {
+        if (sellerProfileError) {
+          console.error("Error fetching seller profile:", sellerProfileError);
           throw new Error(
-            "Seller payment setup is incomplete. The seller needs to set up their banking details.",
+            "Unable to verify seller information. Please try again or contact support if the issue persists.",
+          );
+        }
+
+        if (!sellerProfile?.subaccount_code) {
+          // More user-friendly error message
+          throw new Error(
+            "This seller hasn't completed their payment setup yet. Please try again later or choose a different book.",
           );
         }
 
         sellerSubaccountCode = sellerProfile.subaccount_code;
 
-        // Update the book with the subaccount code for future purchases
-        await supabase
-          .from("books")
-          .update({ seller_subaccount_code: sellerSubaccountCode })
-          .eq("id", bookData.id);
+        // Update the book with the subaccount code for future purchases (non-blocking)
+        try {
+          await supabase
+            .from("books")
+            .update({ seller_subaccount_code: sellerSubaccountCode })
+            .eq("id", bookData.id);
+          console.log("✅ Updated book with seller subaccount code");
+        } catch (updateError) {
+          console.warn("⚠️ Failed to update book with subaccount code (non-critical):", updateError);
+          // Don't throw - this is just a cache update
+        }
       }
 
       // Validate seller_id first
@@ -626,8 +644,8 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className={`min-h-screen bg-gray-50 py-4 sm:py-8 ${isMobile ? 'checkout-mobile' : ''}`}>
+      <div className={`max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'paystack-container-mobile' : ''}`}>
         {/* Progress Bar */}
         <div className="mb-6 sm:mb-8">
           <div className="text-center mb-3 sm:mb-4">

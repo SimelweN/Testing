@@ -16,6 +16,8 @@ import { OrderSummary, OrderConfirmation } from "@/types/checkout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import PaystackPopup, { formatAmount } from "@/components/PaystackPopup";
+import PaystackPopupMobile, { formatAmountMobile } from "@/components/PaystackPopupMobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import PaymentErrorHandler, {
   classifyPaymentError,
   PaymentError,
@@ -41,6 +43,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   const [error, setError] = useState<PaymentError | null>(null);
   const [userEmail, setUserEmail] = useState<string>("");
   const [retryCount, setRetryCount] = useState(0);
+  const isMobile = useIsMobile();
 
   // Fetch user email on component mount
   React.useEffect(() => {
@@ -155,7 +158,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         console.log("🔍 DIRECT ERROR LOG - Constructor:", error?.constructor?.name);
         console.log("🔍 DIRECT ERROR LOG - Raw:", error);
         console.log("🔍 DIRECT ERROR LOG - Message:", error?.message);
-        console.log("🔍 DIRECT ERROR LOG - Details:", error?.details);
+        console.log("�� DIRECT ERROR LOG - Details:", error?.details);
         console.log("🔍 DIRECT ERROR LOG - Code:", error?.code);
         console.log("🔍 DIRECT ERROR LOG - Hint:", error?.hint);
         console.log("🔍 DIRECT ERROR LOG - Stringified:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
@@ -443,9 +446,28 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
     setError(classifiedError);
     onPaymentError(error);
 
-    toast.error("Payment failed", {
-      description: classifiedError.message,
-    });
+    // Mobile-specific error handling
+    if (isMobile && error.toLowerCase().includes('popup')) {
+      toast.error("Payment popup blocked", {
+        description: "Please allow popups in your browser settings and try again.",
+        duration: 8000,
+      });
+    } else if (isMobile && error.toLowerCase().includes('network')) {
+      toast.error("Network error", {
+        description: "Please check your internet connection and try again.",
+        duration: 6000,
+      });
+    } else if (isMobile && error.toLowerCase().includes('timeout')) {
+      toast.error("Payment timeout", {
+        description: "The payment took too long. Please try again.",
+        duration: 6000,
+      });
+    } else {
+      toast.error("Payment failed", {
+        description: classifiedError.message,
+        duration: isMobile ? 6000 : 4000,
+      });
+    }
   };
 
   const handlePaystackClose = () => {
@@ -577,8 +599,16 @@ Time: ${new Date().toISOString()}
 
       // Seller subaccount should already be available from books table
       if (!orderSummary.book.seller_subaccount_code) {
+        console.error("Missing seller_subaccount_code in payment step:", {
+          bookId: orderSummary.book.id,
+          sellerId: orderSummary.book.seller_id,
+          isMobile,
+        });
+
         throw new Error(
-          "Seller payment setup is incomplete. The seller needs to set up their banking details before accepting payments.",
+          isMobile
+            ? "This seller's payment setup is incomplete. Please try a different book or contact support."
+            : "Seller payment setup is incomplete. The seller needs to set up their banking details before accepting payments.",
         );
       }
 
@@ -1193,37 +1223,71 @@ Time: ${new Date().toISOString()}
           Back
         </Button>
 
-        <PaystackPopup
-          email={userEmail}
-          amount={orderSummary.total_price}
-          subaccountCode={orderSummary.book.seller_subaccount_code}
-          orderReference={`ORDER-${Date.now()}-${userId}`}
-          metadata={{
-            book_id: orderSummary.book.id,
-            book_title: orderSummary.book.title,
-            seller_id: orderSummary.book.seller_id,
-            buyer_id: userId,
-            delivery_method: orderSummary.delivery.service_name,
-            custom_fields: [
-              {
-                display_name: "Book Title",
-                variable_name: "book_title",
-                value: orderSummary.book.title,
-              },
-              {
-                display_name: "Delivery Method",
-                variable_name: "delivery_method",
-                value: orderSummary.delivery.service_name,
-              },
-            ],
-          }}
-          onSuccess={handlePaystackSuccess}
-          onError={handlePaystackError}
-          onClose={handlePaystackClose}
-          disabled={processing}
-          className="px-8 py-3 text-lg"
-          buttonText={`Pay Now - ${formatAmount(orderSummary.total_price)}`}
-        />
+        {isMobile ? (
+          <PaystackPopupMobile
+            email={userEmail}
+            amount={orderSummary.total_price}
+            subaccountCode={orderSummary.book.seller_subaccount_code}
+            orderReference={`ORDER-${Date.now()}-${userId}`}
+            metadata={{
+              book_id: orderSummary.book.id,
+              book_title: orderSummary.book.title,
+              seller_id: orderSummary.book.seller_id,
+              buyer_id: userId,
+              delivery_method: orderSummary.delivery.service_name,
+              custom_fields: [
+                {
+                  display_name: "Book Title",
+                  variable_name: "book_title",
+                  value: orderSummary.book.title,
+                },
+                {
+                  display_name: "Delivery Method",
+                  variable_name: "delivery_method",
+                  value: orderSummary.delivery.service_name,
+                },
+              ],
+            }}
+            onSuccess={handlePaystackSuccess}
+            onError={handlePaystackError}
+            onClose={handlePaystackClose}
+            disabled={processing}
+            className="w-full px-4 py-4 text-lg font-medium"
+            buttonText={`Pay Now - ${formatAmountMobile(orderSummary.total_price)}`}
+          />
+        ) : (
+          <PaystackPopup
+            email={userEmail}
+            amount={orderSummary.total_price}
+            subaccountCode={orderSummary.book.seller_subaccount_code}
+            orderReference={`ORDER-${Date.now()}-${userId}`}
+            metadata={{
+              book_id: orderSummary.book.id,
+              book_title: orderSummary.book.title,
+              seller_id: orderSummary.book.seller_id,
+              buyer_id: userId,
+              delivery_method: orderSummary.delivery.service_name,
+              custom_fields: [
+                {
+                  display_name: "Book Title",
+                  variable_name: "book_title",
+                  value: orderSummary.book.title,
+                },
+                {
+                  display_name: "Delivery Method",
+                  variable_name: "delivery_method",
+                  value: orderSummary.delivery.service_name,
+                },
+              ],
+            }}
+            onSuccess={handlePaystackSuccess}
+            onError={handlePaystackError}
+            onClose={handlePaystackClose}
+            disabled={processing}
+            className="px-8 py-3 text-lg"
+            buttonText={`Pay Now - ${formatAmount(orderSummary.total_price)}`}
+          />
+        )}
       </div>
     </div>
   );

@@ -250,14 +250,14 @@ const Checkout: React.FC = () => {
           undefined,
         seller_id: bookData.seller_id,
         seller_name: sellerData?.name || "Anonymous Seller",
-        seller_subaccount_code: bookData.subaccount_code || undefined,
+        seller_subaccount_code: bookData.seller_subaccount_code || undefined,
         seller: {
           id: bookData.seller_id,
           name: sellerData?.name || "Anonymous Seller",
           email: sellerData?.email || "",
           hasAddress: true, // Will be validated in CheckoutFlow
-          hasSubaccount: !!bookData.subaccount_code,
-          isReadyForOrders: !!bookData.subaccount_code,
+          hasSubaccount: !!bookData.seller_subaccount_code,
+          isReadyForOrders: !!bookData.seller_subaccount_code,
         },
       };
 
