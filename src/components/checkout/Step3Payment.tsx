@@ -446,9 +446,28 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
     setError(classifiedError);
     onPaymentError(error);
 
-    toast.error("Payment failed", {
-      description: classifiedError.message,
-    });
+    // Mobile-specific error handling
+    if (isMobile && error.toLowerCase().includes('popup')) {
+      toast.error("Payment popup blocked", {
+        description: "Please allow popups in your browser settings and try again.",
+        duration: 8000,
+      });
+    } else if (isMobile && error.toLowerCase().includes('network')) {
+      toast.error("Network error", {
+        description: "Please check your internet connection and try again.",
+        duration: 6000,
+      });
+    } else if (isMobile && error.toLowerCase().includes('timeout')) {
+      toast.error("Payment timeout", {
+        description: "The payment took too long. Please try again.",
+        duration: 6000,
+      });
+    } else {
+      toast.error("Payment failed", {
+        description: classifiedError.message,
+        duration: isMobile ? 6000 : 4000,
+      });
+    }
   };
 
   const handlePaystackClose = () => {
