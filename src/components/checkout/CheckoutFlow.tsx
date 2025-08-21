@@ -6,6 +6,7 @@ import { AlertTriangle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { EnhancedPurchaseEmailService } from "@/services/enhancedPurchaseEmailService";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   CheckoutState,
   CheckoutBook,
