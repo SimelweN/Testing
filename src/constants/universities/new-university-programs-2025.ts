@@ -1206,6 +1206,225 @@ export const DUT_FACULTIES: Faculty[] = [
   }
 ];
 
+// Vaal University of Technology (VUT) Programs
+export const VUT_FACULTIES: Faculty[] = [
+  {
+    id: "applied-computer",
+    name: "Faculty of Applied and Computer Sciences",
+    description: "Applied and computer sciences programs",
+    degrees: [
+      createDegree("Diploma in Analytical Chemistry", "Applied and Computer Sciences", 21),
+      createDegree("Diploma in Agricultural Management", "Applied and Computer Sciences", 21),
+      createDegree("Diploma in Biotechnology", "Applied and Computer Sciences", 23),
+      createDegree("Diploma in Non-Destructive Testing", "Applied and Computer Sciences", 19),
+      createDegree("Diploma in Information Technology", "Applied and Computer Sciences", 26),
+      createDegree("Extended Diploma in Information Technology", "Applied and Computer Sciences", 24)
+    ]
+  },
+  {
+    id: "engineering-technology",
+    name: "Faculty of Engineering and Technology",
+    description: "Engineering and technology programs",
+    degrees: [
+      createDegree("Diploma in Chemical Engineering", "Engineering and Technology", 24),
+      createDegree("Diploma in Civil Engineering", "Engineering and Technology", 24),
+      createDegree("Diploma in Industrial Engineering", "Engineering and Technology", 24),
+      createDegree("Diploma in Mechanical Engineering", "Engineering and Technology", 24),
+      createDegree("Diploma in Metallurgical Engineering", "Engineering and Technology", 24),
+      createDegree("Diploma in Electronic Engineering", "Engineering and Technology", 24),
+      createDegree("Diploma in Power Engineering", "Engineering and Technology", 24),
+      createDegree("Diploma in Process Control Engineering", "Engineering and Technology", 24),
+      createDegree("Diploma in Computer Systems Engineering", "Engineering and Technology", 24),
+      createDegree("Diploma in Operations Management", "Engineering and Technology", 23),
+      createDegree("Extended Diplomas (4 years)", "Engineering and Technology", 22)
+    ]
+  },
+  {
+    id: "human-sciences",
+    name: "Faculty of Human Sciences",
+    description: "Human sciences programs",
+    degrees: [
+      createDegree("Diploma in Fashion, Photography, Graphic Design & Fine Art", "Human Sciences", 21),
+      createDegree("Diploma in Food Service Management", "Human Sciences", 20),
+      createDegree("Diploma in Public Relations", "Human Sciences", 20),
+      createDegree("Diploma in Tourism Management", "Human Sciences", 20),
+      createDegree("Diploma in Ecotourism Management", "Human Sciences", 20),
+      createDegree("Diploma in Labour Law", "Human Sciences", 23),
+      createDegree("Diploma in Legal Assistance", "Human Sciences", 21),
+      createDegree("Diploma in Safety Management", "Human Sciences", 20),
+      createDegree("Diploma in Policing", "Human Sciences", 20),
+      createDegree("Bachelor of Communication Studies", "Human Sciences", 20),
+      createDegree("Bachelor of Education in Senior Phase & FET Teaching", "Human Sciences", 22)
+    ]
+  },
+  {
+    id: "management-sciences",
+    name: "Faculty of Management Sciences",
+    description: "Management sciences programs",
+    degrees: [
+      createDegree("Diploma in Financial Information Systems", "Management Sciences", 20),
+      createDegree("Diploma in Cost and Management Accounting", "Management Sciences", 20),
+      createDegree("Diploma in Internal Auditing", "Management Sciences", 20),
+      createDegree("Diploma in Human Resource Management", "Management Sciences", 20),
+      createDegree("Diploma in Logistics and Supply Chain Management", "Management Sciences", 20),
+      createDegree("Diploma in Marketing", "Management Sciences", 20),
+      createDegree("Diploma in Retail Business Management", "Management Sciences", 20),
+      createDegree("Diploma in Sport Management", "Management Sciences", 20)
+    ]
+  },
+  {
+    id: "health-sciences",
+    name: "Faculty of Health Sciences",
+    description: "Health sciences programs",
+    degrees: [
+      createDegree("Bachelor of Health Sciences in Medical Laboratory Sciences", "Health Sciences", 27)
+    ]
+  }
+];
+
+// Mangosuthu University of Technology (MUT) Programs
+export const MUT_FACULTIES: Faculty[] = [
+  {
+    id: "engineering",
+    name: "Faculty of Engineering",
+    description: "Engineering programs",
+    degrees: [
+      createDegree("Diploma in Chemical Engineering", "Engineering", 26),
+      createDegree("Diploma in Civil Engineering", "Engineering", 26),
+      createDegree("Diploma in Surveying", "Engineering", 26),
+      createDegree("Diploma in Building", "Engineering", 26),
+      createDegree("Diploma in Electrical Engineering", "Engineering", 26),
+      createDegree("Diploma in Mechanical Engineering", "Engineering", 26),
+      createDegree("Bridging: Chemical Engineering", "Engineering", 20),
+      createDegree("Bridging: Civil Engineering", "Engineering", 20),
+      createDegree("Bridging: Electrical Engineering", "Engineering", 20),
+      createDegree("Bridging: Mechanical Engineering", "Engineering", 20),
+      createDegree("Bridging: Building", "Engineering", 20),
+      createDegree("Bridging: Surveying", "Engineering", 20)
+    ]
+  },
+  {
+    id: "management-sciences",
+    name: "Faculty of Management Sciences",
+    description: "Management sciences programs",
+    degrees: [
+      createDegree("Diploma in Accounting", "Management Sciences", 25),
+      createDegree("Diploma in Finance & Accounting: Public", "Management Sciences", 25),
+      createDegree("Diploma in Human Resource Management", "Management Sciences", 25),
+      createDegree("Diploma in Marketing", "Management Sciences", 25),
+      createDegree("Diploma in Office Management & Technology", "Management Sciences", 25),
+      createDegree("Diploma in Public Management", "Management Sciences", 25)
+    ]
+  },
+  {
+    id: "natural-sciences",
+    name: "Faculty of Natural Sciences",
+    description: "Natural sciences programs",
+    degrees: [
+      createDegree("BSc in Environmental Health", "Natural Sciences", 26),
+      createDegree("Bachelor of Health Science in Medical Laboratory Sciences (BHSc-MLS)", "Natural Sciences", 26),
+      createDegree("Diploma in Agriculture", "Natural Sciences", 23),
+      createDegree("Diploma in Biomedical Science", "Natural Sciences", 26),
+      createDegree("Diploma in Analytical Chemistry", "Natural Sciences", 26),
+      createDegree("Diploma in Community Extension", "Natural Sciences", 23),
+      createDegree("Diploma in Nature Conservation", "Natural Sciences", 23),
+      createDegree("Diploma in Information Technology (with entrance test)", "Natural Sciences", 23)
+    ]
+  }
+];
+
+// University of Western Cape (UWC) Programs
+export const UWC_FACULTIES: Faculty[] = [
+  {
+    id: "community-health",
+    name: "Faculty of Community and Health Sciences",
+    description: "Community and health sciences programs",
+    degrees: [
+      createDegree("Bachelor of Social Work", "Community and Health Sciences", 34),
+      createDegree("Bachelor of Community Development", "Community and Health Sciences", 30),
+      createDegree("BA Sport, Recreation and Exercise Science", "Community and Health Sciences", 30),
+      createDegree("BSc Sport and Exercise Science", "Community and Health Sciences", 33),
+      createDegree("BSc Occupational Therapy", "Community and Health Sciences", 33),
+      createDegree("BSc Physiotherapy", "Community and Health Sciences", 39),
+      createDegree("B Nursing and Midwifery", "Community and Health Sciences", 30),
+      createDegree("BSc Dietetics and Nutrition", "Community and Health Sciences", 33)
+    ]
+  },
+  {
+    id: "dentistry",
+    name: "Faculty of Dentistry",
+    description: "Dentistry programs",
+    degrees: [
+      createDegree("Bachelor of Dental Surgery (BDS)", "Dentistry", 40),
+      createDegree("Bachelor of Oral Health (BOH)", "Dentistry", 33)
+    ]
+  },
+  {
+    id: "education",
+    name: "Faculty of Education",
+    description: "Education programs",
+    degrees: [
+      createDegree("BEd Foundation Phase Teaching", "Education", 33),
+      createDegree("BEd Accounting (FET), EMS (SP) & Mathematics (SP)", "Education", 33),
+      createDegree("BEd Mathematics (SP), Math Literacy (SP & FET) & Natural Science (SP)", "Education", 33),
+      createDegree("BEd Languages (SP & FET) & Life Orientation (SP)", "Education", 33),
+      createDegree("BEd Languages (SP & FET) & Mathematics (SP)", "Education", 33),
+      createDegree("BEd Languages (SP & FET) & Social Sciences (SP)", "Education", 33)
+    ]
+  },
+  {
+    id: "natural-sciences",
+    name: "Faculty of Natural Sciences",
+    description: "Natural sciences programs",
+    degrees: [
+      createDegree("BSc Environmental and Water Science", "Natural Sciences", 33),
+      createDegree("BSc Biotechnology", "Natural Sciences", 33),
+      createDegree("BSc Biodiversity and Conservation Biology", "Natural Sciences", 33),
+      createDegree("BSc Medical Bioscience", "Natural Sciences", 33),
+      createDegree("BSc Chemical Sciences", "Natural Sciences", 33),
+      createDegree("BSc Applied Geology", "Natural Sciences", 33),
+      createDegree("BSc Physical Science", "Natural Sciences", 33),
+      createDegree("BSc Mathematical & Statistical Sciences", "Natural Sciences", 33),
+      createDegree("BSc Computer Science", "Natural Sciences", 33),
+      createDegree("Bachelor of Pharmacy (BPharm)", "Natural Sciences", 38)
+    ]
+  },
+  {
+    id: "arts-humanities",
+    name: "Faculty of Arts and Humanities",
+    description: "Arts and humanities programs",
+    degrees: [
+      createDegree("Bachelor of Arts (BA)", "Arts and Humanities", 35),
+      createDegree("Bachelor of Theology (BTh)", "Arts and Humanities", 35),
+      createDegree("Bachelor of Library and Information Science (BLIS)", "Arts and Humanities", 35)
+    ]
+  },
+  {
+    id: "law",
+    name: "Faculty of Law",
+    description: "Legal studies programs",
+    degrees: [
+      createDegree("Bachelor of Laws (LLB) (4-year)", "Law", 37),
+      createDegree("BA (Law) (3-year)", "Law", 37),
+      createDegree("BCom (Law)", "Law", 30)
+    ]
+  },
+  {
+    id: "economic-management",
+    name: "Faculty of Economic and Management Sciences",
+    description: "Economic and management sciences programs",
+    degrees: [
+      createDegree("Bachelor of Administration (BAdmin)", "Economic and Management Sciences", 30),
+      createDegree("BCom", "Economic and Management Sciences", 30),
+      createDegree("BCom Financial Accounting", "Economic and Management Sciences", 30),
+      createDegree("BCom Information Systems", "Economic and Management Sciences", 30),
+      createDegree("BCom Accounting", "Economic and Management Sciences", 30),
+      createDegree("BCom (Extended)", "Economic and Management Sciences", 30),
+      createDegree("BCom Accounting (Extended)", "Economic and Management Sciences", 30)
+    ]
+  }
+];
+
 // This will be defined at the end of the file after all faculty declarations
 
 // University of Cape Town (UCT) - Using FPS system, converting to approximate APS
