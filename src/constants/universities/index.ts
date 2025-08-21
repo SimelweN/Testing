@@ -10,9 +10,34 @@ import {
   findProgramsByFaculty,
 } from "./updated-university-programs-2025";
 
-// Use the complete 26 university database with comprehensive program allocation
-export const ALL_SOUTH_AFRICAN_UNIVERSITIES: University[] =
-  COMPLETE_26_UNIVERSITIES;
+// Merge the complete 26 university database with updated 2025 programs
+const mergeUniversityPrograms = (existingUniversities: University[], updatedUniversities: University[]): University[] => {
+  const mergedUniversities = [...existingUniversities];
+
+  updatedUniversities.forEach(updatedUni => {
+    const existingIndex = mergedUniversities.findIndex(uni => uni.id === updatedUni.id);
+
+    if (existingIndex >= 0) {
+      // Update existing university with new programs
+      mergedUniversities[existingIndex] = {
+        ...mergedUniversities[existingIndex],
+        faculties: updatedUni.faculties,
+        // Preserve other existing data while updating programs
+      };
+    } else {
+      // Add new university if it doesn't exist
+      mergedUniversities.push(updatedUni);
+    }
+  });
+
+  return mergedUniversities;
+};
+
+// Use the complete 26 university database with comprehensive program allocation plus 2025 updates
+export const ALL_SOUTH_AFRICAN_UNIVERSITIES: University[] = mergeUniversityPrograms(
+  COMPLETE_26_UNIVERSITIES,
+  UPDATED_UNIVERSITY_PROGRAMS_2025
+);
 // Alias for backward compatibility - ensure this uses the complete database
 export const SOUTH_AFRICAN_UNIVERSITIES = ALL_SOUTH_AFRICAN_UNIVERSITIES;
 
