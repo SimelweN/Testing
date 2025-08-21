@@ -152,15 +152,25 @@ export const UNIVERSITY_METADATA = {
   totalUniversities: ALL_SOUTH_AFRICAN_UNIVERSITIES.length,
   universityBreakdown: UNIVERSITY_STATISTICS,
   lastUpdated: new Date().toISOString(),
-  version: "6.0.0-complete-26-universities",
-  source: "complete-26-universities",
+  version: "7.0.0-comprehensive-with-2025-updates",
+  source: "complete-26-universities-plus-2025-updates",
   programStatistics: { totalPrograms: 0, programsByFaculty: {} },
   features: [
     "All 26 South African public universities",
-    "University-specific APS scores",
+    "University-specific APS scores from official sources",
     "Comprehensive program allocation rules",
     "Faculty-based organization",
     "Career prospects for all programs",
     "Realistic program distribution",
+    "2025 admission requirements",
+    "Extended programme options",
   ],
+};
+
+// Export utility functions for university program management
+export {
+  getUniversityPrograms,
+  findProgramsByAPS,
+  findProgramsByFaculty,
+  UPDATED_UNIVERSITY_PROGRAMS_2025,
 };
