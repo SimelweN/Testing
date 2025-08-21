@@ -628,8 +628,8 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className={`min-h-screen bg-gray-50 py-4 sm:py-8 ${isMobile ? 'checkout-mobile' : ''}`}>
+      <div className={`max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'paystack-container-mobile' : ''}`}>
         {/* Progress Bar */}
         <div className="mb-6 sm:mb-8">
           <div className="text-center mb-3 sm:mb-4">
