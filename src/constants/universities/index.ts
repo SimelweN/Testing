@@ -3,6 +3,12 @@ import {
   ALL_SOUTH_AFRICAN_UNIVERSITIES as COMPLETE_26_UNIVERSITIES,
   UNIVERSITY_STATISTICS,
 } from "./complete-26-universities";
+import {
+  UPDATED_UNIVERSITY_PROGRAMS_2025,
+  getUniversityPrograms,
+  findProgramsByAPS,
+  findProgramsByFaculty,
+} from "./updated-university-programs-2025";
 
 // Use the complete 26 university database with comprehensive program allocation
 export const ALL_SOUTH_AFRICAN_UNIVERSITIES: University[] =
