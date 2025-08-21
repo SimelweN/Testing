@@ -599,8 +599,16 @@ Time: ${new Date().toISOString()}
 
       // Seller subaccount should already be available from books table
       if (!orderSummary.book.seller_subaccount_code) {
+        console.error("Missing seller_subaccount_code in payment step:", {
+          bookId: orderSummary.book.id,
+          sellerId: orderSummary.book.seller_id,
+          isMobile,
+        });
+
         throw new Error(
-          "Seller payment setup is incomplete. The seller needs to set up their banking details before accepting payments.",
+          isMobile
+            ? "This seller's payment setup is incomplete. Please try a different book or contact support."
+            : "Seller payment setup is incomplete. The seller needs to set up their banking details before accepting payments.",
         );
       }
 
