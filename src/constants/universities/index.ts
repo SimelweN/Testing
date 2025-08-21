@@ -16,32 +16,70 @@ import {
   UNIVERSITIES_OF_TECHNOLOGY_2025,
 } from "./universities-of-technology-2025";
 
-// Merge the complete 26 university database with updated 2025 programs
-const mergeUniversityPrograms = (existingUniversities: University[], updatedUniversities: University[]): University[] => {
-  const mergedUniversities = [...existingUniversities];
+// Merge all university databases with comprehensive 2025 programs
+const mergeAllUniversities = (...universitySets: University[][]): University[] => {
+  const mergedUniversities: University[] = [];
+  const universityMap = new Map<string, University>();
 
-  updatedUniversities.forEach(updatedUni => {
-    const existingIndex = mergedUniversities.findIndex(uni => uni.id === updatedUni.id);
+  // Process all university sets
+  universitySets.forEach(universitySet => {
+    universitySet.forEach(university => {
+      const existingUni = universityMap.get(university.id);
 
-    if (existingIndex >= 0) {
-      // Update existing university with new programs
-      mergedUniversities[existingIndex] = {
-        ...mergedUniversities[existingIndex],
-        faculties: updatedUni.faculties,
-        // Preserve other existing data while updating programs
-      };
-    } else {
-      // Add new university if it doesn't exist
-      mergedUniversities.push(updatedUni);
-    }
+      if (existingUni) {
+        // Merge programs from both universities
+        const mergedFaculties = [...existingUni.faculties];
+
+        university.faculties.forEach(newFaculty => {
+          const existingFacultyIndex = mergedFaculties.findIndex(
+            f => f.name.toLowerCase() === newFaculty.name.toLowerCase()
+          );
+
+          if (existingFacultyIndex >= 0) {
+            // Merge degrees in the faculty
+            const existingDegreeIds = new Set(
+              mergedFaculties[existingFacultyIndex].degrees.map(d => d.id)
+            );
+
+            // Add new degrees that don't exist
+            newFaculty.degrees.forEach(degree => {
+              if (!existingDegreeIds.has(degree.id)) {
+                mergedFaculties[existingFacultyIndex].degrees.push(degree);
+              }
+            });
+          } else {
+            // Add new faculty
+            mergedFaculties.push(newFaculty);
+          }
+        });
+
+        // Update the university with merged data
+        universityMap.set(university.id, {
+          ...existingUni,
+          faculties: mergedFaculties,
+          // Update other properties if the new one is more comprehensive
+          description: university.description || existingUni.description,
+          studentCount: university.studentCount || existingUni.studentCount,
+          campuses: university.campuses?.length > 0 ? university.campuses : existingUni.campuses,
+          contactInfo: university.contactInfo || existingUni.contactInfo,
+          applicationPeriods: university.applicationPeriods || existingUni.applicationPeriods,
+          notableFeatures: university.notableFeatures?.length > 0 ? university.notableFeatures : existingUni.notableFeatures,
+        });
+      } else {
+        // Add new university
+        universityMap.set(university.id, university);
+      }
+    });
   });
 
-  return mergedUniversities;
+  return Array.from(universityMap.values());
 };
 
-// Use the complete 26 university database with comprehensive program allocation plus 2025 updates
-export const ALL_SOUTH_AFRICAN_UNIVERSITIES: University[] = mergeUniversityPrograms(
+// Merge all university databases: original 26 + comprehensive 2025 + universities of technology + updated programs
+export const ALL_SOUTH_AFRICAN_UNIVERSITIES: University[] = mergeAllUniversities(
   COMPLETE_26_UNIVERSITIES,
+  COMPREHENSIVE_SA_UNIVERSITIES_2025,
+  UNIVERSITIES_OF_TECHNOLOGY_2025,
   UPDATED_UNIVERSITY_PROGRAMS_2025
 );
 // Alias for backward compatibility - ensure this uses the complete database
