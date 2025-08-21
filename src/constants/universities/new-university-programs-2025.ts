@@ -2200,10 +2200,9 @@ export const NEW_UNIVERSITY_PROGRAMS: Record<string, Faculty[]> = {
   "ru": RU_FACULTIES,
   "univen": UNIVEN_FACULTIES,
   "smu": SMU_FACULTIES,
-  // Default faculties for universities still pending specific data
-  "cput": DEFAULT_FACULTIES,
-  "cut": DEFAULT_FACULTIES,
-  "nmu": DEFAULT_FACULTIES
+  "cput": CPUT_FACULTIES,
+  "cut": CUT_FACULTIES,
+  "nmu": NMU_FACULTIES
 };
 
 // Export all faculty data
