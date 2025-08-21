@@ -43,6 +43,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   const [error, setError] = useState<PaymentError | null>(null);
   const [userEmail, setUserEmail] = useState<string>("");
   const [retryCount, setRetryCount] = useState(0);
+  const isMobile = useIsMobile();
 
   // Fetch user email on component mount
   React.useEffect(() => {
@@ -107,7 +108,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       // IMMEDIATE ERROR ANALYSIS TO PREVENT [object Object]
       if (error) {
-        console.log("🚨 IMMEDIATE ERROR ANALYSIS:");
+        console.log("��� IMMEDIATE ERROR ANALYSIS:");
         console.log("  Raw error:", error);
         console.log("  Type:", typeof error);
         console.log("  Constructor:", error?.constructor?.name);
