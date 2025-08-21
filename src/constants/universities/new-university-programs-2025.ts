@@ -1425,6 +1425,324 @@ export const UWC_FACULTIES: Faculty[] = [
   }
 ];
 
+// University of South Africa (UNISA) Programs
+export const UNISA_FACULTIES: Faculty[] = [
+  {
+    id: "science-engineering-technology",
+    name: "Faculty of Science Engineering and Technology",
+    description: "Science, engineering and technology programs",
+    degrees: [
+      createDegree("Diploma in Chemical Engineering", "Science Engineering and Technology", 18),
+      createDegree("Diploma in Civil Engineering", "Science Engineering and Technology", 18),
+      createDegree("Diploma in Electrical Engineering", "Science Engineering and Technology", 18),
+      createDegree("Diploma in Industrial Engineering", "Science Engineering and Technology", 18),
+      createDegree("Diploma in Information Technology", "Science Engineering and Technology", 18),
+      createDegree("Diploma in Mechanical Engineering", "Science Engineering and Technology", 18),
+      createDegree("Diploma in Mining Engineering", "Science Engineering and Technology", 18),
+      createDegree("Diploma in Pulp and Paper Technology", "Science Engineering and Technology", 18),
+      createDegree("BSc Applied Mathematics and Computer Science", "Science Engineering and Technology", 20),
+      createDegree("BSc Applied Mathematics and Physics", "Science Engineering and Technology", 20),
+      createDegree("BSc Applied Mathematics and Statistics", "Science Engineering and Technology", 20),
+      createDegree("BSc Chemistry and Applied Mathematics", "Science Engineering and Technology", 20),
+      createDegree("BSc Chemistry and Computer Science", "Science Engineering and Technology", 20),
+      createDegree("BSc Chemistry and Information Systems", "Science Engineering and Technology", 20),
+      createDegree("BSc Chemistry and Physics", "Science Engineering and Technology", 20),
+      createDegree("BSc Chemistry and Statistics", "Science Engineering and Technology", 20),
+      createDegree("BSc General", "Science Engineering and Technology", 20),
+      createDegree("BSc Mathematics and Applied Mathematics", "Science Engineering and Technology", 20),
+      createDegree("BSc Mathematics and Chemistry", "Science Engineering and Technology", 20),
+      createDegree("BSc Mathematics and Computer Science", "Science Engineering and Technology", 20),
+      createDegree("BSc Mathematics and Information Science", "Science Engineering and Technology", 20),
+      createDegree("BSc Mathematics and Physics", "Science Engineering and Technology", 20),
+      createDegree("BSc Mathematics and Statistics", "Science Engineering and Technology", 20),
+      createDegree("BSc Statistics and Physics", "Science Engineering and Technology", 20),
+      createDegree("BSc Computing", "Science Engineering and Technology", 20),
+      createDegree("BSc Informatics", "Science Engineering and Technology", 20)
+    ]
+  },
+  {
+    id: "accounting-sciences",
+    name: "Accounting Sciences",
+    description: "Accounting sciences programs",
+    degrees: [
+      createDegree("Higher Certificate in Accounting Sciences", "Accounting Sciences", 14),
+      createDegree("Diploma in Accounting Sciences", "Accounting Sciences", 18),
+      createDegree("Bachelor of Accounting Sciences in Financial Accounting", "Accounting Sciences", 21),
+      createDegree("Bachelor of Accounting Sciences in Internal Auditing", "Accounting Sciences", 21),
+      createDegree("Bachelor of Accounting Sciences in Management Accounting", "Accounting Sciences", 21),
+      createDegree("Bachelor of Accounting Sciences in Taxation", "Accounting Sciences", 21)
+    ]
+  },
+  {
+    id: "economic-management",
+    name: "Economic & Management Sciences",
+    description: "Economic and management sciences programs",
+    degrees: [
+      createDegree("Higher Certificate in Banking", "Economic & Management Sciences", 15),
+      createDegree("Higher Certificate in Economic and Management Sciences", "Economic & Management Sciences", 15),
+      createDegree("Higher Certificate in Marketing", "Economic & Management Sciences", 15),
+      createDegree("Higher Certificate in Retailing", "Economic & Management Sciences", 15),
+      createDegree("Higher Certificate in Supervisory Management", "Economic & Management Sciences", 15),
+      createDegree("Higher Certificate in Tourism Management", "Economic & Management Sciences", 15),
+      createDegree("Diploma in Administrative Management", "Economic & Management Sciences", 17),
+      createDegree("Diploma in Human Resource Management", "Economic & Management Sciences", 17),
+      createDegree("Diploma in Marketing Management", "Economic & Management Sciences", 17),
+      createDegree("Diploma in Operations Management", "Economic & Management Sciences", 17),
+      createDegree("Diploma in Public Administration and Management", "Economic & Management Sciences", 17),
+      createDegree("Diploma in Safety Management", "Economic & Management Sciences", 17),
+      createDegree("Diploma in Small Business Management", "Economic & Management Sciences", 17),
+      createDegree("Diploma in Tourism Management", "Economic & Management Sciences", 17),
+      createDegree("Bachelor of Administration", "Economic & Management Sciences", 21),
+      createDegree("Bachelor of Business Administration", "Economic & Management Sciences", 21),
+      createDegree("Bachelor of Commerce", "Economic & Management Sciences", 21),
+      createDegree("Bachelor of Commerce in Business Management", "Economic & Management Sciences", 21),
+      createDegree("Bachelor of Commerce in Economics", "Economic & Management Sciences", 21),
+      createDegree("Bachelor of Commerce in Financial Management", "Economic & Management Sciences", 21),
+      createDegree("Bachelor of Commerce in Human Resource Management", "Economic & Management Sciences", 21),
+      createDegree("Bachelor of Commerce in Marketing Management", "Economic & Management Sciences", 21)
+    ]
+  },
+  {
+    id: "education",
+    name: "Education",
+    description: "Education programs",
+    degrees: [
+      createDegree("Higher Certificate in Education Foundation Phase and Intermediate Phase", "Education", 18),
+      createDegree("Higher Certificate in Education Senior Phase Maths and Science Education", "Education", 18),
+      createDegree("Higher Certificate in Education Senior Phase and Further Education and Training Teaching", "Education", 18),
+      createDegree("Diploma in Early Childhood Care and Education", "Education", 18),
+      createDegree("Bachelor of Education in Foundation Phase Teaching", "Education", 23),
+      createDegree("Bachelor of Education in Intermediate Phase Teaching", "Education", 23),
+      createDegree("Bachelor of Education in Senior Phase and Further Education and Training Teaching", "Education", 23)
+    ]
+  },
+  {
+    id: "human-sciences",
+    name: "Human Sciences",
+    description: "Human sciences programs",
+    degrees: [
+      createDegree("Higher Certificate in Archives and Records Management", "Human Sciences", 15),
+      createDegree("Higher Certificate in Social Auxiliary Work", "Human Sciences", 15),
+      createDegree("Diploma in Public Relations", "Human Sciences", 18),
+      createDegree("Bachelor of Arts African Languages and African Politics", "Human Sciences", 20),
+      createDegree("Bachelor of Arts African Languages and Criminology", "Human Sciences", 20),
+      createDegree("Bachelor of Arts African Languages and Economics", "Human Sciences", 20),
+      createDegree("Bachelor of Arts African Languages and Psychology", "Human Sciences", 20),
+      createDegree("Bachelor of Arts English Studies and Economics", "Human Sciences", 20),
+      createDegree("Bachelor of Arts English Studies and Psychology", "Human Sciences", 20),
+      createDegree("Bachelor of Arts History and Economics", "Human Sciences", 20),
+      createDegree("Bachelor of Arts Information Science and Economics", "Human Sciences", 20),
+      createDegree("Bachelor of Arts Linguistics and Psychology", "Human Sciences", 20)
+    ]
+  },
+  {
+    id: "law",
+    name: "Law",
+    description: "Legal studies programs",
+    degrees: [
+      createDegree("Higher Certificate in Criminal Justice", "Law", 17),
+      createDegree("Higher Certificate in Law", "Law", 17),
+      createDegree("Diploma in Corrections Management", "Law", 18),
+      createDegree("Diploma in Law", "Law", 18),
+      createDegree("Diploma in Policing", "Law", 18),
+      createDegree("Diploma in Security Management", "Law", 18),
+      createDegree("Bachelor of Arts in Criminology", "Law", 20),
+      createDegree("Bachelor of Arts in Forensic Science and Technology", "Law", 20),
+      createDegree("Bachelor of Arts in Police Science", "Law", 20),
+      createDegree("Bachelor of Commerce in Law", "Law", 20),
+      createDegree("Bachelor of Laws", "Law", 20)
+    ]
+  }
+];
+
+// Rhodes University (RU) Programs
+export const RU_FACULTIES: Faculty[] = [
+  {
+    id: "commerce",
+    name: "Faculty of Commerce",
+    description: "Commerce programs",
+    degrees: [
+      createDegree("BCom Programmes", "Commerce", 40),
+      createDegree("Bachelor of Business Science", "Commerce", 45)
+    ]
+  },
+  {
+    id: "education",
+    name: "Faculty of Education",
+    description: "Education programs",
+    degrees: [
+      createDegree("Bachelor of Education", "Education", 44)
+    ]
+  },
+  {
+    id: "humanities",
+    name: "Faculty of Humanities",
+    description: "Humanities programs",
+    degrees: [
+      createDegree("Bachelor of Humanities", "Humanities", 45)
+    ]
+  },
+  {
+    id: "pharmacy",
+    name: "Faculty of Pharmacy",
+    description: "Pharmacy programs",
+    degrees: [
+      createDegree("Bachelor of Pharmacy", "Pharmacy", 45)
+    ]
+  },
+  {
+    id: "science",
+    name: "Faculty of Science",
+    description: "Science programs",
+    degrees: [
+      createDegree("BSc Programmes", "Science", 45),
+      createDegree("Bachelor of Science (Information Systems)", "Science", 45)
+    ]
+  },
+  {
+    id: "law",
+    name: "Faculty of Law",
+    description: "Legal studies programs",
+    degrees: [
+      createDegree("Bachelor of Law", "Law", 45)
+    ]
+  }
+];
+
+// University of Venda (UNIVEN) Programs
+export const UNIVEN_FACULTIES: Faculty[] = [
+  {
+    id: "commerce",
+    name: "Commerce",
+    description: "Commerce programs",
+    degrees: [
+      createDegree("Bachelor of Administration", "Commerce", 32),
+      createDegree("Bachelor of Commerce in Accounting Sciences", "Commerce", 35),
+      createDegree("Bachelor of Commerce in Accounting", "Commerce", 32),
+      createDegree("Bachelor of Commerce in Business Information Systems", "Commerce", 32),
+      createDegree("Bachelor of Commerce in Business Management", "Commerce", 32),
+      createDegree("Bachelor of Commerce in Cost and Management Accounting", "Commerce", 32),
+      createDegree("Bachelor of Commerce in Economics", "Commerce", 32),
+      createDegree("Bachelor of Commerce in Human Resource Management", "Commerce", 32),
+      createDegree("Bachelor of Commerce in Industrial Psychology", "Commerce", 32),
+      createDegree("Bachelor of Commerce in Tourism Management", "Commerce", 32),
+      createDegree("Extended Bachelor of Administration", "Commerce", 28),
+      createDegree("Extended Bachelor of Commerce in Accounting", "Commerce", 28),
+      createDegree("Extended Bachelor of Commerce in Business Information Systems", "Commerce", 28),
+      createDegree("Extended Bachelor of Commerce in Business Management", "Commerce", 28),
+      createDegree("Extended Bachelor of Commerce in Economics", "Commerce", 28)
+    ]
+  },
+  {
+    id: "law",
+    name: "Law",
+    description: "Legal studies programs",
+    degrees: [
+      createDegree("Bachelor of Laws", "Law", 38),
+      createDegree("Bachelor of Arts in Criminal Justice", "Law", 34)
+    ]
+  },
+  {
+    id: "health-sciences",
+    name: "Health Sciences",
+    description: "Health sciences programs",
+    degrees: [
+      createDegree("Bachelor of Nursing", "Health Sciences", 36),
+      createDegree("BSc in Nutrition", "Health Sciences", 34),
+      createDegree("BSc in Sports and Exercise Science", "Health Sciences", 34),
+      createDegree("BSc in Recreation and Leisure Studies", "Health Sciences", 34),
+      createDegree("Bachelor of Psychology", "Health Sciences", 36)
+    ]
+  },
+  {
+    id: "science-engineering-agriculture",
+    name: "Science, Engineering and Agriculture",
+    description: "Science, engineering and agriculture programs",
+    degrees: [
+      createDegree("Diploma in Freshwater Technology", "Science, Engineering and Agriculture", 24),
+      createDegree("BSc in Biochemistry and Microbiology", "Science, Engineering and Agriculture", 26),
+      createDegree("BSc in Biochemistry and Biology", "Science, Engineering and Agriculture", 26),
+      createDegree("BSc in Microbiology and Botany", "Science, Engineering and Agriculture", 26),
+      createDegree("BSc in Mathematics and Applied Math", "Science, Engineering and Agriculture", 26),
+      createDegree("BSc in Mathematics and Physics", "Science, Engineering and Agriculture", 26),
+      createDegree("BSc in Mathematics and Statistics", "Science, Engineering and Agriculture", 26),
+      createDegree("BSc in Physics and Chemistry", "Science, Engineering and Agriculture", 26),
+      createDegree("BSc in Chemistry and Mathematics", "Science, Engineering and Agriculture", 26),
+      createDegree("BSc in Chemistry and Biochemistry", "Science, Engineering and Agriculture", 26),
+      createDegree("BSc in Chemistry", "Science, Engineering and Agriculture", 26),
+      createDegree("BSc in Botany and Zoology", "Science, Engineering and Agriculture", 26),
+      createDegree("BSc in Computer Science", "Science, Engineering and Agriculture", 26),
+      createDegree("BSc in Computer Science and Mathematics", "Science, Engineering and Agriculture", 26),
+      createDegree("Bachelor of Environmental Sciences", "Science, Engineering and Agriculture", 32),
+      createDegree("Bachelor of Earth Sciences in Mining and Environmental Geology", "Science, Engineering and Agriculture", 35),
+      createDegree("Bachelor of Earth Sciences in Hydrology and Water Resources", "Science, Engineering and Agriculture", 35),
+      createDegree("Bachelor of Urban and Regional Planning", "Science, Engineering and Agriculture", 35),
+      createDegree("Bachelor of Environmental Sciences in Disaster Risk Reduction", "Science, Engineering and Agriculture", 35),
+      createDegree("Bachelor of Science in Agriculture (Agricultural Economics)", "Science, Engineering and Agriculture", 26),
+      createDegree("Bachelor of Science in Agriculture (Agribusiness Management)", "Science, Engineering and Agriculture", 26),
+      createDegree("Bachelor of Science in Agriculture (Animal Science)", "Science, Engineering and Agriculture", 26),
+      createDegree("Bachelor of Science in Agriculture (Horticultural Sciences)", "Science, Engineering and Agriculture", 26),
+      createDegree("Bachelor of Science in Agriculture (Plant Production)", "Science, Engineering and Agriculture", 26),
+      createDegree("Bachelor of Science in Soil Science", "Science, Engineering and Agriculture", 26),
+      createDegree("Bachelor of Science in Forestry", "Science, Engineering and Agriculture", 26),
+      createDegree("Bachelor of Science in Agricultural and Biosystems Engineering", "Science, Engineering and Agriculture", 32)
+    ]
+  }
+];
+
+// Sefako Makgatho Health Sciences University (SMU) Programs
+export const SMU_FACULTIES: Faculty[] = [
+  {
+    id: "medicine",
+    name: "School of Medicine",
+    description: "Medicine programs",
+    degrees: [
+      createDegree("Diploma of Medicine (Extended)", "Medicine", 32),
+      createDegree("Diploma in Emergency Medical Care", "Medicine", 18),
+      createDegree("Higher Certificate in Medical Care", "Medicine", 15),
+      createDegree("Bachelor of Diagnostic Radiography", "Medicine", 16)
+    ]
+  },
+  {
+    id: "dentistry",
+    name: "School of Dentistry",
+    description: "Dentistry programs",
+    degrees: [
+      createDegree("Bachelor of Dental Surgery", "Dentistry", 37),
+      createDegree("Bachelor of Dental Therapy", "Dentistry", 28),
+      createDegree("Bachelor of Oral Hygiene", "Dentistry", 28)
+    ]
+  },
+  {
+    id: "pharmacy",
+    name: "School of Pharmacy",
+    description: "Pharmacy programs",
+    degrees: [
+      createDegree("Bachelor of Pharmacy", "Pharmacy", 32)
+    ]
+  },
+  {
+    id: "health-care-sciences",
+    name: "School of Health Care Sciences",
+    description: "Health care sciences programs",
+    degrees: [
+      createDegree("Bachelor of Nursing and Midwifery", "Health Care Sciences", 26),
+      createDegree("Bachelor of Occupational Therapy", "Health Care Sciences", 25),
+      createDegree("Bachelor of Science in Physiotherapy", "Health Care Sciences", 28),
+      createDegree("Bachelor of Audiology", "Health Care Sciences", 25),
+      createDegree("Bachelor of Speech Language Pathology", "Health Care Sciences", 25)
+    ]
+  },
+  {
+    id: "science-technology",
+    name: "School of Science and Technology",
+    description: "Science and technology programs",
+    degrees: [
+      createDegree("General Science and Technology Programs", "Science and Technology", 20, "Science and technology programs with Level 4 requirements for maths, physics, life sciences and English")
+    ]
+  }
+];
+
 // This will be defined at the end of the file after all faculty declarations
 
 // University of Cape Town (UCT) - Using FPS system, converting to approximate APS
