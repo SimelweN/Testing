@@ -619,6 +619,109 @@ export const UMP_FACULTIES: Faculty[] = [
   }
 ];
 
+// Stellenbosch University (SU) Programs
+export const STELLENBOSCH_FACULTIES: Faculty[] = [
+  {
+    id: "agrisciences",
+    name: "Faculty of AgriSciences",
+    description: "Agricultural sciences programs",
+    degrees: [
+      createDegree("Bachelor of Science in Agriculture (Various streams: Animal Production Systems, Plant and Soil Sciences, etc.)", "AgriSciences", 30),
+      createDegree("Bachelor of Science in Food Science", "AgriSciences", 35),
+      createDegree("Bachelor of Science in Forestry", "AgriSciences", 30),
+      createDegree("Bachelor of Science in Viticulture and Oenology", "AgriSciences", 30)
+    ]
+  },
+  {
+    id: "economic-management",
+    name: "Faculty of Economic and Management Sciences",
+    description: "Economic and management programs",
+    degrees: [
+      createDegree("Bachelor of Commerce in Accounting", "Economic and Management Sciences", 36),
+      createDegree("Bachelor of Commerce in Economic Sciences", "Economic and Management Sciences", 36),
+      createDegree("Bachelor of Commerce in Financial Accounting", "Economic and Management Sciences", 36),
+      createDegree("Bachelor of Commerce in Mathematical Sciences", "Economic and Management Sciences", 36),
+      createDegree("Bachelor of Commerce in Management Sciences", "Economic and Management Sciences", 36),
+      createDegree("Bachelor of Commerce (General)", "Economic and Management Sciences", 36)
+    ]
+  },
+  {
+    id: "education",
+    name: "Faculty of Education",
+    description: "Education programs",
+    degrees: [
+      createDegree("Bachelor of Education in Foundation Phase Teaching", "Education", 30),
+      createDegree("Bachelor of Education in Intermediate Phase Teaching", "Education", 30),
+      createDegree("Bachelor of Education in Further Education and Training (FET)", "Education", 30)
+    ]
+  },
+  {
+    id: "engineering",
+    name: "Faculty of Engineering",
+    description: "Engineering programs",
+    degrees: [
+      createDegree("Bachelor of Engineering (All specialisations: Civil, Electrical, Mechanical, etc.)", "Engineering", 42)
+    ]
+  },
+  {
+    id: "law",
+    name: "Faculty of Law",
+    description: "Legal studies programs",
+    degrees: [
+      createDegree("Bachelor of Laws (LLB)", "Law", 36),
+      createDegree("BA (Law)", "Law", 36),
+      createDegree("BCom (Law)", "Law", 36)
+    ]
+  },
+  {
+    id: "medicine-health",
+    name: "Faculty of Medicine and Health Sciences",
+    description: "Medicine and health sciences programs",
+    degrees: [
+      createDegree("Bachelor of Medicine and Bachelor of Surgery (MBChB)", "Medicine and Health Sciences", 38),
+      createDegree("Bachelor of Science in Dietetics", "Medicine and Health Sciences", 36),
+      createDegree("Bachelor of Science in Speech-Language and Hearing Therapy", "Medicine and Health Sciences", 36),
+      createDegree("Bachelor of Occupational Therapy", "Medicine and Health Sciences", 36),
+      createDegree("Bachelor of Physiotherapy", "Medicine and Health Sciences", 36),
+      createDegree("Bachelor of Nursing and Midwifery", "Medicine and Health Sciences", 36)
+    ]
+  },
+  {
+    id: "science",
+    name: "Faculty of Science",
+    description: "Science programs",
+    degrees: [
+      createDegree("Bachelor of Science (with Biological Sciences, Chemistry, Earth Sciences, Mathematical Sciences, Physics, etc.)", "Science", 34),
+      createDegree("Bachelor of Science in Molecular Biology and Biotechnology", "Science", 34),
+      createDegree("Bachelor of Science in Biodiversity and Ecology", "Science", 34),
+      createDegree("Bachelor of Science in Human Life Sciences (Biology or Psychology)", "Science", 34),
+      createDegree("Bachelor of Science in Sport Science", "Science", 34)
+    ]
+  },
+  {
+    id: "theology",
+    name: "Faculty of Theology",
+    description: "Theology programs",
+    degrees: [
+      createDegree("Bachelor of Theology", "Theology", 28),
+      createDegree("Bachelor of Divinity (extended)", "Theology", 26)
+    ]
+  },
+  {
+    id: "arts-social",
+    name: "Faculty of Arts and Social Sciences",
+    description: "Arts and social sciences programs",
+    degrees: [
+      createDegree("Bachelor of Arts (General)", "Arts and Social Sciences", 30),
+      createDegree("Bachelor of Arts in Humanities", "Arts and Social Sciences", 30),
+      createDegree("Bachelor of Arts in Social Dynamics", "Arts and Social Sciences", 30),
+      createDegree("Bachelor of Music", "Arts and Social Sciences", 30),
+      createDegree("Bachelor of Drama and Theatre Studies", "Arts and Social Sciences", 30),
+      createDegree("Bachelor of Fine Arts", "Arts and Social Sciences", 30)
+    ]
+  }
+];
+
 // Default faculties for universities not yet updated with specific data
 const DEFAULT_FACULTIES: Faculty[] = [
   {
