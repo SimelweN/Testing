@@ -192,23 +192,57 @@ export const SOUTH_AFRICAN_UNIVERSITIES_SIMPLE =
   });
 
 // Export metadata for debugging
+// Calculate comprehensive statistics
+const calculateProgramStatistics = () => {
+  let totalPrograms = 0;
+  const programsByFaculty: Record<string, number> = {};
+  const programsByUniversity: Record<string, number> = {};
+
+  ALL_SOUTH_AFRICAN_UNIVERSITIES.forEach(university => {
+    let uniPrograms = 0;
+    university.faculties.forEach(faculty => {
+      const facultyPrograms = faculty.degrees.length;
+      totalPrograms += facultyPrograms;
+      uniPrograms += facultyPrograms;
+
+      if (!programsByFaculty[faculty.name]) {
+        programsByFaculty[faculty.name] = 0;
+      }
+      programsByFaculty[faculty.name] += facultyPrograms;
+    });
+    programsByUniversity[university.name] = uniPrograms;
+  });
+
+  return { totalPrograms, programsByFaculty, programsByUniversity };
+};
+
+const programStats = calculateProgramStatistics();
+
 export const UNIVERSITY_METADATA = {
   totalUniversities: ALL_SOUTH_AFRICAN_UNIVERSITIES.length,
   universityBreakdown: UNIVERSITY_STATISTICS,
   lastUpdated: new Date().toISOString(),
-  version: "7.0.0-comprehensive-with-2025-updates",
-  source: "complete-26-universities-plus-2025-updates",
-  programStatistics: { totalPrograms: 0, programsByFaculty: {} },
+  version: "8.0.0-complete-comprehensive-2025",
+  source: "comprehensive-sa-universities-2025-complete",
+  programStatistics: programStats,
   features: [
-    "All 26 South African public universities",
-    "University-specific APS scores from official sources",
-    "Comprehensive program allocation rules",
+    "ALL South African public universities",
+    "University-specific APS scores from official admission documents",
+    "Comprehensive program database from university documents",
     "Faculty-based organization",
     "Career prospects for all programs",
-    "Realistic program distribution",
+    "Extended programme options with correct APS scores",
     "2025 admission requirements",
-    "Extended programme options",
+    "Universities of Technology included",
+    "Traditional universities included",
+    "Comprehensive universities included",
+    "Exact APS scores from official sources",
   ],
+  coverage: {
+    traditional: ALL_SOUTH_AFRICAN_UNIVERSITIES.filter(u => u.type === "Traditional University").length,
+    technology: ALL_SOUTH_AFRICAN_UNIVERSITIES.filter(u => u.type === "University of Technology").length,
+    comprehensive: ALL_SOUTH_AFRICAN_UNIVERSITIES.filter(u => u.type === "Comprehensive University").length,
+  },
 };
 
 // Export utility functions for university program management
