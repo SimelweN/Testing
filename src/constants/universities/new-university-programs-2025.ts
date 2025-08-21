@@ -629,9 +629,241 @@ export const NEW_UNIVERSITY_PROGRAMS: Record<string, Faculty[]> = {
   "ump": UMP_FACULTIES
 };
 
+// University of Cape Town (UCT) - Using FPS system, converting to approximate APS
+export const UCT_FACULTIES: Faculty[] = [
+  {
+    id: "commerce",
+    name: "Faculty of Commerce",
+    description: "Commerce and business programs",
+    degrees: [
+      createDegree("Bachelor of Business Science (Actuarial Science)", "Commerce", 45),
+      createDegree("Bachelor of Business Science (Computer Science)", "Commerce", 42),
+      createDegree("Bachelor of Business Science (Finance, Economics, Marketing, Analytics)", "Commerce", 40),
+      createDegree("Bachelor of Commerce (Accounting, General, Law, PPE)", "Commerce", 36)
+    ]
+  },
+  {
+    id: "engineering-built",
+    name: "Faculty of Engineering & the Built Environment",
+    description: "Engineering and built environment programs",
+    degrees: [
+      createDegree("Bachelor of Science in Engineering (Mechanical, Civil, Electrical, Mechatronics, Chemical, Electro-Mechanical, Mining)", "Engineering & the Built Environment", 45),
+      createDegree("Bachelor of Science in Geomatics", "Engineering & the Built Environment", 40),
+      createDegree("Bachelor of Science in Property Studies", "Engineering & the Built Environment", 38),
+      createDegree("Bachelor of Architectural Studies", "Engineering & the Built Environment", 37)
+    ]
+  },
+  {
+    id: "health-sciences",
+    name: "Faculty of Health Sciences",
+    description: "Health sciences programs",
+    degrees: [
+      createDegree("Bachelor of Medicine and Bachelor of Surgery (MBChB)", "Health Sciences", 48),
+      createDegree("Bachelor of Science in Physiotherapy", "Health Sciences", 45),
+      createDegree("Bachelor of Science in Occupational Therapy", "Health Sciences", 43),
+      createDegree("Bachelor of Science in Audiology", "Health Sciences", 42),
+      createDegree("Bachelor of Science in Speech-Language Pathology", "Health Sciences", 42)
+    ]
+  },
+  {
+    id: "humanities",
+    name: "Faculty of Humanities",
+    description: "Humanities programs",
+    degrees: [
+      createDegree("Bachelor of Arts (General)", "Humanities", 36),
+      createDegree("Bachelor of Arts in Fine Art", "Humanities", 36),
+      createDegree("Bachelor of Social Science", "Humanities", 36),
+      createDegree("Bachelor of Music", "Humanities", 36),
+      createDegree("Bachelor of Arts in Theatre and Performance", "Humanities", 36),
+      createDegree("Bachelor of Social Work", "Humanities", 36)
+    ]
+  },
+  {
+    id: "law",
+    name: "Faculty of Law",
+    description: "Legal studies programs",
+    degrees: [
+      createDegree("Bachelor of Laws (LLB)", "Law", 37),
+      createDegree("Bachelor of Arts with Law", "Law", 36),
+      createDegree("Bachelor of Social Science with Law", "Law", 36)
+    ]
+  },
+  {
+    id: "science",
+    name: "Faculty of Science",
+    description: "Science programs",
+    degrees: [
+      createDegree("Bachelor of Science in Actuarial Science", "Science", 46),
+      createDegree("Bachelor of Science in Computer Science", "Science", 42),
+      createDegree("Bachelor of Science (General Sciences)", "Science", 40),
+      createDegree("Bachelor of Science in Applied Biology, Chemistry, Environmental & Geographical Science, Ocean & Atmosphere Science, Physics, Mathematics, Statistics", "Science", 40)
+    ]
+  }
+];
+
+// University of the Witwatersrand (Wits) - Using composite system
+export const WITS_FACULTIES: Faculty[] = [
+  {
+    id: "commerce-law-management",
+    name: "Faculty of Commerce, Law and Management",
+    description: "Commerce, law and management programs",
+    degrees: [
+      createDegree("Bachelor of Commerce (General)", "Commerce, Law and Management", 38),
+      createDegree("Bachelor of Commerce (Information Systems)", "Commerce, Law and Management", 38),
+      createDegree("Bachelor of Commerce (Politics, Philosophy and Economics)", "Commerce, Law and Management", 38),
+      createDegree("Accounting Science", "Commerce, Law and Management", 44),
+      createDegree("Accounting", "Commerce, Law and Management", 34),
+      createDegree("Economic Science", "Commerce, Law and Management", 42),
+      createDegree("Bachelor of Commerce (Law)", "Commerce, Law and Management", 43),
+      createDegree("LLB (four year stream)", "Commerce, Law and Management", 46)
+    ]
+  },
+  {
+    id: "engineering-built",
+    name: "Faculty of Engineering and the Built Environment",
+    description: "Engineering and built environment programs",
+    degrees: [
+      createDegree("Chemical Engineering", "Engineering and the Built Environment", 42),
+      createDegree("Metallurgy and Materials Engineering", "Engineering and the Built Environment", 42),
+      createDegree("Civil Engineering", "Engineering and the Built Environment", 42),
+      createDegree("Electrical Engineering", "Engineering and the Built Environment", 42),
+      createDegree("Biomedical Engineering", "Engineering and the Built Environment", 42),
+      createDegree("Digital Arts", "Engineering and the Built Environment", 42),
+      createDegree("Aeronautical Engineering", "Engineering and the Built Environment", 42),
+      createDegree("Industrial Engineering", "Engineering and the Built Environment", 42),
+      createDegree("Mechanical Engineering", "Engineering and the Built Environment", 42),
+      createDegree("Mining Engineering", "Engineering and the Built Environment", 42),
+      createDegree("Architectural Studies", "Engineering and the Built Environment", 34),
+      createDegree("Urban and Regional Planning", "Engineering and the Built Environment", 36),
+      createDegree("Construction Studies", "Engineering and the Built Environment", 36),
+      createDegree("Property Studies", "Engineering and the Built Environment", 36)
+    ]
+  },
+  {
+    id: "humanities",
+    name: "Faculty of Humanities",
+    description: "Humanities programs",
+    degrees: [
+      createDegree("Arts (BA)", "Humanities", 36),
+      createDegree("Arts (Law)", "Humanities", 43),
+      createDegree("Arts in Digital Arts", "Humanities", 36),
+      createDegree("Arts in Theatre Performance", "Humanities", 34),
+      createDegree("Arts in Film and Television", "Humanities", 34),
+      createDegree("Arts in Fine Arts", "Humanities", 34),
+      createDegree("Music", "Humanities", 34),
+      createDegree("Speech Language Pathology", "Humanities", 34),
+      createDegree("Audiology", "Humanities", 34),
+      createDegree("Social Work", "Humanities", 34)
+    ]
+  },
+  {
+    id: "education",
+    name: "Faculty of Education",
+    description: "Education programs",
+    degrees: [
+      createDegree("Foundation Phase Teaching", "Education", 37),
+      createDegree("Intermediate Phase Teaching", "Education", 37),
+      createDegree("Senior Phase and Further and Training Teaching", "Education", 37)
+    ]
+  },
+  {
+    id: "science",
+    name: "Faculty of Science",
+    description: "Science programs",
+    degrees: [
+      createDegree("Science (BSc) General", "Science", 42),
+      createDegree("Biological Sciences", "Science", 43),
+      createDegree("Geographical and Archaeological", "Science", 42),
+      createDegree("Geospatial Sciences", "Science", 42),
+      createDegree("Environmental Studies", "Science", 42),
+      createDegree("Geological Sciences", "Science", 42),
+      createDegree("Actuarial Sciences", "Science", 42),
+      createDegree("Computational and Applied Mathematics", "Science", 44),
+      createDegree("Computer Sciences", "Science", 42),
+      createDegree("Mathematical Sciences", "Science", 42),
+      createDegree("Physical Sciences (Chemistry/Physics)", "Science", 42),
+      createDegree("Chemistry with Chemical Engineering", "Science", 43),
+      createDegree("Materials Sciences", "Science", 43),
+      createDegree("Astronomy and Astrophysics", "Science", 43)
+    ]
+  }
+];
+
+// University of Pretoria (UP) Programs
+export const UP_FACULTIES: Faculty[] = [
+  {
+    id: "economic-management",
+    name: "Faculty of Economic and Management Sciences",
+    description: "Economic and management programs",
+    degrees: [
+      createDegree("Bachelor of Commerce (General)", "Economic and Management Sciences", 30),
+      createDegree("Bachelor of Commerce in Accounting Sciences", "Economic and Management Sciences", 34),
+      createDegree("Bachelor of Commerce in Financial Sciences", "Economic and Management Sciences", 32),
+      createDegree("Bachelor of Commerce in Financial Investment Management", "Economic and Management Sciences", 32),
+      createDegree("Bachelor of Commerce in Law", "Economic and Management Sciences", 32),
+      createDegree("Bachelor of Commerce in Economics", "Economic and Management Sciences", 32),
+      createDegree("Bachelor of Commerce in Information Systems", "Economic and Management Sciences", 32),
+      createDegree("Bachelor of Commerce in Marketing Management", "Economic and Management Sciences", 30),
+      createDegree("Bachelor of Commerce in Human Resource Management", "Economic and Management Sciences", 30),
+      createDegree("Bachelor of Business Administration", "Economic and Management Sciences", 30),
+      createDegree("Bachelor of Administration in Public Administration", "Economic and Management Sciences", 28),
+      createDegree("Bachelor of Statistics and Data Science", "Economic and Management Sciences", 32),
+      createDegree("Bachelor of Agribusiness Management", "Economic and Management Sciences", 30),
+      createDegree("Bachelor of Business Management", "Economic and Management Sciences", 30),
+      createDegree("Bachelor of Supply Chain Management", "Economic and Management Sciences", 30),
+      createDegree("Bachelor of Commerce (Extended)", "Economic and Management Sciences", 26)
+    ]
+  },
+  {
+    id: "education",
+    name: "Faculty of Education",
+    description: "Education programs",
+    degrees: [
+      createDegree("Bachelor of Education in Foundation Phase Teaching", "Education", 28),
+      createDegree("Bachelor of Education in Intermediate Phase Teaching", "Education", 28),
+      createDegree("Bachelor of Education in Senior Phase and FET Teaching", "Education", 28),
+      createDegree("Higher Certificate in Sport Sciences", "Education", 20)
+    ]
+  },
+  {
+    id: "engineering-built-it",
+    name: "Faculty of Engineering, Built Environment and Information Technology",
+    description: "Engineering, built environment and IT programs",
+    degrees: [
+      createDegree("Bachelor of Engineering in Civil Engineering", "Engineering, Built Environment and Information Technology", 35),
+      createDegree("Bachelor of Engineering in Chemical Engineering", "Engineering, Built Environment and Information Technology", 35),
+      createDegree("Bachelor of Engineering in Electrical Engineering", "Engineering, Built Environment and Information Technology", 35),
+      createDegree("Bachelor of Engineering in Electronic Engineering", "Engineering, Built Environment and Information Technology", 35),
+      createDegree("Bachelor of Engineering in Industrial Engineering", "Engineering, Built Environment and Information Technology", 35),
+      createDegree("Bachelor of Engineering in Mechanical Engineering", "Engineering, Built Environment and Information Technology", 35),
+      createDegree("Bachelor of Engineering in Mining Engineering", "Engineering, Built Environment and Information Technology", 35),
+      createDegree("Bachelor of Town and Regional Planning", "Engineering, Built Environment and Information Technology", 30),
+      createDegree("Bachelor of Science in Construction Management", "Engineering, Built Environment and Information Technology", 30),
+      createDegree("Bachelor of Science in Quantity Surveying", "Engineering, Built Environment and Information Technology", 30),
+      createDegree("Bachelor of Science in Real Estate", "Engineering, Built Environment and Information Technology", 30),
+      createDegree("Bachelor of Information Technology", "Engineering, Built Environment and Information Technology", 34),
+      createDegree("Bachelor of Science in Computer Engineering", "Engineering, Built Environment and Information Technology", 35),
+      createDegree("Bachelor of Metallurgical Engineering", "Engineering, Built Environment and Information Technology", 35),
+      createDegree("Bachelor of Commerce Specialising in Information Systems", "Engineering, Built Environment and Information Technology", 30),
+      createDegree("Bachelor of Information Science", "Engineering, Built Environment and Information Technology", 28),
+      createDegree("Bachelor of Information Science in Publishing", "Engineering, Built Environment and Information Technology", 28),
+      createDegree("Bachelor of Information Science Specialising in Multimedia", "Engineering, Built Environment and Information Technology", 30),
+      createDegree("Bachelor of Information Systems", "Engineering, Built Environment and Information Technology", 30),
+      createDegree("Bachelor of Science in Computer Science", "Engineering, Built Environment and Information Technology", 30),
+      createDegree("Bachelor of Information and Knowledge Systems", "Engineering, Built Environment and Information Technology", 30)
+    ]
+  }
+];
+
 // Export all faculty data
 export const ALL_NEW_FACULTIES = {
   UL_FACULTIES,
   NWU_FACULTIES,
-  WSU_FACULTIES
+  WSU_FACULTIES,
+  UNIZULU_FACULTIES,
+  SPU_FACULTIES,
+  UMP_FACULTIES,
+  UCT_FACULTIES,
+  WITS_FACULTIES,
+  UP_FACULTIES
 };
