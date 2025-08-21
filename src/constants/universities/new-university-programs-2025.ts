@@ -1168,6 +1168,37 @@ export const UKZN_FACULTIES: Faculty[] = [
   }
 ];
 
+// University data mapping for easy replacement - defined after all faculty declarations
+export const NEW_UNIVERSITY_PROGRAMS: Record<string, Faculty[]> = {
+  "ul": UL_FACULTIES,
+  "nwu": NWU_FACULTIES,
+  "wsu": WSU_FACULTIES,
+  "unizulu": UNIZULU_FACULTIES,
+  "spu": SPU_FACULTIES,
+  "ump": UMP_FACULTIES,
+  "uct": UCT_FACULTIES,
+  "wits": WITS_FACULTIES,
+  "up": UP_FACULTIES,
+  "uj": UJ_FACULTIES,
+  "ukzn": UKZN_FACULTIES,
+  "stellenbosch": STELLENBOSCH_FACULTIES,
+  // Default faculties for universities not yet specifically updated
+  "ufs": DEFAULT_FACULTIES,
+  "ru": DEFAULT_FACULTIES,
+  "uwc": DEFAULT_FACULTIES,
+  "unisa": DEFAULT_FACULTIES,
+  "ufh": DEFAULT_FACULTIES,
+  "tut": DEFAULT_FACULTIES,
+  "dut": DEFAULT_FACULTIES,
+  "vut": DEFAULT_FACULTIES,
+  "mut": DEFAULT_FACULTIES,
+  "cput": DEFAULT_FACULTIES,
+  "cut": DEFAULT_FACULTIES,
+  "nmu": DEFAULT_FACULTIES,
+  "univen": DEFAULT_FACULTIES,
+  "smu": DEFAULT_FACULTIES
+};
+
 // Export all faculty data
 export const ALL_NEW_FACULTIES = {
   UL_FACULTIES,
