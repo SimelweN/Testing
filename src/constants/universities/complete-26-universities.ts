@@ -703,12 +703,12 @@ const BASE_UNIVERSITIES: University[] = [
 ];
 
 /**
- * Populate university faculties using the massive course database
+ * Populate university faculties using the new 2025 program data
  */
 function populateUniversityFaculties(): University[] {
   return BASE_UNIVERSITIES.map((university) => ({
     ...university,
-    faculties: getUniversityFaculties(university.id),
+    faculties: NEW_UNIVERSITY_PROGRAMS[university.id] || [],
   }));
 }
 
