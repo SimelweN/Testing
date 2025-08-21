@@ -927,6 +927,285 @@ export const UFH_FACULTIES: Faculty[] = [
   }
 ];
 
+// Tshwane University of Technology (TUT) Programs
+export const TUT_FACULTIES: Faculty[] = [
+  {
+    id: "arts-design",
+    name: "Faculty of Arts and Design",
+    description: "Arts and design programs",
+    degrees: [
+      createDegree("Bachelor of Arts in Fine Art", "Arts and Design", 24),
+      createDegree("Bachelor of Arts in Fashion Design and Technology", "Arts and Design", 24),
+      createDegree("Bachelor of Arts in Integrated Communication Design", "Arts and Design", 24),
+      createDegree("Bachelor of Arts in Jewellery Design and Manufacture", "Arts and Design", 24),
+      createDegree("Bachelor of Arts in Performing Arts", "Arts and Design", 24),
+      createDegree("Bachelor of Arts in Visual Communication", "Arts and Design", 24),
+      createDegree("Bachelor of Arts in Interior Design", "Arts and Design", 24),
+      createDegree("Higher Certificate in Performing Arts", "Arts and Design", 18)
+    ]
+  },
+  {
+    id: "economics-finance",
+    name: "Faculty of Economics and Finance",
+    description: "Economics and finance programs",
+    degrees: [
+      createDegree("Bachelor of Accounting", "Economics and Finance", 28),
+      createDegree("Diploma in Accounting", "Economics and Finance", 22),
+      createDegree("Bachelor of Economics", "Economics and Finance", 28),
+      createDegree("Diploma in Economics", "Economics and Finance", 22),
+      createDegree("Diploma in Public Finance and Accounting", "Economics and Finance", 22),
+      createDegree("Diploma in Taxation", "Economics and Finance", 22),
+      createDegree("Higher Certificate in Accounting", "Economics and Finance", 18)
+    ]
+  },
+  {
+    id: "engineering-built",
+    name: "Faculty of Engineering and the Built Environment",
+    description: "Engineering and built environment programs",
+    degrees: [
+      createDegree("Bachelor of Engineering Technology in Civil Engineering", "Engineering and the Built Environment", 30),
+      createDegree("Bachelor of Engineering Technology in Electrical Engineering", "Engineering and the Built Environment", 30),
+      createDegree("Bachelor of Engineering Technology in Mechanical Engineering", "Engineering and the Built Environment", 30),
+      createDegree("Bachelor of Engineering Technology in Chemical Engineering", "Engineering and the Built Environment", 30),
+      createDegree("Bachelor of Engineering Technology in Industrial Engineering", "Engineering and the Built Environment", 30),
+      createDegree("Bachelor of Engineering Technology in Computer Engineering", "Engineering and the Built Environment", 30),
+      createDegree("Diploma in Civil Engineering", "Engineering and the Built Environment", 26),
+      createDegree("Diploma in Electrical Engineering", "Engineering and the Built Environment", 26),
+      createDegree("Diploma in Mechanical Engineering", "Engineering and the Built Environment", 26),
+      createDegree("Diploma in Industrial Engineering", "Engineering and the Built Environment", 26),
+      createDegree("Diploma in Computer Systems Engineering", "Engineering and the Built Environment", 26),
+      createDegree("Diploma in Architecture", "Engineering and the Built Environment", 26),
+      createDegree("Diploma in Building", "Engineering and the Built Environment", 26),
+      createDegree("Diploma in Geomatics", "Engineering and the Built Environment", 26),
+      createDegree("Higher Certificate in Electrical Engineering", "Engineering and the Built Environment", 18),
+      createDegree("Higher Certificate in Mechanical Engineering", "Engineering and the Built Environment", 18)
+    ]
+  },
+  {
+    id: "humanities",
+    name: "Faculty of Humanities",
+    description: "Humanities programs",
+    degrees: [
+      createDegree("Bachelor of Education in Foundation Phase Teaching", "Humanities", 25),
+      createDegree("Bachelor of Education in Senior Phase and FET Teaching", "Humanities", 25),
+      createDegree("Diploma in Correctional and Rehabilitation Studies", "Humanities", 22),
+      createDegree("Diploma in Language Practice", "Humanities", 22),
+      createDegree("Diploma in Policing", "Humanities", 22),
+      createDegree("Diploma in Traffic Safety and Municipal Policing", "Humanities", 22),
+      createDegree("Diploma in Integrated Communication", "Humanities", 22),
+      createDegree("Diploma in Journalism", "Humanities", 22),
+      createDegree("Diploma in Public Relations Management", "Humanities", 22),
+      createDegree("Higher Certificate in Law Enforcement", "Humanities", 18),
+      createDegree("Higher Certificate in Public Relations", "Humanities", 18)
+    ]
+  },
+  {
+    id: "ict",
+    name: "Faculty of Information and Communication Technology",
+    description: "ICT programs",
+    degrees: [
+      createDegree("Bachelor of Information Technology", "Information and Communication Technology", 28),
+      createDegree("Diploma in Computer Science", "Information and Communication Technology", 24),
+      createDegree("Diploma in Computer Systems Engineering", "Information and Communication Technology", 26),
+      createDegree("Diploma in Multimedia Computing", "Information and Communication Technology", 24),
+      createDegree("Diploma in Software Development", "Information and Communication Technology", 24),
+      createDegree("Diploma in Informatics", "Information and Communication Technology", 24),
+      createDegree("Diploma in Information Technology", "Information and Communication Technology", 24),
+      createDegree("Diploma in Web and Application Development", "Information and Communication Technology", 24),
+      createDegree("Higher Certificate in Information and Communication Technology", "Information and Communication Technology", 18)
+    ]
+  },
+  {
+    id: "management-sciences",
+    name: "Faculty of Management Sciences",
+    description: "Management sciences programs",
+    degrees: [
+      createDegree("Bachelor of Management Sciences in Business Administration", "Management Sciences", 26),
+      createDegree("Bachelor of Management Sciences in Human Resource Management", "Management Sciences", 26),
+      createDegree("Bachelor of Management Sciences in Marketing", "Management Sciences", 26),
+      createDegree("Bachelor of Management Sciences in Retail Business Management", "Management Sciences", 26),
+      createDegree("Diploma in Administrative Information Management", "Management Sciences", 22),
+      createDegree("Diploma in Business Administration", "Management Sciences", 22),
+      createDegree("Diploma in Human Resource Management", "Management Sciences", 22),
+      createDegree("Diploma in Marketing", "Management Sciences", 22),
+      createDegree("Diploma in Public Management", "Management Sciences", 22),
+      createDegree("Diploma in Retail Business Management", "Management Sciences", 22),
+      createDegree("Diploma in Supply Chain Management", "Management Sciences", 22),
+      createDegree("Higher Certificate in Administrative Information Management", "Management Sciences", 18),
+      createDegree("Higher Certificate in Business Studies", "Management Sciences", 18)
+    ]
+  },
+  {
+    id: "science",
+    name: "Faculty of Science",
+    description: "Science programs",
+    degrees: [
+      createDegree("Bachelor of Science in Chemistry", "Science", 26),
+      createDegree("Bachelor of Science in Industrial Physics", "Science", 26),
+      createDegree("Bachelor of Science in Mathematical Technology", "Science", 26),
+      createDegree("Bachelor of Science in Statistics", "Science", 26),
+      createDegree("Bachelor of Science in Biotechnology", "Science", 26),
+      createDegree("Diploma in Analytical Chemistry", "Science", 24),
+      createDegree("Diploma in Biotechnology", "Science", 24),
+      createDegree("Diploma in Environmental Sciences", "Science", 24),
+      createDegree("Diploma in Food Technology", "Science", 24),
+      createDegree("Diploma in Geology", "Science", 24),
+      createDegree("Diploma in Industrial Physics", "Science", 24),
+      createDegree("Diploma in Mathematical Technology", "Science", 24),
+      createDegree("Diploma in Nature Conservation", "Science", 24),
+      createDegree("Diploma in Polymer Technology", "Science", 24),
+      createDegree("Diploma in Water Care", "Science", 24),
+      createDegree("Higher Certificate in Science and Technology", "Science", 18)
+    ]
+  },
+  {
+    id: "health-sciences",
+    name: "Faculty of Health Sciences",
+    description: "Health sciences programs",
+    degrees: [
+      createDegree("Bachelor of Health Sciences in Dental Technology", "Health Sciences", 28),
+      createDegree("Bachelor of Health Sciences in Medical Orthotics and Prosthetics", "Health Sciences", 28),
+      createDegree("Bachelor of Health Sciences in Nursing", "Health Sciences", 28),
+      createDegree("Bachelor of Health Sciences in Radiography", "Health Sciences", 28),
+      createDegree("Bachelor of Health Sciences in Biomedical Sciences", "Health Sciences", 28),
+      createDegree("Bachelor of Health Sciences in Environmental Health", "Health Sciences", 28),
+      createDegree("Bachelor of Health Sciences in Clinical Technology", "Health Sciences", 28),
+      createDegree("Bachelor of Health Sciences in Somatology", "Health Sciences", 28),
+      createDegree("Diploma in Dental Assisting", "Health Sciences", 24),
+      createDegree("Diploma in Nursing", "Health Sciences", 26),
+      createDegree("Diploma in Somatology", "Health Sciences", 24),
+      createDegree("Higher Certificate in Dental Assisting", "Health Sciences", 18),
+      createDegree("Higher Certificate in Nursing Care", "Health Sciences", 18)
+    ]
+  }
+];
+
+// Durban University of Technology (DUT) Programs
+export const DUT_FACULTIES: Faculty[] = [
+  {
+    id: "accounting-informatics",
+    name: "Faculty of Accounting and Informatics",
+    description: "Accounting and informatics programs",
+    degrees: [
+      createDegree("Bachelor of Information and Communications Technology", "Accounting and Informatics", 30),
+      createDegree("Bachelor of ICT: Internet of Things (IoT)", "Accounting and Informatics", 30),
+      createDegree("Diploma ICT: Applications Development", "Accounting and Informatics", 23),
+      createDegree("Diploma ICT: Business Analysis", "Accounting and Informatics", 23),
+      createDegree("Diploma Business & Information Management", "Accounting and Informatics", 23),
+      createDegree("Diploma in Accounting", "Accounting and Informatics", 23),
+      createDegree("Diploma in Internal Auditing", "Accounting and Informatics", 23),
+      createDegree("Diploma in Library and Information Studies", "Accounting and Informatics", 23),
+      createDegree("Diploma in Management Accounting", "Accounting and Informatics", 23),
+      createDegree("Diploma in Taxation", "Accounting and Informatics", 23)
+    ]
+  },
+  {
+    id: "applied-sciences",
+    name: "Faculty of Applied Sciences",
+    description: "Applied sciences programs",
+    degrees: [
+      createDegree("Bachelor of Applied Science in Biotechnology", "Applied Sciences", 28),
+      createDegree("Bachelor of Applied Science in Food Science and Technology", "Applied Sciences", 28),
+      createDegree("Bachelor of Applied Science in Industrial Chemistry", "Applied Sciences", 28),
+      createDegree("Bachelor of Applied Science in Textile Science", "Applied Sciences", 28),
+      createDegree("Bachelor of Sport Science and Management", "Applied Sciences", 28),
+      createDegree("Diploma in Shipping & Logistics", "Applied Sciences", 23),
+      createDegree("Diploma in Analytical Chemistry", "Applied Sciences", 23),
+      createDegree("Diploma in Clothing Management", "Applied Sciences", 23),
+      createDegree("Diploma in Consumer Sciences in Food and Nutrition", "Applied Sciences", 23),
+      createDegree("Diploma in Nautical Science", "Applied Sciences", 23),
+      createDegree("Diploma in Sustainable Horticulture and Landscaping", "Applied Sciences", 23),
+      createDegree("Higher Certificate in Sport Management Science", "Applied Sciences", 24)
+    ]
+  },
+  {
+    id: "arts-design",
+    name: "Faculty of Arts and Design",
+    description: "Arts and design programs",
+    degrees: [
+      createDegree("Bachelor of Applied Arts in Commercial Photography", "Arts and Design", 26),
+      createDegree("Bachelor of Applied Arts in Screen Arts and Technology", "Arts and Design", 36),
+      createDegree("Bachelor of Design in Visual Communication Design", "Arts and Design", 26),
+      createDegree("Bachelor of Education in Senior Phase & FET: Economic and Management Sciences", "Arts and Design", 28),
+      createDegree("Bachelor of Education in Senior Phase & FET: Electrical Technology", "Arts and Design", 28),
+      createDegree("Bachelor of Education in Senior Phase & FET: Mechanical Technology", "Arts and Design", 28),
+      createDegree("Bachelor of Education in Senior Phase & FET: Languages", "Arts and Design", 28),
+      createDegree("Bachelor of Education in Senior Phase & FET: Natural Sciences", "Arts and Design", 28),
+      createDegree("Bachelor of Education in Senior Phase & FET: Civil Technology", "Arts and Design", 28),
+      createDegree("Bachelor of Journalism", "Arts and Design", 26),
+      createDegree("Diploma in Drama", "Arts and Design", 24),
+      createDegree("Diploma in Fashion Design", "Arts and Design", 23),
+      createDegree("Diploma in Fine Art", "Arts and Design", 23),
+      createDegree("Diploma in Interior Design", "Arts and Design", 23),
+      createDegree("Diploma in Jewellery Design and Manufacture", "Arts and Design", 23),
+      createDegree("Diploma in Language Practice", "Arts and Design", 23),
+      createDegree("Higher Certificate in Performing Arts Technology", "Arts and Design", 23)
+    ]
+  },
+  {
+    id: "engineering-built",
+    name: "Faculty of Engineering and the Built Environment",
+    description: "Engineering and built environment programs",
+    degrees: [
+      createDegree("Bachelor of the Built Environment: Urban and Regional Planning", "Engineering and the Built Environment", 26),
+      createDegree("Bachelor of Engineering Technology in Chemical Engineering", "Engineering and the Built Environment", 26),
+      createDegree("Bachelor of Engineering Technology in Electronic Engineering", "Engineering and the Built Environment", 26),
+      createDegree("Bachelor of Engineering Technology in Industrial Engineering", "Engineering and the Built Environment", 26),
+      createDegree("Bachelor of Engineering Technology in Mechanical Engineering", "Engineering and the Built Environment", 26),
+      createDegree("Bachelor of Engineering Technology in Power Engineering", "Engineering and the Built Environment", 26),
+      createDegree("Bachelor of the Built Environment in Architecture", "Engineering and the Built Environment", 26),
+      createDegree("Bachelor of the Built Environment in Construction Studies", "Engineering and the Built Environment", 26),
+      createDegree("Bachelor of the Built Environment in Geomatics", "Engineering and the Built Environment", 26),
+      createDegree("Bachelor of Engineering Technology in Civil Engineering", "Engineering and the Built Environment", 26),
+      createDegree("Diploma in Engineering Technology in Civil Engineering", "Engineering and the Built Environment", 26),
+      createDegree("Diploma in the Built Environment in Construction Studies", "Engineering and the Built Environment", 26),
+      createDegree("Diploma in Pulp and Paper Technology", "Engineering and the Built Environment", 23)
+    ]
+  },
+  {
+    id: "health-sciences",
+    name: "Faculty of Health Sciences",
+    description: "Health sciences programs",
+    degrees: [
+      createDegree("Bachelor of Child & Youth Care", "Health Sciences", 26),
+      createDegree("Bachelor of Health Sciences in Environmental Health", "Health Sciences", 26),
+      createDegree("Bachelor of Health Sciences in Radiography: Diagnostic", "Health Sciences", 28),
+      createDegree("Bachelor of Health Sciences in Radiography: Sonography", "Health Sciences", 28),
+      createDegree("Bachelor of Health Sciences in Radiography: Therapy and Oncology", "Health Sciences", 28),
+      createDegree("Bachelor of Health Sciences in Clinical Technology", "Health Sciences", 26),
+      createDegree("Bachelor of Health Sciences in Emergency Medical Care", "Health Sciences", 30),
+      createDegree("Bachelor of Health Sciences in Homeopathy", "Health Sciences", 26),
+      createDegree("Bachelor of Health Sciences in Chiropractic", "Health Sciences", 26),
+      createDegree("Bachelor of Health Sciences in Medical Laboratory Science", "Health Sciences", 26),
+      createDegree("Bachelor in Nursing", "Health Sciences", 28),
+      createDegree("Diploma in Somatology", "Health Sciences", 23),
+      createDegree("Higher Certificate in Dental Assisting", "Health Sciences", 23)
+    ]
+  },
+  {
+    id: "management-sciences",
+    name: "Faculty of Management Sciences",
+    description: "Management sciences programs",
+    degrees: [
+      createDegree("Diploma in Management Sciences: Business Administration", "Management Sciences", 25),
+      createDegree("Diploma in Management Sciences: Business Law", "Management Sciences", 25),
+      createDegree("Diploma in Management Sciences: Human Resources", "Management Sciences", 25),
+      createDegree("Diploma in Management Sciences: Marketing", "Management Sciences", 25),
+      createDegree("Diploma in Management Sciences: Operations", "Management Sciences", 25),
+      createDegree("Diploma in Management Sciences: Public Relations and Communication", "Management Sciences", 25),
+      createDegree("Diploma in Management Sciences: Retail", "Management Sciences", 25),
+      createDegree("Diploma in Public Administration: Disaster & Risk Management", "Management Sciences", 25),
+      createDegree("Diploma in Public Administration: Local Government", "Management Sciences", 25),
+      createDegree("Diploma in Public Administration: Public Management", "Management Sciences", 25),
+      createDegree("Diploma in Public Administration: Supply Chain Management", "Management Sciences", 25),
+      createDegree("Diploma in Catering Management", "Management Sciences", 23),
+      createDegree("Diploma in Hospitality Management", "Management Sciences", 23),
+      createDegree("Diploma in Tourism Management", "Management Sciences", 26),
+      createDegree("Diploma in Eco Tourism", "Management Sciences", 25)
+    ]
+  }
+];
+
 // This will be defined at the end of the file after all faculty declarations
 
 // University of Cape Town (UCT) - Using FPS system, converting to approximate APS
