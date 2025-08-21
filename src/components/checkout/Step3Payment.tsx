@@ -108,7 +108,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       // IMMEDIATE ERROR ANALYSIS TO PREVENT [object Object]
       if (error) {
-        console.log("��� IMMEDIATE ERROR ANALYSIS:");
+        console.log("🚨 IMMEDIATE ERROR ANALYSIS:");
         console.log("  Raw error:", error);
         console.log("  Type:", typeof error);
         console.log("  Constructor:", error?.constructor?.name);
@@ -158,7 +158,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         console.log("🔍 DIRECT ERROR LOG - Constructor:", error?.constructor?.name);
         console.log("🔍 DIRECT ERROR LOG - Raw:", error);
         console.log("🔍 DIRECT ERROR LOG - Message:", error?.message);
-        console.log("🔍 DIRECT ERROR LOG - Details:", error?.details);
+        console.log("�� DIRECT ERROR LOG - Details:", error?.details);
         console.log("🔍 DIRECT ERROR LOG - Code:", error?.code);
         console.log("🔍 DIRECT ERROR LOG - Hint:", error?.hint);
         console.log("🔍 DIRECT ERROR LOG - Stringified:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
@@ -1196,37 +1196,71 @@ Time: ${new Date().toISOString()}
           Back
         </Button>
 
-        <PaystackPopup
-          email={userEmail}
-          amount={orderSummary.total_price}
-          subaccountCode={orderSummary.book.seller_subaccount_code}
-          orderReference={`ORDER-${Date.now()}-${userId}`}
-          metadata={{
-            book_id: orderSummary.book.id,
-            book_title: orderSummary.book.title,
-            seller_id: orderSummary.book.seller_id,
-            buyer_id: userId,
-            delivery_method: orderSummary.delivery.service_name,
-            custom_fields: [
-              {
-                display_name: "Book Title",
-                variable_name: "book_title",
-                value: orderSummary.book.title,
-              },
-              {
-                display_name: "Delivery Method",
-                variable_name: "delivery_method",
-                value: orderSummary.delivery.service_name,
-              },
-            ],
-          }}
-          onSuccess={handlePaystackSuccess}
-          onError={handlePaystackError}
-          onClose={handlePaystackClose}
-          disabled={processing}
-          className="px-8 py-3 text-lg"
-          buttonText={`Pay Now - ${formatAmount(orderSummary.total_price)}`}
-        />
+        {isMobile ? (
+          <PaystackPopupMobile
+            email={userEmail}
+            amount={orderSummary.total_price}
+            subaccountCode={orderSummary.book.seller_subaccount_code}
+            orderReference={`ORDER-${Date.now()}-${userId}`}
+            metadata={{
+              book_id: orderSummary.book.id,
+              book_title: orderSummary.book.title,
+              seller_id: orderSummary.book.seller_id,
+              buyer_id: userId,
+              delivery_method: orderSummary.delivery.service_name,
+              custom_fields: [
+                {
+                  display_name: "Book Title",
+                  variable_name: "book_title",
+                  value: orderSummary.book.title,
+                },
+                {
+                  display_name: "Delivery Method",
+                  variable_name: "delivery_method",
+                  value: orderSummary.delivery.service_name,
+                },
+              ],
+            }}
+            onSuccess={handlePaystackSuccess}
+            onError={handlePaystackError}
+            onClose={handlePaystackClose}
+            disabled={processing}
+            className="w-full px-4 py-4 text-lg font-medium"
+            buttonText={`Pay Now - ${formatAmountMobile(orderSummary.total_price)}`}
+          />
+        ) : (
+          <PaystackPopup
+            email={userEmail}
+            amount={orderSummary.total_price}
+            subaccountCode={orderSummary.book.seller_subaccount_code}
+            orderReference={`ORDER-${Date.now()}-${userId}`}
+            metadata={{
+              book_id: orderSummary.book.id,
+              book_title: orderSummary.book.title,
+              seller_id: orderSummary.book.seller_id,
+              buyer_id: userId,
+              delivery_method: orderSummary.delivery.service_name,
+              custom_fields: [
+                {
+                  display_name: "Book Title",
+                  variable_name: "book_title",
+                  value: orderSummary.book.title,
+                },
+                {
+                  display_name: "Delivery Method",
+                  variable_name: "delivery_method",
+                  value: orderSummary.delivery.service_name,
+                },
+              ],
+            }}
+            onSuccess={handlePaystackSuccess}
+            onError={handlePaystackError}
+            onClose={handlePaystackClose}
+            disabled={processing}
+            className="px-8 py-3 text-lg"
+            buttonText={`Pay Now - ${formatAmount(orderSummary.total_price)}`}
+          />
+        )}
       </div>
     </div>
   );
