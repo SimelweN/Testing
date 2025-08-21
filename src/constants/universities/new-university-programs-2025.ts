@@ -736,6 +736,197 @@ const DEFAULT_FACULTIES: Faculty[] = [
   }
 ];
 
+// University of Free State (UFS) Programs
+export const UFS_FACULTIES: Faculty[] = [
+  {
+    id: "economic-management",
+    name: "Faculty of Economic and Management Sciences",
+    description: "Economic and management sciences programs",
+    degrees: [
+      createDegree("Bachelor of Chartered Accountancy", "Economic and Management Sciences", 34),
+      createDegree("Bachelor of Commerce in Management", "Economic and Management Sciences", 28),
+      createDegree("Bachelor of Commerce in Economics", "Economic and Management Sciences", 28),
+      createDegree("Bachelor of Commerce in Marketing", "Economic and Management Sciences", 28),
+      createDegree("Bachelor of Commerce in Business and Financial Analytics", "Economic and Management Sciences", 34),
+      createDegree("Bachelor of Commerce in Human Resource Management", "Economic and Management Sciences", 28),
+      createDegree("Bachelor of Administration", "Economic and Management Sciences", 28),
+      createDegree("Extended Curriculum Programmes (Commerce and Administration)", "Economic and Management Sciences", 28),
+      createDegree("Bachelor of Commerce in Accounting", "Economic and Management Sciences", 28),
+      createDegree("Bachelor of Commerce", "Economic and Management Sciences", 28)
+    ]
+  },
+  {
+    id: "education",
+    name: "Faculty of Education",
+    description: "Education programs",
+    degrees: [
+      createDegree("Bachelor of Education in Foundation Phase Teaching", "Education", 30),
+      createDegree("Bachelor of Education in Intermediate Phase Teaching", "Education", 30),
+      createDegree("Bachelor of Education in Senior Phase and FET Teaching", "Education", 30),
+      createDegree("Extended Curriculum Programmes (Education)", "Education", 28)
+    ]
+  },
+  {
+    id: "health-sciences",
+    name: "Faculty of Health Sciences",
+    description: "Health sciences programs",
+    degrees: [
+      createDegree("Bachelor of Medicine and Bachelor of Surgery (MBChB)", "Health Sciences", 38),
+      createDegree("Bachelor of Occupational Therapy", "Health Sciences", 33),
+      createDegree("Bachelor of Optometry", "Health Sciences", 33),
+      createDegree("Bachelor of Physiotherapy", "Health Sciences", 33),
+      createDegree("Bachelor of Medicine specialising in Radiation Science", "Health Sciences", 30),
+      createDegree("Bachelor of Biokinetics", "Health Sciences", 30),
+      createDegree("Bachelor of Nursing", "Health Sciences", 30),
+      createDegree("Bachelor of Medicine and Bachelor of Surgery", "Health Sciences", 36),
+      createDegree("Bachelor of Dietetics", "Health Sciences", 33),
+      createDegree("Bachelor of Sport Coaching", "Health Sciences", 30)
+    ]
+  },
+  {
+    id: "humanities",
+    name: "Faculty of the Humanities",
+    description: "Humanities programs",
+    degrees: [
+      createDegree("Bachelor of Social Sciences", "Humanities", 30),
+      createDegree("Bachelor of Arts", "Humanities", 30),
+      createDegree("Bachelor of Community Development", "Humanities", 30),
+      createDegree("Bachelor of Governance and Political Transformation", "Humanities", 30),
+      createDegree("Bachelor of Language Practice", "Humanities", 30),
+      createDegree("Bachelor of Drama and Theatre Arts", "Humanities", 30),
+      createDegree("Bachelor of Music", "Humanities", 30),
+      createDegree("Bachelor of Fine Arts", "Humanities", 30),
+      createDegree("Bachelor of Theology", "Humanities", 30),
+      createDegree("Extended Curriculum Programmes (Humanities)", "Humanities", 28),
+      createDegree("Higher Certificate in Music Performance", "Humanities", 20),
+      createDegree("Diploma in Music", "Humanities", 25)
+    ]
+  },
+  {
+    id: "law",
+    name: "Faculty of Law",
+    description: "Legal studies programs",
+    degrees: [
+      createDegree("Bachelor of Laws (LLB)", "Law", 33)
+    ]
+  },
+  {
+    id: "natural-agricultural",
+    name: "Faculty of Natural and Agricultural Sciences",
+    description: "Natural and agricultural sciences programs",
+    degrees: [
+      createDegree("Bachelor of Science (with Actuarial Science)", "Natural and Agricultural Sciences", 34),
+      createDegree("Bachelor of Science (with Agricultural Economics)", "Natural and Agricultural Sciences", 32),
+      createDegree("Bachelor of Science (with Animal Science)", "Natural and Agricultural Sciences", 32),
+      createDegree("Bachelor of Science (with Biochemistry)", "Natural and Agricultural Sciences", 32),
+      createDegree("Bachelor of Science (with Chemistry)", "Natural and Agricultural Sciences", 32),
+      createDegree("Bachelor of Science (with Consumer Sciences)", "Natural and Agricultural Sciences", 32),
+      createDegree("Bachelor of Science (with Environmental Geography)", "Natural and Agricultural Sciences", 32),
+      createDegree("Bachelor of Science (with Genetics)", "Natural and Agricultural Sciences", 32),
+      createDegree("Bachelor of Science (with Geology)", "Natural and Agricultural Sciences", 32),
+      createDegree("Bachelor of Science (with Geography)", "Natural and Agricultural Sciences", 32),
+      createDegree("Bachelor of Science (with Human Physiology)", "Natural and Agricultural Sciences", 32),
+      createDegree("Bachelor of Science (with Mathematics)", "Natural and Agricultural Sciences", 32),
+      createDegree("Bachelor of Science (with Microbiology)", "Natural and Agricultural Sciences", 32),
+      createDegree("Bachelor of Science (with Physics)", "Natural and Agricultural Sciences", 32),
+      createDegree("Bachelor of Science (with Plant Sciences)", "Natural and Agricultural Sciences", 32),
+      createDegree("Bachelor of Science (with Quantity Surveying)", "Natural and Agricultural Sciences", 34),
+      createDegree("Bachelor of Science (with Soil Science)", "Natural and Agricultural Sciences", 32),
+      createDegree("Bachelor of Science (with Zoology)", "Natural and Agricultural Sciences", 32),
+      createDegree("Bachelor of Science (with Computer Science and Informatics)", "Natural and Agricultural Sciences", 32),
+      createDegree("Extended Curriculum Programmes (BSc)", "Natural and Agricultural Sciences", 28),
+      createDegree("Bachelor of Architecture", "Natural and Agricultural Sciences", 30)
+    ]
+  },
+  {
+    id: "theology-religion",
+    name: "Faculty of Theology and Religion",
+    description: "Theology and religion programs",
+    degrees: [
+      createDegree("Bachelor of Divinity", "Theology and Religion", 28)
+    ]
+  }
+];
+
+// University of Fort Hare (UFH) Programs
+export const UFH_FACULTIES: Faculty[] = [
+  {
+    id: "education",
+    name: "Faculty of Education",
+    description: "Education programs",
+    degrees: [
+      createDegree("Bachelor of Education in Foundation Phase Teaching (FP)", "Education", 28),
+      createDegree("Bachelor of Education in Intermediate Phase Teaching (IP)", "Education", 28),
+      createDegree("Bachelor of Education in Senior and FET Phase Teaching (BEd SP & FET)", "Education", 30),
+      createDegree("Higher Certificate in Education (HCertEd)", "Education", 20)
+    ]
+  },
+  {
+    id: "health-sciences",
+    name: "Faculty of Health Sciences",
+    description: "Health sciences programs",
+    degrees: [
+      createDegree("Bachelor of Nursing", "Health Sciences", 32),
+      createDegree("Bachelor of Science in Human Movement Science", "Health Sciences", 30),
+      createDegree("Bachelor of Science in Dietetics", "Health Sciences", 34),
+      createDegree("Bachelor of Science in Speech-Language Pathology", "Health Sciences", 32),
+      createDegree("Bachelor of Science in Occupational Therapy", "Health Sciences", 34)
+    ]
+  },
+  {
+    id: "law",
+    name: "Faculty of Law",
+    description: "Legal studies programs",
+    degrees: [
+      createDegree("Bachelor of Laws (LLB)", "Law", 32)
+    ]
+  },
+  {
+    id: "management-commerce",
+    name: "Faculty of Management & Commerce",
+    description: "Management and commerce programs",
+    degrees: [
+      createDegree("Bachelor of Commerce in Accounting", "Management & Commerce", 30),
+      createDegree("Bachelor of Commerce in Business Management", "Management & Commerce", 28),
+      createDegree("Bachelor of Commerce in Economics", "Management & Commerce", 28),
+      createDegree("Bachelor of Administration (Public Administration)", "Management & Commerce", 26),
+      createDegree("Bachelor of Commerce in Information Systems", "Management & Commerce", 28),
+      createDegree("Bachelor of Commerce in Industrial Psychology", "Management & Commerce", 28),
+      createDegree("Bachelor of Commerce (Extended)", "Management & Commerce", 24),
+      createDegree("Bachelor of Administration (Extended)", "Management & Commerce", 24)
+    ]
+  },
+  {
+    id: "science-agriculture",
+    name: "Faculty of Science and Agriculture",
+    description: "Science and agriculture programs",
+    degrees: [
+      createDegree("Bachelor of Science (BSc) in Agriculture: Agricultural Economics", "Science and Agriculture", 28),
+      createDegree("Bachelor of Science in Agriculture: Agronomy", "Science and Agriculture", 28),
+      createDegree("Bachelor of Science in Agriculture: Animal Production", "Science and Agriculture", 28),
+      createDegree("Bachelor of Science in Agriculture: Soil Science", "Science and Agriculture", 28),
+      createDegree("Bachelor of Science in Agriculture: Extension and Rural Development", "Science and Agriculture", 28),
+      createDegree("Bachelor of Science (General) with various majors including Computer Science, Statistics, Biochemistry", "Science and Agriculture", 30),
+      createDegree("BSc (Extended): Agriculture", "Science and Agriculture", 26),
+      createDegree("BSc (Extended): General", "Science and Agriculture", 26)
+    ]
+  },
+  {
+    id: "social-sciences-humanities",
+    name: "Faculty of Social Sciences and Humanities",
+    description: "Social sciences and humanities programs",
+    degrees: [
+      createDegree("Bachelor of Social Science", "Social Sciences and Humanities", 26),
+      createDegree("Bachelor of Arts", "Social Sciences and Humanities", 26),
+      createDegree("Bachelor of Psychology", "Social Sciences and Humanities", 28),
+      createDegree("Bachelor of Library and Information Science", "Social Sciences and Humanities", 26),
+      createDegree("Bachelor of Theology", "Social Sciences and Humanities", 26),
+      createDegree("Bachelor of Social Science (Extended)", "Social Sciences and Humanities", 24),
+      createDegree("Bachelor of Arts (Extended)", "Social Sciences and Humanities", 24)
+    ]
+  }
+];
+
 // This will be defined at the end of the file after all faculty declarations
 
 // University of Cape Town (UCT) - Using FPS system, converting to approximate APS
