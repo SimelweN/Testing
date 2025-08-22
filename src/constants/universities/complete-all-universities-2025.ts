@@ -875,7 +875,260 @@ export const COMPLETE_ALL_UNIVERSITIES_2025: University[] = [
         ]
       }
     ]
+  },
+
+  // University of Johannesburg (UJ) - Complete programs from user document
+  {
+    id: "uj",
+    name: "University of Johannesburg",
+    abbreviation: "UJ",
+    fullName: "University of Johannesburg",
+    type: "Traditional University",
+    location: "Johannesburg",
+    province: "Gauteng",
+    website: "https://www.uj.ac.za",
+    logo: "/university-logos/uj.svg",
+    overview: "Dynamic university offering innovative programs across multiple campuses in Johannesburg.",
+    establishedYear: 2005,
+    studentPopulation: 50000,
+    faculties: [
+      {
+        id: "uj-business-economic",
+        name: "Faculty of Business and Economic Sciences",
+        description: "Comprehensive business and economic programs with industry relevance.",
+        degrees: [
+          createDegree("Higher Certificate in Business Studies", 22, "Faculty of Business and Economic Sciences"),
+          createDegree("Diploma in Accountancy", 22, "Faculty of Business and Economic Sciences"),
+          createDegree("Diploma in Economics", 26, "Faculty of Business and Economic Sciences"),
+          createDegree("Diploma in Human Resource Management", 26, "Faculty of Business and Economic Sciences"),
+          createDegree("Diploma in Logistics", 24, "Faculty of Business and Economic Sciences"),
+          createDegree("Diploma in Business Management", 26, "Faculty of Business and Economic Sciences"),
+          createDegree("Diploma in Marketing", 22, "Faculty of Business and Economic Sciences"),
+          createDegree("Diploma in Retail Business Management", 22, "Faculty of Business and Economic Sciences"),
+          createDegree("Diploma in Tourism Management", 22, "Faculty of Business and Economic Sciences"),
+          createDegree("Diploma in Financial Services Operations", 22, "Faculty of Business and Economic Sciences"),
+          createDegree("Diploma in People Management", 22, "Faculty of Business and Economic Sciences"),
+          createDegree("Diploma in Information Technology", 22, "Faculty of Business and Economic Sciences"),
+          createDegree("Diploma in Small Business Management", 22, "Faculty of Business and Economic Sciences"),
+          createDegree("Diploma in Transportation Management", 22, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor of Commerce in Accounting for Chartered Accountants", 33, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor of Commerce in Accounting", 28, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor of Commerce in Business Management", 26, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor of Commerce in Economics and Statistics", 30, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor of Commerce in Finance", 28, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor of Commerce in Human Resource Management", 28, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor of Commerce in Industrial Psychology", 26, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor of Commerce in Logistics and Transport Economics", 30, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor of Commerce in Marketing Management", 26, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor of Commerce in Tourism & Development Management", 26, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor of Business Science", 38, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor of Commerce Economics & Econometrics", 28, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor in Hospitality Management", 26, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor in Public Management and Governance", 26, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor in Entrepreneurial Management", 26, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor in Information Management", 26, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor in Information Systems", 26, "Faculty of Business and Economic Sciences"),
+          createDegree("Bachelor in Transport and Logistics Management", 27, "Faculty of Business and Economic Sciences")
+        ]
+      },
+      {
+        id: "uj-education",
+        name: "Faculty of Education",
+        description: "Teacher training and educational leadership programs.",
+        degrees: [
+          createDegree("Bachelor of Education in Foundation Phase Teaching", 26, "Faculty of Education"),
+          createDegree("Bachelor of Education in Intermediate Phase Teaching", 26, "Faculty of Education"),
+          createDegree("Bachelor of Education in Senior and FET Phase Teaching", 26, "Faculty of Education")
+        ]
+      },
+      {
+        id: "uj-engineering-built-environment",
+        name: "Faculty of Engineering, Built Environment and Technology",
+        description: "Engineering excellence with modern facilities and industry partnerships.",
+        degrees: [
+          createDegree("Higher Certificate in Mechatronic Engineering", 22, "Faculty of Engineering, Built Environment and Technology"),
+          createDegree("Diploma in Building", 26, "Faculty of Engineering, Built Environment and Technology"),
+          createDegree("Diploma in Civil Engineering", 26, "Faculty of Engineering, Built Environment and Technology"),
+          createDegree("Diploma in Electrical Engineering", 26, "Faculty of Engineering, Built Environment and Technology"),
+          createDegree("Diploma in Industrial Engineering", 26, "Faculty of Engineering, Built Environment and Technology"),
+          createDegree("Diploma in Mechanical Engineering", 26, "Faculty of Engineering, Built Environment and Technology"),
+          createDegree("Bachelor of Engineering in Civil Engineering", 32, "Faculty of Engineering, Built Environment and Technology"),
+          createDegree("Bachelor of Engineering in Electrical Engineering", 32, "Faculty of Engineering, Built Environment and Technology"),
+          createDegree("Bachelor of Engineering in Industrial Engineering", 38, "Faculty of Engineering, Built Environment and Technology"),
+          createDegree("Bachelor of Engineering in Mechanical Engineering", 32, "Faculty of Engineering, Built Environment and Technology"),
+          createDegree("Bachelor of Chemical Engineering", 30, "Faculty of Engineering, Built Environment and Technology"),
+          createDegree("Bachelor of Extraction Metallurgy", 30, "Faculty of Engineering, Built Environment and Technology"),
+          createDegree("Bachelor of Physical Metallurgy", 30, "Faculty of Engineering, Built Environment and Technology"),
+          createDegree("Bachelor of Mining Engineering", 23, "Faculty of Engineering, Built Environment and Technology"),
+          createDegree("Bachelor of Engineering in Mechatronics", 38, "Faculty of Engineering, Built Environment and Technology"),
+          createDegree("Bachelor of Urban and Regional Planning", 30, "Faculty of Engineering, Built Environment and Technology"),
+          createDegree("Bachelor of Construction Studies", 30, "Faculty of Engineering, Built Environment and Technology")
+        ]
+      },
+      {
+        id: "uj-health-sciences",
+        name: "Faculty of Health Sciences",
+        description: "Comprehensive health sciences education with modern clinical facilities.",
+        degrees: [
+          createDegree("Bachelor of Medicine and Bachelor of Surgery (MBChB)", 47, "Faculty of Health Sciences"),
+          createDegree("Bachelor of Radiography in Diagnostics", 31, "Faculty of Health Sciences"),
+          createDegree("Bachelor of Emergency Medical Care", 26, "Faculty of Health Sciences"),
+          createDegree("Bachelor of Science in Dietetics", 34, "Faculty of Health Sciences"),
+          createDegree("Bachelor of Science in Environmental Health", 24, "Faculty of Health Sciences"),
+          createDegree("Bachelor of Science in Medical Laboratory Sciences", 30, "Faculty of Health Sciences"),
+          createDegree("Bachelor of Science in Occupational Therapy", 34, "Faculty of Health Sciences"),
+          createDegree("Bachelor of Science in Physiotherapy", 34, "Faculty of Health Sciences"),
+          createDegree("Bachelor of Nursing", 30, "Faculty of Health Sciences"),
+          createDegree("Bachelor of Biokinetics", 31, "Faculty of Health Sciences"),
+          createDegree("Bachelor Nuclear Medicine", 31, "Faculty of Health Sciences"),
+          createDegree("Bachelor in Radiation Therapy", 31, "Faculty of Health Sciences"),
+          createDegree("Bachelor of Chiropractic", 26, "Faculty of Health Sciences"),
+          createDegree("Bachelor in Complementary Medicine", 26, "Faculty of Health Sciences"),
+          createDegree("Bachelor in Podiatry", 28, "Faculty of Health Sciences"),
+          createDegree("Bachelor of Optometry", 31, "Faculty of Health Sciences"),
+          createDegree("BCom Sport Management", 23, "Faculty of Health Sciences"),
+          createDegree("Bachelor of Sport and Exercise Science", 27, "Faculty of Health Sciences"),
+          createDegree("Diploma in Sport Management", 21, "Faculty of Health Sciences")
+        ]
+      },
+      {
+        id: "uj-humanities",
+        name: "Faculty of Humanities",
+        description: "Arts, humanities, and social sciences programs.",
+        degrees: [
+          createDegree("Bachelor of Arts (General)", 27, "Faculty of Humanities"),
+          createDegree("BA Social Work", 31, "Faculty of Humanities"),
+          createDegree("BA Linguistics", 27, "Faculty of Humanities"),
+          createDegree("BA Linguistics and Language Practice", 27, "Faculty of Humanities"),
+          createDegree("BA Strategic Communication", 27, "Faculty of Humanities"),
+          createDegree("BA Politics, Economics and Technology", 27, "Faculty of Humanities"),
+          createDegree("BA Community Development Leadership", 27, "Faculty of Humanities")
+        ]
+      },
+      {
+        id: "uj-law",
+        name: "Faculty of Law",
+        description: "Legal studies and jurisprudence programs.",
+        degrees: [
+          createDegree("Bachelor of Laws (LLB)", 31, "Faculty of Law"),
+          createDegree("Bachelor of Arts in Law", 31, "Faculty of Law"),
+          createDegree("Bachelor of Commerce in Law", 31, "Faculty of Law")
+        ]
+      },
+      {
+        id: "uj-science",
+        name: "Faculty of Science",
+        description: "Natural sciences and mathematical sciences programs.",
+        degrees: [
+          createDegree("Higher Certificate in Information Technology in User Support Services", 22, "Faculty of Science"),
+          createDegree("Diploma in Information Technology in Software Development", 26, "Faculty of Science"),
+          createDegree("Bachelor of Science (Computer Science and Information Systems)", 30, "Faculty of Science"),
+          createDegree("Bachelor of Science (Biochemistry, Chemistry and Microbiology)", 30, "Faculty of Science"),
+          createDegree("Bachelor of Science (Biological Sciences)", 30, "Faculty of Science"),
+          createDegree("Bachelor of Science (Environmental Sciences)", 30, "Faculty of Science"),
+          createDegree("Bachelor of Science (Geosciences)", 30, "Faculty of Science"),
+          createDegree("Bachelor of Science (Mathematics and Statistics)", 30, "Faculty of Science"),
+          createDegree("Bachelor of Science (Physics and Electronics)", 30, "Faculty of Science"),
+          createDegree("Bachelor of Science (Life Sciences)", 30, "Faculty of Science"),
+          createDegree("Bachelor of Science (Agricultural Sciences)", 30, "Faculty of Science"),
+          createDegree("Bachelor of Information Technology", 30, "Faculty of Science"),
+          createDegree("Bachelor of Computer Science and Informatics (AI)", 30, "Faculty of Science")
+        ]
+      }
+    ]
+  },
+
+  // University of South Africa (UNISA) - Distance learning university
+  {
+    id: "unisa",
+    name: "University of South Africa",
+    abbreviation: "UNISA",
+    fullName: "University of South Africa",
+    type: "Traditional University",
+    location: "Pretoria (Distance Learning)",
+    province: "Gauteng",
+    website: "https://www.unisa.ac.za",
+    logo: "/university-logos/unisa.svg",
+    overview: "Africa's largest distance education university offering flexible learning opportunities.",
+    establishedYear: 1873,
+    studentPopulation: 400000,
+    faculties: [
+      {
+        id: "unisa-science-engineering-technology",
+        name: "Faculty of Science Engineering and Technology",
+        description: "Science, engineering, and technology programs via distance learning.",
+        degrees: [
+          createDegree("Diploma in Chemical Engineering", 18, "Faculty of Science Engineering and Technology"),
+          createDegree("Diploma in Civil Engineering", 18, "Faculty of Science Engineering and Technology"),
+          createDegree("Diploma in Electrical Engineering", 18, "Faculty of Science Engineering and Technology"),
+          createDegree("Diploma in Industrial Engineering", 18, "Faculty of Science Engineering and Technology"),
+          createDegree("Diploma in Information Technology", 18, "Faculty of Science Engineering and Technology"),
+          createDegree("Diploma in Mechanical Engineering", 18, "Faculty of Science Engineering and Technology"),
+          createDegree("Diploma in Mining Engineering", 18, "Faculty of Science Engineering and Technology"),
+          createDegree("Diploma in Pulp and Paper Technology", 18, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc Applied Mathematics and Computer Science", 20, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc Applied Mathematics and Physics", 20, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc Applied Mathematics and Statistics", 20, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc Chemistry and Applied Mathematics", 20, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc Chemistry and Computer Science", 20, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc Chemistry and Information Systems", 20, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc Chemistry and Physics", 20, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc Chemistry and Statistics", 20, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc General", 20, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc Mathematics and Applied Mathematics", 20, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc Mathematics and Chemistry", 20, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc Mathematics and Computer Science", 20, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc Mathematics and Information Science", 20, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc Mathematics and Physics", 20, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc Mathematics and Statistics", 20, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc Statistics and Physics", 20, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc Computing", 20, "Faculty of Science Engineering and Technology"),
+          createDegree("BSc Informatics", 20, "Faculty of Science Engineering and Technology")
+        ]
+      },
+      {
+        id: "unisa-accounting-sciences",
+        name: "Accounting Sciences",
+        description: "Accounting and financial sciences programs.",
+        degrees: [
+          createDegree("Higher Certificate in Accounting Sciences", 14, "Accounting Sciences"),
+          createDegree("Diploma in Accounting Sciences", 18, "Accounting Sciences"),
+          createDegree("Bachelor of Accounting Sciences in Financial Accounting", 21, "Accounting Sciences"),
+          createDegree("Bachelor of Accounting Sciences in Internal Auditing", 21, "Accounting Sciences"),
+          createDegree("Bachelor of Accounting Sciences in Management Accounting", 21, "Accounting Sciences"),
+          createDegree("Bachelor of Accounting Sciences in Taxation", 21, "Accounting Sciences")
+        ]
+      },
+      {
+        id: "unisa-agriculture-environmental",
+        name: "Agriculture and Environmental Sciences",
+        description: "Agricultural and environmental sciences programs.",
+        degrees: [
+          createDegree("Higher Certificate in Animal Welfare", 15, "Agriculture and Environmental Sciences"),
+          createDegree("Higher Certificate in Life and Environmental Sciences", 15, "Agriculture and Environmental Sciences"),
+          createDegree("Diploma in Agricultural Management", 18, "Agriculture and Environmental Sciences"),
+          createDegree("Diploma in Animal Health", 18, "Agriculture and Environmental Sciences"),
+          createDegree("Diploma in Nature Conservation", 18, "Agriculture and Environmental Sciences"),
+          createDegree("Diploma in Ornamental Horticulture", 18, "Agriculture and Environmental Sciences"),
+          createDegree("Bachelor of Arts in Environmental Management", 20, "Agriculture and Environmental Sciences"),
+          createDegree("Bachelor of Consumer Science Fashion Retail Management", 20, "Agriculture and Environmental Sciences"),
+          createDegree("Bachelor of Consumer Science Food Service Management", 20, "Agriculture and Environmental Sciences"),
+          createDegree("Bachelor of Consumer Science Food and Clothing", 20, "Agriculture and Environmental Sciences"),
+          createDegree("Bachelor of Consumer Science Food and Nutrition", 20, "Agriculture and Environmental Sciences"),
+          createDegree("Bachelor of Consumer Science Hospitality Management", 20, "Agriculture and Environmental Sciences"),
+          createDegree("Bachelor of Science in Agricultural Science", 20, "Agriculture and Environmental Sciences"),
+          createDegree("Bachelor of Science in Agricultural Business and Management", 20, "Agriculture and Environmental Sciences"),
+          createDegree("Bachelor of Science in Agricultural Science Animal Science", 20, "Agriculture and Environmental Sciences"),
+          createDegree("Bachelor of Science in Agricultural Science and Plant Science", 20, "Agriculture and Environmental Sciences"),
+          createDegree("Bachelor of Science in Environmental Management and Botany", 20, "Agriculture and Environmental Sciences"),
+          createDegree("Bachelor of Science in Environmental Management and Chemistry", 20, "Agriculture and Environmental Sciences"),
+          createDegree("Bachelor of Science in Environmental Management and Zoology", 20, "Agriculture and Environmental Sciences")
+        ]
+      }
+      // Continue with more UNISA faculties...
+    ]
   }
 
-  // Continue with more universities... (Need to add all remaining ones from user document)
+  // Continue with ALL remaining universities from user document...
+  // (This is a very large dataset and would include all 26+ universities)
 ];
