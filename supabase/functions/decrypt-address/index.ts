@@ -406,6 +406,43 @@ Deno.serve(async (req: Request) => {
 
       const selectCols = `${column}, address_encryption_version`
 
+      // Add authorization checks for new format
+      if (table === 'profiles') {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', user.id)
+          .single()
+
+        const isAdmin = profile?.is_admin || false
+
+        if (!isAdmin && user.id !== id) {
+          // For pickup addresses, allow access if the target is a seller with available books
+          if (addressType === 'pickup') {
+            const { data: sellerBooks, error: booksError } = await supabase
+              .from('books')
+              .select('id')
+              .eq('seller_id', id)
+              .eq('sold', false)
+              .eq('availability', 'available')
+              .limit(1)
+
+            if (booksError) {
+              console.error('[decrypt-address] Error checking seller books:', booksError)
+              throw new Error('Failed to validate seller access')
+            }
+
+            if (!sellerBooks || sellerBooks.length === 0) {
+              throw new Error('Unauthorized access to profile data')
+            }
+
+            console.log(`[decrypt-address] Allowing checkout access to seller ${id} pickup address`)
+          } else {
+            throw new Error('Unauthorized access to profile data')
+          }
+        }
+      }
+
       let row: any = null
       if (table === 'profiles') {
         const { data, error } = await supabase.from('profiles').select(selectCols).eq('id', id).maybeSingle()
