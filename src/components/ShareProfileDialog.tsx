@@ -28,7 +28,7 @@ const ShareProfileDialog = ({
   userName,
   isOwnProfile,
 }: ShareProfileDialogProps) => {
-  const profileUrl = `${window.location.origin}/user/${userId}`;
+  const profileUrl = `${window.location.origin}/seller/${userId}`;
 
       const copyProfileLink = () => {
     try {

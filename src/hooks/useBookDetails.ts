@@ -122,7 +122,7 @@ export const useBookDetails = (bookId: string | undefined) => {
 
   const handleViewSellerProfile = () => {
     if (book?.seller?.id) {
-      navigate(`/user/${book.seller.id}`);
+      navigate(`/seller/${book.seller.id}`);
     } else {
       toast.error("Seller profile not available");
     }
