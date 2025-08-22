@@ -157,6 +157,10 @@ function App() {
                         element={<StudyResources />}
                       />
                       <Route
+                        path="/university-test"
+                        element={<UniversityDataTest />}
+                      />
+                      <Route
                         path="/study-tips"
                         element={<Navigate to="/study-resources" replace />}
                       />
