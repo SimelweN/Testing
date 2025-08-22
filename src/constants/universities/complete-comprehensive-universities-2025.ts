@@ -353,9 +353,221 @@ export const COMPLETE_COMPREHENSIVE_UNIVERSITIES_2025: University[] = [
       }
       // Additional faculties would continue here...
     ]
-  }
+  },
 
-  // Additional universities would continue here following the same pattern...
-  // This file would be quite large with all universities, so I'm showing the structure
-  // with the first two universities as examples
+  // University of Cape Town (UCT) - Uses FPS scoring system
+  {
+    id: "uct",
+    name: "University of Cape Town",
+    abbreviation: "UCT",
+    fullName: "University of Cape Town",
+    type: "Traditional University",
+    location: "Cape Town",
+    province: "Western Cape",
+    website: "https://www.uct.ac.za",
+    logo: "/university-logos/uct.svg",
+    overview: "Africa's leading university, globally ranked for academic excellence and research innovation.",
+    establishedYear: 1829,
+    studentPopulation: 29000,
+    scoringSystem: "uct-fps",
+    faculties: [
+      {
+        id: "uct-commerce",
+        name: "Faculty of Commerce",
+        description: "Business, accounting, and economic sciences with global perspective.",
+        degrees: [
+          createDegree("Bachelor of Business Science (Actuarial Science)", 540, "Faculty of Commerce", "Actuarial science with statistical focus", "3 years",
+            [{ name: "Mathematics", level: 7, isRequired: true }, { name: "English", level: 6, isRequired: true }],
+            ["Actuary", "Risk Analyst", "Investment Manager", "Statistical Consultant"]),
+          createDegree("Bachelor of Business Science (Computer Science)", 510, "Faculty of Commerce", "Business-focused computer science", "3 years",
+            [{ name: "Mathematics", level: 6, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Software Developer", "IT Consultant", "Business Analyst", "Systems Manager"]),
+          createDegree("Bachelor of Business Science (Finance)", 480, "Faculty of Commerce", "Finance and investment management", "3 years",
+            [{ name: "Mathematics", level: 6, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Financial Analyst", "Investment Banker", "Portfolio Manager", "Financial Consultant"]),
+          createDegree("Bachelor of Commerce (Accounting)", 430, "Faculty of Commerce", "Professional accounting program", "3 years",
+            [{ name: "Mathematics", level: 5, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Chartered Accountant", "Financial Manager", "Auditor", "Tax Consultant"]),
+          createDegree("Bachelor of Commerce (General)", 430, "Faculty of Commerce", "General commerce studies", "3 years",
+            [{ name: "Mathematics", level: 5, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Business Manager", "Marketing Specialist", "Operations Manager", "Entrepreneur"])
+        ]
+      },
+      {
+        id: "uct-engineering",
+        name: "Faculty of Engineering & Built Environment",
+        description: "Engineering excellence with strong research and innovation focus.",
+        degrees: [
+          createDegree("Bachelor of Science in Engineering (Mechanical)", 540, "Faculty of Engineering & Built Environment", "Mechanical engineering program", "4 years",
+            [{ name: "Mathematics", level: 7, isRequired: true }, { name: "Physical Sciences", level: 7, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Mechanical Engineer", "Design Engineer", "Manufacturing Engineer", "Automotive Engineer"]),
+          createDegree("Bachelor of Science in Engineering (Civil)", 540, "Faculty of Engineering & Built Environment", "Civil engineering and infrastructure", "4 years",
+            [{ name: "Mathematics", level: 7, isRequired: true }, { name: "Physical Sciences", level: 7, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Civil Engineer", "Structural Engineer", "Infrastructure Engineer", "Project Manager"]),
+          createDegree("Bachelor of Science in Engineering (Electrical)", 540, "Faculty of Engineering & Built Environment", "Electrical engineering specialization", "4 years",
+            [{ name: "Mathematics", level: 7, isRequired: true }, { name: "Physical Sciences", level: 7, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Electrical Engineer", "Power Systems Engineer", "Electronics Engineer", "Control Engineer"]),
+          createDegree("Bachelor of Science in Engineering (Chemical)", 540, "Faculty of Engineering & Built Environment", "Chemical engineering and processes", "4 years",
+            [{ name: "Mathematics", level: 7, isRequired: true }, { name: "Physical Sciences", level: 7, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Chemical Engineer", "Process Engineer", "Environmental Engineer", "Plant Manager"]),
+          createDegree("Bachelor of Architectural Studies", 450, "Faculty of Engineering & Built Environment", "Architecture and design", "3 years",
+            [{ name: "Mathematics", level: 5, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Architect", "Urban Planner", "Design Consultant", "Project Manager"])
+        ]
+      }
+    ]
+  },
+
+  // University of the Witwatersrand (Wits) - Uses composite scoring
+  {
+    id: "wits",
+    name: "University of the Witwatersrand",
+    abbreviation: "Wits",
+    fullName: "University of the Witwatersrand, Johannesburg",
+    type: "Traditional University",
+    location: "Johannesburg",
+    province: "Gauteng",
+    website: "https://www.wits.ac.za",
+    logo: "/university-logos/wits.svg",
+    overview: "Leading research university with excellence in health sciences, engineering, and commerce.",
+    establishedYear: 1922,
+    studentPopulation: 40000,
+    scoringSystem: "wits-composite",
+    faculties: [
+      {
+        id: "wits-commerce",
+        name: "Faculty of Commerce, Law and Management",
+        description: "Business, economics, and management programs with strong industry connections.",
+        degrees: [
+          createDegree("Bachelor of Commerce (General)", 38, "Faculty of Commerce, Law and Management", "General commerce studies", "3 years",
+            [{ name: "Mathematics", level: 5, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Business Manager", "Financial Analyst", "Marketing Manager", "Operations Manager"]),
+          createDegree("Accounting Science", 44, "Faculty of Commerce, Law and Management", "Professional accounting qualification", "3 years",
+            [{ name: "Mathematics", level: 6, isRequired: true }, { name: "English", level: 6, isRequired: true }],
+            ["Chartered Accountant", "Financial Director", "Chief Financial Officer", "Investment Banker"]),
+          createDegree("Economic Science", 42, "Faculty of Commerce, Law and Management", "Economics and econometrics", "3 years",
+            [{ name: "Mathematics", level: 6, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Economist", "Policy Analyst", "Financial Analyst", "Research Economist"]),
+          createDegree("Bachelor of Laws (LLB)", 46, "Faculty of Commerce, Law and Management", "Professional legal qualification", "4 years",
+            [{ name: "English", level: 6, isRequired: true }, { name: "History", level: 5, isRequired: false }],
+            ["Lawyer", "Attorney", "Advocate", "Legal Advisor", "Prosecutor"])
+        ]
+      },
+      {
+        id: "wits-engineering",
+        name: "Faculty of Engineering and Built Environment",
+        description: "World-class engineering education with cutting-edge research facilities.",
+        degrees: [
+          createDegree("Chemical Engineering", 42, "Faculty of Engineering and Built Environment", "Chemical engineering program", "4 years",
+            [{ name: "Mathematics", level: 6, isRequired: true }, { name: "Physical Sciences", level: 6, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Chemical Engineer", "Process Engineer", "Environmental Engineer", "Research Engineer"]),
+          createDegree("Civil Engineering", 42, "Faculty of Engineering and Built Environment", "Civil engineering and infrastructure", "4 years",
+            [{ name: "Mathematics", level: 6, isRequired: true }, { name: "Physical Sciences", level: 6, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Civil Engineer", "Structural Engineer", "Construction Manager", "Infrastructure Planner"]),
+          createDegree("Electrical Engineering", 42, "Faculty of Engineering and Built Environment", "Electrical and electronic systems", "4 years",
+            [{ name: "Mathematics", level: 6, isRequired: true }, { name: "Physical Sciences", level: 6, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Electrical Engineer", "Electronics Engineer", "Power Systems Engineer", "Telecommunications Engineer"]),
+          createDegree("Mechanical Engineering", 42, "Faculty of Engineering and Built Environment", "Mechanical systems and design", "4 years",
+            [{ name: "Mathematics", level: 6, isRequired: true }, { name: "Physical Sciences", level: 6, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Mechanical Engineer", "Design Engineer", "Manufacturing Engineer", "Automotive Engineer"]),
+          createDegree("Mining Engineering", 42, "Faculty of Engineering and Built Environment", "Mining and mineral processing", "4 years",
+            [{ name: "Mathematics", level: 6, isRequired: true }, { name: "Physical Sciences", level: 6, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Mining Engineer", "Mineral Processing Engineer", "Rock Engineering Specialist", "Mine Manager"])
+        ]
+      }
+    ]
+  },
+
+  // University of Johannesburg (UJ) - Standard APS
+  {
+    id: "uj",
+    name: "University of Johannesburg",
+    abbreviation: "UJ",
+    fullName: "University of Johannesburg",
+    type: "Traditional University",
+    location: "Johannesburg",
+    province: "Gauteng",
+    website: "https://www.uj.ac.za",
+    logo: "/university-logos/uj.svg",
+    overview: "Dynamic university offering innovative programs across multiple campuses in Johannesburg.",
+    establishedYear: 2005,
+    studentPopulation: 50000,
+    faculties: [
+      {
+        id: "uj-business-economics",
+        name: "Faculty of Business and Economic Sciences",
+        description: "Comprehensive business and economic programs with industry relevance.",
+        degrees: [
+          createDegree("Bachelor of Commerce (Accounting for Chartered Accountants)", 33, "Faculty of Business and Economic Sciences", "CA qualification pathway", "3 years",
+            [{ name: "Mathematics", level: 6, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Chartered Accountant", "Financial Director", "Chief Financial Officer", "Investment Banker"]),
+          createDegree("Bachelor of Commerce (Accounting)", 28, "Faculty of Business and Economic Sciences", "Professional accounting program", "3 years",
+            [{ name: "Mathematics", level: 5, isRequired: true }, { name: "English", level: 4, isRequired: true }],
+            ["Accountant", "Financial Manager", "Auditor", "Tax Consultant"]),
+          createDegree("Bachelor of Commerce (Business Management)", 26, "Faculty of Business and Economic Sciences", "General business management", "3 years",
+            [{ name: "English", level: 4, isRequired: true }, { name: "Mathematics", level: 4, isRequired: true }],
+            ["Business Manager", "Operations Manager", "Project Manager", "Entrepreneur"]),
+          createDegree("Bachelor of Commerce (Economics and Statistics)", 30, "Faculty of Business and Economic Sciences", "Economics with statistical analysis", "3 years",
+            [{ name: "Mathematics", level: 6, isRequired: true }, { name: "English", level: 4, isRequired: true }],
+            ["Economist", "Statistician", "Data Analyst", "Policy Researcher"]),
+          createDegree("Bachelor of Commerce (Finance)", 28, "Faculty of Business and Economic Sciences", "Finance and investment", "3 years",
+            [{ name: "Mathematics", level: 5, isRequired: true }, { name: "English", level: 4, isRequired: true }],
+            ["Financial Analyst", "Investment Advisor", "Portfolio Manager", "Financial Planner"]),
+          createDegree("Bachelor of Commerce (Human Resource Management)", 28, "Faculty of Business and Economic Sciences", "Human resources specialization", "3 years",
+            [{ name: "English", level: 4, isRequired: true }, { name: "Mathematics", level: 4, isRequired: true }],
+            ["HR Manager", "Recruitment Specialist", "Training Manager", "Employee Relations Officer"]),
+          createDegree("Bachelor of Commerce (Marketing Management)", 26, "Faculty of Business and Economic Sciences", "Marketing and brand management", "3 years",
+            [{ name: "English", level: 4, isRequired: true }, { name: "Mathematics", level: 4, isRequired: false }],
+            ["Marketing Manager", "Brand Manager", "Digital Marketing Specialist", "Market Research Analyst"]),
+          createDegree("Bachelor of Business Science", 38, "Faculty of Business and Economic Sciences", "Advanced business science program", "3 years",
+            [{ name: "Mathematics", level: 6, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Business Analyst", "Strategic Consultant", "Investment Banker", "Management Consultant"])
+        ]
+      },
+      {
+        id: "uj-engineering",
+        name: "Faculty of Engineering and Built Environment",
+        description: "Engineering excellence with modern facilities and industry partnerships.",
+        degrees: [
+          createDegree("Bachelor of Engineering (Civil)", 32, "Faculty of Engineering and Built Environment", "Civil engineering program", "4 years",
+            [{ name: "Mathematics", level: 6, isRequired: true }, { name: "Physical Sciences", level: 6, isRequired: true }, { name: "English", level: 4, isRequired: true }],
+            ["Civil Engineer", "Structural Engineer", "Construction Manager", "Infrastructure Engineer"]),
+          createDegree("Bachelor of Engineering (Electrical)", 32, "Faculty of Engineering and Built Environment", "Electrical engineering specialization", "4 years",
+            [{ name: "Mathematics", level: 6, isRequired: true }, { name: "Physical Sciences", level: 6, isRequired: true }, { name: "English", level: 4, isRequired: true }],
+            ["Electrical Engineer", "Power Systems Engineer", "Electronics Engineer", "Control Engineer"]),
+          createDegree("Bachelor of Engineering (Mechanical)", 32, "Faculty of Engineering and Built Environment", "Mechanical engineering program", "4 years",
+            [{ name: "Mathematics", level: 6, isRequired: true }, { name: "Physical Sciences", level: 6, isRequired: true }, { name: "English", level: 4, isRequired: true }],
+            ["Mechanical Engineer", "Design Engineer", "Manufacturing Engineer", "Automotive Engineer"]),
+          createDegree("Bachelor of Engineering (Industrial)", 38, "Faculty of Engineering and Built Environment", "Industrial engineering and optimization", "4 years",
+            [{ name: "Mathematics", level: 6, isRequired: true }, { name: "Physical Sciences", level: 6, isRequired: true }, { name: "English", level: 4, isRequired: true }],
+            ["Industrial Engineer", "Operations Manager", "Quality Manager", "Systems Analyst"]),
+          createDegree("Bachelor of Engineering (Mechatronics)", 38, "Faculty of Engineering and Built Environment", "Mechatronics and automation", "4 years",
+            [{ name: "Mathematics", level: 6, isRequired: true }, { name: "Physical Sciences", level: 6, isRequired: true }, { name: "English", level: 4, isRequired: true }],
+            ["Mechatronics Engineer", "Automation Engineer", "Robotics Engineer", "Control Systems Engineer"])
+        ]
+      },
+      {
+        id: "uj-health-sciences",
+        name: "Faculty of Health Sciences",
+        description: "Comprehensive health sciences education with modern clinical facilities.",
+        degrees: [
+          createDegree("Bachelor of Medicine and Bachelor of Surgery (MBChB)", 47, "Faculty of Health Sciences", "Medical degree program", "6 years",
+            [{ name: "Life Sciences", level: 6, isRequired: true }, { name: "Physical Sciences", level: 6, isRequired: true }, { name: "Mathematics", level: 5, isRequired: true }, { name: "English", level: 5, isRequired: true }],
+            ["Medical Doctor", "Surgeon", "Specialist Physician", "Medical Researcher"]),
+          createDegree("Bachelor of Nursing", 30, "Faculty of Health Sciences", "Professional nursing program", "4 years",
+            [{ name: "Life Sciences", level: 5, isRequired: true }, { name: "Mathematics", level: 4, isRequired: true }, { name: "English", level: 4, isRequired: true }],
+            ["Registered Nurse", "Clinical Nurse", "Nurse Manager", "Community Health Nurse"]),
+          createDegree("Bachelor of Science in Occupational Therapy", 34, "Faculty of Health Sciences", "Occupational therapy specialization", "4 years",
+            [{ name: "Life Sciences", level: 5, isRequired: true }, { name: "Physical Sciences", level: 4, isRequired: true }, { name: "Mathematics", level: 4, isRequired: true }],
+            ["Occupational Therapist", "Rehabilitation Specialist", "Community Health Worker", "Disability Consultant"]),
+          createDegree("Bachelor of Science in Physiotherapy", 34, "Faculty of Health Sciences", "Physiotherapy and rehabilitation", "4 years",
+            [{ name: "Life Sciences", level: 5, isRequired: true }, { name: "Physical Sciences", level: 5, isRequired: true }, { name: "Mathematics", level: 4, isRequired: true }],
+            ["Physiotherapist", "Sports Therapist", "Rehabilitation Specialist", "Pain Management Specialist"]),
+          createDegree("Bachelor of Optometry", 31, "Faculty of Health Sciences", "Eye care and vision science", "4 years",
+            [{ name: "Life Sciences", level: 5, isRequired: true }, { name: "Physical Sciences", level: 5, isRequired: true }, { name: "Mathematics", level: 5, isRequired: true }],
+            ["Optometrist", "Eye Care Specialist", "Vision Therapist", "Optical Manager"])
+        ]
+      }
+    ]
+  }
 ];
