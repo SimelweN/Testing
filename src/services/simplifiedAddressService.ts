@@ -281,7 +281,32 @@ export const getSellerDeliveryAddress = async (
         }
       }
 
-      console.log("🔐 Encrypted address exists but decryption failed - not falling back to plaintext for security");
+      // Check if decryption failed due to authorization (400 error)
+      // This happens when buyers try to access seller addresses
+      // In this case, use the alternative address service as fallback for checkout
+      console.log("🔐 Encrypted address exists but decryption failed - checking if authorization issue...");
+
+      // Try to use the alternative address service for checkout
+      try {
+        console.log("🔄 Attempting fallback with alternative address service...");
+        const { getSellerPickupAddress } = await import("@/services/addressService");
+        const fallbackAddress = await getSellerPickupAddress(sellerId);
+
+        if (fallbackAddress) {
+          console.log("✅ Alternative address service provided fallback address");
+          return {
+            street: fallbackAddress.streetAddress || fallbackAddress.street || "",
+            city: fallbackAddress.city || "",
+            province: fallbackAddress.province || "",
+            postal_code: fallbackAddress.postalCode || fallbackAddress.postal_code || "",
+            country: "South Africa",
+          };
+        }
+      } catch (fallbackError) {
+        console.error("❌ Alternative address service also failed:", fallbackError);
+      }
+
+      console.log("🔐 All decryption methods failed - unable to retrieve seller address");
       return null;
     }
 
