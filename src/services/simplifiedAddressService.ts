@@ -63,12 +63,17 @@ const decryptAddress = async (params: { table: string; target_id: string; addres
       const timeoutId = setTimeout(() => controller.abort(), isMobile ? 15000 : 10000); // Longer timeout for mobile
 
       try {
+        const requestBody = {
+          table: params.table,
+          target_id: params.target_id,
+          address_type: params.address_type || 'pickup'
+        };
+
+        console.log("🔍 Exact request body being sent:", JSON.stringify(requestBody, null, 2));
+        console.log("🔍 Request body size:", JSON.stringify(requestBody).length, "bytes");
+
         const { data, error } = await supabase.functions.invoke('decrypt-address', {
-          body: {
-            table: params.table,
-            target_id: params.target_id,
-            address_type: params.address_type || 'pickup'
-          },
+          body: requestBody,
           headers: {
             'Content-Type': 'application/json',
             ...(isMobile && { 'X-Mobile-Request': 'true' })
