@@ -256,6 +256,17 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           throw new Error(errorMessage);
         }
 
+        // Detect mobile device for better error messaging
+        const isMobileDevice = () => {
+          return typeof window !== 'undefined' && (
+            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+            window.innerWidth < 768
+          );
+        };
+
+        const isMobile = isMobileDevice();
+        console.log(`📱 Device type: ${isMobile ? 'MOBILE' : 'DESKTOP'}`);
+
         // Provide specific guidance based on what's missing
         let errorMessage = "This book is temporarily unavailable for purchase. ";
 
@@ -277,11 +288,20 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           }
         }
 
+        // Mobile-specific guidance
+        if (isMobile) {
+          errorMessage += " If you're on mobile, try refreshing the page or switching to a desktop browser.";
+        }
+
         // If this is the current user's book, give them guidance
         if (user?.id === bookData.seller_id) {
           errorMessage += " You can fix this by updating your pickup address in your profile settings.";
         } else {
-          errorMessage += " Please try again later or contact the seller.";
+          if (isMobile) {
+            errorMessage += " Mobile users can also try switching to a WiFi connection.";
+          } else {
+            errorMessage += " Please try again later or contact the seller.";
+          }
         }
 
         console.error("Seller address debug info:", JSON.stringify({
