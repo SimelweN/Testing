@@ -81,13 +81,14 @@ const mergeAllUniversities = (...universitySets: University[][]): University[] =
   return Array.from(universityMap.values());
 };
 
-// Merge all university databases: new comprehensive dataset takes priority, then others
+// Merge all university databases: Complete ALL universities dataset takes highest priority
 export const ALL_SOUTH_AFRICAN_UNIVERSITIES: University[] = mergeAllUniversities(
   COMPLETE_26_UNIVERSITIES,
   COMPREHENSIVE_SA_UNIVERSITIES_2025,
   UNIVERSITIES_OF_TECHNOLOGY_2025,
   UPDATED_UNIVERSITY_PROGRAMS_2025,
-  COMPLETE_COMPREHENSIVE_UNIVERSITIES_2025
+  COMPLETE_COMPREHENSIVE_UNIVERSITIES_2025,
+  COMPLETE_ALL_UNIVERSITIES_2025
 );
 // Alias for backward compatibility - ensure this uses the complete database
 export const SOUTH_AFRICAN_UNIVERSITIES = ALL_SOUTH_AFRICAN_UNIVERSITIES;
