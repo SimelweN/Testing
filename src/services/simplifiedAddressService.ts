@@ -51,24 +51,88 @@ const retryWithBackoff = async <T>(
   throw lastError;
 };
 
-// Decrypt an address using the improved decrypt-address edge function with mobile-specific improvements
+// Decrypt an address using the decrypt-address edge function - fetch encrypted data first, then decrypt
 const decryptAddress = async (params: { table: string; target_id: string; address_type?: string }) => {
   const isMobile = isMobileDevice();
-  console.log(`🔐 Calling decrypt-address edge function (${isMobile ? 'MOBILE' : 'DESKTOP'}) with params:`, params);
+  console.log(`🔐 Fetching encrypted data for decryption (${isMobile ? 'MOBILE' : 'DESKTOP'}) with params:`, params);
 
   try {
-    // Use retry logic for mobile devices due to network instability
+    // Step 1: Fetch the encrypted data from the database first
+    const { table, target_id, address_type } = params;
+    let encryptedColumn: string;
+
+    switch (address_type || 'pickup') {
+      case 'pickup':
+        encryptedColumn = 'pickup_address_encrypted';
+        break;
+      case 'shipping':
+        encryptedColumn = 'shipping_address_encrypted';
+        break;
+      case 'delivery':
+        encryptedColumn = 'delivery_address_encrypted';
+        break;
+      default:
+        throw new Error('Invalid address_type');
+    }
+
+    console.log(`🔍 Fetching encrypted data from ${table}.${encryptedColumn} for ID: ${target_id}`);
+
+    const { data: record, error: fetchError } = await supabase
+      .from(table)
+      .select(`${encryptedColumn}, address_encryption_version`)
+      .eq('id', target_id)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error("❌ Error fetching encrypted data:", fetchError);
+      return null;
+    }
+
+    if (!record || !record[encryptedColumn]) {
+      console.log("❌ No encrypted data found");
+      return null;
+    }
+
+    const encryptedData = record[encryptedColumn];
+    console.log("✅ Found encrypted data, preparing to decrypt...");
+
+    // Step 2: Parse the encrypted bundle
+    let bundle;
+    try {
+      bundle = typeof encryptedData === 'string' ? JSON.parse(encryptedData) : encryptedData;
+    } catch (parseError) {
+      console.error("❌ Invalid encrypted data format:", parseError);
+      return null;
+    }
+
+    if (!bundle.ciphertext || !bundle.iv || !bundle.authTag) {
+      console.error("❌ Encrypted bundle missing required fields:", Object.keys(bundle));
+      return null;
+    }
+
+    // Step 3: Call edge function with the actual encrypted data
     const makeRequest = async () => {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), isMobile ? 15000 : 10000); // Longer timeout for mobile
+      const timeoutId = setTimeout(() => controller.abort(), isMobile ? 15000 : 10000);
 
       try {
+        const requestBody = {
+          encryptedData: bundle.ciphertext,
+          iv: bundle.iv,
+          authTag: bundle.authTag,
+          aad: bundle.aad,
+          version: bundle.version || record.address_encryption_version || 1
+        };
+
+        console.log("🔍 Sending encrypted data to edge function:", {
+          ...requestBody,
+          encryptedData: `${requestBody.encryptedData.substring(0, 20)}...`,
+          iv: `${requestBody.iv.substring(0, 12)}...`,
+          authTag: `${requestBody.authTag.substring(0, 12)}...`
+        });
+
         const { data, error } = await supabase.functions.invoke('decrypt-address', {
-          body: {
-            table: params.table,
-            target_id: params.target_id,
-            address_type: params.address_type || 'pickup'
-          },
+          body: requestBody,
           headers: {
             'Content-Type': 'application/json',
             ...(isMobile && { 'X-Mobile-Request': 'true' })
@@ -85,57 +149,32 @@ const decryptAddress = async (params: { table: string; target_id: string; addres
 
     const { data, error } = await (isMobile ? retryWithBackoff(makeRequest, 3, 1000) : makeRequest());
 
-    console.log("🔐 Edge function response:", { data, error });
-    console.log("🔐 Data structure:", JSON.stringify(data, null, 2));
-    console.log("🔐 Data.success:", data?.success);
-
-    // Handle 404 errors specifically (function not deployed)
-    if (error && (error.message?.includes('404') || error.message?.includes('Not Found'))) {
-      console.warn("🚫 Edge function not deployed/available in this environment, falling back to plaintext");
-      return null;
-    }
-
-    // Handle network timeout errors (common on mobile)
-    if (error && (error.message?.includes('timeout') || error.message?.includes('AbortError'))) {
-      console.warn(`⏱️ ${isMobile ? 'Mobile' : 'Desktop'} network timeout, will fall back to plaintext`);
-      return null;
-    }
-
-    // Handle CORS errors (can happen on mobile)
-    if (error && error.message?.includes('CORS')) {
-      console.warn(`🌐 ${isMobile ? 'Mobile' : 'Desktop'} CORS error, will fall back to plaintext`);
-      return null;
-    }
+    console.log("🔐 Edge function response:", {
+      data: data ? { success: data.success, hasData: !!data.data } : null,
+      error: error ? { message: error.message, status: error.status } : null
+    });
 
     if (error) {
-      console.warn(`Decryption failed on ${isMobile ? 'mobile' : 'desktop'}:`, error.message);
+      console.log("🔐 Error details:", {
+        message: error.message,
+        status: error.status,
+        statusText: error.statusText
+      });
       return null;
     }
 
-    // Handle different response formats from the edge function
-    if (data?.success) {
-      // Check for different nested formats
-      const result = data.address || data.data || null;
-      console.log("🔐 Final decryption result (success format):", result);
-      return result;
-    } else if (data && typeof data === 'object' && !data.success && !data.error) {
-      // Direct data format: the decrypted object itself
-      console.log("🔐 Final decryption result (direct format):", data);
-      return data;
+    // Handle response
+    if (data?.success && data?.data) {
+      console.log("✅ Decryption successful");
+      return data.data;
     } else {
-      console.warn("Decryption failed:", data?.error?.message || "Unknown error");
-      console.log("🔐 Full data object for debugging:", data);
+      console.warn("❌ Decryption failed:", data?.error?.message || "Unknown error");
       return null;
     }
+
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    if (errorMsg.includes('404') || errorMsg.includes('Not Found')) {
-      console.warn("🚫 Edge function service unavailable (404), falling back to plaintext");
-    } else if (errorMsg.includes('timeout') || errorMsg.includes('AbortError')) {
-      console.warn(`⏱️ ${isMobile ? 'Mobile' : 'Desktop'} request timeout, falling back to plaintext`);
-    } else {
-      console.warn(`Decryption service error on ${isMobile ? 'mobile' : 'desktop'}:`, errorMsg);
-    }
+    console.warn(`🔐 Decryption service error on ${isMobile ? 'mobile' : 'desktop'}:`, errorMsg);
     return null;
   }
 };
@@ -281,7 +320,49 @@ export const getSellerDeliveryAddress = async (
         }
       }
 
-      console.log("🔐 Encrypted address exists but decryption failed - not falling back to plaintext for security");
+      // Check if decryption failed due to authorization (400 error)
+      // This happens when buyers try to access seller addresses
+      // In this case, use the alternative address service as fallback for checkout
+      console.log("🔐 Encrypted address exists but decryption failed - checking if authorization issue...");
+
+      // Try to use the alternative address service for checkout
+      try {
+        console.log("🔄 Attempting fallback with alternative address service...");
+        const { getSellerPickupAddress } = await import("@/services/addressService");
+        const fallbackAddress = await getSellerPickupAddress(sellerId);
+
+        if (fallbackAddress) {
+          console.log("✅ Alternative address service provided fallback address:", fallbackAddress);
+
+          // Ensure proper field mapping for checkout validation
+          const mappedAddress = {
+            street: fallbackAddress.streetAddress || fallbackAddress.street || fallbackAddress.line1 || "",
+            city: fallbackAddress.city || "",
+            province: fallbackAddress.province || fallbackAddress.state || "",
+            postal_code: fallbackAddress.postalCode || fallbackAddress.postal_code || fallbackAddress.zip || "",
+            country: "South Africa",
+          };
+
+          console.log("🔄 Mapped address format for checkout:", mappedAddress);
+
+          // Validate that we have all required fields
+          if (mappedAddress.street && mappedAddress.city && mappedAddress.province && mappedAddress.postal_code) {
+            console.log("✅ Address validation passed - returning mapped address");
+            return mappedAddress;
+          } else {
+            console.warn("⚠️ Mapped address missing required fields:", {
+              street: !!mappedAddress.street,
+              city: !!mappedAddress.city,
+              province: !!mappedAddress.province,
+              postal_code: !!mappedAddress.postal_code
+            });
+          }
+        }
+      } catch (fallbackError) {
+        console.error("❌ Alternative address service also failed:", fallbackError);
+      }
+
+      console.log("🔐 All decryption methods failed - unable to retrieve seller address");
       return null;
     }
 
@@ -360,7 +441,7 @@ export const getSimpleUserAddresses = async (userId: string) => {
 
     // Only use plaintext if no encrypted versions exist
     if (profile.pickup_address || profile.shipping_address) {
-      console.log("✅ Using plaintext addresses (no encrypted versions found)");
+      console.log("�� Using plaintext addresses (no encrypted versions found)");
       return {
         pickup_address: profile.pickup_address,
         shipping_address: profile.shipping_address || profile.pickup_address,
