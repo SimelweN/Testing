@@ -92,7 +92,19 @@ const decryptAddress = async (params: { table: string; target_id: string; addres
 
     console.log("🔐 Edge function response:", { data, error });
     console.log("🔐 Data structure:", JSON.stringify(data, null, 2));
+    console.log("🔐 Error structure:", JSON.stringify(error, null, 2));
     console.log("🔐 Data.success:", data?.success);
+
+    if (error) {
+      console.log("🔐 Error details:", {
+        message: error.message,
+        status: error.status,
+        statusText: error.statusText,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+    }
 
     // Handle 404 errors specifically (function not deployed)
     if (error && (error.message?.includes('404') || error.message?.includes('Not Found'))) {
