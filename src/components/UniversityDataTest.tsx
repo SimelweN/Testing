@@ -31,21 +31,53 @@ const UniversityDataTest: React.FC = () => {
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="font-semibold text-lg">Total Universities</h3>
             <p className="text-2xl font-bold text-blue-600">{ALL_SOUTH_AFRICAN_UNIVERSITIES.length}</p>
+            <p className="text-sm text-gray-600">Target: 26+ universities</p>
           </div>
-          
+
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="font-semibold text-lg">Universities with Programs</h3>
             <p className="text-2xl font-bold text-green-600">{universitiesWithPrograms.length}</p>
+            <p className="text-sm text-gray-600">Should match total universities</p>
           </div>
-          
+
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="font-semibold text-lg">Total Programs</h3>
             <p className="text-2xl font-bold text-purple-600">{totalPrograms}</p>
+            <p className="text-sm text-gray-600">All from user document</p>
           </div>
-          
+
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="font-semibold text-lg">UL Programs</h3>
             <p className="text-2xl font-bold text-orange-600">{ulPrograms}</p>
+            <p className="text-sm text-gray-600">Expected: 50+ programs</p>
+          </div>
+        </div>
+
+        {/* Mobile Checkout Test Section */}
+        <div className="bg-white p-6 rounded-lg shadow mb-8">
+          <h2 className="text-xl font-bold mb-4">Mobile Checkout Fix Status</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-semibold mb-2">✅ Mobile Improvements Added:</h3>
+              <ul className="list-disc list-inside text-sm space-y-1">
+                <li>Mobile device detection</li>
+                <li>Retry logic for network issues</li>
+                <li>Extended timeouts for mobile</li>
+                <li>CORS error handling</li>
+                <li>Mobile-specific fallback strategy</li>
+                <li>Better error messages for mobile users</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-2">📱 How to Test:</h3>
+              <ul className="list-disc list-inside text-sm space-y-1">
+                <li>Open app on mobile device</li>
+                <li>Navigate to any book listing</li>
+                <li>Click "Buy Now" button</li>
+                <li>Should proceed to checkout without address error</li>
+                <li>If error occurs, check browser console for mobile-specific logs</li>
+              </ul>
+            </div>
           </div>
         </div>
 
