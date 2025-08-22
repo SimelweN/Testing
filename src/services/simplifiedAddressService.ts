@@ -224,8 +224,63 @@ export const getSellerDeliveryAddress = async (
       has_plaintext: !!profile.pickup_address
     });
 
-    // If there's encrypted data but decryption failed, let's not fall back to plaintext for security
+    // Mobile-specific handling for encrypted data decryption failures
     if (profile.pickup_address_encrypted) {
+      const isMobile = isMobileDevice();
+
+      if (isMobile) {
+        console.log("📱 Mobile device detected with encrypted address that failed decryption");
+        console.log("📱 Applying mobile-specific fallback policy...");
+
+        // On mobile, we're more permissive due to network instability
+        // Try one more time with a different approach
+        try {
+          console.log("📱 Attempting mobile-specific decryption retry...");
+          const mobileRetryResult = await retryWithBackoff(async () => {
+            return await decryptAddress({
+              table: 'profiles',
+              target_id: sellerId,
+              address_type: 'pickup'
+            });
+          }, 2, 2000);
+
+          if (mobileRetryResult) {
+            console.log("📱 Mobile retry successful!");
+            const address = {
+              street: mobileRetryResult.streetAddress || mobileRetryResult.street || "",
+              city: mobileRetryResult.city || "",
+              province: mobileRetryResult.province || "",
+              postal_code: mobileRetryResult.postalCode || mobileRetryResult.postal_code || "",
+              country: "South Africa",
+            };
+            return address;
+          }
+        } catch (retryError) {
+          console.log("📱 Mobile retry also failed:", retryError);
+        }
+
+        // If we still can't decrypt on mobile and there's a plaintext fallback available,
+        // use it with a warning (mobile networks are unreliable)
+        if (profile.pickup_address) {
+          console.warn("📱 MOBILE FALLBACK: Using plaintext address due to mobile network issues");
+          try {
+            const address = typeof profile.pickup_address === 'string'
+              ? JSON.parse(profile.pickup_address)
+              : profile.pickup_address;
+
+            return {
+              street: address.street || address.line1 || "",
+              city: address.city || "",
+              province: address.state || address.province || "",
+              postal_code: address.postalCode || address.postal_code || "",
+              country: "South Africa",
+            };
+          } catch (parseError) {
+            console.error("📱 Mobile fallback address parsing failed:", parseError);
+          }
+        }
+      }
+
       console.log("🔐 Encrypted address exists but decryption failed - not falling back to plaintext for security");
       return null;
     }
