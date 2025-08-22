@@ -40,6 +40,7 @@ import Checkout from "./pages/Checkout";
 import UniversityInfo from "./pages/UniversityInfo";
 import UniversityProfile from "./pages/UniversityProfile";
 import StudyResources from "./pages/StudyResources";
+import UniversityDataTest from "./components/UniversityDataTest";
 
 // Auth Pages
 import Login from "./pages/Login";
@@ -154,6 +155,10 @@ function App() {
                       <Route
                         path="/study-resources"
                         element={<StudyResources />}
+                      />
+                      <Route
+                        path="/university-test"
+                        element={<UniversityDataTest />}
                       />
                       <Route
                         path="/study-tips"

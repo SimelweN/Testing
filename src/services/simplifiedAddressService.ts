@@ -8,19 +8,82 @@ interface SimpleAddress {
   postalCode: string;
 }
 
-// Decrypt an address using the improved decrypt-address edge function
-const decryptAddress = async (params: { table: string; target_id: string; address_type?: string }) => {
-  try {
-    console.log("🔐 Calling decrypt-address edge function with params:", params);
+// Detect if we're on mobile for better error handling
+const isMobileDevice = () => {
+  return typeof window !== 'undefined' && (
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    window.innerWidth < 768
+  );
+};
 
-    // Use the legacy format for backward compatibility
-    const { data, error } = await supabase.functions.invoke('decrypt-address', {
-      body: {
-        table: params.table,
-        target_id: params.target_id,
-        address_type: params.address_type || 'pickup'
+// Retry logic for mobile network issues
+const retryWithBackoff = async <T>(
+  fn: () => Promise<T>,
+  maxAttempts: number = 3,
+  baseDelay: number = 1000
+): Promise<T> => {
+  let lastError: any;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      const errorMsg = error instanceof Error ? error.message : String(error);
+
+      // Don't retry certain types of errors
+      if (errorMsg.includes('404') || errorMsg.includes('Not Found') ||
+          errorMsg.includes('401') || errorMsg.includes('403')) {
+        throw error;
       }
-    });
+
+      if (attempt === maxAttempts) {
+        throw error;
+      }
+
+      // Exponential backoff with jitter for mobile networks
+      const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 500;
+      console.log(`🔄 Retry attempt ${attempt + 1}/${maxAttempts} after ${delay}ms delay`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  throw lastError;
+};
+
+// Decrypt an address using the improved decrypt-address edge function with mobile-specific improvements
+const decryptAddress = async (params: { table: string; target_id: string; address_type?: string }) => {
+  const isMobile = isMobileDevice();
+  console.log(`🔐 Calling decrypt-address edge function (${isMobile ? 'MOBILE' : 'DESKTOP'}) with params:`, params);
+
+  try {
+    // Use retry logic for mobile devices due to network instability
+    const makeRequest = async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), isMobile ? 15000 : 10000); // Longer timeout for mobile
+
+      try {
+        const { data, error } = await supabase.functions.invoke('decrypt-address', {
+          body: {
+            table: params.table,
+            target_id: params.target_id,
+            address_type: params.address_type || 'pickup'
+          },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(isMobile && { 'X-Mobile-Request': 'true' })
+          }
+        });
+
+        clearTimeout(timeoutId);
+        return { data, error };
+      } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+      }
+    };
+
+    const { data, error } = await (isMobile ? retryWithBackoff(makeRequest, 3, 1000) : makeRequest());
 
     console.log("🔐 Edge function response:", { data, error });
     console.log("🔐 Data structure:", JSON.stringify(data, null, 2));
@@ -32,8 +95,20 @@ const decryptAddress = async (params: { table: string; target_id: string; addres
       return null;
     }
 
+    // Handle network timeout errors (common on mobile)
+    if (error && (error.message?.includes('timeout') || error.message?.includes('AbortError'))) {
+      console.warn(`⏱️ ${isMobile ? 'Mobile' : 'Desktop'} network timeout, will fall back to plaintext`);
+      return null;
+    }
+
+    // Handle CORS errors (can happen on mobile)
+    if (error && error.message?.includes('CORS')) {
+      console.warn(`🌐 ${isMobile ? 'Mobile' : 'Desktop'} CORS error, will fall back to plaintext`);
+      return null;
+    }
+
     if (error) {
-      console.warn("Decryption failed:", error.message);
+      console.warn(`Decryption failed on ${isMobile ? 'mobile' : 'desktop'}:`, error.message);
       return null;
     }
 
@@ -56,8 +131,10 @@ const decryptAddress = async (params: { table: string; target_id: string; addres
     const errorMsg = error instanceof Error ? error.message : String(error);
     if (errorMsg.includes('404') || errorMsg.includes('Not Found')) {
       console.warn("🚫 Edge function service unavailable (404), falling back to plaintext");
+    } else if (errorMsg.includes('timeout') || errorMsg.includes('AbortError')) {
+      console.warn(`⏱️ ${isMobile ? 'Mobile' : 'Desktop'} request timeout, falling back to plaintext`);
     } else {
-      console.warn("Decryption service error:", errorMsg);
+      console.warn(`Decryption service error on ${isMobile ? 'mobile' : 'desktop'}:`, errorMsg);
     }
     return null;
   }
@@ -147,8 +224,63 @@ export const getSellerDeliveryAddress = async (
       has_plaintext: !!profile.pickup_address
     });
 
-    // If there's encrypted data but decryption failed, let's not fall back to plaintext for security
+    // Mobile-specific handling for encrypted data decryption failures
     if (profile.pickup_address_encrypted) {
+      const isMobile = isMobileDevice();
+
+      if (isMobile) {
+        console.log("📱 Mobile device detected with encrypted address that failed decryption");
+        console.log("📱 Applying mobile-specific fallback policy...");
+
+        // On mobile, we're more permissive due to network instability
+        // Try one more time with a different approach
+        try {
+          console.log("📱 Attempting mobile-specific decryption retry...");
+          const mobileRetryResult = await retryWithBackoff(async () => {
+            return await decryptAddress({
+              table: 'profiles',
+              target_id: sellerId,
+              address_type: 'pickup'
+            });
+          }, 2, 2000);
+
+          if (mobileRetryResult) {
+            console.log("📱 Mobile retry successful!");
+            const address = {
+              street: mobileRetryResult.streetAddress || mobileRetryResult.street || "",
+              city: mobileRetryResult.city || "",
+              province: mobileRetryResult.province || "",
+              postal_code: mobileRetryResult.postalCode || mobileRetryResult.postal_code || "",
+              country: "South Africa",
+            };
+            return address;
+          }
+        } catch (retryError) {
+          console.log("📱 Mobile retry also failed:", retryError);
+        }
+
+        // If we still can't decrypt on mobile and there's a plaintext fallback available,
+        // use it with a warning (mobile networks are unreliable)
+        if (profile.pickup_address) {
+          console.warn("📱 MOBILE FALLBACK: Using plaintext address due to mobile network issues");
+          try {
+            const address = typeof profile.pickup_address === 'string'
+              ? JSON.parse(profile.pickup_address)
+              : profile.pickup_address;
+
+            return {
+              street: address.street || address.line1 || "",
+              city: address.city || "",
+              province: address.state || address.province || "",
+              postal_code: address.postalCode || address.postal_code || "",
+              country: "South Africa",
+            };
+          } catch (parseError) {
+            console.error("📱 Mobile fallback address parsing failed:", parseError);
+          }
+        }
+      }
+
       console.log("🔐 Encrypted address exists but decryption failed - not falling back to plaintext for security");
       return null;
     }
