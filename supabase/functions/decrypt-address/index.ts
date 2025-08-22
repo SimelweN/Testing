@@ -260,17 +260,45 @@ Deno.serve(async (req: Request) => {
       let query = supabase.from(table).select(`id, ${encryptedColumn}, ${plaintextColumn}, address_encryption_version`)
       
       if (table === 'profiles') {
-        // For profiles, users can only access their own data unless they're admin
+        // For profiles, users can access their own data or seller pickup addresses for checkout
         const { data: profile } = await supabase
           .from('profiles')
           .select('is_admin')
           .eq('id', user.id)
           .single()
-        
+
         const isAdmin = profile?.is_admin || false
-        
+
+        // Allow access if:
+        // 1. User is admin
+        // 2. User is accessing their own data
+        // 3. User is accessing seller pickup address for checkout (address_type === 'pickup')
         if (!isAdmin && user.id !== target_id) {
-          throw new Error('Unauthorized access to profile data')
+          // For pickup addresses, allow access if the target is a seller with available books
+          if (address_type === 'pickup') {
+            const { data: sellerBooks, error: booksError } = await supabase
+              .from('books')
+              .select('id')
+              .eq('seller_id', target_id)
+              .eq('sold', false)
+              .eq('availability', 'available')
+              .limit(1)
+
+            if (booksError) {
+              console.error('[decrypt-address] Error checking seller books:', booksError)
+              throw new Error('Failed to validate seller access')
+            }
+
+            // Allow access if seller has available books
+            if (!sellerBooks || sellerBooks.length === 0) {
+              throw new Error('Unauthorized access to profile data')
+            }
+
+            console.log(`[decrypt-address] Allowing checkout access to seller ${target_id} pickup address`)
+          } else {
+            // For non-pickup addresses (shipping), only allow own data or admin
+            throw new Error('Unauthorized access to profile data')
+          }
         }
       }
 
