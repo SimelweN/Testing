@@ -293,14 +293,31 @@ export const getSellerDeliveryAddress = async (
         const fallbackAddress = await getSellerPickupAddress(sellerId);
 
         if (fallbackAddress) {
-          console.log("✅ Alternative address service provided fallback address");
-          return {
-            street: fallbackAddress.streetAddress || fallbackAddress.street || "",
+          console.log("✅ Alternative address service provided fallback address:", fallbackAddress);
+
+          // Ensure proper field mapping for checkout validation
+          const mappedAddress = {
+            street: fallbackAddress.streetAddress || fallbackAddress.street || fallbackAddress.line1 || "",
             city: fallbackAddress.city || "",
-            province: fallbackAddress.province || "",
-            postal_code: fallbackAddress.postalCode || fallbackAddress.postal_code || "",
+            province: fallbackAddress.province || fallbackAddress.state || "",
+            postal_code: fallbackAddress.postalCode || fallbackAddress.postal_code || fallbackAddress.zip || "",
             country: "South Africa",
           };
+
+          console.log("🔄 Mapped address format for checkout:", mappedAddress);
+
+          // Validate that we have all required fields
+          if (mappedAddress.street && mappedAddress.city && mappedAddress.province && mappedAddress.postal_code) {
+            console.log("✅ Address validation passed - returning mapped address");
+            return mappedAddress;
+          } else {
+            console.warn("⚠️ Mapped address missing required fields:", {
+              street: !!mappedAddress.street,
+              city: !!mappedAddress.city,
+              province: !!mappedAddress.province,
+              postal_code: !!mappedAddress.postal_code
+            });
+          }
         }
       } catch (fallbackError) {
         console.error("❌ Alternative address service also failed:", fallbackError);
