@@ -399,7 +399,7 @@ const BankingProfileTab = () => {
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3">
                 <Button
-                  onClick={showFullAccount ? handleViewDetailed : handleDecryptAndView}
+                  onClick={handleDecryptAndView}
                   className="bg-book-600 hover:bg-book-700 flex items-center gap-2"
                   disabled={isDecrypting || loadingSubaccount}
                 >
@@ -408,7 +408,7 @@ const BankingProfileTab = () => {
                   ) : (
                     <Eye className="h-4 w-4" />
                   )}
-                  {showFullAccount ? "View Full Details" : "View Details"}
+                  View Details
                 </Button>
                 {showFullAccount && (
                   <Button
