@@ -309,7 +309,7 @@ const BankingManagement: React.FC = () => {
                         ) : (
                           <Eye className="h-4 w-4 mr-2" />
                         )}
-                        View Full Details
+                        View Details
                       </Button>
                       <Button
                         onClick={handleEditSubaccount}
