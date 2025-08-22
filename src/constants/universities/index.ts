@@ -15,6 +15,9 @@ import {
 import {
   UNIVERSITIES_OF_TECHNOLOGY_2025,
 } from "./universities-of-technology-2025";
+import {
+  COMPLETE_COMPREHENSIVE_UNIVERSITIES_2025,
+} from "./complete-comprehensive-universities-2025";
 
 // Merge all university databases with comprehensive 2025 programs
 const mergeAllUniversities = (...universitySets: University[][]): University[] => {
