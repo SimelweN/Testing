@@ -161,6 +161,16 @@ const ProfileHeader = ({
                 Share Profile
               </Button>
 
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsTransparencyModalOpen(true)}
+                className="border-blue-300 text-blue-600 hover:bg-blue-50"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Transparency
+              </Button>
+
               {onMessageUser && (
                 <Button
                   variant="outline"
