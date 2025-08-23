@@ -10,7 +10,10 @@ import {
   CheckCircle,
   User,
   HelpCircle,
+  Eye,
 } from "lucide-react";
+import { useState } from "react";
+import TransparencyModal from "./TransparencyModal";
 
 interface UserData {
   id?: string;
