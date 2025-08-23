@@ -44,21 +44,23 @@ const TransparencyModal = ({ isOpen, onClose }: TransparencyModalProps) => {
 
         <Tabs defaultValue="about" className="w-full">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 h-auto p-1">
-            <TabsTrigger value="about" className="flex items-center gap-1">
-              <Info className="h-4 w-4" />
-              About Us
+            <TabsTrigger value="about" className="flex flex-col sm:flex-row items-center gap-1 p-2 sm:p-3 text-xs sm:text-sm">
+              <Info className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">About Us</span>
+              <span className="sm:hidden">About</span>
             </TabsTrigger>
-            <TabsTrigger value="privacy" className="flex items-center gap-1">
-              <Shield className="h-4 w-4" />
+            <TabsTrigger value="privacy" className="flex flex-col sm:flex-row items-center gap-1 p-2 sm:p-3 text-xs sm:text-sm">
+              <Shield className="h-3 w-3 sm:h-4 sm:w-4" />
               Privacy
             </TabsTrigger>
-            <TabsTrigger value="encryption" className="flex items-center gap-1">
-              <Lock className="h-4 w-4" />
+            <TabsTrigger value="encryption" className="flex flex-col sm:flex-row items-center gap-1 p-2 sm:p-3 text-xs sm:text-sm">
+              <Lock className="h-3 w-3 sm:h-4 sm:w-4" />
               Security
             </TabsTrigger>
-            <TabsTrigger value="data" className="flex items-center gap-1">
-              <Database className="h-4 w-4" />
-              Data Usage
+            <TabsTrigger value="data" className="flex flex-col sm:flex-row items-center gap-1 p-2 sm:p-3 text-xs sm:text-sm">
+              <Database className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Data Usage</span>
+              <span className="sm:hidden">Data</span>
             </TabsTrigger>
           </TabsList>
 
