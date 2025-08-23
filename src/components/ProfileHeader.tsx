@@ -100,6 +100,16 @@ const ProfileHeader = ({
                     </Button>
 
                     <Button
+                      onClick={() => setIsTransparencyModalOpen(true)}
+                      variant="outline"
+                      size="sm"
+                      className="border-blue-600 text-blue-600 hover:bg-blue-50 text-xs px-3 py-1 h-8"
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      Transparency
+                    </Button>
+
+                    <Button
                       onClick={onBookNotSelling}
                       size="sm"
                       className="bg-book-600 hover:bg-book-700 text-white text-xs px-3 py-1 h-8"
