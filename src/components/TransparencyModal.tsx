@@ -33,7 +33,7 @@ const TransparencyModal = ({ isOpen, onClose }: TransparencyModalProps) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[95vw] max-w-4xl max-h-[85vh] overflow-y-auto rounded-xl sm:rounded-lg">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-2xl">
+          <DialogTitle className="flex items-center gap-2 text-lg sm:text-2xl">
             <Eye className="h-6 w-6 text-book-600" />
             Transparency & Privacy Information
           </DialogTitle>
@@ -64,7 +64,7 @@ const TransparencyModal = ({ isOpen, onClose }: TransparencyModalProps) => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="about" className="space-y-4 mt-6">
+          <TabsContent value="about" className="space-y-4 mt-4 sm:mt-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -111,7 +111,7 @@ const TransparencyModal = ({ isOpen, onClose }: TransparencyModalProps) => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="privacy" className="space-y-4 mt-6">
+          <TabsContent value="privacy" className="space-y-4 mt-4 sm:mt-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -155,7 +155,7 @@ const TransparencyModal = ({ isOpen, onClose }: TransparencyModalProps) => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="encryption" className="space-y-4 mt-6">
+          <TabsContent value="encryption" className="space-y-4 mt-4 sm:mt-6">
             <div className="grid gap-4">
               <Card>
                 <CardHeader>
@@ -227,7 +227,7 @@ const TransparencyModal = ({ isOpen, onClose }: TransparencyModalProps) => {
             </div>
           </TabsContent>
 
-          <TabsContent value="data" className="space-y-4 mt-6">
+          <TabsContent value="data" className="space-y-4 mt-4 sm:mt-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -283,7 +283,7 @@ const TransparencyModal = ({ isOpen, onClose }: TransparencyModalProps) => {
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end pt-4 border-t">
+        <div className="flex justify-end pt-3 sm:pt-4 border-t mt-4 sm:mt-6">
           <Button onClick={onClose} className="bg-book-600 hover:bg-book-700">
             Close
           </Button>
