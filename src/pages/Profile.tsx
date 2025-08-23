@@ -269,13 +269,24 @@ const Profile = () => {
                   </div>
                 </div>
 
-                <Button
-                  onClick={() => navigate("/create-listing")}
-                  className="bg-book-600 hover:bg-book-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  List a Book
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setIsTransparencyModalOpen(true)}
+                    variant="outline"
+                    className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    Transparency
+                  </Button>
+
+                  <Button
+                    onClick={() => navigate("/create-listing")}
+                    className="bg-book-600 hover:bg-book-700"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    List a Book
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
