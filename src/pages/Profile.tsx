@@ -37,6 +37,7 @@ import BankingProfileTab from "@/components/profile/BankingProfileTab";
 import ShareProfileDialog from "@/components/ShareProfileDialog";
 import ShareReminderBanner from "@/components/ShareReminderBanner";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
+import TransparencyModal from "@/components/TransparencyModal";
 import { UserProfile, AddressData, Address } from "@/types/address";
 import { handleAddressError, getUserFriendlyErrorMessage } from "@/utils/errorDisplayUtils";
 
