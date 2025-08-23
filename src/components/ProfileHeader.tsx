@@ -45,6 +45,8 @@ const ProfileHeader = ({
   onEditProfile,
   onBookNotSelling,
 }: ProfileHeaderProps) => {
+  const [isTransparencyModalOpen, setIsTransparencyModalOpen] = useState(false);
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
