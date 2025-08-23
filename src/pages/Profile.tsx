@@ -53,6 +53,7 @@ const Profile = () => {
   const [deletingBooks, setDeletingBooks] = useState<Set<string>>(new Set());
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isTransparencyModalOpen, setIsTransparencyModalOpen] = useState(false);
 
   const loadActiveListings = useCallback(async () => {
     if (!user?.id) return;
