@@ -648,6 +648,11 @@ const Profile = () => {
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
       />
+
+      <TransparencyModal
+        isOpen={isTransparencyModalOpen}
+        onClose={() => setIsTransparencyModalOpen(false)}
+      />
     </Layout>
   );
 };
