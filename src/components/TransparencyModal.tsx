@@ -284,7 +284,7 @@ const TransparencyModal = ({ isOpen, onClose }: TransparencyModalProps) => {
         </Tabs>
 
         <div className="flex justify-end pt-3 sm:pt-4 border-t mt-4 sm:mt-6">
-          <Button onClick={onClose} className="bg-book-600 hover:bg-book-700">
+          <Button onClick={onClose} className="bg-book-600 hover:bg-book-700 w-full sm:w-auto min-h-[44px] sm:min-h-[40px]">
             Close
           </Button>
         </div>
