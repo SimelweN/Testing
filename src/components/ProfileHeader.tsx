@@ -10,7 +10,10 @@ import {
   CheckCircle,
   User,
   HelpCircle,
+  Eye,
 } from "lucide-react";
+import { useState } from "react";
+import TransparencyModal from "./TransparencyModal";
 
 interface UserData {
   id?: string;
@@ -42,6 +45,8 @@ const ProfileHeader = ({
   onEditProfile,
   onBookNotSelling,
 }: ProfileHeaderProps) => {
+  const [isTransparencyModalOpen, setIsTransparencyModalOpen] = useState(false);
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -51,6 +56,7 @@ const ProfileHeader = ({
   };
 
   return (
+    <>
     <Card className="w-full">
       <CardContent className="p-6">
         <div className="flex flex-col lg:flex-row items-start justify-between gap-6">
@@ -92,6 +98,16 @@ const ProfileHeader = ({
                     >
                       <Share2 className="h-3 w-3 mr-1" />
                       Share
+                    </Button>
+
+                    <Button
+                      onClick={() => setIsTransparencyModalOpen(true)}
+                      variant="outline"
+                      size="sm"
+                      className="border-blue-600 text-blue-600 hover:bg-blue-50 text-xs px-3 py-1 h-8"
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      Transparency
                     </Button>
 
                     <Button
@@ -146,6 +162,16 @@ const ProfileHeader = ({
                 Share Profile
               </Button>
 
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsTransparencyModalOpen(true)}
+                className="border-blue-300 text-blue-600 hover:bg-blue-50"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Transparency
+              </Button>
+
               {onMessageUser && (
                 <Button
                   variant="outline"
@@ -185,6 +211,12 @@ const ProfileHeader = ({
         </div>
       </CardContent>
     </Card>
+
+    <TransparencyModal
+      isOpen={isTransparencyModalOpen}
+      onClose={() => setIsTransparencyModalOpen(false)}
+    />
+    </>
   );
 };
 

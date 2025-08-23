@@ -24,6 +24,7 @@ import {
   Package,
   TrendingUp,
   Share2,
+  Eye,
 } from "lucide-react";
 import { getUserBooks } from "@/services/book/bookQueries";
 import { deleteBook } from "@/services/book/bookMutations";
@@ -36,6 +37,7 @@ import BankingProfileTab from "@/components/profile/BankingProfileTab";
 import ShareProfileDialog from "@/components/ShareProfileDialog";
 import ShareReminderBanner from "@/components/ShareReminderBanner";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
+import TransparencyModal from "@/components/TransparencyModal";
 import { UserProfile, AddressData, Address } from "@/types/address";
 import { handleAddressError, getUserFriendlyErrorMessage } from "@/utils/errorDisplayUtils";
 
@@ -51,6 +53,7 @@ const Profile = () => {
   const [deletingBooks, setDeletingBooks] = useState<Set<string>>(new Set());
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isTransparencyModalOpen, setIsTransparencyModalOpen] = useState(false);
 
   const loadActiveListings = useCallback(async () => {
     if (!user?.id) return;
@@ -266,13 +269,24 @@ const Profile = () => {
                   </div>
                 </div>
 
-                <Button
-                  onClick={() => navigate("/create-listing")}
-                  className="bg-book-600 hover:bg-book-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  List a Book
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setIsTransparencyModalOpen(true)}
+                    variant="outline"
+                    className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    Transparency
+                  </Button>
+
+                  <Button
+                    onClick={() => navigate("/create-listing")}
+                    className="bg-book-600 hover:bg-book-700"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    List a Book
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -633,6 +647,11 @@ const Profile = () => {
       <ProfileEditDialog
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
+      />
+
+      <TransparencyModal
+        isOpen={isTransparencyModalOpen}
+        onClose={() => setIsTransparencyModalOpen(false)}
       />
     </Layout>
   );
