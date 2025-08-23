@@ -43,7 +43,7 @@ const TransparencyModal = ({ isOpen, onClose }: TransparencyModalProps) => {
         </DialogHeader>
 
         <Tabs defaultValue="about" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 h-auto p-1">
             <TabsTrigger value="about" className="flex items-center gap-1">
               <Info className="h-4 w-4" />
               About Us
