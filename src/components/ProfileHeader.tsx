@@ -56,6 +56,7 @@ const ProfileHeader = ({
   };
 
   return (
+    <>
     <Card className="w-full">
       <CardContent className="p-6">
         <div className="flex flex-col lg:flex-row items-start justify-between gap-6">
@@ -210,6 +211,12 @@ const ProfileHeader = ({
         </div>
       </CardContent>
     </Card>
+
+    <TransparencyModal
+      isOpen={isTransparencyModalOpen}
+      onClose={() => setIsTransparencyModalOpen(false)}
+    />
+    </>
   );
 };
 
