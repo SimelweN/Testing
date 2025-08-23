@@ -24,6 +24,7 @@ import {
   Package,
   TrendingUp,
   Share2,
+  Eye,
 } from "lucide-react";
 import { getUserBooks } from "@/services/book/bookQueries";
 import { deleteBook } from "@/services/book/bookMutations";
